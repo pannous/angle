@@ -1,5 +1,7 @@
 ![ENGLISH SCRIPT](English script.png "ENGLISH SCRIPT")
 
+ALPHA, DON'T USE YET!
+
 **Angle** is English as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
 
@@ -88,13 +90,13 @@ To check out the current capabilities of English Script have a look at the [test
 
 INSTALL
 -------
-`git clone git@github.com:pannous/english-script.git`
+`git clone --recursive git@github.com:pannous/angle.git`
 
-`cd english-script`
+`cd angle`
 
 `./install.sh`
 
-Start the shell : `./bin/angle` or `rake shell`
+Start the shell : `./bin/angle` 
 
 EXPERIMENT
 ----------
