@@ -68,8 +68,10 @@ def last_result():
     return the.result
 
 
-def parse_tree():
-    pass
+def parse_tree(x):
+    angle.use_tree=False
+    english_parser.dont_interpret()
+    return english_parser.parse(x).tree #AST
 
 
 def puts(x):

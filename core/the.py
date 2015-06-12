@@ -1,5 +1,5 @@
-from __future__ import print_function
-import __builtin__
+# from __future__ import print_function
+# import __builtin__
 import extensions
 
 
@@ -23,7 +23,9 @@ context = ''
 variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)
-methods = {'beep': extensions.beep,'puts':print_function,'print':print_function,'reverse':extensions.xstr.reverse}  # name->method-node
+# print_function
+methods = {'beep': extensions.beep,'puts':extensions.puts,'print':extensions.puts,'reverse':extensions.xstr.reverse}  # name->method-node
+methods = {'beep': extensions.beep,'puts':extensions.puts,'print':extensions.puts,'reverse':extensions.xstr.reverse}  # name->method-node
 classes = {'list': extensions.xlist,'Math': extensions.Math}
 c_methods = ['printf']
 builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!

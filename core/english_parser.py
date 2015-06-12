@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import ast
+import types
 import tree
 
 # global inside_list
@@ -11,14 +12,14 @@ import tree
 # import __builtin__ # class function(object) etc
 import inspect
 # import kast
-from kast import *
+from cast import *
 import re
 import __builtin__
 import traceback
 import sys
 import HelperMethods
 
-import interpretation
+import Interpretation
 # import HelperMethods
 from nodes import Function, Argument, Variable, Property, Condition
 from nodes import FunctionCall
@@ -163,10 +164,11 @@ def ___(*tokens0):
 
 
 def interpretation():
-    import interpretation
-    interpretation = interpretation.Interpretation()
+    import Interpretation
+    interpretation = Interpretation.Interpretation()
     i = interpretation  # Interpretation.new
     i.result = the.result
+    i.tree=the.result
     i.error_position = error_position()
     # super  # set tree, nodes
     i.javascript = javascript
@@ -886,10 +888,17 @@ def is_object_method(m):
 def has_object(m):
     return str(m) in globals()
 
-
+# In Python 2.7, built-in function objects such as print()
+# simply do not have enough information for you to discover what arguments they support!!
 def has_args(method, clazz=object, assume=False):
     if method in ['invert', '++', '--']:  # increase by 8:
         return False
+    if isinstance(method, types.BuiltinFunctionType):
+        return True
+    if isinstance(method, types.FunctionType):
+        pass
+    # type(method) = {type} <type 'instance'>
+    # type(pow) = {type} <type 'builtin_function_or_method'>
     if not callable(method):
         if method in methods:
             method = methods[method]
@@ -900,7 +909,7 @@ def has_args(method, clazz=object, assume=False):
         if method in dir(clazz):
             method = getattr(clazz, method)
     args, varargs, varkw, defaults=inspect.getargspec(method)
-    return len(args)+len(defaults)+len(varkw)> 0 or assume
+    return len(args)+(defaults and len(defaults) or 0)+(varkw and len(varkw) or 0) > 0 or assume
 
 
 def c_method():
@@ -970,7 +979,7 @@ def generic_method_call(obj=None):
         current_value = None
         angle.in_args = True
         args = star(arg)
-        if not args: args = obj
+        if not args: args = obj;obj=None
         # ___( ',','and')
     else:
         more = maybe_token(',')

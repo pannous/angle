@@ -892,3 +892,7 @@ class Math:
         for name, obj in inspect.getmembers(sys.modules['math']):
             if name==attr: return obj
         return False
+
+
+def puts(x):
+    print(x)

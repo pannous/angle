@@ -1,6 +1,6 @@
 import _global
 import english_parser
-import interpretation
+import Interpretation
 import test.parser_test_helper
 
 _global.use_tree = False

@@ -625,6 +625,7 @@ def dont_interpret():
 
 
 def interpreting(n=0):
+    if angle.use_tree: return False
     depth = caller_depth()
     if (angle.interpret_border > depth - n):
         angle.interpret = angle.did_interpret

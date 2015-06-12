@@ -1,7 +1,7 @@
-
+#!/usr/bin/env bash
 echo INSTALLING DEPENDENCIES... This might take a minute or 10
 
-git submodule foreach init
+#git submodule foreach init
 git submodule foreach git pull origin master
 
 export ANGLE_HOME=$PWD
