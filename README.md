@@ -96,6 +96,8 @@ INSTALL
 
 `./install.sh`
 
+ALPHA, DON'T USE YET!
+
 Start the shell : `./bin/angle` 
 
 EXPERIMENT
