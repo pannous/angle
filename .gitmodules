@@ -1,0 +1,6 @@
+[submodule "cast"]
+	path = cast
+	url = git@github.com:pannous/cast.git
+[submodule "samples"]
+	path = samples
+	url = git@github.com:pannous/english-script-samples.git
