@@ -2,7 +2,7 @@
 
 ALPHA, DON'T USE YET!
 
-**Angle** is (English)[https://github.com/pannous/english-script] as a programming language.
+**Angle** is [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
 
 The guiding philosophy is to have forgiving interfaces yet strict implementations, and to make special chars (braces,colons,etc) completely optional.
