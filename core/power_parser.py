@@ -4,12 +4,12 @@
 # from english_parser import result, comment, condition, root
 import tokenize
 import const
-import english_parser
 import english_tokens
 import re
 import token as _token
 import exceptions
 from exceptions import *
+import extensions
 from nodes import Pointer
 # from exceptions import NotMatching
 import nodes
@@ -427,6 +427,7 @@ def parse_tokens(s):
     return the.tokenstream
 
 def init(strings):
+    import english_parser
     # global is ok within one file but do not use it across different files
     global  no_rollback_depth,rollback_depths,line_number,original_string,root,lines,nodes,depth,lhs,rhs,comp
     no_rollback_depth = -1
@@ -447,7 +448,7 @@ def init(strings):
     depth = 0
     lhs = rhs = comp = None
     for nr in english_tokens.numbers:
-        english_parser.token_map[nr]= english_parser.number
+        the.token_map[nr]= number
 
     # result           =None NOO, keep old!
 
@@ -1138,4 +1139,72 @@ def check_comment():
     # the.string = the.string.replace(r'\/\/.*', '')  # todo
     # the.string = the.string.replace(r'#.*', '')
     # if not the.string: checkNewline()
+
+
+def raise_not_matching(msg=None):
+    raise NotMatching(msg)
+
+
+_try=maybe
+
+def number():
+    return _try(real) or _try(fraction) or _try(integer) or _try(number_word) or raise_not_matching("number")
+
+
+def number_word():
+    n=__(english_tokens.numbers)
+    return extensions.xstr(n).parse_number()  #except NotMatching.new "no number"
+
+
+def fraction():
+    f = maybe(integer) or 0
+    m = starts_with(["¼", "½", "¾", "⅓", "⅔", "⅕", "⅖", "⅗", "⅘", "⅙", "⅚", "⅛", "⅜", "⅝", "⅞"])
+    if not m:
+        # if f==ZERO: return 0 NOT YET!
+        if f!=0:
+            return f
+        raise NotMatching()
+    else:
+        next_token()
+        m = m.parse_number()
+    the.result = float(f) + m
+    return the.result
+
+
+# _try(complex)  or
+ZERO=0
+def integer():
+    match = re.search(r'^\s*(-?\d+)',the.string)
+    if match:
+        current_value = int(match.groups()[0])
+        next_token()
+        if current_value == 0 :
+            current_value = ZERO
+        return current_value
+    raise NotMatching("no integer")
+    #plus{tokens('1','2','3','4','5','6','7','8','9','0'))
+
+
+def real():
+    ## global the.string
+    match = re.search(r'^\s*(-?\d*\.\d+)',the.string)
+    if match:
+        current_value = float(match.groups()[0])
+        next_token()
+        return current_value
+    #return false
+    raise NotMatching("no real (unreal)")
+
+
+def complex():
+    s = the.string.strip().replace("i","j") # python!
+    match = re.search(r'^(\d+j)', s)  # 3i
+    if not match: match = re.search(r'^(\d*\.\d+j)', s)  # 3.3i
+    if not match: match = re.search(r'^(\d+\s*\+\s*\d+j)', s)  # 3+3i
+    if not match: match = re.search(r'^(\d*\.\d+\s*\+\s*\d*\.\d+j)', s)  # 3+3i
+    if match:
+        the.current_value = complex(match[0].groups())
+        next_token()
+        return current_value
+    return False
 

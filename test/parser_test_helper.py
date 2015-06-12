@@ -1,5 +1,8 @@
+import compiler.ast
 import unittest
+import ast
 import angle
+import cast.cast
 import english_parser
 import power_parser
 import test._global
@@ -69,9 +72,12 @@ def last_result():
 
 
 def parse_tree(x):
-    angle.use_tree=False
-    english_parser.dont_interpret()
-    return english_parser.parse(x).tree #AST
+    angle.use_tree=True
+    power_parser.dont_interpret()
+    angle_ast=power_parser.parse(x).tree #AST
+    if not isinstance(angle_ast, ast.Module):
+        angle_ast= cast.cast.Module(body=[angle_ast])
+    return angle_ast
 
 
 def puts(x):
@@ -180,7 +186,8 @@ class ParserBaseTest(unittest.TestCase):
     def setUp(self):
         the._verbose=True # False
         if not angle.use_tree:
-            self.parser.do_interpret()
+            power_parser.do_interpret()
+            # self.parser.do_interpret()
 
     @classmethod
     def setUpClass(cls):

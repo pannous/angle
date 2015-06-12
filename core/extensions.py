@@ -176,11 +176,11 @@ class Class:
 
 
 # WOW YAY WORKS!!!!!
-# NO, ONLY VIA EXPLICIT CONSTRUCTOR!
-# NO!! isinstance(my_xlist,list) FALSE !!
+# ONLY VIA EXPLICIT CONSTRUCTOR!
+# NOOOO!! BAAAD! isinstance(my_xlist,list) FALSE !!
 def extension(clazz):
-    print(clazz)
-    help(clazz)
+    # print(clazz)
+    # help(clazz)
     return clazz
 
 
@@ -189,6 +189,7 @@ class xlist(list):
 
     def __sub__(self, other): # xlist-[1]-[2]
         return xlist(i for i in self if i not in other)
+
     def __rsub__(self, other): #[1]-xlist-[2] ok!
         return xlist(i for i in other if i not in self)
 
