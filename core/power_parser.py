@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+from __future__ import print_function # for stderr
+
 # from TreeBuilder import show_tree
 # from english_parser import result, comment, condition, root
+import sys
 import tokenize
 import const
 import english_tokens
@@ -238,7 +241,8 @@ def pointer_string():
 
 def print_pointer(force=False):
     if(force or the._verbose):
-        print(pointer_string())
+        print(the.current_token,  file=sys.stderr)
+        print(pointer_string(),  file=sys.stderr)
     return OK
 
 
@@ -342,7 +346,8 @@ def error(info):
     # import traceback
     # traceback.print_stack() # backtrace
     # if the.verbose:
-    print(info)
+    print(info,  file=sys.stderr)
+
 
 def to_source(block):
     return str(block)
@@ -751,11 +756,13 @@ def invalidate_obsolete(old_nodes):
                 n.destroy()
 
 
-# start_block optional !?!
+# start_block INCLUDED!! (optional !?!)
 def block():  # type):
     global last_result,original_string
     from english_parser import start_block,statement,end_of_statement,end_block
-    start_block()  # NEWLINE ALONE == START!!!?!?!
+    maybe(newline)
+    start_block()# NEWLINE ALONE == START!!!?!?!
+    # allow_rollback()
     start = pointer()
     statements=[statement()]
     # content = pointer() - start
@@ -818,7 +825,7 @@ def maybe(block):
         # if verbose: verbose(e)
         # if verbose: string_pointer()
         cc = caller_depth()
-        rb = the.no_rollback_depth - 2
+        rb = the.no_rollback_depth
         if cc >= rb:
             set_token(old) #OK
             current_value = None
@@ -924,11 +931,15 @@ class IgnoreException(Exception):
     pass
 
 
-def parse(s):
+def parse(s,the_file=None):
     global  last_result,result
     if not s: return
+     #string
     verbose("PARSING")
     try:
+        if isinstance(s,file):
+            the_file=s
+            s=s.readlines()
         allow_rollback()
         init(s)
         import english_parser
@@ -936,6 +947,10 @@ def parse(s):
         if the.result in ['True','true']: the.result=True
         if the.result in ['False', 'false']: the.result=False
         the.last_result = the.result
+    except Exception as e:
+        error(the_file)
+        print_pointer(True)
+        raise e
     # except NotMatching as e:
     #     import traceback
     #     traceback.print_stack() # backtrace
@@ -1076,6 +1091,10 @@ def checkEndOfFile():
 def newline():
     if checkNewline() == NEWLINE:
         next_token()
+        if(the.current_type==54):
+            next_token() # ??? \r\n ? or what is this, python?
+        while(the.current_type==_token.INDENT):
+            next_token() # IGNORE FOR NOW!!!!
         return NEWLINE
     found = tokens(english_tokens.newline_tokens)
     if checkNewline() == NEWLINE:  # get new line: return NEWLINE

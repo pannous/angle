@@ -666,7 +666,7 @@ def piped_actions():
     token('|')
     no_rollback()
     c = true_method() or bash_action()
-    args = star(arg)
+    args = star(call_arg)
     if callable(c): args = [args, Argument(value=a)]  # with owner
     if interpreting():
         the.result = do_send(a, c, args)
@@ -720,25 +720,23 @@ def method_definition():
     no_rollback()
     name = _try(noun) or verb  # integrate or word
     # obj=maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
-    maybe_token('(')
+    brace=maybe_token('(')
     args = []
-
-    def lamb():
-        # nonlocal arg_nr #  python 3 , for python 2 there's no simple workaround, unfortunately SHOWSTOPPER!!!
-        # global arg_nr #  python 3 , for python 2 there's no simple workaround, unfortunately SHOWSTOPPER!!!
-        in_params = True
-        a = arg(len(args))
+    def arguments():
+        angle.in_params = True
+        a = param(len(args))
         maybe_token(',')
         args.append(a)
+        return a
+    star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
-    star(lamb)  # over an interval
-    return_type = ___('as', 'return', 'returns', 'returning', '=', '->') and _try(typeNameMapped)  # return_type or
+    return_type = ___('as') and maybe(typeNameMapped) or None
+    return_type = ___( 'return', 'returns', 'returning', '=', '->') and _try(typeNameMapped) or return_type
 
-    in_params = False
-    maybe_token(')')
-    allow_rollback  # for
+    angle.in_params = False
+    if brace: token(')')
     dont_interpret()
-    b = action_or_block  # define z as 7 allowed !!!
+    b = action_or_block()  # define z as 7 allowed !!!
     f = Function(name=name, arguments=args, return_type=return_type, body=b)
     # ,modifiers:modifiers, annotations:annotations
     methods[name] = f or parent_node() or b
@@ -836,9 +834,7 @@ def once_trigger():
     c = condition()
     no_rollback()
     maybe_token('then')
-    use_block = _try(start_block)
-    if not use_block: b = action and end_expression
-    if use_block: b = block and done
+    b=action_or_block()
     interpretation.add_trigger(c, b)
 
 
@@ -848,7 +844,7 @@ def _do():
 
 @Starttokens('do')
 def action_once():
-    if not _do() and newline: must_contain(once_words)
+    if not _do() and newline(): must_contain(once_words)
     no_rollback()
     b = action_or_block()
     # _do=maybe_token('do')
@@ -994,7 +990,7 @@ def true_method():
 
 def strange_eval(obj):
     maybe_token('(')
-    args = star(arg)
+    args = star(call_arg)
     _(')')
     the.result = do_evaluate_property(obj, args)
     return the.result
@@ -1035,7 +1031,7 @@ def generic_method_call(obj=None):
     if has_args(method, obj, assume_args):
         current_value = None
         angle.in_args = True
-        args = star(arg)
+        args = star(call_arg)
         if not args: args = obj;obj = None
         # ___( ',','and')
     else:
@@ -1101,7 +1097,7 @@ def assert_that():
 
 
 def arguments():
-    return star(arg)
+    return star(argx)
 
 
 def maybe_token(x):
@@ -1117,8 +1113,8 @@ def constructor():
     the_()
     _('new')
     # clazz=word #allow data
-    clazz = class_constant
-    do_send(clazz, "__init__", arguments)
+    clazz = class_constant()
+    do_send(clazz, "__init__", arguments())
     # clazz=Class.new
     # variables[clazz]=
     # clazz(arguments)
@@ -1157,7 +1153,7 @@ def action():
 
 
 def action_or_block():  # expression_or_block ??):
-    if not starts_with([';', ':', 'do', '{', 'begin', 'start']):
+    if not starts_with([';', ':', 'do', '{', 'begin', 'start']) and not checkEndOfLine():
         a = maybe(action)
         if a: return a
     # type=start_block && newline22
@@ -1255,12 +1251,9 @@ def datetime():
 
 
 def collection():
-    return any(lambda:
-               maybe(ranger) or
-               maybe(true_variable) or
-               action_or_expressions()  # of type list !!
-               )
-
+      return maybe(ranger) or \
+             maybe(true_variable) or\
+             action_or_expressions()
 
 @Starttokens('for')
 def for_i_in_collection():
@@ -1420,10 +1413,10 @@ def current_context():
     pass
 
 
-def variable_name(a=None):
+def variable_name(a=None,store=true):
     a = a or maybe_tokens(articles)
     if a != 'a': a = None  # hack for a variable
-    typ = _try(typeNameMapped)  # DOESN'T BELONG HERE! EXPENSIVE e.g. int i++
+    typ = _try(typeNameMapped)  # DOESN'T BELONG HERE! why not?
     p = ___(possessive_pronouns)
     # all=p ? [p] : []
     # try:
@@ -1439,6 +1432,7 @@ def variable_name(a=None):
     if not typ and len(all) > 1 and isType(all[0]): name = all[1:-1].join(' ')  # (p ? 0 : 1)
     if p: name = p + ' ' + name
     name = name.strip()
+    if not store: return Variable(name=name, type=typ)
     if name in the.variableValues:
         oldVal = the.variableValues[name]
     else:
@@ -1446,7 +1440,8 @@ def variable_name(a=None):
     # {variable:{name:name,type:typ,scope:current_node,module:current_context))
     if name in the.variables:
         return the.variables[name]
-    # the.result = Variable({name: name, type: typ, _scope: current_node(), module: current_context(), value: oldVal})
+    typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int
+
     the.result = Variable(name=name, type=typ, scope=current_node(), module=current_context(), value=oldVal)
     the.variables[name] = the.result
     # if p: variables[p+' '+name]=the.result
@@ -1526,9 +1521,16 @@ def number_or_word():
     _try(number) or word()
 
 
-def arg(position=1):
-    pre = _try(preposition) or ""  # might be superfluous if calling"BY":
-    _try(article)  # todo use a vs the ?
+# method definition args != call args
+def param(position=1):
+    pre = maybe_tokens(prepositions) or ""  # might be superfluous if calling"BY":
+    a=variable_name(a=None,store=False)
+    return Argument(preposition=pre, name=a.name, type= a.type, position= position)
+
+
+def call_arg(position=1):
+    pre = maybe_tokens(prepositions) or ""  # might be superfluous if calling"BY":
+    ___(articles)
     a = _try(variable_name)
     if a: return Argument(name=a.name, type=a.type, preposition=pre, position=position)
     type = _try(typeNameMapped)
@@ -2307,7 +2309,7 @@ def start_block(type=None):
         if xmls: _('>')
 
     if checkNewline(): return OK
-    return ___(start_block_words)
+    return ___(start_block_words) # OPTIONAL!!!???
 
 
 def check_end_of_statement():
@@ -2749,6 +2751,7 @@ def loops():
            maybe(n_times_action) or \
            maybe(action_n_times) or \
            maybe(for_i_in_collection) or \
+           maybe(repeat_with) or \
            maybe(while_loop) or \
            maybe(looped_action) or \
            maybe(looped_action_until) or \
@@ -2767,12 +2770,12 @@ def repeat_every_times():
     dont_interpret()  # 'cause later
     ___('repeat')
     b = maybe(action)
-    interval = datetime
+    interval = datetime()
     no_rollback()
     if not b:
-        start_block
+        start_block()
         dont_interpret()
-        b = maybe(action) or block
+        b = maybe(action) or block()
         end_block()
 
         # event=Event(interval:interval,event:b)
@@ -2788,10 +2791,28 @@ def repeat_action_while():
     _('while')
     c = condition()
     if not interpreting():
-        return ast.While(test=c, body=b)
+        return cast.While(test=c, body=b)
     while check_condition(c):
         the.result = do_execute_block(b)
     return the.result
+
+def repeat_with():
+    _('repeat')
+    _('with')
+    no_rollback()
+    v=variable_name()
+    _('in')
+    c=collection()
+    b=action_or_block()
+    if interpreting():
+        for i in c:
+            do_execute_block(b,{v:i})
+        return the.result
+    return cast.For(target=v,iter=c,body=b)
+    #     'iter',
+    #     'body',
+    #     'orelse',)
+
 
 
 def while_loop():
@@ -2806,7 +2827,7 @@ def while_loop():
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
     r = False
     if not interpreting():
-        return ast.While(test=c, body=b)
+        return cast.While(test=c, body=b)
     while (check_condition(c)):
         r = do_execute_block(b)
     return r  # or OK
@@ -2934,9 +2955,7 @@ def forever():
 def as_long_condition_block():
     _('as long as')
     c = condition()
-    start_block
-    a = block  # danger, block might contain condition()
-    end_block()
+    a = block()  # danger, block might contain condition()
     if interpreting():
         while (check_condition(c)):
             do_execute_block(a)

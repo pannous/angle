@@ -13,6 +13,15 @@ class ParserTest(ParserBaseTest): #EnglishParser
     # ,EnglishParser   --> TypeError: Error when calling the metaclass bases
     # metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
 
+    def test_all_samples_syntactically_ok(self):
+        path = "../samples/"
+        for f in ls(path):
+            if(f.startswith(".")):continue
+            print("parsing %s!"%f)
+            parse(open(path+f))
+            print("OK, parsed %s successfully!"%f)
+            print("YAY!!!!!!!!!!!!!!!!!!!!!!!!")
+
     def test_block_comment(self):
         assert_result_is('x=10 /*ok*/',10)
         assert_result_is('x=/*ok*/9 ',9)

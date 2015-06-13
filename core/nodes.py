@@ -1,6 +1,5 @@
-# import core.the
-# from import *
-# import the
+import ast
+from cast import cast
 from the import *
 
 class Condition(object):
@@ -92,7 +91,7 @@ class FunctionCall:
         if 'object' in args: self.object   =args['object']
 
 
-class Argument:
+class Argument(cast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
 
     def __init__(self, **args):
@@ -119,7 +118,7 @@ class Argument:
         #   str(self.name)ym
 
 
-class Variable:
+class Variable(cast.Name):
     # attr_accessor :name, :type,:owner, :value, :final, :modifier     # :scope, :module, << owner
 
     def __init__(self,**args):

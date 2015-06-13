@@ -897,3 +897,7 @@ class Math:
 
 def puts(x):
     print(x)
+
+
+def ls(path):
+    return os.listdir(path)
