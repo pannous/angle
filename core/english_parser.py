@@ -21,6 +21,7 @@ import sys
 # import Interpretation
 # import HelperMethods
 # import cast
+import Interpretation
 from cast import cast
 from english_tokens import *
 from power_parser import *
@@ -827,16 +828,19 @@ def if_then():
     return b
 
 
+def future_event():
+    if the.current_word.endswith("ed"): # beeped etc
+        return word()
+
 @Starttokens(once_words)
 def once_trigger():
     __(once_words)
-    dont_interpret()
-    c = condition()
     no_rollback()
+    dont_interpret()
+    c = maybe(future_event) or condition() # eval later, variables might not be set yet!!!
     maybe_token('then')
     b=action_or_block()
-    interpretation.add_trigger(c, b)
-
+    return Interpretation.add_trigger(c, b)
 
 def _do():
     return _try(lambda: _('do'))
@@ -854,13 +858,13 @@ def action_once():
     __(once_words)
     c = condition()
     end_expression
-    interpretation.add_trigger(c, b)
+    Interpretation.add_trigger(c, b)
 
 
 def once():
     # or  'as soon as' condition \n block 'ok'
     #	 or  'as soon as' condition 'then' action;
-    maybe(once_trigger) or action_once
+    return maybe(once_trigger) or action_once()
 
 
 # or  action 'as soon as' condition()
@@ -959,6 +963,9 @@ def has_args(method, clazz=object, assume=False):
             clazz = type(clazz)
         if method in dir(clazz):
             method = getattr(clazz, method)
+    if not callable(method):
+        raise_not_matching(method + "not callable")
+
     import inspect
     args, varargs, varkw, defaults = inspect.getargspec(method)
     return len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0) > 0 or assume
@@ -1097,7 +1104,7 @@ def assert_that():
 
 
 def arguments():
-    return star(argx)
+    return star(param)
 
 
 def maybe_token(x):
@@ -1114,7 +1121,7 @@ def constructor():
     _('new')
     # clazz=word #allow data
     clazz = class_constant()
-    do_send(clazz, "__init__", arguments())
+    return do_send(clazz, "__init__", arguments())
     # clazz=Class.new
     # variables[clazz]=
     # clazz(arguments)
@@ -1124,12 +1131,12 @@ def constructor():
 def returns():
     __('return', 'returns')
     the.result = _try(expression)
-    the.result
+    return the.result
 
 
 @Starttokens(flow_keywords)
 def breaks():
-    __(flow_keywords)
+    return __(flow_keywords)
 
 
 #	 or 'say' x=(.*) -> 'bash "say $quote"'
@@ -1153,7 +1160,9 @@ def action():
 
 
 def action_or_block():  # expression_or_block ??):
-    if not starts_with([';', ':', 'do', '{', 'begin', 'start']) and not checkEndOfLine():
+    if not starts_with([';','do', '{', 'begin', 'start']) and not checkEndOfLine():
+        maybe_token( ':' )
+        no_rollback()
         a = maybe(action)
         if a: return a
     # type=start_block && newline22
@@ -1432,7 +1441,7 @@ def variable_name(a=None,store=true):
     if not typ and len(all) > 1 and isType(all[0]): name = all[1:-1].join(' ')  # (p ? 0 : 1)
     if p: name = p + ' ' + name
     name = name.strip()
-    if not store: return Variable(name=name, type=typ)
+    # if not store: return Variable(name=name, type=typ) TODO: STORE IN CONTEXT!! (i.e. def x(int y)): y+3
     if name in the.variableValues:
         oldVal = the.variableValues[name]
     else:
@@ -1440,7 +1449,7 @@ def variable_name(a=None,store=true):
     # {variable:{name:name,type:typ,scope:current_node,module:current_context))
     if name in the.variables:
         return the.variables[name]
-    typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int
+    # typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
     the.result = Variable(name=name, type=typ, scope=current_node(), module=current_context(), value=oldVal)
     the.variables[name] = the.result
@@ -1708,8 +1717,6 @@ def comparation():
     # if Jens.smaller then ok:
     maybe_token('than')  # , 'then' #_22'then' ;) danger:
     subnode({'comparation': comp})
-    return operator(comp or eq)
-
     return comp or eq
 
 
@@ -2679,7 +2686,7 @@ def true_variable(node=True):
     v = tokens(vars)
     v = the.variables[v]  # why _try(later)
     # if interpret #LATER!: variableValues[v]
-    if node and not interpreting(): return ast.Name(v, ast.Load())
+    # if node and not interpreting(): return cast.name(v)
     return v
     # for v in the.variables.keys:
     #  if the.string._try(start_with) v:

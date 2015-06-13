@@ -1,6 +1,7 @@
 # import emitters/native-emitter
 
 # why not return parser??
+from cast import cast #GRR
 import events
 import the
 
@@ -25,6 +26,7 @@ def add_trigger(condition, action):
     import power_parser
     if power_parser.interpreting():
         return the.listeners.append(events.Observer(condition, action))
+    else: return cast.call('add_trigger',[condition,action])
 
 
 def substitute_variables(args):

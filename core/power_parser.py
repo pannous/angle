@@ -950,7 +950,7 @@ def parse(s,the_file=None):
     except Exception as e:
         error(the_file)
         print_pointer(True)
-        raise e
+        raise e, None, sys.exc_info()[2]
     # except NotMatching as e:
     #     import traceback
     #     traceback.print_stack() # backtrace
@@ -1191,7 +1191,7 @@ def fraction():
 
 
 # _try(complex)  or
-ZERO=0
+ZERO='0'
 def integer():
     match = re.search(r'^\s*(-?\d+)',the.string)
     if match:

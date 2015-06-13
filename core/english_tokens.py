@@ -163,7 +163,7 @@ otherKeywords= ['and', 'as', 'back', 'beginning', 'but', 'by', 'contain', 'conta
     'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'last', 'local', 'me', 'middle', 'mod', 'my',\
     'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout', 'times',\
     'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'prop', 'property', 'put', 'ref', 'reference',\
-    'repeat', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
+    'repeat', 'return','returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
 const=['constant', 'const','final','immutable','unchangeable'] #not: static
 
