@@ -135,7 +135,7 @@ def assert_has_error(x,ex=None):
         else:
             print("OK, got expected ERROR "+str(e))
         return
-    raise Exception("EXPECTED ERROR: "+str(ex))
+    raise Exception("EXPECTED ERROR: "+str(ex)+"\nIN: "+x)
 
 
 

@@ -28,10 +28,15 @@ class VariableTest(ParserBaseTest):
         assert_has_error("integer i='hi'", WrongType)
         assert_has_error("an integer i;i='hi'", WrongType)
 
-    def test_variable_type_safety(self):
-        assert_has_error('const i=1;i=2', ImmutableVaribale)
+    def test_variable_immutable(self):
         assert_has_error("const i=1;i='hi'", WrongType)
         assert_has_error("const i='hi';i='ho'", WrongType)
+        assert_has_error('const i=1;i=2', ImmutableVaribale)
+
+    def test_variable_type_declaration_safety(self):
+        assert_has_error("int i;string i", WrongType)
+        assert_has_error('i=1;string i', WrongType)
+        assert_has_error("int i;i='hi'", WrongType)
 
     def test_var_condition_unmodified(self):
         variables['counter'] = [Variable({'name': 'counter', 'value': 3, }), ]

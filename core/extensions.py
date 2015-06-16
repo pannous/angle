@@ -143,7 +143,7 @@ class Dir(Directory):
 #  ""
 #  #"None"
 #
-class dict:
+class xdict:
     # filter ==  x.select{|z|z>1}
 
     # CAREFUL! MESSES with rails etc!!
@@ -589,6 +589,20 @@ class xstr(str):
 #class Fixnum Float
 # class Numeric:
 class xint(int):
+
+# operator.truth(obj)
+#     Return True if obj is true, and False otherwise. This is equivalent to using the bool constructor.
+# operator.is_(a, b)
+#     Return a is b. Tests object identity.
+# operator.is_not(a, b)
+#     Return a is not b. Tests object identity.
+
+    def __coerce__(self, other):
+        return int(other)
+
+    def __cmp__(self, other):
+        return other==self
+
     def c(self):  #unwrap, for optimization):
         return str(self)  #"NUM2INT(#{self.to_s})"
 
@@ -682,11 +696,11 @@ class xint(int):
         return self * self
 
 
-class Numeric(int):
+class Numeric(xint):
     pass
 
 
-class Integer(int):
+class Integer(xint):
     pass
 
 

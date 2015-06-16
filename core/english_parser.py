@@ -21,6 +21,7 @@ import sys
 # import Interpretation
 # import HelperMethods
 # import cast
+import array
 import Interpretation
 from cast import cast
 from english_tokens import *
@@ -1284,19 +1285,20 @@ def for_i_in_collection():
 #  until_condition ,:while_condition ,:as_long_condition()
 
 def assure_same_type(var, type):
-    if var.name in variableTypes:
-        oldType = variableTypes[var.name]
+    if var.name in the.variableTypes:
+        oldType = the.variableTypes[var.name]
+    elif var.type:
+        oldType=var.type
     else:
         oldType = None
     # try:
-    if oldType and type and not type <= oldType:
-        raise WrongType("#{var.name} has type #{oldType), can't set to #{type)")
-    if oldType and var.type and not var.type <= oldType:
-        raise WrongType("#{var.name} has type {oldType), can't set to #{var.type)")
-    if type and var.type and not (var.type <= type or var.type >= type):
-        raise WrongType("#{var.name} has type #{var.type), can't set to  #{type)")
-    # if type and var.type and not var.type>=type: raise WrongType.new "#{type) #{var.type)"
-    var.type = type
+    if oldType and type and not issubclass(type,oldType): # FAIL:::type <= oldType:
+        raise WrongType(var.name+" has type "+str(oldType)+", can't set to "+str(type))
+    if oldType and var.type and not issubclass(var.type,oldType):
+        raise WrongType(var.name+" has type "+str(oldType)+", cannot set to "+str(var.type))
+    if type and var.type and not (issubclass(var.type,type) or issubclass(type,var.type)): #DOWNCAST TODO
+        raise WrongType(var.name+" has type "+str(var.type)+", Can't set to "+str(type))
+    var.type = type #ok: set
 
 
 def assure_same_type_overwrite(var, val):
@@ -1352,8 +1354,10 @@ def declaration():
     ___('var', 'val', 'value of')
     mod = mod or maybe_tokens(modifiers)  # public static :.
     var = _try(property) or variable_name(a)
-    assure_same_type(var, type)
-    # var.type = var.type or type
+    if var.type:
+        assure_same_type(var, type)
+    else:
+        var.type = type
     var.final = mod in const_words
     var.modifier = mod
     return var
@@ -1987,7 +1991,24 @@ def classConstDefined():
 
 def typeNameMapped():
     x = typeName()
+    if x in the.classes:
+        return the.classes[x]
     if x == "int": return int
+    if x == "integer": return int
+    if x == "str": return str
+    if x == "string": return str
+    if x == "real": return float
+    if x == "float": return float
+    if x == "hash": return dict
+    if x == "hashmap": return dict
+    if x == "hashtable": return dict
+    if x == "dict": return dict
+    if x == "dictionary": return dict
+    if x == "map": return dict
+    if x == "array": return list
+    if x == "set": return set
+    if x == "list": return list
+    if x == "tuple": return tuple #list
     return x
 
 
