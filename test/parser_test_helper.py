@@ -1,6 +1,7 @@
 import compiler.ast
 import unittest
 import ast
+import sys
 import angle
 import cast.cast
 import english_parser
@@ -119,11 +120,23 @@ def skip(me=0):
     raise SkippingTest()
 
 
-def assert_has_error(x):
+def assert_has_error(x,ex=None):
+    got_ex=False
     try:
-        x()
-    except:
-        print("OK, error")
+        if callable(x):
+            x()
+        else: parse(x)
+    except Exception as e :
+        if ex:
+            if not isinstance(e,ex):
+                print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
+                raise e, None, sys.exc_info()[2]
+            print("OK, got expected ERROR %s : %s"%(ex,e))
+        else:
+            print("OK, got expected ERROR "+str(e))
+        return
+    raise Exception("EXPECTED ERROR: "+str(ex))
+
 
 
 def assert_has_no_error(x):

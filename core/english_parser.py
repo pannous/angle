@@ -1289,20 +1289,23 @@ def assure_same_type(var, type):
     else:
         oldType = None
     # try:
-    if oldType and type and not type <= oldType: raise WrongType(
-        "#{var.name} has type #{oldType), can't set to #{type)")
-    if oldType and var.type and not var.type <= oldType: raise WrongType(
-        "#{var.name} has type {oldType), can't set to #{var.type)")
-    if type and var.type and not (var.type <= type or var.type >= type): raise WrongType(
-        "#{var.name} has type #{var.type), can't set to  #{type)")
+    if oldType and type and not type <= oldType:
+        raise WrongType("#{var.name} has type #{oldType), can't set to #{type)")
+    if oldType and var.type and not var.type <= oldType:
+        raise WrongType("#{var.name} has type {oldType), can't set to #{var.type)")
+    if type and var.type and not (var.type <= type or var.type >= type):
+        raise WrongType("#{var.name} has type #{var.type), can't set to  #{type)")
     # if type and var.type and not var.type>=type: raise WrongType.new "#{type) #{var.type)"
     var.type = type
 
 
 def assure_same_type_overwrite(var, val):
     oldType = var.type
-    if oldType and not isinstance(val.type, oldType): raise WrongType("#{var) #{val)")
-    if var.final and var.value and not val.value == var.value: raise ImmutableVaribale()
+    oldValue = var.value
+    if oldType and not isinstance(val, oldType):
+        raise WrongType("OLD: %s %s VS %s %s"%(oldType,oldValue, type(val),val))
+    if var.final and var.value and not val == var.value:
+        raise ImmutableVaribale("OLD: %s %s VS %s %s"%(oldType,oldValue, type(val),val))
     var.value = val
 
 
@@ -1356,15 +1359,15 @@ def declaration():
     return var
 
 
-@Starttokens(let)
+@Starttokens(let_words)
 def setter():
     must_contain_before(args=be_words + ['set'], before=['>', '<', '+', '-', '|', '/', '*'])
-    _let = ___(let)
+    _let = ___(let_words)
     if _let: no_rollback()
     a = _try(_the)
-    mod = _try(modifier)
+    mod = maybe_tokens(modifiers)
     _type = _try(typeNameMapped)
-    ___('var', 'val', 'value of')
+    ___('var', 'val', 'value of') # same as let? don't overwrite?
     mod = mod or _try(modifier)  # public static :.
     var = _try(property) or variable_name(a)
     # _22("always") => pointer()
@@ -1373,7 +1376,7 @@ def setter():
     val = expression()
     allow_rollback()
     if setta == 'are' or setta == 'consist of' or setta == 'consists of': val = [val].flatten()
-    if _let: assure_same_type_overwrite(var, val)
+    assure_same_type_overwrite(var, val)
     # var.type=var.type or type or type(val) #eval'ed! also x is an integer
     assure_same_type(var, _type or type(val))
     if not var.name in variableValues or mod != 'default' and interpreting():

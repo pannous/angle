@@ -171,7 +171,7 @@ modifiers= const_words + ['protected', 'private','public', 'static', 'void', 'de
 
 adverbs=['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely', 'by any means', 'without a doubt']
 
-let=['let', 'set']
+let_words=['let', 'set']
 
 time_words=['seconds', 'second', 'minutes', 'minute', 'a.m.', 'p.m.', 'pm', "o'clock", 'hours', 'hour'] #etc... !
 

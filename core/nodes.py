@@ -133,8 +133,8 @@ class Variable(cast.Name):
         if 'owner' in args: self.owner    =args['object']
         if 'object' in args: self.owner    =args['object']
         # self.class  =args[:module]
-        if 'final' in args:self.final   =True
         if 'modifier' in args:self.modifier=args['modifier']
+        self.final   = 'final' in args
         # scope.variables[name]=self
 
     def c(self): #unwrap, for optimization):
