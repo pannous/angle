@@ -4,7 +4,6 @@ from parser_test_helper import *
 
 class VariableTest(ParserBaseTest):
 
-
     def test_a_setter_article_vs_variable(self):
         parse('a=green')
         assert_equals(variables['a'], 'green')

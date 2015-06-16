@@ -481,7 +481,7 @@ def plusPlus():
     pre = maybe_token('+') and token('+')
     v = variable_name()
     pre or _('+') and token('+')
-    if not interpreting(): return ast.AugAssign(ast.Name(v.name, ast.Store()), ast.Add(), ast.Num(1))
+    if not interpreting(): return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Add(), cast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
     the.variableValues[v.name] = v.value = the.result
     return the.result
@@ -493,7 +493,7 @@ def minusMinus():
     v = variable_name()
     pre or _('-') and token('-')
     if not interpreting():
-        return ast.AugAssign(ast.Name(v.name, ast.Store()), ast.Sub(), ast.Num(1))
+        return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Sub(), cast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
     variableValues[v] = v.value = the.result
     return the.result
@@ -514,7 +514,7 @@ def plusEqual():
     arg = do_evaluate(exp, v.type)
     if not interpreting():
         op = tree.operator_equals(mod)
-        return ast.AugAssign(ast.Name(v.name, ast.Store()), op, arg)
+        return cast.AugAssign(cast.Name(v.name, cast.Store()), op, arg)
     else:
         the.result = interpretation.self_modify(v, mod, arg)
         the.variableValues[v.name] = the.result
@@ -812,8 +812,9 @@ def if_then():
     # c=condition()
     maybe_token('then')
     maybe_token(':')
-    dont_interpret()  # if not c  else: dont do_execute_block twice!:
+    dont_interpret()  # if not c  else: dont do_execute_block twice!
     b = expression_or_block()  # action_or_block()
+    maybe_newline()
     # o=_try(otherwise)
     # if use_block: b=block
     # if not use_block: b=statement
@@ -1216,7 +1217,7 @@ def do_execute_block(b, args={}):
     if b == True: return True
     if isinstance(b, FunctionCall): return call_function(b)
     if callable(b): return call_function(b, args)
-    if isinstance(b, ast.AST):
+    if isinstance(b, cast.AST):
         exec (b)  # TODO ARGS???
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
@@ -1350,7 +1351,7 @@ def declaration():
     var = _try(property) or variable_name(a)
     assure_same_type(var, type)
     # var.type = var.type or type
-    var.final = mod in const
+    var.final = mod in const_words
     var.modifier = mod
     return var
 
@@ -1379,7 +1380,7 @@ def setter():
         the.variableValues[var.name] = val
 
     var.value = val
-    var.final = mod in const
+    var.final = mod in const_words
     var.modifier = mod
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
     # the.result = var
@@ -1390,7 +1391,7 @@ def setter():
     subnode({'var': var})
     subnode({'val': val})
     the.token_map[var.name] = true_variable
-    if not interpreting(): return ast.Assign(ast.Name(var.name, ast.Store()), val)
+    if not interpreting(): return cast.Assign(cast.Name(var.name, cast.Store()), val)
 
     if interpreting() and val != 0: return val
     return var
@@ -1486,7 +1487,7 @@ def word(include=[]):
 def should_not_contain(words):
     old = the.current_token
     words = flatten(words)
-    while not checkEndOfLine():
+    while not checkEndOfLine() and the.current_word!=';':
         for w in words:
             if w == the.current_word:
                 raise ShouldNotMatchKeyword(w)
@@ -1902,12 +1903,12 @@ def condition_tree(recurse=True):
 
 
 def otherwise():
-    _try(newline)
+    maybe_newline()
     must_contain('else', 'otherwise')
-    ___('else', 'otherwise')
-    # if :. ! _try(OK): else:
+    pre=___('else', 'otherwise')
+    maybe_token(':')
     e = expression()
-    ___('else', 'otherwise') and newline()
+    not pre or ___('else', 'otherwise') and newline()  #  suffix style: "return 1 otherwise"
     return e
 
 
@@ -1915,7 +1916,7 @@ def otherwise():
 def loveHateTo():
     ___('would', "wouldn't")
     ___('do', 'not', "don't")
-    __['want', 'like', 'love', 'hate']
+    __(['want', 'like', 'love', 'hate'])
     return _('to')
 
 
@@ -2062,7 +2063,7 @@ def eval_string(x):
 def do_evaluate(x, type=None):
     if not interpreting(): return x
     try:
-        if isinstance(x, ast.AST): exec (x)
+        if isinstance(x, cast.AST): exec (x)
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
         if isinstance(x, Variable):

@@ -25,8 +25,7 @@ variableTypes = {}
 variableValues = {}  # ={nill: None)
 # print_function
 methods = {'beep': extensions.beep,'puts':extensions.puts,'print':extensions.puts,'reverse':extensions.xstr.reverse}  # name->method-node
-methods = {'beep': extensions.beep,'puts':extensions.puts,'print':extensions.puts,'reverse':extensions.xstr.reverse}  # name->method-node
-classes = {'list': extensions.xlist,'Math': extensions.Math}
+classes = {'list': extensions.xlist,'Math': extensions.Math,'int':extensions.xint,'integer':extensions.xint}
 c_methods = ['printf']
 builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!
 core_methods = ['show', 'now', 'yesterday', 'help']  # _try(difference)

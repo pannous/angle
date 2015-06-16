@@ -135,7 +135,7 @@ be_words=['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have be
   # nicer, sweeter, ....
   #  '=>' '<=', DANGER
   # OR class_words
-comparison_words=['be','is of','is in','is a', 'is','element of','subset of','in', 'are', 'were',  '>=', '==', '<=',  '=<','=', '>', '<','gt', 'lt', 'eq',\
+comparison_words=['be','is of','is in','is a', 'is','element of','subset of','in', 'are', 'were',  '>=', '==', '<=',  '=<','=', '>', '<', '≠','≥','gt', 'lt', 'eq',\
     'identical to', 'smaller or equal','greater or equal', 'equal to', 'bigger', 'greater', 'equals','smaller', 'less','more',  'the same as',\
     'same as', 'similar', 'comes after',\
     'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
@@ -165,9 +165,9 @@ otherKeywords= ['and', 'as', 'back', 'beginning', 'but', 'by', 'contain', 'conta
     'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'prop', 'property', 'put', 'ref', 'reference',\
     'repeat', 'return','returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
-const=['constant', 'const','final','immutable','unchangeable'] #not: static
+const_words=['constant', 'const','final','immutable','unchangeable'] #not: static
 
-modifiers= const + ['protected', 'private','public', 'static', 'void', 'default', 'initial', 'mutable','variable']
+modifiers= const_words + ['protected', 'private','public', 'static', 'void', 'default', 'initial', 'mutable','variable']
 
 adverbs=['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely', 'by any means', 'without a doubt']
 

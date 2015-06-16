@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function # for stderr
 
@@ -371,7 +371,7 @@ def maybe_tokens(tokens0):
         if " " in t:
             old=the.current_token
             for to in t.split(" "):
-                if to!=current_word:
+                if to!=the.current_word:
                     t=None
                     break
                 else:
@@ -526,7 +526,7 @@ def raiseEnd():
     #     raise EndOfLine()
 
 def remove_tokens(*tokenz):
-    while(current_word in tokenz):
+    while(the.current_word in tokenz):
         next_token()
     # for t in flatten(tokenz):
     #     the.string = the.string.replace(r' *%s *' % t, " ")
@@ -796,9 +796,9 @@ def block():  # type):
 
 
 
-def maybe(block):
-    if not callable(block): # duck!
-        return maybe_tokens(block)
+def maybe(expression):
+    if not callable(expression): # duck!
+        return maybe_tokens(expression)
     global original_string, last_node, current_value, depth,nodes,current_node,last_token
     # allow_rollback 1
     depth = depth + 1
@@ -806,21 +806,21 @@ def maybe(block):
     old = current_token
     try:
         old_nodes = list(nodes)#.clone()
-        result = block() #yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        result = expression() #yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         if angle.debug and (callable(result)):
             raise Exception("returned CALLABLE "+str(result))
         if result or result==0:
-            verbose("GOT result from "+str(block)+" : "+str(result))
+            verbose("GOT result from "+str(expression)+" : "+str(result))
             adjust_rollback()
         else:
-            verbose("No result from "+str(block))
+            verbose("No result from "+str(expression))
             invalidate_obsolete(old_nodes)
             set_token(old)
             # the.string = old
         last_node = current_node
         return result
     except (NotMatching, EndOfLine) as e:
-        if verbose: verbose("Tried "+to_source(block))
+        if verbose: verbose("Tried "+to_source(expression))
         interpreting(2) # remove the border, if above border
         # if verbose: verbose(e)
         # if verbose: string_pointer()
@@ -838,7 +838,7 @@ def maybe(block):
             if angle.use_tree:
                 import TreeBuilder
                 TreeBuilder.show_tree()  #Not reached
-            ex = GivingUp(to_source(block)+"\n"+pointer_string())
+            ex = GivingUp(to_source(expression)+"\n"+pointer_string())
             raise ex
             # error e #exit
             # raise SyntaxError(e)
@@ -1087,8 +1087,10 @@ def checkEndOfFile():
     # return line_number >= len(lines) and not the.string
 
 
+def maybe_newline():
+    newline(doraise=False)
 
-def newline():
+def newline(doraise=False):
     if checkNewline() == NEWLINE:
         next_token()
         if(the.current_type==54):
@@ -1100,6 +1102,7 @@ def newline():
     if checkNewline() == NEWLINE:  # get new line: return NEWLINE
         next_token()
         return found
+    if doraise: raise_not_matching("no newline")
     return False
 
 
