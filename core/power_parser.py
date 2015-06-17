@@ -355,6 +355,7 @@ def tokens(tokenz):
     raise NotMatching(result)
 
 # so much cheaper!!! -> copy to ruby
+# TODO: COLLECT ALL
 def maybe_tokens(tokens0):
     for t in flatten(tokens0):
         if t==the.current_word:

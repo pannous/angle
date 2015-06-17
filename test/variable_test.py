@@ -21,12 +21,19 @@ class VariableTest(ParserBaseTest):
         parse('int i;i=3')
         parse("char x='c'")
         parse("char x;x='c'")
+        parse("char x;x=3 as char")
+        # all error free
+
+    def test_variable_type_safety0(self):
+        assert_has_no_error("typed i='hi';i='ho'")
 
     def test_variable_type_safety0(self):
         assert_has_error('string i=3', WrongType)
         assert_has_error("int i='hi'", WrongType)
         assert_has_error("integer i='hi'", WrongType)
         assert_has_error("an integer i;i='hi'", WrongType)
+        assert_has_error("typed i='hi';i=3", WrongType)
+
 
     def test_variable_immutable(self):
         assert_has_error("const i=1;i='hi'", WrongType)

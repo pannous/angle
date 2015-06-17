@@ -144,6 +144,7 @@ class Variable(kast.Name):
         self.owner   =args['object'] if 'object' in args else self.owner
         self.modifier=args['modifier'] if 'modifier' in args else None
         self.final   = 'final' in args
+        self.typed   = 'typed' in args #or self.type NO
         # self.class  =args[:module]
         # scope.variables[name]=self
 

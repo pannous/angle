@@ -1320,7 +1320,7 @@ def assure_same_type_overwrite(var, val):
         raise WrongType("OLD: %s %s VS %s %s"%(oldType,oldValue, type(val),val))
     if var.final and var.value and not val == var.value:
         raise ImmutableVaribale("OLD: %s %s VS %s %s"%(oldType,oldValue, type(val),val))
-    var.value = val
+    var.value=val
 
 
 def do_get_class_constant(c):
@@ -1397,10 +1397,13 @@ def setter():
         else: _type=_cast #todo
     allow_rollback()
     if setta in [ 'are' ,'consist of' ,'consists of']: val = flatten(val)
+    var.typed=_type or var.typed or 'typed'==mod # in [mod]
+    # if var.typed:
     assure_same_type_overwrite(var, val)
-    # var.type=var.type or type or type(val) #eval'ed! also x is an integer
     assure_same_type(var, _type or type(val))
-    if not var.name in variableValues or mod != 'default' and interpreting():
+
+    # var.type=var.type or type or type(val) #eval'ed! also x is an integer
+    if not var.name in variableValues or mod != 'default':# and interpreting():
         the.variableValues[var.name] = val
         the.variables[var.name] = var
         var.value = val
