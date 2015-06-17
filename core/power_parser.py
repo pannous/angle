@@ -9,15 +9,8 @@ import tokenize
 import english_tokens
 import re
 import token as _token
-import exceptions
-from exceptions import *
-import extensions
-from nodes import Pointer
-# from exceptions import NotMatching
-import nodes
 import angle
-# from exceptions import *
-from english_tokens import NEWLINE
+from exceptions import *
 from the import *
 import the
 
@@ -419,6 +412,9 @@ def set_token(token):
     return token[1]
 
 
+# TODO: we need a tokenizer which is agnostic to Python !
+# SEE test_variable_scope
+# end""") # IndentationError: unindent does not match any outer indentation level TOKENIZER WTF
 def parse_tokens(s):
     import tokenize
     from io import BytesIO
@@ -431,7 +427,6 @@ def parse_tokens(s):
     return the.tokenstream
 
 def init(strings):
-    import english_parser
     # global is ok within one file but do not use it across different files
     global  no_rollback_depth,rollback_depths,line_number,original_string,root,lines,nodes,depth,lhs,rhs,comp
     no_rollback_depth = -1
@@ -936,12 +931,15 @@ def parse(s,the_file=None):
      #string
     verbose("PARSING")
     try:
+        import english_parser
         if isinstance(s,file):
             the_file=s
             s=s.readlines()
+        if not isinstance(s,str) and not isinstance(s,list):
+            the.result=s
+            return english_parser.interpretation()  # # result
         allow_rollback()
         init(s)
-        import english_parser
         the.result=english_parser.rooty()
         if the.result in ['True','true']: the.result=True
         if the.result in ['False', 'false']: the.result=False
@@ -1090,15 +1088,15 @@ def maybe_newline():
     newline(doraise=False)
 
 def newline(doraise=False):
-    if checkNewline() == NEWLINE:
+    if checkNewline() == english_tokens.NEWLINE:
         next_token()
         if(the.current_type==54):
             next_token() # ??? \r\n ? or what is this, python?
         while(the.current_type==_token.INDENT):
             next_token() # IGNORE FOR NOW!!!!
-        return NEWLINE
+        return english_tokens.NEWLINE
     found = tokens(english_tokens.newline_tokens)
-    if checkNewline() == NEWLINE:  # get new line: return NEWLINE
+    if checkNewline() == english_tokens.NEWLINE:  # get new line: return NEWLINE
         next_token()
         return found
     if doraise: raise_not_matching("no newline")

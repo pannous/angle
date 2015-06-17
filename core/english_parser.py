@@ -480,7 +480,7 @@ def plusPlus():
     must_contain_substring('++')
     start = pointer()
     pre = maybe_token('+') and token('+')
-    v = variable_name()
+    v = variable()
     pre or _('+') and token('+')
     if not interpreting(): return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Add(), cast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
@@ -491,7 +491,7 @@ def plusPlus():
 def minusMinus():
     must_contain_substring('--')
     pre = maybe_token('-') and token('-')
-    v = variable_name()
+    v = variable()
     pre or _('-') and token('-')
     if not interpreting():
         return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Sub(), cast.Num(1))
@@ -509,7 +509,7 @@ def selfModify():
 @Starttokens(self_modifying_operators)
 def plusEqual():
     must_contain(self_modifying_operators)
-    v = variable_name()
+    v = variable()
     mod = ___(self_modifying_operators)
     exp = expression()  # value
     arg = do_evaluate(exp, v.type)
@@ -523,11 +523,10 @@ def plusEqual():
         return the.result
 
 
-@Starttokens('[')
+# @Starttokens('[')
 def swift_hash():
     _('[')
     h = {}
-
     def hashy():
         if len(h) > 0: _(',')
         ___('"', "'")
@@ -624,22 +623,23 @@ def expression(fallback=None):
     the.result = ex = maybe(quick_expression) or \
                       maybe(algebra) or \
                       maybe(json_hash) or \
-                      maybe(swift_hash) or \
                       maybe(evaluate_index) or \
                       maybe(listselector) or \
                       maybe(liste) or \
                       maybe(evaluate_property) or \
                       maybe(selfModify) or \
                       maybe(endNode) or \
-                      print_pointer(True) and raise_not_matching("Not an expression")
+                      raise_not_matching("Not an expression") #and print_pointer(True)
+
+    # maybe(swift_hash) or \
 
     # ex=postoperations(ex) or ex
     check_comment()
 
     if not interpreting():
-        if not angle.use_tree:
-            return (start, pointer())
-        return the.result
+        # if not angle.use_tree:
+        #     return (start, pointer())
+        return the.result # AST NODE, Hopefully
 
     if ex and interpreting():
         the.last_result = the.result = do_evaluate(ex)
@@ -1272,7 +1272,7 @@ def for_i_in_collection():
     maybe_token('repeat')
     ___('for', 'with')
     maybe_token('all')
-    v = variable_name()  # selector() !
+    v = variable()  # selector() !
     ___('in', 'from')
     c = collection()
     b = action_or_block()
@@ -1353,7 +1353,7 @@ def declaration():
     type = typeNameMapped()
     ___('var', 'val', 'value of')
     mod = mod or maybe_tokens(modifiers)  # public static :.
-    var = _try(property) or variable_name(a)
+    var = _try(property) or variable(a)
     if var.type:
         assure_same_type(var, type)
     else:
@@ -1373,7 +1373,7 @@ def setter():
     _type = _try(typeNameMapped)
     ___('var', 'val', 'value of') # same as let? don't overwrite?
     mod = mod or _try(modifier)  # public static :.
-    var = _try(property) or variable_name(a)
+    var = _try(property) or variable(a)
     # _22("always") => pointer()
     setta = ___('to') or be()  # or not_to_be 	contain -> add or create
     # val = _try(adjective) or expressions()
@@ -1385,8 +1385,9 @@ def setter():
     assure_same_type(var, _type or type(val))
     if not var.name in variableValues or mod != 'default' and interpreting():
         the.variableValues[var.name] = val
+        the.variables[var.name] = var
+        var.value = val
 
-    var.value = val
     var.final = mod in const_words
     var.modifier = mod
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
@@ -1430,7 +1431,7 @@ def current_context():
     pass
 
 
-def variable_name(a=None,store=true):
+def variable(a=None,store=true):
     a = a or maybe_tokens(articles)
     if a != 'a': a = None  # hack for a variable
     typ = _try(typeNameMapped)  # DOESN'T BELONG HERE! why not?
@@ -1541,14 +1542,14 @@ def number_or_word():
 # method definition args != call args
 def param(position=1):
     pre = maybe_tokens(prepositions) or None  # might be superfluous if calling"BY":
-    a=variable_name(a=None,store=False)
+    a=variable(a=None,store=False)
     return Argument(preposition=pre, name=a.name, type= a.type, position= position)
 
 
 def call_arg(position=1):
     pre = maybe_tokens(prepositions) or ""  # might be superfluous if calling"BY":
     ___(articles)
-    a = _try(variable_name)
+    a = _try(variable)
     if a: return Argument(name=a.name, type=a.type, preposition=pre, position=position)
     type = _try(typeNameMapped)
     v = endNode()
@@ -1771,7 +1772,7 @@ def check_list_condition(quantifier, lhs, comp, rhs):
         # todo "at least two","at most two","more than 3","less than 8","all but 8"
         # if not the.result= not the.result
         if not the.result:
-            verbose("condition not met #{lhs) #{comp) #{rhs)")
+            verbose("condition not met %s %s %s"%(lhs,comp,rhs))
 
         return the.result
     except Exception as e:
@@ -1817,7 +1818,7 @@ def check_condition(cond=None, negate=False):
         # if _not: the.result = not the.result
         if negate: the.result = not the.result
         if not the.result:
-            verbose("condition not met #{cond) #{lhs) #{comp) #{rhs)")
+            verbose("condition not met %s %s %s %s"%(cond,lhs,comp,rhs))
         return the.result
     except IgnoreException as e:
         # debug x #soft message
@@ -1957,8 +1958,8 @@ def the_noun_that():
             return the.methods[n]
         if n in the.classes:
             return the.classes[n]
-        raise Exception("Undefined: " + n)
         raise_not_matching("only 'that' filtered nouns for now!")
+        raise Exception("Undefined: " + n)
     return n
 
 
@@ -2838,7 +2839,7 @@ def repeat_with():
     _('repeat')
     _('with')
     no_rollback()
-    v=variable_name()
+    v=variable()
     _('in')
     c=collection()
     b=action_or_block()
@@ -2862,6 +2863,7 @@ def while_loop():
     no_rollback()
     ___('repeat')  # keep gerunding
     ___('then')  # ,':'
+    if not check_condition(c): dont_interpret()
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
     r = False
     if not interpreting():

@@ -134,20 +134,17 @@ class Argument(cast.arg):
 class Variable(cast.Name):
     # attr_accessor :name, :type,:owner, :value, :final, :modifier     # :scope, :module, << owner
 
-    def __init__(self,**args):
+    def __init__(self,*margs,**args):
+        if not args: args=margs[0]
         self.name    =args['name']
-        if 'value' in args: self.value   =args['value']
-        if 'type'  in args:
-            self.type    =args['type']
-        else:
-            self.type=type(self.value)
-
-        if 'scope' in args: self.scope   =args['scope']
-        if 'owner' in args: self.owner    =args['object']
-        if 'object' in args: self.owner    =args['object']
-        # self.class  =args[:module]
-        if 'modifier' in args:self.modifier=args['modifier']
+        self.value   =args['value'] if 'value' in args else None
+        self.type    =args['type'] if 'type'  in args else type(self.value)
+        self.scope   =args['scope'] if 'scope' in args else None
+        self.owner   =args['owner'] if 'owner' in args else None
+        self.owner   =args['object'] if 'object' in args else self.owner
+        self.modifier=args['modifier'] if 'modifier' in args else None
         self.final   = 'final' in args
+        # self.class  =args[:module]
         # scope.variables[name]=self
 
     def c(self): #unwrap, for optimization):

@@ -92,10 +92,11 @@ def assert_result_emitted(a, b, bla=None):
 
 def assert_result_is(a, b, bla=None):
     x=parse(a)
+    y=parse(b)
     if bla:
-        assert x==b, "%s %s SOULD EQUAL %s BUT WAS %s"%(bla,a,b,x)
+        assert x==y, "%s %s SOULD EQUAL %s BUT WAS %s"%(bla,a,b,x)
     else:
-        assert x==b, "%s SOULD EQUAL %s BUT WAS %s"%(a,b,x)
+        assert x==y, "%s SOULD EQUAL %s \nGOT %s != %s"%(a,b,x,y)
 
 
 def parse_file(x):
@@ -157,6 +158,7 @@ def parse(s):
 
 
 def init(str):
+    the.variables.update(variables)
     english_parser.init(str)
     # parser.init(str)
 

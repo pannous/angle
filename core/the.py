@@ -82,10 +82,10 @@ methods = {
   'reverse':extensions.xstr.reverse
 }  # name->method-node
 classes = {
-  'list': extensions.xlist,
   'Math': extensions.Math,
-  'int':extensions.xint,
-  'integer':extensions.xint
+  # 'list': extensions.xlist,
+  # 'int':extensions.xint,
+  # 'integer':extensions.xint
 }
 c_methods = ['printf']
 builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!
