@@ -1,0 +1,29 @@
+
+# ruby parser difficulties 
+# semantical dependency on spaces 
+# x[1] VS x [1] ==x([1]) list
+# a  +  1    # (a) + (1)  VS a  +1      # a(+1)
+
+c2.com/cgi/wiki?PythonProblems#I wish lambdas
+
+
+
+ >>> x * 4
+ 'aaaa'
+very memory consuming if x is supposed to be an integer but it is really a very long string) 
+ x = 2
+ def foo():
+     x = 1
+ foo()
+ print x
+... prints '2',
+
+bohm GC
+
+
+
+Python's mechanism for designating members as being private - prepending the name with __ - results in ugly code (I don't like the underscores):
+
+  self.__func1(self.__var1, self.__var2, self.__var3) # ugly
+
+

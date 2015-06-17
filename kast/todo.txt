@@ -1,0 +1,15 @@
+
+        # assert fib.args[0].name=='number'
+        assert(equals('number', name(args[0], )))
+        	    # UNPARSABLE! <Call name='name'>
+				# 					<Call name='[]'>
+				# 						<Call name='args'>
+				# 							<LocalVar name='fib'/>
+				# 							<List/>
+				# 						</Call>
+				# 						<Args>
+				# 							<Fixnum value='0'/>
+				# 						</Args>
+				# 					</Call>
+				# 					<List/>
+				# 				</Call>
