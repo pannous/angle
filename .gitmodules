@@ -1,6 +1,3 @@
-[submodule "kast"]
-	path = kast
-	url = git@github.com:pannous/kast.git
 [submodule "samples"]
 	path = samples
 	url = git@github.com:pannous/english-script-samples.git
