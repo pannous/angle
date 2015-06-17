@@ -1,5 +1,5 @@
 import ast
-from kast import cast
+from kast import kast
 from the import *
 
 class Condition(object):
@@ -100,7 +100,7 @@ class FunctionCall:
         if 'object' in args: self.object   =args['object']
 
 
-class Argument(cast.arg):
+class Argument(kast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
 
     def __init__(self,*margs, **args):
@@ -131,7 +131,7 @@ class Argument(cast.arg):
         #   str(self.name)ym
 
 
-class Variable(cast.Name):
+class Variable(kast.Name):
     # attr_accessor :name, :type,:owner, :value, :final, :modifier     # :scope, :module, << owner
 
     def __init__(self,*margs,**args):

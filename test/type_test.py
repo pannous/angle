@@ -21,16 +21,22 @@ class TypeTest(ParserBaseTest):
     #     parse('i=7')
     #     assert_equals(variableTypes['i'], Fixnum)
 
-    def test_type1(self):
+    def test_type11(self):
         init('class of 1,2,3')
         self.parser.evaluate_property()
         assert_equals(result(), list)
         init('class of [1,2,3]')
-        self.parser.expressions()
+        self.parser.expression()
         assert_equals(result(), list)
-        skip()
-        parse('class of 1,2,3')
+
+    def test_type1(self):
+        # skip()
+        parse('class of 1,2,3') #  [<type 'int'>, 2, 3] SHOULD BE <type 'list'>  BUG
         assert_equals(result(), list)
+
+    def test_type22(self):
+        parse('x=1;class of x')
+        assert_equals(result(), int)
 
     def test_type2(self):
         parse('x=1,2,3;class of x')
@@ -42,24 +48,28 @@ class TypeTest(ParserBaseTest):
 
     def test_type3(self):
         parse('x be 1,2,3;y= class of x')
-        assert(equals(list, variables['y']))
-        assert_equals(type(variables['x'], ), list)
-        assert_equals(type(variableValues['x'], ), list)
-        assert_equals(kind(variableValues['x'], ), list)
+        assert_equals(variables['x'].type , list)
+        assert_equals(type(variableValues['x']) , list)
+        assert_equals(type(variables['x'].value) , list)
         assert_equals(variableValues['y'], list)
-        assert('y is a Array')
-        assert('y is an Array')
-        assert('y is Array')
-        assert('Array == class of x')
-        assert('class of x is Array')
-        assert('kind of x is Array')
-        assert('type of x is Array')
+        assert_equals(variables['y'].value, list)
+        assert_equals(variables['y'].type, type)
+
+    def test_type33(self):
+        parse('x be 1,2,3;y= class of x')
+        self.do_assert('y is a Array')
+        self.do_assert('y is an Array')
+        self.do_assert('y is Array')
+        self.do_assert('Array == class of x')
+        self.do_assert('class of x is Array')
+        self.do_assert('kind of x is Array')
+        self.do_assert('type of x is Array')
 
     def test_type4(self):
         variables['x'] = [[1, 2, 3], ]
-        assert('class of x is Array')
-        assert('kind of x is Array')
-        assert('type of x is Array')
+        self.do_assert('class of x is Array')
+        self.do_assert('kind of x is Array')
+        self.do_assert('type of x is Array')
 
     def test_type_cast(self):
         # assert_result_is('2.3', None)

@@ -1,7 +1,8 @@
 # import emitters/native-emitter
 
 # why not return parser??
-from kast import cast #GRR
+# from kast import kast #GRR
+import kast
 import events
 import the
 
@@ -26,7 +27,7 @@ def add_trigger(condition, action):
     import power_parser
     if power_parser.interpreting():
         return the.listeners.append(events.Observer(condition, action))
-    else: return cast.call('add_trigger',[condition,action])
+    else: return kast.call('add_trigger',[condition,action])
 
 
 def substitute_variables(args):

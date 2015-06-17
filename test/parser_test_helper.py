@@ -3,7 +3,8 @@ import unittest
 import ast
 import sys
 import angle
-import kast.cast
+import kast
+# import kast.cast
 import english_parser
 import power_parser
 import test._global
@@ -77,7 +78,7 @@ def parse_tree(x):
     power_parser.dont_interpret()
     angle_ast=power_parser.parse(x).tree #AST
     if not isinstance(angle_ast, ast.Module):
-        angle_ast= cast.cast.Module(body=[angle_ast])
+        angle_ast= kast.kast.Module(body=[angle_ast])
     return angle_ast
 
 
@@ -152,6 +153,7 @@ def parse(s):
     interpretation= english_parser.parse(s)
     r=interpretation.result
     variables.update(the.variables)
+    variableValues.update(the.variableValues)
     functions.update(the.methods)
     methods.update(the.methods)
     variableTypes.update(the.variableTypes)
@@ -181,10 +183,11 @@ def copy_variables():
     variable_keys = variables.keys()
     for name in variable_keys:
         v_ = variables[name]
-        the.variableValues.update(variables)
-        the.variables[name]=Variable(name=name,value=v_)#,type=type(variables[v]))
-        variableValues.update(variables)
-        variables[name]=Variable(name=name,value=v_)#,type=type(variables[v]))
+        if isinstance(v_,Variable):
+            continue
+        the.variableValues[name]=v_
+        the.variables[name]=Variable(name=name,value=v_,type=type(v_))
+        variables[name]=Variable(name=name,value=v_,type=type(v_))
 
 
 class ParserBaseTest(unittest.TestCase):
@@ -204,6 +207,9 @@ class ParserBaseTest(unittest.TestCase):
 
     def setUp(self):
         the._verbose=True # False
+        the.variables={}
+        the.variableValues={}
+        the.variableTypes={}
         if not angle.use_tree:
             power_parser.do_interpret()
             # self.parser.do_interpret()

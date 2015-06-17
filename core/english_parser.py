@@ -15,6 +15,7 @@
 # from kast import *
 # import re
 # import __builtin__
+import _ast
 import traceback
 import sys
 # import HelperMethods
@@ -23,8 +24,9 @@ import sys
 # import kast
 import array
 import interpretation
-from kast import cast
 from english_tokens import *
+# from kast import kast NOT ALL!
+import kast
 from power_parser import *
 import power_parser
 from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
@@ -90,7 +92,7 @@ def should_not_start_with(words):
     bad = starts_with(words)
     if not bad: return OK
     if bad: info("should_not_match DID match #{bad)")
-    if bad: raise ShouldNotMatchKeyword(bad)
+    if bad: raise NotMatching(ShouldNotMatchKeyword(bad))
 
 
 def remove_from_list(keywords0, excepty):
@@ -442,12 +444,13 @@ def functionalselector():
     _('}')
     return filter(xs, crit)
 
-
+global inside_list
+inside_list=False
 @Starttokens(['[', '(', '{'])
 def liste(check=True):
     global inside_list
     if the.current_word == ',': raise NotMatching()
-    if check: must_contain_before([be_words, operators], ',')  # - ['and']
+    if check: must_contain_before(',',be_words+ operators+['of'])  # - ['and']
     # +[' '] ???
     start_brace = ___('[', '{', '(')  # only one!
     if not start_brace and inside_list: raise NotMatching('not a deep list')
@@ -455,18 +458,22 @@ def liste(check=True):
     # all<<expression(start_brace)
     # angel.verbose=True #debug
     inside_list = True
-    first = _try(endNode)
+    first = maybe(endNode)
     if not first: inside_list = False
     if not first: raise_not_matching()
     all = [first]
-    star(lambda: tokens([',', 'and']) and all.append(endNode))
-    # all<<expression
+    def lamb():
+        tokens([',', 'and'])
+        e=endNode()
+        # e=expression()
+        all.append(e)
+        return e
+    star(lamb)
     # danger: and as plus! BAD IDEA!!!
     if start_brace == '[': _(']')
-    if start_brace == '{': _(')')
+    if start_brace == '{': _('}')
     if start_brace == '(': _(')')
     inside_list = False
-    current_value = all
     return all
 
 
@@ -482,7 +489,7 @@ def plusPlus():
     pre = maybe_token('+') and token('+')
     v = variable()
     pre or _('+') and token('+')
-    if not interpreting(): return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Add(), cast.Num(1))
+    if not interpreting(): return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Add(), kast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
     the.variableValues[v.name] = v.value = the.result
     return the.result
@@ -494,7 +501,7 @@ def minusMinus():
     v = variable()
     pre or _('-') and token('-')
     if not interpreting():
-        return cast.AugAssign(cast.Name(v.name, cast.Store()), cast.Sub(), cast.Num(1))
+        return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Sub(), kast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
     variableValues[v] = v.value = the.result
     return the.result
@@ -515,7 +522,7 @@ def plusEqual():
     arg = do_evaluate(exp, v.type)
     if not interpreting():
         op = tree.operator_equals(mod)
-        return cast.AugAssign(cast.Name(v.name, cast.Store()), op, arg)
+        return kast.AugAssign(kast.Name(v.name, kast.Store()), op, arg)
     else:
         the.result = interpretation.self_modify(v, mod, arg)
         the.variableValues[v.name] = the.result
@@ -607,7 +614,8 @@ def immediate_json_hash():  # a:{b) OR a{b():c)):
 
 def maybe_cast(context):
     if not maybe_token('as'): return context
-    typeNameMapped()
+    typ=typeNameMapped()
+    return call_cast(context,typ)
 
 def postoperations(context):
     return maybe_cast(context)
@@ -633,7 +641,7 @@ def expression(fallback=None):
                       maybe(evaluate_property) or \
                       maybe(selfModify) or \
                       maybe(endNode) or \
-                      raise_not_matching("Not an expression") #and print_pointer(True)
+                      raise_not_matching("Not an expression: "+pointer_string()) #and print_pointer(True)
 
     # maybe(swift_hash) or \
 
@@ -1222,7 +1230,7 @@ def do_execute_block(b, args={}):
     if b == True: return True
     if isinstance(b, FunctionCall): return call_function(b)
     if callable(b): return call_function(b, args)
-    if isinstance(b, cast.AST):
+    if isinstance(b, kast.AST):
         exec (b)  # TODO ARGS???
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
@@ -1339,7 +1347,7 @@ def get_obj(o):
 
 
 def property():
-    must_contain_before(".", ' ')
+    must_contain_before([".","'s"], xlist(special_chars)-'.')
     no_rollback()
     owner = class_constant
     owner = get_obj(owner) or variables[true_variable(False)].value  # reference
@@ -1388,7 +1396,7 @@ def setter():
             val=do_cast(val,_cast)
         else: _type=_cast #todo
     allow_rollback()
-    if setta == 'are' or setta == 'consist of' or setta == 'consists of': val = [val].flatten()
+    if setta in [ 'are' ,'consist of' ,'consists of']: val = flatten(val)
     assure_same_type_overwrite(var, val)
     # var.type=var.type or type or type(val) #eval'ed! also x is an integer
     assure_same_type(var, _type or type(val))
@@ -1409,7 +1417,7 @@ def setter():
     subnode({'var': var})
     subnode({'val': val})
     the.token_map[var.name] = true_variable
-    if not interpreting(): return cast.Assign(cast.Name(var.name, cast.Store()), val)
+    if not interpreting(): return kast.Assign(kast.Name(var.name, kast.Store()), val)
 
     if interpreting() and val != 0: return val
     return var
@@ -1518,20 +1526,28 @@ def must_not_start_with(words):
     should_not_start_with(words)
 
 
+def todo(x):
+    raise NotImplementedError(x)
+
+
 def do_cast(x, typ):
     if isinstance(typ, float): return float(x)
     if isinstance(typ, int): return int(x)
     if typ==int: return int(x)  # todo!
+    if typ==xint: return int(x)  # todo!
     if typ=="int": return int(x)
-    if typ=="int": return int(x)
-    if typ=="Integer": return int(x)
-    if typ.is_a("the.string"): return str(x)  # todo!
+    if typ=="integer": return int(x)
+    if typ==str: return str(x)
+    if typ==xstr: return str(x)
+    if typ=="str": return str(x)
+    if typ=="string": return str(x)
+    todo("do_cast")
     return x
 
 
 def call_cast(x, typ):
     if interpreting(): return do_cast(x, typ)
-    return x
+    return x #FunctionCall(name('cast'
 
 
 def nod():  # options{generateAmbigWarnings=false)):
@@ -1753,10 +1769,11 @@ def either_or():
 
 def is_comparator(c):
     ok = c in comparison_words or \
-         comparison_words.contains(c - "is ") or \
-         comparison_words.contains(c - "are ") or \
-         comparison_words.contains(c - "the ") or \
          c in class_words
+         # or \
+         # (c - "is ") in comparison_words.contains() or \
+         # comparison_words.contains(c - "are ") or \
+         # comparison_words.contains(c - "the ") or \
     return ok
 
 
@@ -1830,7 +1847,7 @@ def check_condition(cond=None, negate=False):
         # if _not: the.result = not the.result
         if negate: the.result = not the.result
         if not the.result:
-            verbose("condition not met %s %s %s %s"%(cond,lhs,comp,rhs))
+            verbose("condition not met %s %s %s"%(lhs,comp,rhs))
         return the.result
     except IgnoreException as e:
         # debug x #soft message
@@ -1850,8 +1867,9 @@ def action_or_expressions(fallback=None):
 
 
 def element_in():
+    must_contain_before(["of","in"],special_chars)
     n = noun()
-    __('in'), "of"
+    __('in' "of")
     return n
 
 
@@ -1862,7 +1880,8 @@ def condition():
     if negated: brace = brace or maybe_token('(')
     # a=endNode:(
     quantifier = ___(quantifiers)  # vs selector()!
-    if quantifier: _try(element_in)
+    filter=None
+    if quantifier: filter=_try(element_in) # all words in
     # angel.in_condition=True
     lhs = action_or_expressions(quantifier)
     _not = False
@@ -2063,36 +2082,30 @@ def postjective():  # 4 squared , 'bla' inverted, buttons pushed in, mail read b
     # see resolve, eval_string,  do_evaluate, do_evaluate_property, do_s
 
 
-def do_evaluate_property(x, y):
+def get_class(x):
+    if isinstance(x,Variable):return x.type
+    return type(x) # unless AST/overwritten etc!!!
+
+
+def do_evaluate_property(attr, node):
     # todo: REFLECTION / eval NODE !!!
-    if not x: return False
-    verbose("do_evaluate_property '+str(x)+' ") + str(y)
+    if not attr: return False
+    verbose("do_evaluate_property '"+str(attr)+"' in "+ str(node))
     the.result = None  # delete old!
-    if x == 'type': x = 'class'  # !!*)($&) NOO
-    if isinstance(x, TreeNode): x = x.value_string
-    the.result = do_send(y, x, None)  # try 1
-    the.result = eval(y + '.' + x)  # try 1
-    if isinstance(x, list): x = x.join(' ')
-    the.result = eval(y + '.' + x)  # try 2
-    y = str(y)  # if _try(y.is_a) Array:
-    the.result = eval(y + '.' + x)  # try 3
-    if (the.result): return the.result
-    all = str(x) + ' of ' + str(y)
-    x = x.gsub(' ', ' :')
-    try:
-        the.result = eval(y + '.' + x)
-        if not the.result: the.result = eval("'" + y + "'." + x)
-        # if not the.result  except SyntaxError: the.result=eval('"'+y+'".'+x)
-        if not the.result: the.result = eval(all)
-    except:
-        error('')
+    if attr in dir(node): # y.__att
+        return node.__getattribute__(attr)
+    if attr in [ 'type', 'class','kind']:
+        return get_class(node)
+    if isinstance(node,list):
+        return map(lambda x:do_evaluate_property(attr,x),node)
+    if isinstance(attr, _ast.AST):
+        return todo("do_evaluate_property")
     return the.result
 
-    # Strange method, see resolve, do_evaluate
-
-
+# Strange method, see resolve, do_evaluate
 def eval_string(x):
     if not x: return None
+    if isinstance(x,Variable):return x.value
     if isinstance(x, extensions.File): return x.to_path
     # if isinstance(x, str): return x
     # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
@@ -2102,13 +2115,12 @@ def eval_string(x):
     # if _try(x.is_a) Array: return x.to_s
     return do_evaluate(x)
 
-    # see resolve eval__try(the.string)??
-
-
-def do_evaluate(x, type=None):
+# see resolve eval__try(the.string)??
+def do_evaluate(x, _type=None):
     if not interpreting(): return x
     try:
-        if isinstance(x, cast.AST): exec (x)
+        if isinstance(x, type): return x
+        if isinstance(x, kast.kast.AST): exec (x)
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
         if isinstance(x, Variable):
@@ -2119,10 +2131,10 @@ def do_evaluate(x, type=None):
         if x == TRUE: return True
         if x == FALSE: return FALSE
         if x == NILL: return None
-        if isinstance(x, str) and type and isinstance(type, extensions.Numeric): return float(x)
+        if isinstance(x, str) and _type and isinstance(_type, extensions.Numeric): return float(x)
         if x in the.variableValues: return the.variableValues[x]
         if x == True or x == False: return x
-        if isinstance(x, str) and type and type == float: return float(x)
+        if isinstance(x, str) and _type and _type == float: return float(x)
         # if isinstance(x, str) and type and is_a(type,float): return float(x)
         if isinstance(x, TreeNode): return x.eval_node(variableValues)
         if isinstance(x, str) and match_path(x): return resolve(x)
@@ -2249,8 +2261,8 @@ def do_compare(a, comp, b):
     b = eval_string(b)
     if isinstance(b, float) and re.search(r'^\+?\-?\.?\d', str(a)): a = float(a)
     if isinstance(a, float) and re.search(r'^\+?\-?\.?\d', str(b)): b = float(b)
-    if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a)
-    if isinstance(a, int) and re.search(r'^\+?\-?\.?\d', str(b)): b = int(b)
+    if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a) # EEK PHP STYLE !? REALLY??
+    if isinstance(a, int) and re.search(r'^\+?\-?\.?\d', str(b)): b = int(b) # EEK PHP STYLE !? REALLY??
     if isinstance(comp, str): comp = comp.strip()
     if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<':
         return a < b
@@ -2263,7 +2275,7 @@ def do_compare(a, comp, b):
     elif comp in be_words:
         return a == b
     elif class_words.index(comp):
-        return isinstance(a, b)
+        return issubclass(a , b) or isinstance(a, b) # issubclass? a bird is an animal OK
         # if b.isa(Class): return a.isa(b)
     elif be_words.index(comp) or re.search(r'same', comp):
         return isinstance(a, b) or a.__eq__(b)
@@ -2325,8 +2337,9 @@ def endNode():
         maybe(article) and word() or \
         maybe(ranger) or \
         maybe(value) or \
+        maybe(typeNameMapped) or \
         maybe_token('a') or \
-        raise_not_matching("Not an endNode")
+        raise_not_matching("Not an endNode")  # "+pointer_string())
     po = maybe(postjective)  # inverted
     if po and interpreting(): x = do_send(x, po, None)
     return x
@@ -2335,7 +2348,7 @@ def endNode():
 def endNoun(included=[]):
     _try(article)
     adjs = star(adjective)  # first second :. included
-    obj = maybe(noun(included))
+    obj = maybe(lambda:noun(included))
     if not obj:
         if adjs and adjs.join(' ').is_noun:
             return adjs.join(' ')
@@ -2343,9 +2356,11 @@ def endNoun(included=[]):
             raise NotMatching('no endNoun')
 
     if angle.use_tree: return obj
-    # return adjs.to_s+" "+obj.to_s # hmmm  hmmm   hmmm  W.T.F.!!!!!!!!!!!!!?????
-    if adjs and isinstance(adjs, list): adjs = ' ' + adjs.join(' ')
-    return str(obj) + str(adjs)  # hmmm hmmm   hmmm  W.T.F.!!!!!!!!!!!!!????? ( == todo )
+    # return adjs.to_s+" "+obj.to_s # hmmm  hmmm
+    if adjs and isinstance(adjs, list):
+        todo("adjectives in endNoun")
+        return ' ' + adjs.join(' ')+" "+str(obj) #  hmmm  W.T.F.!!!!!!!!!!!!!?????
+    return str(obj)
 
 
 def any_ruby_line():
@@ -2746,7 +2761,7 @@ def true_variable(node=True):
 
 def noun(include=[]):
     a = maybe_tokens(articles)
-    if not a: should_not_start_with(keywords)
+    if not a: should_not_start_with(xlist(keywords)-include)
     if not angle.use_wordnet:
         return word(include)
     from nltk.corpus import wordnet as wn
@@ -2845,7 +2860,7 @@ def repeat_action_while():
     _('while')
     c = condition()
     if not interpreting():
-        return cast.While(test=c, body=b)
+        return kast.While(test=c, body=b)
     while check_condition(c):
         the.result = do_execute_block(b)
     return the.result
@@ -2862,7 +2877,7 @@ def repeat_with():
         for i in c:
             do_execute_block(b,{v:i})
         return the.result
-    return cast.For(target=v,iter=c,body=b)
+    return kast.For(target=v,iter=c,body=b)
     #     'iter',
     #     'body',
     #     'orelse',)
@@ -2882,7 +2897,7 @@ def while_loop():
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
     r = False
     if not interpreting():
-        return cast.While(test=c, body=b)
+        return kast.While(test=c, body=b)
     while (check_condition(c)):
         r = do_execute_block(b)
     return r  # or OK
