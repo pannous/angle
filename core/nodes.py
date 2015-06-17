@@ -33,7 +33,9 @@ class Quote(str):
 class Function:
     #attr_accessor :name, :arguments, :return_type, :scope, :module, :clazz, :object, :body
 
-    def __init__(self, **args):
+    def __init__(self,*margs, **args):
+        if not args:
+            args=margs[0] # ruby style hash args
         self.name     =args['name']
         self.body     =args['body']
         self.clazz    =None # dangling ... NOT type(object) as in ruby!
@@ -41,13 +43,13 @@ class Function:
         self.modifier =None
         self.arguments =[]
         self.decorators=[]
-        if 'scope' in args: self.scope   =args['scope']
+        self.scope     =args['scope']  if 'scope' in args  else None
         if 'owner' in args: self.object    =args['owner']
         if 'object' in args: self.object    =args['object']
         if 'clazz' in args:self.clazz   =args['clazz'] #1st param: self
         if 'modifier' in args:self.modifier=args['modifier'] # public etc
         if 'decorators' in args:self.decorators =args['decorators'] # @annotation functions
-        if 'arguments' in args:self.arguments   =args['arguments']
+        if 'arguments' in args:self.arguments   =args['arguments'] # as [Argument]
         # self.scope    =args['scope'] # == class??
 
         # integrate a function between x and y => object = a function (class)
@@ -67,13 +69,20 @@ class Function:
     def argc(self):
         self.arguments.count
 
-    def __eq__(self, x):
-        if not isinstance(x,Function): return False
-        return self.name==x.name  and \
-               self.scope==x.scope  and \
-               self.clazz==x.clazz  and \
-               self.object==x.object  and \
-               self.arguments==x.arguments
+    def __eq__(self, other):
+        if isinstance(other,Function):
+            ok=        self.name  == other.name
+            ok= ok and self.scope == other.scope
+            ok= ok and self.clazz == other.clazz
+            ok= ok and self.object== other.object
+            ok= ok and self.arguments== other.arguments
+            body_ok =  self.body     == other.body
+            return ok # and body_ok
+        if isinstance(other,ast.FunctionDef):
+            return self.name==other.name and \
+                self.arguments==other.args
+        return False
+
 
         # def call(*args):
         # self.parser. self.context.
@@ -94,22 +103,26 @@ class FunctionCall:
 class Argument(cast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
 
-    def __init__(self, **args):
+    def __init__(self,*margs, **args):
+        if not args:
+            args=margs[0] # ruby style hash args
         self.name       =args['name']
-        self.preposition=args['preposition']
-        self.type       =args['type']
+        self.preposition=args['preposition'] #  big python headache: starting from 0 or 1 ?? (self,x,y) etc
         self.position   =args['position']
-        if'default'in args:self.default=args['default']
-        if'value'in args:self.value    =args['value']
+        self.type       =args['type']       if 'type'    in args else None
+        self.default    =args['default']    if 'default' in args else None
+        self.value      =args['value']      if 'value'   in args else None
         # scope.variables[name]=self
 
-    def __eq__(self,x):
-        return self.name == x.name  and \
-               self.preposition== x.preposition  and \
-               self.type == x.type  and \
-               self.position == x.position  and \
-               self.default == x.default  and \
-               self.value == x.value
+    def __eq__(self,other):
+        ok = True
+        ok= ok and  self.name == other.name
+        ok= ok and  self.preposition== other.preposition
+        ok= ok and  self.type == other.type
+        ok= ok and  self.position == other.position
+        ok= ok and  self.default == other.default
+        ok= ok and  self.value == other.value
+        return ok
 
     def name_or_value(self):
         self.value or self.name

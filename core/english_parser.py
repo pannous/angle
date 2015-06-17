@@ -22,7 +22,7 @@ import sys
 # import HelperMethods
 # import cast
 import array
-import Interpretation
+import interpretation
 from cast import cast
 from english_tokens import *
 from power_parser import *
@@ -192,9 +192,9 @@ def ___(*tokens0):
 
 
 def interpretation():
-    import Interpretation
+    import interpretation
 
-    interpretation = Interpretation.Interpretation()
+    interpretation = interpretation.Interpretation()
     i = interpretation  # Interpretation.new
     i.result = the.result
     i.tree = the.result
@@ -741,7 +741,7 @@ def method_definition():
     b = action_or_block()  # define z as 7 allowed !!!
     f = Function(name=name, arguments=args, return_type=return_type, body=b)
     # ,modifiers:modifiers, annotations:annotations
-    methods[name] = f or parent_node() or b
+    the.methods[name] = f or parent_node() or b
     # # with args! only in tree mode!!
     return f or name
 
@@ -842,7 +842,7 @@ def once_trigger():
     c = maybe(future_event) or condition() # eval later, variables might not be set yet!!!
     maybe_token('then')
     b=action_or_block()
-    return Interpretation.add_trigger(c, b)
+    return interpretation.add_trigger(c, b)
 
 def _do():
     return _try(lambda: _('do'))
@@ -860,7 +860,7 @@ def action_once():
     __(once_words)
     c = condition()
     end_expression
-    Interpretation.add_trigger(c, b)
+    interpretation.add_trigger(c, b)
 
 
 def once():
@@ -1459,7 +1459,7 @@ def variable_name(a=None,store=true):
         return the.variables[name]
     # typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
-    the.result = Variable(name=name, type=typ, scope=current_node(), module=current_context(), value=oldVal)
+    the.result = Variable(name=name, type=typ or None, scope=current_node(), module=current_context(), value=oldVal)
     the.variables[name] = the.result
     # if p: variables[p+' '+name]=the.result
     return the.result
@@ -1540,7 +1540,7 @@ def number_or_word():
 
 # method definition args != call args
 def param(position=1):
-    pre = maybe_tokens(prepositions) or ""  # might be superfluous if calling"BY":
+    pre = maybe_tokens(prepositions) or None  # might be superfluous if calling"BY":
     a=variable_name(a=None,store=False)
     return Argument(preposition=pre, name=a.name, type= a.type, position= position)
 
@@ -1995,10 +1995,15 @@ def typeNameMapped():
         return the.classes[x]
     if x == "int": return int
     if x == "integer": return int
+    if x == "long": return long
+    if x == "double": return long
     if x == "str": return str
     if x == "string": return str
     if x == "real": return float
     if x == "float": return float
+    if x == "number": return float
+    if x == "fraction": return float
+    if x == "rational": return float
     if x == "hash": return dict
     if x == "hashmap": return dict
     if x == "hashtable": return dict
@@ -2161,12 +2166,12 @@ def do_send(obj0, method, args0):
 
     # try direct first!
     if isinstance(method, list) and len(method) == 1: method = method[0]
-    if method in methods:
+    if method in the.methods:
+        method = the.methods[method]
         # if callable(method):method(args)
-        method = methods[method]
 
     if isinstance(method, Function):
-        the.result = do_execute_block(methods[method].body, args0)
+        the.result = do_execute_block(method.body, args0)
         return the.result
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
@@ -2181,6 +2186,7 @@ def do_send(obj0, method, args0):
 
     if (args and isinstance(args, list) and len(args) > 0 and args[0] == 'of'): return evaluate_property(args[1], obj0)
     if (method == 'of'): return evaluate_property(args, obj0)
+
     # if args and _try(obj.respond_to) + " " etc!: args=args.strip()
 
     method_name = callable(method) and str(method)  # what for??

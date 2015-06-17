@@ -38,6 +38,15 @@ class VariableTest(ParserBaseTest):
         assert_has_error('i=1;string i', WrongType)
         assert_has_error("int i;i='hi'", WrongType)
 
+    def test_variable_scope(self):
+        assert_result_is(1,"""def cycle
+                                  i = 1
+                                  while i > 10
+                                    i += 1
+                                  end
+                                  i
+                                end""")
+
     def test_var_condition_unmodified(self):
         variables['counter'] = [Variable({'name': 'counter', 'value': 3, }), ]
         init('counter=2')

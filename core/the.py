@@ -1,7 +1,6 @@
-# from __future__ import print_function
-# import __builtin__
-import extensions
+#GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
 
+import extensions
 
 global string, last_node, current_value, nodes, depth,rollback_depths,OK
 global _verbose,use_wordnet,result,last_result
@@ -23,14 +22,6 @@ context = ''
 variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)
-# print_function
-methods = {'beep': extensions.beep,'puts':extensions.puts,'print':extensions.puts,'reverse':extensions.xstr.reverse}  # name->method-node
-classes = {'list': extensions.xlist,'Math': extensions.Math,'int':extensions.xint,'integer':extensions.xint}
-c_methods = ['printf']
-builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!
-core_methods = ['show', 'now', 'yesterday', 'help']  # _try(difference)
-# bash_methods=["say"]
-
 
 string=""
 tokenstream=[] # tuple:
@@ -79,3 +70,23 @@ svg = []
 
 def parent_node():
   return None
+
+# print_function
+core_methods = ['show', 'now', 'yesterday', 'help']  # _try(difference)
+# SEE typeNameMapped!
+methods = {
+  'beep': extensions.beep,
+  'puts':extensions.puts,
+  'p':extensions.puts,
+  'print':extensions.puts,
+  'reverse':extensions.xstr.reverse
+}  # name->method-node
+classes = {
+  'list': extensions.xlist,
+  'Math': extensions.Math,
+  'int':extensions.xint,
+  'integer':extensions.xint
+}
+c_methods = ['printf']
+builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!
+# bash_methods=["say"]

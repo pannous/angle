@@ -66,10 +66,17 @@ class FunctionTest(ParserBaseTest):
     def test_params(self):
         parse('how to increase x by y: x+y;')
         g = functions['increase']
-        args = [Argument({'name': 'x', 'preposition': None, 'position': 1, }),
-                Argument({'preposition': 'by', 'name': 'y', 'position': 2, })]
+        #  big python headache: starting from position 0 or 1 ?? (self,x,y) etc
+        # args = [Argument({'name': 'x', 'preposition': None, 'position': 1, }),
+        #         Argument({'preposition': 'by', 'name': 'y', 'position': 2, })]
+        args = [Argument({'name': 'x', 'preposition': None, 'position': 0, }),
+                Argument({'preposition': 'by', 'name': 'y', 'position': 1, })]
         f = Function({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
         assert_equal(f, g)
+        return f
+
+    def test_params_call(self):
+        f=self.test_params()
         assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)
 
     def test_function_object(self):

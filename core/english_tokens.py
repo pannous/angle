@@ -165,9 +165,9 @@ otherKeywords= ['and', 'as', 'back', 'beginning', 'but', 'by', 'contain', 'conta
     'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'prop', 'property', 'put', 'ref', 'reference',\
     'repeat', 'return','returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
-const_words=['constant', 'const','final','immutable','unchangeable'] #not: static
+const_words=['constant', 'const','final','immutable','uncblhangeable'] #not: static
 
-modifiers= const_words + ['protected', 'private','public', 'static', 'void', 'default', 'initial', 'mutable','variable']
+modifiers= const_words + ['protected', 'private','public', 'static', 'void', 'default', 'initial','mut', 'mutable','variable']
 
 adverbs=['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely', 'by any means', 'without a doubt']
 

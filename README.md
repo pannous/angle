@@ -2,14 +2,12 @@
 
 ALPHA, DON'T USE YET!
 
-**Angle** is [English](https://github.com/pannous/english-script) as a programming language.
+**Angle** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
-
-The guiding philosophy is to have forgiving interfaces yet strict implementations, and to make special chars (braces,colons,etc) completely optional.
 
 Examples
 --------
-Here are some of our favorite examples from the [tests](test/unit), **working today**:
+Here are some of our favorite working examples from the [tests](test):
 
 `assert two minus 1½ equals 0.5`
 
@@ -118,23 +116,13 @@ Run it and see yourself!
 
 `⦠ x is 2; if all 0,2,4 are smaller 5 then increase x`
 
-**Test**
+Why the python implementation
+-----------------------------
+We can **compile** English script / Angle directly to python byte-code:
+As opposed to Ruby, Python comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
+A compiler is so much nicer (==faster) than an interpreter.
+Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
-Run the tests : `rake test`
-
-Run an angle file: `rake run[examples/test.e]`
-
-Todos
------
-* Use the abstract syntax tree to compile instead of interpret (export via XML and Lisp s-expressions)
-* Better (real) function argument matching: Integrate the sine curve in the interval 1 to 10 with step size .1
-* Implement event system: Beep three times whenever the disc space is over 80%
-* Hook into more existing libraries (java,ifttt,rubyosa?,...)
-* IntelliJ plugin
-* Promote
-
-This language might soon be used in our successful beloved Jeannie assistant, which has over 4 million downloads so far:
-http://www.voice-actions.com
 
 For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/natural-english/tree/master/DOSSIER.md)
 

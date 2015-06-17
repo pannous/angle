@@ -6,7 +6,6 @@ from __future__ import print_function # for stderr
 # from english_parser import result, comment, condition, root
 import sys
 import tokenize
-import const
 import english_tokens
 import re
 import token as _token
@@ -802,7 +801,7 @@ def maybe(expression):
     global original_string, last_node, current_value, depth,nodes,current_node,last_token
     # allow_rollback 1
     depth = depth + 1
-    if (caller_depth() > const.max_depth):raise SystemStackError("if(len(nodes)>max_depth)")
+    if (caller_depth() > angle.max_depth):raise SystemStackError("if(len(nodes)>max_depth)")
     old = current_token
     try:
         old_nodes = list(nodes)#.clone()

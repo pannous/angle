@@ -148,8 +148,11 @@ def sleep(s):
 
 
 def parse(s):
-    r= english_parser.parse(s).result
+    interpretation= english_parser.parse(s)
+    r=interpretation.result
     variables.update(the.variables)
+    functions.update(the.methods)
+    methods.update(the.methods)
     return r
 
 
