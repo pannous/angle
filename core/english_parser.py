@@ -25,8 +25,7 @@ import sys
 import array
 import interpretation
 from english_tokens import *
-# from kast import kast NOT ALL!
-import kast
+from kast import kast
 from power_parser import *
 import power_parser
 from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
@@ -1398,11 +1397,12 @@ def setter():
     allow_rollback()
     if setta in [ 'are' ,'consist of' ,'consists of']: val = flatten(val)
     var.typed=_type or var.typed or 'typed'==mod # in [mod]
-    # if var.typed:
-    assure_same_type_overwrite(var, val)
-    assure_same_type(var, _type or type(val))
 
-    # var.type=var.type or type or type(val) #eval'ed! also x is an integer
+    assure_same_type(var, _type or type(val))
+    assure_same_type_overwrite(var, val)
+    # if var.typed:
+    #     var.type = _type #ok: set
+
     if not var.name in variableValues or mod != 'default':# and interpreting():
         the.variableValues[var.name] = val
         the.variables[var.name] = var
@@ -2023,8 +2023,15 @@ def classConstDefined():
     if not c:        raise NotMatching()
     return c
 
+
+
 def mapType(x0):
     x=x0.lower()
+    if x == "char": return xchar
+    if x == "character": return xchar
+    # if x == "class": return type #DANGER!
+    if x == "type": return type
+    if x == "word": return str #DANGER!
     if x == "int": return int
     if x == "integer": return int
     if x == "long": return long
@@ -2123,7 +2130,7 @@ def do_evaluate(x, _type=None):
     if not interpreting(): return x
     try:
         if isinstance(x, type): return x
-        if isinstance(x, kast.kast.AST): exec (x)
+        if isinstance(x, kast.AST): exec (x)
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
         if isinstance(x, Variable):

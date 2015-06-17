@@ -585,6 +585,8 @@ class xstr(str):
     def reverse_string(str):
         return xstr(str).reverse()
 
+class xchar(int):
+    pass
 
 #class Fixnum Float
 # class Numeric:

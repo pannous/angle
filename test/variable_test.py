@@ -1,3 +1,4 @@
+import pyasn1.type.char
 import _global
 from parser_test_helper import *
 from power_parser import WrongType, ImmutableVaribale
@@ -19,9 +20,15 @@ class VariableTest(ParserBaseTest):
         parse('int i=3')
         parse('an integer i;i=3')
         parse('int i;i=3')
+
+    def test_variable_type_cast(self):
+        parse('int i;i=3.2 as int')
+
+    def test_variable_type_syntax2(self):
         parse("char x='c'")
         parse("char x;x='c'")
-        parse("char x;x=3 as char")
+        # parse("char x;x=3 as char")
+        # character
         # all error free
 
     def test_variable_type_safety0(self):
