@@ -4,7 +4,7 @@ from parser_test_helper import *
 
 class CompilerPythonEquivalenceTest(ParserBaseTest):
     def test_compiler_output_equivalence(self):
-        source='../cast/tests/hi.py'
+        source='../kast/tests/hi.py'
         contents=open(source).readlines()# all()
         contents="\n".join(contents)
         contents="print('hi')"

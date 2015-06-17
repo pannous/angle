@@ -5,18 +5,21 @@ from parser_test_helper import *
 
 class TypeTest(ParserBaseTest):
 
-
     def test_typed_variable(self):
         parse('Int i=7')
-        assert_equals(variableTypes('i'), int)
+        assert_equals(variableTypes['i'], int)
 
     def test_typed_variable2(self):
         parse('int i=7')
-        assert_equals(variableTypes('i'), 'Integer')
+        assert_equals(variableTypes['i'], int)
 
-    def test_auto_typed_variable(self):
-        parse('i=7')
-        assert_equals(variableTypes('i'), 'Fixnum')
+    # def test_typed_variable2(self):
+    #     parse('int i=7')
+    #     assert_equals(variableTypes['i'], Integer)
+    #
+    # def test_auto_typed_variable(self):
+    #     parse('i=7')
+    #     assert_equals(variableTypes['i'], Fixnum)
 
     def test_type1(self):
         init('class of 1,2,3')
@@ -59,7 +62,7 @@ class TypeTest(ParserBaseTest):
         assert('type of x is Array')
 
     def test_type_cast(self):
-        assert_result_is('2.3', None)
+        # assert_result_is('2.3', None)
         parse('int z=2.3 as int')
         assert_equals(result(), 2)
 

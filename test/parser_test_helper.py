@@ -3,7 +3,7 @@ import unittest
 import ast
 import sys
 import angle
-import cast.cast
+import kast.cast
 import english_parser
 import power_parser
 import test._global
@@ -154,6 +154,7 @@ def parse(s):
     variables.update(the.variables)
     functions.update(the.methods)
     methods.update(the.methods)
+    variableTypes.update(the.variableTypes)
     return r
 
 
@@ -164,7 +165,7 @@ def init(str):
 
 
 def result():
-    raise the.result
+    return the.result
 
 
 def equals(a, b):

@@ -61,7 +61,8 @@ result_words= ['it', 'they', 'result', 'its','that']
 
 type_keywords= ["class", "interface", "module", "type", "kind"]
 
-type_names=["auto","string", "int", "integer", "bool", "boolean", "list", "array", "hash","float","real","double","number","set","type","str"]
+type_names=["auto","string", "int", "integer", "bool", "boolean", "list", "array", "hash","float","real","double","number","set","type","str",
+            'Auto', 'String', 'Int', 'Integer', 'Bool', 'Boolean', 'List', 'Array', 'Hash', 'Float', 'Real', 'Double', 'Number', 'Set', 'Type', 'Str']
 ##danger(self): object,class ,class  "char","character",,"word"):
 
 constants= ["True", "false", "yes", "no", "1", "0", "pi"]

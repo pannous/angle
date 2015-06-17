@@ -1,7 +1,7 @@
 # import emitters/native-emitter
 
 # why not return parser??
-from cast import cast #GRR
+from kast import cast #GRR
 import events
 import the
 

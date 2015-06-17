@@ -1,5 +1,5 @@
 import ast
-from cast import cast
+from kast import cast
 from the import *
 
 class Condition(object):

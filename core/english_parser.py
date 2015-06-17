@@ -12,7 +12,7 @@
 # import __builtin__ # class function(object) etc
 # import inspect
 # import kast
-# from cast import *
+# from kast import *
 # import re
 # import __builtin__
 import traceback
@@ -20,10 +20,10 @@ import sys
 # import HelperMethods
 # import Interpretation
 # import HelperMethods
-# import cast
+# import kast
 import array
 import interpretation
-from cast import cast
+from kast import cast
 from english_tokens import *
 from power_parser import *
 import power_parser
@@ -605,8 +605,12 @@ def immediate_json_hash():  # a:{b) OR a{b():c)):
 
 # todo PYTHONBUG ^^
 
-# def postoperations(context):
-#     maybe(
+def maybe_cast(context):
+    if not maybe_token('as'): return context
+    typeNameMapped()
+
+def postoperations(context):
+    return maybe_cast(context)
 
 def quick_expression():
     if the.current_word in the.token_map:
@@ -633,7 +637,7 @@ def expression(fallback=None):
 
     # maybe(swift_hash) or \
 
-    # ex=postoperations(ex) or ex
+    ex=postoperations(ex) or ex
     check_comment()
 
     if not interpreting():
@@ -1053,11 +1057,11 @@ def generic_method_call(obj=None):
     if start_brace == '{': _(')')
     if not interpreting():
         if method=="puts" or method=="print":
-            # return cast.Print(dest=None,values=args,nl=True) # hack!
+            # return kast.Print(dest=None,values=args,nl=True) # hack!
             import ast
             return ast.Print(dest=None, values=[args], nl=True)#lineno=1, col_offset=20
-            # return cast.Print(dest=None, values=[args], nl=True)#lineno=1, col_offset=20
-            # return cast.Print(None,args,True) # hack!
+            # return kast.Print(dest=None, values=[args], nl=True)#lineno=1, col_offset=20
+            # return kast.Print(None,args,True) # hack!
         return FunctionCall(name=method, arguments=args, object=obj)
     the.result = do_send(obj, method, args)
     return the.result
@@ -1378,6 +1382,11 @@ def setter():
     setta = ___('to') or be()  # or not_to_be 	contain -> add or create
     # val = _try(adjective) or expressions()
     val = expression()
+    _cast=___(["as","kast","kast to","kast into","kast as"]) and typeNameMapped()
+    if _cast:
+        if interpreting():
+            val=do_cast(val,_cast)
+        else: _type=_cast #todo
     allow_rollback()
     if setta == 'are' or setta == 'consist of' or setta == 'consists of': val = [val].flatten()
     assure_same_type_overwrite(var, val)
@@ -1390,6 +1399,7 @@ def setter():
 
     var.final = mod in const_words
     var.modifier = mod
+    the.variableTypes[var.name]=var.type
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
     # the.result = var
     # the.result = val
@@ -1511,8 +1521,10 @@ def must_not_start_with(words):
 def do_cast(x, typ):
     if isinstance(typ, float): return float(x)
     if isinstance(typ, int): return int(x)
-    if typ.is_a("int"): return int(x)  # todo!
-    if typ == "int": return int(x)
+    if typ==int: return int(x)  # todo!
+    if typ=="int": return int(x)
+    if typ=="int": return int(x)
+    if typ=="Integer": return int(x)
     if typ.is_a("the.string"): return str(x)  # todo!
     return x
 
@@ -1989,11 +2001,8 @@ def classConstDefined():
     if not c:        raise NotMatching()
     return c
 
-
-def typeNameMapped():
-    x = typeName()
-    if x in the.classes:
-        return the.classes[x]
+def mapType(x0):
+    x=x0.lower()
     if x == "int": return int
     if x == "integer": return int
     if x == "long": return long
@@ -2015,7 +2024,13 @@ def typeNameMapped():
     if x == "set": return set
     if x == "list": return list
     if x == "tuple": return tuple #list
-    return x
+    return x0
+
+def typeNameMapped():
+    x = typeName()
+    if x in the.classes:
+        return the.classes[x]
+    return mapType(x)
 
 
 def typeName():
@@ -2718,7 +2733,7 @@ def true_variable(node=True):
     v = tokens(vars)
     v = the.variables[v]  # why _try(later)
     # if interpret #LATER!: variableValues[v]
-    # if node and not interpreting(): return cast.name(v)
+    # if node and not interpreting(): return kast.name(v)
     return v
     # for v in the.variables.keys:
     #  if the.string._try(start_with) v:

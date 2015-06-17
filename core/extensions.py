@@ -701,7 +701,12 @@ class Numeric(xint):
 
 
 class Integer(xint):
-    pass
+    @classmethod
+    def __eq__(self, other):
+        if other==int: return True
+        if other==xint: return True
+        if other==Integer: return True
+        return False
 
 
 class xfloat(float):
