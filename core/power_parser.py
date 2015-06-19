@@ -432,22 +432,22 @@ def parse_tokens(s):
 def init(strings):
     # global is ok within one file but do not use it across different files
     global  no_rollback_depth,rollback_depths,line_number,original_string,root,lines,nodes,depth,lhs,rhs,comp
-    no_rollback_depth = -1
-    rollback_depths=[]
-    line_number = 0
+    the.no_rollback_depth = -1
+    the.rollback_depths=[]
+    the.line_number = 0
     if isinstance(strings, list):
-        lines = strings
+        the.lines = strings
         parse_tokens("\n".join(strings))
     if isinstance(strings, str):
-        lines = strings.split("\n")
+        the.lines = strings.split("\n")
         parse_tokens(strings)
     the.token_number=-1
     next_token()
-    the.string= lines[0].strip()  # Postpone angel.problem
-    original_string = the.string
-    root = None
-    nodes = []
-    depth = 0
+    the.string= the.lines[0].strip()  # Postpone angel.problem
+    the.original_string = the.string
+    the.root = None
+    the.nodes = []
+    the.depth = 0
     lhs = rhs = comp = None
     for nr in english_tokens.numbers:
         the.token_map[nr]= number
@@ -799,7 +799,7 @@ def maybe(expression):
     global original_string, last_node, current_value, depth,nodes,current_node,last_token
     # allow_rollback 1
     depth = depth + 1
-    if (caller_depth() > angle.max_depth):raise SystemStackError("if(len(nodes)>max_depth)")
+    if (caller_depth() > angle.max_depth):raise SystemStackError("len(nodes)>max_depth)")
     old = current_token
     try:
         old_nodes = list(nodes)#.clone()

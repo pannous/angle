@@ -2155,13 +2155,13 @@ def do_evaluate(x, _type=None):
     if not interpreting(): return x
     try:
         if isinstance(x, type): return x
-        if isinstance(x, kast.AST): eval_ast(x)
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
         if isinstance(x, Variable):
-            if not x.name in the.variableValues:
-                raise InternalError("variableValues broken")
+            # if not x.name in the.variableValues:
+            #     raise InternalError("variableValues broken")
             return x.value or the.variableValues[x.name]
+        if isinstance(x, kast.AST): eval_ast(x)
         if x == ZERO: return 0
         if x == TRUE: return True
         if x == FALSE: return FALSE

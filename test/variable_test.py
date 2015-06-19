@@ -5,6 +5,9 @@ from power_parser import WrongType, ImmutableVaribale
 
 
 class VariableTest(ParserBaseTest):
+    def setUp(self):
+        angle.use_tree=False
+        # self.super.setUp()
 
     def dont_test_a_setter_article_vs_variable(self):
         parse('a=green')
@@ -71,12 +74,12 @@ class VariableTest(ParserBaseTest):
         assert_result_is(1,the.variableValues['i'])
 
     def test_var_condition_unmodified(self):
-        variables['counter'] = Variable({'name': 'counter', 'value': 3, })
+        the.variables['counter'] = Variable({'name': 'counter', 'value': 3, })
         init('counter=2')
         assert_equals(self.parser.condition(),False)
         self.do_assert('counter=3')
 
     def test_vars(self):
-        variables['counter'] = Variable({'name': 'counter', 'value': 3, })
+        the.variables['counter'] = Variable({'name': 'counter', 'value': 3, })
         parse('counter=2')
-        assert_equals(variables['counter'], 2)
+        assert_equals(the.variableValues['counter'], 2)

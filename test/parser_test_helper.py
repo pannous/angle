@@ -166,7 +166,7 @@ def parse(s):
 
 
 def init(str):
-    the.variables.update(variables)
+    copy_variables()
     english_parser.init(str)
     # parser.init(str)
 
@@ -189,11 +189,12 @@ def copy_variables():
     for name in variable_keys:
         v_ = variables[name]
         if isinstance(v_,Variable):
+            the.variables[name]=v_
+            the.variableValues[name]=v_.value
             continue
         the.variableValues[name]=v_
         the.variables[name]=Variable(name=name,value=v_,type=type(v_))
         variables[name]=Variable(name=name,value=v_,type=type(v_))
-
 
 class ParserBaseTest(unittest.TestCase):
 
