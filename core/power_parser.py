@@ -49,7 +49,7 @@ class StandardError(Exception):
 class Error(Exception):
     pass
 
-class NoMethodError(StandardError):
+class MethodMissingError(StandardError):
     pass
 
 class InternalError(StandardError):
@@ -357,7 +357,8 @@ def tokens(tokenz):
 # so much cheaper!!! -> copy to ruby
 # TODO: COLLECT ALL
 def maybe_tokens(tokens0):
-    for t in flatten(tokens0):
+    tokens = flatten(tokens0)
+    for t in tokens:
         if t==the.current_word:
             next_token()
             return t
@@ -398,6 +399,7 @@ def next_token(check=True):
     if (the.token_number>=len(the.tokenstream)):
         raise EndOfDocument()
     token = the.tokenstream[the.token_number]
+    the.previous_word=the.current_word
     return set_token(token)
 
 def set_token(token):

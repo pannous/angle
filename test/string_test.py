@@ -6,10 +6,10 @@ from parser_test_helper import *
 
 class StringTest(ParserBaseTest):
 
-
     def test_string_methods(self):
         parse("invert 'hi'")
-        assert_equals(self.result, 'ih')
+        assert_equals(the.result, 'ih')
+        self.assert_that("invert 'hi' is 'ih'")
 
     def test_nth_word(self):
         assert("3rd word in 'hi my friend !!!' is 'friend'")
@@ -17,7 +17,7 @@ class StringTest(ParserBaseTest):
 
     def _test_advanced_string_methods(self):
         parse("x='hi' inverted")
-        assert(self.result.equals('ih'))
+        assert(the.result.equals('ih'))
         assert(equals('ih', self.variableValues['x']))
 
     def _test_select_character(self):
@@ -39,13 +39,18 @@ class StringTest(ParserBaseTest):
 
     def test_concatenation(self):
         self.parser.do_interpret()
+        parse("z is 'Hi' plus 'World'")
+        assert_equals(the.variables['z'], 'HiWorld')
+
+    def test_concatenation2(self):
+        self.parser.do_interpret()
         parse("x is 'Hi'; y is 'World';z is x plus y")
-        assert_equals(variables['z'], 'HiWorld')
+        assert_equals(the.variables['z'], 'HiWorld')
 
     def test_concatenation_b(self):
         init("x is 'hi'")
         self.parser.setter()
-        assert(equals('hi', variables['x']))
+        assert(equals('hi', the.variables['x']))
         init("x + ' world'")
         r = self.parser.algebra()
         assert_equals(r, 'hi world')
@@ -53,14 +58,14 @@ class StringTest(ParserBaseTest):
         assert_equals(result(), 'hi world')
         parse("y is ' world'")
         parse('z is x + y')
-        assert_equals(variables['z'], 'hi world')
+        assert_equals(the.variables['z'], 'hi world')
         parse("y is ' you'\n       z is x + y")
-        assert_equals(variables['z'], 'hi you')
+        assert_equals(the.variables['z'], 'hi you')
 
     def test_concatenation_b(self):
         init("x is 'hi'")
         self.parser.setter()
-        assert(equals('hi', variables['x']))
+        assert(equals('hi', the.variables['x']))
         init("x + ' world'")
         r = self.parser.algebra()
         assert_equals(r, 'hi world')
@@ -68,26 +73,26 @@ class StringTest(ParserBaseTest):
         assert_equals(result(), 'hi world')
         parse("y is ' world'")
         parse('z is x + y')
-        assert_equals(variables['z'], 'hi world')
+        assert_equals(the.variables['z'], 'hi world')
 
     def test_concatenation_c(self):
         parse("x is 'hi'")
         parse("y is ' you'")
         parse('z is x + y')
-        assert_equals(variables['z'], 'hi you')
+        assert_equals(the.variables['z'], 'hi you')
 
     def test_newline_statements(self):
         parse("x is 'hi';\n           z='ho'")
-        assert_equals(variables['z'], 'ho')
+        assert_equals(the.variables['z'], 'ho')
 
     def test_concatenation_c3(self):
         parse("x is 'hi'")
         parse("y is ' you';z is x + y")
-        assert_equals(variables['z'], 'hi you')
+        assert_equals(the.variables['z'], 'hi you')
 
     def DONT_test_concatenation_by_and(self):
         parse('z = x and y')
-        assert(equals('hi world', variables['z']))
+        assert(equals('hi world', the.variables['z']))
         assert("x and y == 'hi world'")
         parse("z is x and ' ' and y")
         assert('type of z is string or list')
@@ -96,19 +101,21 @@ class StringTest(ParserBaseTest):
         init("'hi' ' ' 'world'")
         z = self.parser.expressions()
         assert_equals(z, 'hi world')
-        variables['x'] = ['hi', ]
-        variables['y'] = ['world', ]
+        the.variables['x'] = ['hi', ]
+        the.variables['y'] = ['world', ]
         init("z=x ' ' y")
         z = self.parser.setter()
         assert_equals(z, 'hi world')
         parse("x is 'hi'; y is 'world';z is x ' ' y")
         assert('type of z is string or type of z is list')
         assert('type of z is string or list')
-        assert_equals(variables['z'], 'hi world')
+        assert_equals(the.variables['z'], 'hi world')
         assert("z is 'hi world' OR z is 'hi',' ','world'")
 
     def test_concatenation2(self):
         parse("x is 'hi'; y = ' world'")
+        assert_equals(the.variables['x'],'hi')
+        assert_equals(the.variables['y'],' world')
         assert_equals(parse('x + y'), 'hi world')
         assert("x plus y == 'hi world'")
 
@@ -116,7 +123,7 @@ class StringTest(ParserBaseTest):
         assert_equals(parse("'hi'+ ' '+'world'"), 'hi world')
         assert_result_is("'hi'+ ' '+'world'", "'hi world'")
         parse("x is 'hi'; y is 'world';z is x plus ' ' plus y")
-        assert_equals(variables['z'], 'hi world')
+        assert_equals(the.variables['z'], 'hi world')
         assert("z is 'hi world'")
 
     def test_type(self):
@@ -131,7 +138,7 @@ class StringTest(ParserBaseTest):
         assert('class of x is string')
         assert('kind of x is string')
         parse('y= class of x')
-        assert(equals(Quote, variables['y']))
+        assert(equals(Quote, the.variables['y']))
         assert('y is string')
         parse('y is type of x')
         assert('y is string')
@@ -139,12 +146,15 @@ class StringTest(ParserBaseTest):
     def test_type1(self):
         init("class of 'hi'")
         self.parser.evaluate_property()
-        assert_equals(result(), Quote)
+        assert_equals(result(), str)
+        # assert_equals(result(), Quote)
         init("class of 'hi'")
-        self.parser.expressions()
-        assert_equals(result(), Quote)
+        self.parser.expression()
+        assert_equals(result(), str)
+        # assert_equals(result(), Quote)
         parse("class of 'hi'")
-        assert_equals(result(), Quote)
+        assert_equals(result(), str)
+        # assert_equals(result(), Quote)
 
     def test_type2(self):
         parse("x='hi';\n      class of x")

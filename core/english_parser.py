@@ -349,11 +349,11 @@ def algebra():
         if interpreting():  # and not angel.use_tree:
             if op == "/":  # 3'4==0 ? NOT WITH US!!:
                 y = float(y)
-            try:
-                stack[0] = the.result = do_send(stack[0], op, y or the.result)
-            except SyntaxError as e:
-                error(e)
-                # except Exception as e:
+            stack[0] = the.result = do_send(stack[0], op, y or the.result)
+            # try:
+            # except SyntaxError as e:
+            #     error(e)
+            #     # except Exception as e:
                 #     raise e
         return the.result or True
 
@@ -612,12 +612,18 @@ def immediate_json_hash():  # a:{b) OR a{b():c)):
 # todo PYTHONBUG ^^
 
 def maybe_cast(context):
-    if not maybe_token('as'): return context
+    if not maybe_token('as'): return False
     typ=typeNameMapped()
     return call_cast(context,typ)
 
+def maybe_algebra(context):
+    op=maybe_tokens(operators)
+    if not op: return False
+    z=expression()
+    return do_send(context,op,z)
+
 def postoperations(context):
-    return maybe_cast(context)
+    return maybe_cast(context) or maybe_algebra(context) or context
 
 def quick_expression():
     if the.current_word in the.token_map:
@@ -641,7 +647,7 @@ def expression(fallback=None):
                       maybe(selfModify) or \
                       maybe(endNode) or \
                       raise_not_matching("Not an expression: "+pointer_string()) #and print_pointer(True)
-
+                      # maybe(method_call) or \
     # maybe(swift_hash) or \
 
     ex=postoperations(ex) or ex
@@ -759,7 +765,6 @@ def method_definition():
 
 def execute(command):
     import os
-
     os.system(command)
     # NOT: exec(command) !! == eval
 
@@ -861,8 +866,9 @@ def _do():
 
 @Starttokens('do')
 def action_once():
-    if not _do() and newline(): must_contain(once_words)
+    if not _do(): must_contain(once_words) #and
     no_rollback()
+    maybe_newline()
     b = action_or_block()
     # _do=maybe_token('do')
     # dont_interpret()
@@ -870,7 +876,7 @@ def action_once():
     # if _do: b=block and _try(done)
     __(once_words)
     c = condition()
-    end_expression
+    end_expression()
     interpretation.add_trigger(c, b)
 
 
@@ -1002,7 +1008,8 @@ def true_method():
     no_keyword()
     should_not_start_with(auxiliary_verbs)
     # _try(lambda:tokens(methods.keys+"ed")) sorted files -> sort files ?
-    v = maybe_tokens(c_methods) or maybe_tokens(methods.keys) or maybe_tokens(core_methods) or maybe_tokens(
+    constructors = the.classes.keys() + type_names
+    v = maybe_tokens(constructors) or maybe_tokens(c_methods) or maybe_tokens(methods.keys) or maybe_tokens(core_methods) or maybe_tokens(
         builtin_methods) or _try(builtin_method) or _try(verb)
     if not v: raise NotMatching('no method found')
     return v  # .to_s
@@ -1048,6 +1055,7 @@ def generic_method_call(obj=None):
         # if not in_args: obj=maybe( _try(nod)  or  _try(list)  or  expression )
 
     assume_args = True  # not starts_with("of")  # True    #<< Redundant with property eventilation!
+    args=None
     if has_args(method, obj, assume_args):
         current_value = None
         angle.in_args = True
@@ -2125,12 +2133,24 @@ def eval_string(x):
     # if _try(x.is_a) Array: return x.to_s
     return do_evaluate(x)
 
+def eval_ast(my_ast):
+    import codegen
+    import ast
+    source=codegen.to_source(my_ast)
+    print(source) # => CODE
+    if not type(my_ast)==ast.Module:
+        my_ast=Module(body=my_ast)
+    my_ast=ast.fix_missing_locations(my_ast)
+    code=compile(my_ast, 'file', 'exec')
+    # code=compile(my_ast, 'file', 'exec')
+    exec(code)
+
 # see resolve eval__try(the.string)??
 def do_evaluate(x, _type=None):
     if not interpreting(): return x
     try:
         if isinstance(x, type): return x
-        if isinstance(x, kast.AST): exec (x)
+        if isinstance(x, kast.AST): eval_ast(x)
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
         if isinstance(x, Variable):
@@ -2156,7 +2176,9 @@ def do_evaluate(x, _type=None):
         return x  # DEFAULT!
     except (TypeError, SyntaxError)as e:
         print("ERROR #{e) in do_evaluate #{x)")
-        return x
+        raise e,None,sys.exc_info()[2]
+        # return x
+
 
 
         # see do_evaluate ! merge
@@ -2172,7 +2194,7 @@ def resolve(x):
 
 
 def self_modifying(method):
-    return method == 'increase' or method == 'decrease' or re.search(r'\!$', method)
+    return method == 'increase' or method == 'decrease' or re.search(r'\!$', str(method))
 
 
 #
@@ -2180,33 +2202,78 @@ def self_modifying(method):
 #     EnglishParser.self_modifying(method)  # -lol
 
 def is_math(method):
-    return method in ['+', '-', '/', '*']
+    ok= method in operators
+    return ok
 
 
 def do_math(a, op, b):
-    a = float(a)
-    b = float(b)
+    # a = float(a)
+    # b = float(b)
     if op == '+': return a + b
+    if op == 'plus': return a + b
+    if op == 'add': return a + b
     if op == '-': return a - b
+    if op == 'minus': return a - b
+    if op == 'substract': return a - b
     if op == '/': return a / b
+    if op == 'devided': return a / b
+    if op == 'devided by': return a / b
     if op == '%': return a % b
+    if op == 'modulo': return a % b
     if op == '*': return a * b
+    if op == 'times': return a * b
+    if op == 'multiplied by': return a * b
     if op == '**': return a ** b
+    if op == 'to the': return a ** b
+    if op == 'power': return a ** b
+    if op == '&&': return a & b
+    if op == '&': return a & b
     if op == '^': return a ^ b
     if op == '|': return a | b
+    if op == '||': return a | b
     raise Exception("UNKNOWN OPERATOR " + op)
 
+def isbound(method):
+    # return hasattr(m, '__self__')
+    return method.__self__ is not None
+ # the new synonym for im_self is __self__, and im_func is also available as __func__.
 
-# INTERPRET only,  todo cleanup method + argument matching + concept
-def do_send(obj0, method, args0):
-    if not interpreting(): return False
-    if not method: return False
+def instance(bounded_method):
+    return bounded_method.im_self
 
-    # try direct first!
+def findMethod(obj0, method0, args0):
+    method=method0
+
     if isinstance(method, list) and len(method) == 1: method = method[0]
     if method in the.methods:
         method = the.methods[method]
+    if method in locals():
+        return locals()[method];
+    if globals in locals():
+        return locals()[globals];
+    if method in dir(obj0):
+        method=getattr(obj0, method)  # NOT __getattribute__(name)!!!!
+        # method=method.__get__(obj0, ex)
+    elif type(obj0) in angle.extensionMap:
+        ex=angle.extensionMap[type(obj0)]
+        if method in dir(ex):
+            method=getattr(ex, method)  # NOT __getattribute__(name)!!!!
+            method=method.__get__(obj0, ex)
+    elif type(obj0)==type and  method in obj0.__dict__:
+        method=obj0.__dict__[method] #class
+        method.__get__(None, obj0) #The staticmethod decorator wraps your class and implements a dummy __get__
+        # that returns the wrapped function as function and not as a method
+    return method
         # if callable(method):method(args)
+
+# INTERPRET only,  todo cleanup method + argument matching + concept
+def do_send(obj0, method0, args0):
+    if not interpreting(): return False
+    if not method0: return False
+
+    # try direct first!
+    method=findMethod(obj0,method0,args0)
+    method_name = callable(method) and str(method) or method0  # what for??
 
     if isinstance(method, Function):
         the.result = do_execute_block(method.body, args0)
@@ -2214,41 +2281,48 @@ def do_send(obj0, method, args0):
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
     args = args0
-
-
-    # obj.map{|x| x.value)
     if isinstance(args, Argument): args = args.name_or_value
     # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
     args = eval_string(args)  # except NoMethodError
     if args and isinstance(args, str): args = xstr(args).replace_numerals()
-
     if (args and isinstance(args, list) and len(args) > 0 and args[0] == 'of'): return evaluate_property(args[1], obj0)
     if (method == 'of'): return evaluate_property(args, obj0)
 
     # if args and _try(obj.respond_to) + " " etc!: args=args.strip()
-
-    method_name = callable(method) and str(method)  # what for??
-    # if obj.respond_to(method_name):
-    # elif  obj._try(respond_to) method_name+'s':
-    # if callable(method) and obj: # method.owner:
-    #     the.result = method.call(obj,*args)
-    #     return the.result
-    #
     obj = resolve(obj0)
-    the.result = NoMethodError
+
     if not obj:
-        if not args: return method()
         if args: return method(args)
-        the.result = args.send(method)  # except NoMethodError #("#{obj).#{op)")
-        if (args[0] == 'of' and has_args(method, obj)): the.result = args[1].send(
-            method)  # except NoMethodError #rest of x
-    else:
-        if is_math(method_name): the.result = do_math(obj, method_name, args)
-        # if not callable(method): method=method(method_name)
-        if not has_args(method, obj, False):
+        else: return method()
+
+    if not args and not callable(method) and method in dir(obj):
+        return obj.__getattribute__(method)
+
+    if (args and args[0] == 'of'):# and has_args(method, obj)):
+        if not callable(method) and method in dir(obj):
+            return obj.__getattribute__(method)
+        else:
+            method(args[1]) # square of 7
+
+    if is_math(method_name):
+        return do_math(obj, method_name, args)
+
+    if not callable(method):
+        raise MethodMissingError(type(obj), method, args)
+
+    if not args or not has_args(method, obj, False):
+        if method.im_self:
+            the.result = method() or NILL
+        else:
             the.result = method(obj) or NILL
-        elif has_args(method, obj, True):
+    elif has_args(method, obj, True):
+        if method.im_self:
+            the.result = method(args) or NILL
+        else:
             the.result = method(obj, args) or NILL
+        # the.result = method(obj, *args) or NILL
+        # the.result = method([obj]+args) or NILL try!
+    else:the.result = MethodMissingError
 
     # todo: call FUNCTIONS!
     # puts object_method.parameters #todo MATCH!
@@ -2260,8 +2334,8 @@ def do_send(obj0, method, args0):
         the.variableValues[name] = the.result
 
     # todo : None OK, error not!
-    if the.result == NoMethodError: msg = "ERROR CALLING #{obj).#{method)(): #{args))"
-    if the.result == NoMethodError: raise NoMethodError(msg, method, args)
+    # if the.result == NoMethodError: msg = "ERROR CALLING #{obj).#{method)(): #{args))"
+    if the.result == MethodMissingError: raise MethodMissingError(obj, method, args)
     # raise SyntaxError("ERROR CALLING: NoMethodError")
     return the.result
 
@@ -2396,7 +2470,7 @@ def check_end_of_statement():
 
 
 def end_of_statement():
-    return checkEndOfLine() or token(';')  # consume ";", but DON'T consume done_words here!
+    return checkEndOfLine() or the.previous_word==';' or token(';')  # consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):

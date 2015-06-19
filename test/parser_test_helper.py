@@ -148,6 +148,11 @@ def assert_has_no_error(x):
 def sleep(s):
     pass
 
+def clear_test():
+    global variables,variableValues,variableTypes
+    variables={}
+    variableValues={}
+    variableTypes={}
 
 def parse(s):
     interpretation= english_parser.parse(s)
@@ -207,6 +212,7 @@ class ParserBaseTest(unittest.TestCase):
 
     def setUp(self):
         the._verbose=True # False
+        clear_test()
         the.variables={}
         the.variableValues={}
         the.variableTypes={}
@@ -278,6 +284,9 @@ class ParserBaseTest(unittest.TestCase):
             # print(filter_stack(caller()))
             assert(a==b, ((a + ' should equal ') + b))
     # alias_method('original_assert', 'assert')
+
+    def assert_that(self, x,msg=None, block=None):
+        return self.do_assert( x,msg, block)
 
     def do_assert(self, x,msg=None, block=None):
         copy_variables()

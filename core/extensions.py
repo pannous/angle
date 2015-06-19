@@ -13,6 +13,22 @@ import __builtin__
 import shutil
 
 
+def extension(clazz):
+    import angle
+    for base in clazz.__bases__:
+        angle.extensionMap[base]=clazz
+    return clazz
+
+# class Extension:
+#     def __init__(self, base,b=None,c=None):
+#         self.base=base
+#
+#     def __call__(self,clazz):
+#         self.base()
+#         import angle
+#         angle.extensionMap[self.base]=clazz
+#         print(angle.extensionMap)
+
 def put(x):
     print(x)
 
@@ -178,11 +194,6 @@ class Class:
 # WOW YAY WORKS!!!!!
 # ONLY VIA EXPLICIT CONSTRUCTOR!
 # NOOOO!! BAAAD! isinstance(my_xlist,list) FALSE !!
-def extension(clazz):
-    # print(clazz)
-    # help(clazz)
-    return clazz
-
 
 @extension
 class xlist(list):
@@ -312,8 +323,16 @@ class FalseClass:
     def c(self):
         return self
 
-
+@extension
 class xstr(str):
+
+    def invert(self):
+        r=reversed(self) #iterator!
+        return "".join(r)
+
+    def reverse(self):
+        r=reversed(self) #iterator!
+        return "".join(r)
 
     def to_i(self):
         return int(self)
@@ -412,9 +431,6 @@ class xstr(str):
 
     def flip(self):
         return self.split(" ").reverse.join(" ")
-
-    def invert(self):
-        return self.reverse
 
     def plus(self, x):
         return self + x
@@ -590,6 +606,8 @@ class xchar(int):
 
 #class Fixnum Float
 # class Numeric:
+# @Extension(int)
+@extension
 class xint(int):
 
 # operator.truth(obj)

@@ -167,7 +167,9 @@ class Variable(kast.Name):
         self.value
 
     def __eq__(self, x):
-        if not isinstance(x,Variable): return self.value == x or self.name==x
+        if not isinstance(x,Variable):
+            ok= self.value == x or self.name==x
+            return ok
         super == x
         # self.name == x.name &&
         #     self.preposition== x.preposition &&

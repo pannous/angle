@@ -1,12 +1,12 @@
 #GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
 
+extensionMap ={}
 import extensions
 
 global string, last_node, current_value, nodes, depth,rollback_depths,OK
 global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
-global in_condition,in_pipe,in_args
-
+global in_condition,in_pipe,in_args,extensions
 _verbose =  True # False angel.verbose() and not angel.raking()  # false
 very_verbose = _verbose
 
@@ -30,6 +30,7 @@ token_number=0
 current_type=0
 current_offset=0
 current_word=''
+previous_word=''
 current_line=''
 current_token=None
 
@@ -79,6 +80,7 @@ methods = {
   'puts':extensions.puts,
   'p':extensions.puts,
   'print':extensions.puts,
+  'show':extensions.puts,
   'reverse':extensions.xstr.reverse
 }  # name->method-node
 classes = {

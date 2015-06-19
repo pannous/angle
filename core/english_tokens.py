@@ -37,7 +37,7 @@ numbers= "1 2 3 4 5 6 7 8 9 0\
       tenth ninth eighth seventh sixth fifth fourth third second first\
       ten nine eight seven six five four three two one zero".split()
 
-operators= ["+", "*", "-", "/","//","%","|","||","&","&&","^","^^","**", "mod","modulo" "plus", "minus", "times","and","or","xor","power","to the"]
+operators= ["+", "*", "-", "/","//","%","|","||","&","&&","^","^^","**", "mod","modulo", "plus", "minus", "times","and","or","xor","power","to the"]
  # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
  # just make sure that 4 and False = False  4 and True == True
 
@@ -171,7 +171,7 @@ otherKeywords= ['and', 'as', 'back', 'beginning', 'but', 'by', 'contain', 'conta
 const_words=['constant', 'const','final','immutable','unchangeable'] #not: static
 
 modifiers= const_words + ['protected', 'private','public', 'static', 'void', 'default', 'initial','mut', 'mutable','variable','typed']
-    # ,'readable','read only','readonly','writable','write only','writeonly','changeable']
+    # ,'readable','read only','read-only','readonly','writable','write only','writeonly','changeable']
 
 adverbs=['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely', 'by any means', 'without a doubt']
 

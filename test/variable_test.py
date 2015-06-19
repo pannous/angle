@@ -24,6 +24,13 @@ class VariableTest(ParserBaseTest):
     def test_variable_type_cast(self):
         parse('int i;i=3.2 as int')
 
+    def test_variable_type_cast2(self):
+        skip()
+        parse('int i;i=int(3.2)')
+        parse('int i;i=int(float("3.2"))')
+        parse('int i;i=float("3.2") as int')
+        parse('int i;i=int("3.2")')
+
     def test_variable_type_syntax2(self):
         parse("char x='c'")
         parse("char x;x='c'")
