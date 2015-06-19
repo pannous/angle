@@ -488,8 +488,8 @@ class xstr(str):
     def replace_numerals(self):
         x = self
         x = x.replace(r'([a-z])-([a-z])', "\\1+\\2")  # WHOOOT???
-        # x=x.replace("last", "-1") # index trick
-        x = x.replace("last", "0")  # index trick
+        x = x.replace("last", "-1") # index trick
+        # x = x.replace("last", "0")  # index trick
         x = x.replace("first", "1")  # index trick
 
         x = x.replace("tenth", "10")
@@ -584,8 +584,8 @@ class xstr(str):
         return i
 
     def parse_number(self):
-        self = self.replace_numerals
-        return float(self)# eval(self).to_f
+        x = self.replace_numerals()
+        return float(x)# eval(self).to_f
 
     # def __sub__(self, other): # []= MISSING in python!!
     #     x="abc"

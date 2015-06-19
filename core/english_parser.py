@@ -2136,14 +2136,19 @@ def eval_string(x):
 def eval_ast(my_ast):
     import codegen
     import ast
-    source=codegen.to_source(my_ast)
-    print(source) # => CODE
-    if not type(my_ast)==ast.Module:
-        my_ast=Module(body=my_ast)
-    my_ast=ast.fix_missing_locations(my_ast)
-    code=compile(my_ast, 'file', 'exec')
-    # code=compile(my_ast, 'file', 'exec')
-    exec(code)
+    try:
+        source=codegen.to_source(my_ast)
+        print(source) # => CODE
+        if not type(my_ast)==ast.Module:
+            my_ast= _ast.Module(body=my_ast)
+        my_ast=ast.fix_missing_locations(my_ast)
+        code=compile(my_ast, 'file', 'exec')
+        # code=compile(my_ast, 'file', 'exec')
+        exec(code)
+    except Exception as e:
+        print(my_ast)
+        ast.dump(my_ast)
+        raise e,None,sys.exc_info()[2]
 
 # see resolve eval__try(the.string)??
 def do_evaluate(x, _type=None):
@@ -2170,7 +2175,7 @@ def do_evaluate(x, _type=None):
         if isinstance(x, str) and match_path(x): return resolve(x)
         # :. todo METHOD / Function!
         # if isinstance(x, extensions.Method): return x.call  #Whoot
-        if callable(x): return x()  # Whoot
+        # if callable(x): return x()  # Whoot
         if isinstance(x, str): return x
         if isinstance(x, str): return eval(x)  # except x
         return x  # DEFAULT!

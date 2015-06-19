@@ -273,17 +273,11 @@ class ParserBaseTest(unittest.TestCase):
         assert_equals(parse(x), parse(r))
 
     def assert_equals(self, a, b):
-        if ((a.equals(b) or equals(b.to_s(), a.to_s())) or equals(+('"', +(b.to_s())), a.to_s())):
-            print((((('TEST PASSED! ' + self.parser.original_string()) + '    ') + a) + ' == ') + b)
+        if ((a==b or str(a)==str(b))):
+            print('TEST PASSED! %s      %s == %s' % ( self.parser.original_string, a, b))
         else:
+            assert(a==b, ((str(a) + ' should equal ') + str(b)))
             # print(filter_stack(caller()))
-            assert(a==b, ((a + ' should equal ') + b))
-        if ((a.equals(b) or equals(b.to_s(), a.to_s())) or equals(+('"', +(b.to_s())), a.to_s())):
-            print(((((('TEST PASSED! ' + self.parser.original_string()) + '    ') + a) + ' == ') + b))
-        else:
-            # print(filter_stack(caller()))
-            assert(a==b, ((a + ' should equal ') + b))
-    # alias_method('original_assert', 'assert')
 
     def assert_that(self, x,msg=None, block=None):
         return self.do_assert( x,msg, block)

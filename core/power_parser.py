@@ -804,11 +804,11 @@ def maybe(expression):
     try:
         old_nodes = list(nodes)#.clone()
         result = expression() #yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        adjust_rollback()
         if angle.debug and (callable(result)):
             raise Exception("returned CALLABLE "+str(result))
         if result or result==0:
             verbose("GOT result from "+str(expression)+" : "+str(result))
-            adjust_rollback()
         else:
             verbose("No result from "+str(expression))
             invalidate_obsolete(old_nodes)

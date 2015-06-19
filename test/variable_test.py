@@ -68,12 +68,12 @@ class VariableTest(ParserBaseTest):
                     i
                     """)
                 # end""") # IndentationError: unindent does not match any outer indentation level TOKENIZER WTF
-        assert_result_is(1,variables['i'])
+        assert_result_is(1,the.variableValues['i'])
 
     def test_var_condition_unmodified(self):
         variables['counter'] = Variable({'name': 'counter', 'value': 3, })
         init('counter=2')
-        assert(equals(self.parser.condition(),False))
+        assert_equals(self.parser.condition(),False)
         self.do_assert('counter=3')
 
     def test_vars(self):
