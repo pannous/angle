@@ -8,7 +8,7 @@ class Condition(object):
         self.comp= kwargs['comp']
         self.rhs = kwargs['rhs']
 
-class Quote(str):
+class Quote(str,ast.Str):
     def is_a(className):
         # if isinstance(className,type): isinstance(return,className)
         if isinstance(className,str): className=className.lower()

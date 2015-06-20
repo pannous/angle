@@ -16,6 +16,7 @@
 # import re
 # import __builtin__
 import _ast
+import copy
 import traceback
 import sys
 # import HelperMethods
@@ -2012,11 +2013,14 @@ def the_noun_that():
 
 def const_defined(c):
     import inspect
-
-    for module in sys.modules:
-        for name, obj in inspect.getmembers(sys.modules[module]):
-            if inspect.isclass(obj) and name == c:
-                return obj
+    modules = dict(sys.modules) #dictionary changed size during iteration
+    for module in modules:
+        for name, obj in inspect.getmembers(modules[module]):
+            try:
+                if name == c and inspect.isclass(obj):
+                    return obj
+            except Exception as e:
+                raise e
     return False
 
 
@@ -2026,7 +2030,6 @@ def classConstDefined():
         if not const_defined(c): raise NotMatching("Not a class Const")  # return False
     except IgnoreException:  # (AttributeError,NameError ) as e:
         raise NotMatching()
-
     if interpreting(): c = do_get_class_constant(c)
     if not c:        raise NotMatching()
     return c
@@ -2805,6 +2808,8 @@ def quote():
     raiseEnd()
     if the.current_type == _token.STRING:
         the.result = the.current_word[1:-1]
+        if not interpreting():
+            the.result=kast.Str(s=the.result)
         next_token()
         return the.result
     # global the.result, the.string

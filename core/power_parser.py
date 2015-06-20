@@ -407,7 +407,7 @@ def set_token(token):
     the.current_token= current_token=token
     the.current_type= current_type=token[0]
     the.current_word= current_word=token[1]
-    line_number,the.current_offset= token[2]
+    the.line_number,the.current_offset= token[2]
     end_pointer     = token[3]
     the.current_line= current_line=token[4]
     the.token_number=token_number=token[5]

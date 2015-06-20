@@ -78,7 +78,8 @@ def parse_tree(x):
     power_parser.dont_interpret()
     angle_ast=power_parser.parse(x).tree #AST
     if not isinstance(angle_ast, ast.Module):
-        angle_ast= kast.kast.Module(body=[angle_ast])
+        angle_ast= kast.Module(body=[angle_ast])
+    angle_ast=ast.fix_missing_locations(angle_ast)
     return angle_ast
 
 
