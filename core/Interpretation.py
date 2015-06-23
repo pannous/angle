@@ -48,7 +48,7 @@ def substitute_variables(args):
     #args.strip()
     args
 
-    # todo : why _try(special) direct eval, rest_of_line
+    # todo : why maybe(special) direct eval, rest_of_line
 
 
 def self_modify(v, mod, arg):

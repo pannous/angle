@@ -13,12 +13,6 @@ import __builtin__
 import shutil
 
 
-def extension(clazz):
-    import angle
-    for base in clazz.__bases__:
-        angle.extensionMap[base]=clazz
-    return clazz
-
 # class Extension:
 #     def __init__(self, base,b=None,c=None):
 #         self.base=base
@@ -29,12 +23,15 @@ def extension(clazz):
 #         angle.extensionMap[self.base]=clazz
 #         print(angle.extensionMap)
 
-def put(x):
+def puts(x):
     print(x)
 
 
 def grep(xs, x):
     xs.select(lambda y: str(y).match(x))
+
+def ls(path):
+    return os.listdir(path)
 
 
 def say(x):
@@ -58,6 +55,14 @@ class Class:
 # class Method(__builtin__.function):
 #     pass
 
+
+def extension(clazz):
+    import angle
+    for base in clazz.__bases__:
+        angle.extensionMap[base]=clazz
+    return clazz
+
+@extension
 class File(file):
     # import fileutils
 
@@ -93,7 +98,25 @@ class File(file):
         raise exceptions.SecurityError("cannot delete files")
         #FileUtils.remove_dir(to_path, True)
 
+    # @classmethod
+    # def open(cls):return open(cls)
+    # @classmethod
+    # def read(cls):return open(cls)
+    # @classmethod
+    # def ls(cls):
+    #     return os.listdir(cls)
 
+    @staticmethod
+    def open(x):return open(x)
+    @staticmethod
+    def read(x):return open(x)
+    @staticmethod
+    def ls(mypath):
+        return os.listdir(mypath)
+
+
+
+@extension
 class Directory(file):  #
     # str(def)(self):
     #   path
@@ -159,7 +182,8 @@ class Dir(Directory):
 #  ""
 #  #"None"
 #
-class xdict:
+@extension
+class xdict(dict):
     # filter ==  x.select{|z|z>1}
 
     # CAREFUL! MESSES with rails etc!!
@@ -728,7 +752,7 @@ class Integer(xint):
         if other==Integer: return True
         return False
 
-
+@extension
 class xfloat(float):
     def c(self):  #unwrap, for optimization):
         return str(self)  #"NUM2INT(#{self.to_s})"
@@ -829,7 +853,8 @@ class xfloat(float):
 #if self==True: return false
 # class Enumerator
 
-class Object:
+@extension #DANGER?
+class Object(object):
     def value(self):
         return self
 
@@ -901,42 +926,21 @@ def is_dir(x, must_exist=True):
     m = match_path(x)
     return must_exist and m and os.path.isdirectory(m[0]) or m
 
-class File:
-    import os
-    # @classmethod
-    # def open(cls):return open(cls)
-    # @classmethod
-    # def read(cls):return open(cls)
-    # @classmethod
-    # def ls(cls):
-    #     return os.listdir(cls)
-
-    @staticmethod
-    def open(x):return open(x)
-    @staticmethod
-    def read(x):return open(x)
-    @staticmethod
-    def ls(mypath):
-        return os.listdir(mypath)
-
 class Encoding:
     pass
 
-class Math:
 
-    def __getattr__(self, attr):
-        import sys
-        import math
-     # ruby method_missing !!!
-        import inspect
-        for name, obj in inspect.getmembers(sys.modules['math']):
-            if name==attr: return obj
-        return False
+# @extension
+# class Math:
+# WOOOT? just
+import math as Math
+    # def __getattr__(self, attr):
+    #     import sys
+    #     import math
+    #  # ruby method_missing !!!
+    #     import inspect
+    #     for name, obj in inspect.getmembers(sys.modules['math']):
+    #         if name==attr: return obj
+    #     return False
 
 
-def puts(x):
-    print(x)
-
-
-def ls(path):
-    return os.listdir(path)

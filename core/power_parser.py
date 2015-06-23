@@ -122,7 +122,7 @@ def isnumeric(start):
         # context: tree / per node
 
         # def javascript:
-        # _try(script_block)
+        # maybe(script_block)
         #   __(current_context)=='javascript' ? 'script' : 'java script', 'javascript', 'js'
         #   no_rollback() 10
         #   javascript+=rest_of_line+';'
@@ -429,9 +429,31 @@ def parse_tokens(s):
     _token.INDENT # not available here :(
     return the.tokenstream
 
+def load_module_methods():
+    try:
+       import cPickle as pickle
+    except:
+       import pickle
+    # static, load only once, create with module_method_map.py
+    the.methodToModulesMap = pickle.load(open("data/method_modules.bin"))
+    the.moduleMethods = pickle.load(open("data/module_methods.bin"))
+    the.moduleNames=pickle.load(open("data/module_names.bin"))
+    the.moduleClasses=pickle.load(open("data/module_classes.bin"))
+    import english_parser
+    for mo,mes in the.moduleMethods.items():
+        the.token_map[mo]=english_parser.method_call
+        for meth in mes:
+           the.token_map[meth]=english_parser.method_call
+    for mo,cls in the.moduleClasses.items():
+        for meth in cls: # class as CONSTRUCTOR
+           the.token_map[meth]=english_parser.method_call
+
+
 def init(strings):
     # global is ok within one file but do not use it across different files
     global  no_rollback_depth,rollback_depths,line_number,original_string,root,lines,nodes,depth,lhs,rhs,comp
+    if not the.moduleMethods:
+        load_module_methods()
     the.no_rollback_depth = -1
     the.rollback_depths=[]
     the.line_number = 0
@@ -546,8 +568,9 @@ def must_contain(*args): # before ;\n
 def must_contain_before(args,before):  #,before():None
     old=current_token
     good=None
+    args=flatten(args)
     before=flatten(before)
-    while not (checkEndOfLine() or current_word in before):
+    while not (checkEndOfLine() or current_word in before and not current_word in args):
         if current_word in args:
             good=current_word
             break
@@ -586,17 +609,20 @@ def must_contain_before_old(before, *args):  #,before():None
 
 
 # NOT == starts_with !!!
-def look_ahead(x):
-    if the.string.index(x):
+def look_ahead(expect_next,doraise=False):
+    token = the.tokenstream[the.token_number+1]
+    if expect_next == token[1]:
         return True
     else:
-        raise (NotMatching(x))
+        if doraise:
+            raise (NotMatching(expect_next))
+        return False
 
 
 def _(x):
     return token(x)
 
-def last_try(stack):
+def lastmaybe(stack):
     for s in stack:
         if re.search("try",s):
             return s
@@ -777,7 +803,7 @@ def block():  # type):
             # content = pointer() - start
             return end_of_statement()
         star(lamb)
-        # _try(end_of_statement)
+        # maybe(end_of_statement)
         end_block()
 
     the.last_result = the.result
@@ -836,7 +862,7 @@ def maybe(expression):
                 import TreeBuilder
                 TreeBuilder.show_tree()  #Not reached
             ex = GivingUp(to_source(expression)+"\n"+pointer_string())
-            raise ex
+            raise ex,None, sys.exc_info()[2]
             # error e #exit
             # raise SyntaxError(e)
     except EndOfDocument as e:
@@ -846,10 +872,10 @@ def maybe(expression):
         #raise e
         return False
         #return True
-    except GivingUp as e:
+    # except GivingUp as e:
         # the.string=old #to mark??
         # maybe => OK !?
-        error(e)
+        # error(e)
         #if not check_rollback_allowed:
         #     if rollback[len(caller)-1]!="NO" #:
     except IgnoreException as e:  # NoMethodError etc
@@ -1170,7 +1196,7 @@ def raise_not_matching(msg=None):
 _try=maybe
 
 def number():
-    return _try(real) or _try(fraction) or _try(integer) or _try(number_word) or raise_not_matching("number")
+    return maybe(real) or maybe(fraction) or maybe(integer) or maybe(number_word) or raise_not_matching("number")
 
 
 def number_word():
@@ -1193,7 +1219,7 @@ def fraction():
     return the.result
 
 
-# _try(complex)  or
+# maybe(complex)  or
 ZERO='0'
 def integer():
     match = re.search(r'^\s*(-?\d+)',the.string)

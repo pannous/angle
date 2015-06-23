@@ -102,13 +102,13 @@ class FunctionCall:
 
 class Argument(kast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
-
     def __init__(self,*margs, **args):
         if not args:
             args=margs[0] # ruby style hash args
-        self.name       =args['name']
-        self.preposition=args['preposition'] #  big python headache: starting from 0 or 1 ?? (self,x,y) etc
-        self.position   =args['position']
+        self.name       =args['name']       if 'name'    in args else None
+        self.preposition=args['preposition']if'preposition'in args else None
+        #  big python headache: starting from 0 or 1 ?? (self,x,y) etc
+        self.position   =args['position']   #if'position'in args else None
         self.type       =args['type']       if 'type'    in args else None
         self.default    =args['default']    if 'default' in args else None
         self.value      =args['value']      if 'value'   in args else None
@@ -137,6 +137,7 @@ class Variable(kast.Name):
     def __init__(self,*margs,**args):
         if not args: args=margs[0]
         self.name    =args['name']
+        self.ctx     =args['ctx'] if 'ctx' in args else ast.Load()
         self.value   =args['value'] if 'value' in args else None
         self.type    =args['type'] if 'type'  in args else type(self.value)
         self.scope   =args['scope'] if 'scope' in args else None
@@ -157,10 +158,10 @@ class Variable(kast.Name):
         return self.name
 
     def __str__(self):
-        return "<Variable %s %s=%s>"%(self.type,self.name,self.value) #"Variable #{type} #{name}=#{value}"
+        return "<Variable %s %s=%s>"%(self.type or "",self.name,self.value) #"Variable #{type} #{name}=#{value}"
 
     def __repr__(self):
-        return "<Variable %s %s=%s>"%(self.type,self.name,self.value) #"Variable #{type} #{name}=#{value}"
+        return "<Variable %s %s=%s>"%(self.type or "",self.name,self.value) #"Variable #{type} #{name}=#{value}"
 
     def increase(self):
         self.value = self.value+1

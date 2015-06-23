@@ -22,6 +22,7 @@ context = ''
 variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)
+params = {} # Temporary parameters in calling context, Delete them after return
 
 string=""
 tokenstream=[] # tuple:
@@ -40,6 +41,11 @@ string = ""
 line_number = 0
 last_pattern = None
 
+moduleNames=[]
+moduleClasses={} # reuse module->Classes  class->modules !
+moduleMethods={}
+methodToModulesMap={}
+allMethods=[]
 
 OK = 'OK'
 # result = ''
@@ -63,17 +69,17 @@ parser=globals()
 context=None
 throwing=False
 def is_number(s):            #isint isnum
-  return isinstance(s,int) or isinstance(s,float) or isinstance(s,str) and s.isdigit() # is number isnumeric
+    return isinstance(s,int) or isinstance(s,float) or isinstance(s,str) and s.isdigit() # is number isnumeric
 debug=False # True
 
 svg = []
 
 
 def parent_node():
-  return None
+    return None
 
 # print_function
-core_methods = ['show', 'now', 'yesterday', 'help']  # _try(difference)
+core_methods = ['show', 'now', 'yesterday', 'help']  # maybe(difference)
 # SEE typeNameMapped!
 methods = {
   'beep': extensions.beep,
@@ -81,10 +87,12 @@ methods = {
   'p':extensions.puts,
   'print':extensions.puts,
   'show':extensions.puts,
-  'reverse':extensions.xstr.reverse
+  # 'reverse':extensions.xstr.reverse
 }  # name->method-node
+
+#add later!
 classes = {
-  'Math': extensions.Math,
+  # 'Math': extensions.Math,
   # 'list': extensions.xlist,
   # 'int':extensions.xint,
   # 'integer':extensions.xint

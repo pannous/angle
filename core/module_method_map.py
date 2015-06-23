@@ -2,16 +2,34 @@ import inspect
 import sys
 import collections
 import importlib
+import the
+
+try:
+   import cPickle as pickle
+except:
+   import pickle
+# import the
+import yaml
+
 h={}
 done={}
-count = collections.defaultdict(list)
+the.methodToModulesMap = collections.defaultdict(list)
+the.moduleMethods = collections.defaultdict(list)
+the.moduleClasses = collections.defaultdict(list)
+# the.classToModulesMap = collections.defaultdict(list)
+# count = yaml.load(open("data/module_methods.yml")) # 2sec, too slow!!
+# count = pickle.load(open("data/module_methods.bin"))
+# print(count)
+# exit()
 print(sys.modules.keys())
 modules=sys.modules.keys()
 modules=['os', 'os.path', 'thread', 'keyword', 'StringIO','signal', 'traceback', 'linecache', 'itertools',  'exceptions', 'collections', 'sys','string','__future__','strop','interpy.codec.six', 'heapq',  'copy_reg', 'sre_compile', '_collections', 'interpy.codec.utils', '_sre', 'functools', 'encodings', 'site', '__builtin__', 'sysconfig', 'google', '__main__', 'operator', 'encodings.encodings', 'mpl_toolkits', '_heapq', 'abc', 'posixpath', '_weakrefset', 'errno', 'interpy.codec.tokenize', 'six', 'encodings.codecs', 'sre_constants', 'PyObjCTools', 're', '_abcoll', '_functools', 'types', 'interpy.codec', '_codecs', 'encodings.__builtin__', 'opcode', '_warnings', 'interpy.codec.__future__', 'genericpath', 'stat', 'zipimport', '_sysconfigdata',  'inspect', 'warnings', 'UserDict', 'tokenize', 'interpy.codec.register',  'interpy.codec.tokenizer', '_osx_support', 'imp', 'codecs', 'interpy.codec.codecs',  'interpy', '_locale', 'sitecustomize',  'interpy.codec.encodings', 'posix', 'encodings.aliases','sre_parse', 'interpy.codec.sys', '_weakref', 'token', 'dis'] # SORTED!
 print(len(modules))
-mo_modules=['yaml','requests','Theano','numpy','debugger','BeautifulSoup','PyAudio','protobuf','altgraph','argparse','ast','ast2json','asteval','astor','awscli','backports.ssl','bcdoc','bdist','beautifulsoup4','benchmarks','bonjour','botocore','catkin','certifi','climate','codegen','colorama','coloredlogs','configobj','cssselect','debugger','decorator','dnspython','docopt','docutils','downhill','enum','enum34','execnet','forbiddenfruit','fortune','friture','funcsigs','functools3','functools32','gensim','gevent','glumpy','greenlet','grizzled','gunicorn','h5py','howdoi','humanfriendly','ino','interpy','ipython','itsdangerous','jedi','jmespath','joblib','jsonschema','leveldb','lmj.rbm','lockfile','lolcat','lxml','macholib','matplotlib','mercurial','mftracker','mock','modulegraph','mutagen','neon','networkx','nltk','nose','numba','numpy','numpydoc','opencl','ordereddict','panda','pandas','paramiko','pathlib','pip','plac','poster','protobuf','psutil','py','py2app','pyOpenSSL','pyOpenTLD','pyasn','pyasn1','pycocotools','pyenchant','pygpu','pylint','pyobjc','pyopencl','pyparsing','pyqtgraph','pyquery','pyserial','pytest','python','pytools','pytz','pyzmq','qtutils','rbm.py','requests','rosdep','rosdistro','rosinstall','rospkg','rsa','scikit','scikits.audiolab','scikits.cuda','scipy','selenium','setuptools','shedskin','six','skdata','sleekxmpp','stem','swg','theanets','theano','thefuck','tornado','tox','uTidylib','unittest','unittest2','vcstools','virtualenv','word','word2vec','wsgiref','wstool','xattr','zope.interface','Cython','DeepCL','Flask','Jinja','Jinja2','Keras','Mako','MarkupSafe','PIL','PyAudio','PyOpenGL','PyYAML','Pygments','SimpleCV','SimpleConvnet','SpeechRecognition','Sphinx','Theano','Twisted','Unirest','ViTables','Werkzeug','sklearn']
+mo_modules=['yaml','requests','Theano','numpy','debugger','BeautifulSoup','PyAudio','cv','cv2','protobuf','altgraph','argparse','ast','ast2json','asteval','astor','awscli','backports.ssl','bcdoc','bdist','beautifulsoup4','benchmarks','bonjour','botocore','catkin','certifi','climate','codegen','colorama','coloredlogs','configobj','cssselect','debugger','decorator','dnspython','docopt','docutils','downhill','enum','enum34','execnet','forbiddenfruit','fortune','friture','funcsigs','functools3','functools32','gensim','gevent','glumpy','greenlet','grizzled','gunicorn','h5py','howdoi','humanfriendly','ino','interpy','ipython','itsdangerous','jedi','jmespath','joblib','jsonschema','leveldb','lmj.rbm','lockfile','lolcat','lxml','macholib','matplotlib','mercurial','mftracker','mock','modulegraph','mutagen','neon','networkx','nltk','nose','numba','numpy','numpydoc','opencl','ordereddict','panda','pandas','paramiko','pathlib','pip','plac','poster','protobuf','psutil','py','py2app','pyOpenSSL','pyOpenTLD','pyasn','pyasn1','pycocotools','pyenchant','pygpu','pylint','pyobjc','pyopencl','pyparsing','pyqtgraph','pyquery','pyserial','pytest','python','pytools','pytz','pyzmq','qtutils','rbm.py','requests','rosdep','rosdistro','rosinstall','rospkg','rsa','scikit','scikits.audiolab','scikits.cuda','scipy','selenium','setuptools','shedskin','six','skdata','sleekxmpp','stem','swg','theanets','theano','thefuck','tornado','tox','uTidylib','unittest','unittest2','vcstools','virtualenv','word','word2vec','wsgiref','wstool','xattr','zope.interface','Cython','DeepCL','Flask','Jinja','Jinja2','Keras','Mako','MarkupSafe','PIL','PyAudio','PyOpenGL','PyYAML','Pygments','SimpleCV','SimpleConvnet','SpeechRecognition','Sphinx','Theano','Twisted','Unirest','ViTables','Werkzeug','sklearn']
 # PredictionIO
 ignoreModules=['h5py','pyqtgraph','lmj.rbm','sre_compile','sre_parse','nltk','scikit','Pillow']#'scipy',sklearn Pillow=PIL
+pickle.dump(modules+mo_modules,open("data/module_names.bin","w"))
+# exit()
 for m in modules+mo_modules:
     if m[0]=="_":continue
     if m in ignoreModules: continue
@@ -48,7 +66,11 @@ for m in modules+mo_modules:
         if name[0]=="_":continue
         if name in ignoreNames and m!="os":continue
         if name.isupper():continue
-        # if inspect.isclass(obj):
+        if inspect.isclass(obj):
+            the.moduleClasses[m].append(name)
+            the.moduleClasses[name].append(m)#odule) # Use bidirectionally
+            # the.classToModulesMap[name].append(m)#odule)
+            continue
         #     print(inspect.getclasstree(obj))
         #     exit()
     # for x in inspect.getmembers(m)+dir(m):
@@ -122,12 +144,22 @@ for m in modules+mo_modules:
             # print("ambiguous "+name+" %s"%",".join(count[name]))
         else:
             h[name]=m
-        count[name].append(m)
+        the.methodToModulesMap[name].append(m)
+        the.moduleMethods[m].append(name)
 
-for k,v in count.items():
+for k,v in the.methodToModulesMap.items():
     if len(v)>1:
         print("Ambiguous "+k+" %s"%",".join(v))
         continue
     print(k+"   "+h[k])
 
+yaml.dump(the.methodToModulesMap,open("data/method_modules.yml","w"))
+pickle.dump(the.methodToModulesMap,open("data/method_modules.bin","w"))
+#
+pickle.dump(the.moduleMethods,open("data/module_methods.bin","w"))
+yaml.dump(the.moduleClasses,open("data/module_classes.yml","w"))
+
+pickle.dump(the.moduleClasses,open("data/module_classes.bin","w"))
+
 #['pyobjc','pyobjc-core','pyobjc-framework-Accounts','pyobjc-framework-AddressBook','pyobjc-framework-AppleScriptKit','pyobjc-framework-AppleScriptObjC','pyobjc-framework-Automator','pyobjc-framework-CalendarStore','pyobjc-framework-CFNetwork','pyobjc-framework-Cocoa','pyobjc-framework-Collaboration','pyobjc-framework-CoreData','pyobjc-framework-CoreLocation','pyobjc-framework-CoreText','pyobjc-framework-CoreWLAN','pyobjc-framework-DictionaryServices','pyobjc-framework-DiskArbitration','pyobjc-framework-EventKit','pyobjc-framework-ExceptionHandling','pyobjc-framework-FSEvents','pyobjc-framework-InputMethodKit','pyobjc-framework-InstallerPlugins','pyobjc-framework-InstantMessage','pyobjc-framework-LatentSemanticMapping','pyobjc-framework-LaunchServices','pyobjc-framework-PreferencePanes','pyobjc-framework-PubSub','pyobjc-framework-QTKit','pyobjc-framework-Quartz','pyobjc-framework-ScreenSaver','pyobjc-framework-ScriptingBridge','pyobjc-framework-SearchKit','pyobjc-framework-ServiceManagement','pyobjc-framework-Social','pyobjc-framework-StoreKit','pyobjc-framework-SyncServices','pyobjc-framework-SystemConfiguration','pyobjc-framework-WebKit']
+# pickle.dump(modules,"")
