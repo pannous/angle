@@ -202,7 +202,8 @@ Nil="None"
 # Nill="None"
 ZERO='0'
 
-start_block_words=[';',':', 'do', '{','begin','start', 'first you ', 'second you ', 'then you ', 'finally you ']
+start_block_words=[';',':', 'do', '{','begin','start', 'first you ', 'second you', 'then you', 'finally you']
+#  with , then
 
 flow_keywords=['next', 'continue', 'break', 'stop']
 eval_keywords=['eval','what is', 'evaluate', 'how much', 'what are', 'calculate']

@@ -711,7 +711,7 @@ def statement():
         maybe(method_definition) or \
         maybe(assert_that) or \
         maybe(breaks) or \
-        maybe(constructor) or \
+        maybe(new) or \
         maybe(action) or \
         maybe(expression) or \
         raise_not_matching("Not a statement")
@@ -1095,22 +1095,23 @@ def bla():
 @Starttokens('tell')
 def applescript():
     _('tell')
-    tokens('application', 'app')
+    tokens(['application', 'app'])
     no_rollback()
     app = quote
-    the.result = "tell application \"#{app)\""
+    the.result = "tell application \"%s\"" % app
     if maybe_token('to'):
         the.result += ' to ' + rest_of_line()  # "end tell"
     else:  # Multiline
-        while the.string and not the.string.contains('end tell'):
-            # #TODO deep blocks! simple 'end' : and not the.string.contains('end')
+        while the.string and not the.current_line.contains('end tell'):
             the.result += rest_of_line() + "\n"
-
-            # ___ "end tell","end"
 
     # the.result        +="\ntell application \"#{app)\" to activate" # to front
     # -s o r'path'tor'the'script.scpt
-    if interpreting(): the.result = execute("'usr'bin/osascript -ss -e $'#{the.result)'")
+    # from platform import system as platform
+    import platform
+    if not platform.system() is 'Darwin':
+        raise Exception("tell application ")
+    if interpreting(): the.result = execute("/usr/bin/osascript -ss -e $'%s'"%the.result)
     return the.result
 
 
@@ -1135,9 +1136,12 @@ def maybe_token(x):
         return x
     return False
 
+def constructor():
+    pass #see class!
+    # class Color(shared Integer rgba) {
 
 @Starttokens(['create', 'new', 'init'])
-def constructor():
+def new():
     ___('create', 'init')  # define
     the_()
     _('new')
@@ -1182,15 +1186,24 @@ def action():
 
 
 def action_or_block():  # expression_or_block ??):
-    if not starts_with([';','do', '{', 'begin', 'start']) and not checkEndOfLine():
-        maybe_token( ':' )
-        no_rollback()
-        a = maybe(action)
-        if a: return a
-    # type=start_block && newline22
-    b = block()
-    # end_block()
-    return b
+    _start=___(start_block_words)
+    if _start:
+        # allow_rollback()
+        if maybe_newline():
+    # 1) def x do \n block \n (end)
+            ab= block()
+        else:
+    # 2) def x do action (end)
+            ab= action()
+    else:
+        if maybe_newline():
+            # allow_rollback()
+    # 3) def x \n block \n (end)
+            ab=block()
+        else:
+            raise_not_matching("expecting action or block start")
+    maybe_newline() or end_block(_start)
+    return ab
 
 
 def expression_or_block():  # action_or_block):

@@ -1098,11 +1098,11 @@ def newline(doraise=False):
         while(the.current_type==_token.INDENT):
             next_token() # IGNORE FOR NOW!!!!
         return english_tokens.NEWLINE
-    found = tokens(english_tokens.newline_tokens)
+    found = maybe_tokens(english_tokens.newline_tokens)
     if checkNewline() == english_tokens.NEWLINE:  # get new line: return NEWLINE
         next_token()
         return found
-    if doraise: raise_not_matching("no newline")
+    if not found and doraise: raise_not_matching("no newline")
     return False
 
 

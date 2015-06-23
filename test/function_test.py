@@ -7,6 +7,10 @@ from parser_test_helper import *
 
 class FunctionTest(ParserBaseTest):
 
+    def test_opencv(self):
+        parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
+        parse("create a fullscreen window with name \"test\"")
+
     def test_fibonacci(self):
         dir = 'programs/'
         code = read(dir + ('fibonacci.e'))
