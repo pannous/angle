@@ -715,6 +715,8 @@ def addLongname(f):
             the.methods[name] = f2
             the.method_names.insert(0,name) # add longnames first!
             addLongname(f2)
+            return f2
+    return f
 
 
 @Starttokens(method_tokens)
@@ -748,10 +750,10 @@ def method_definition():
     # ,modifiers:modifiers, annotations:annotations
     the.methods[name] = f or parent_node() or b
     the.method_names.append(name)
-    addLongname(f)
+    f=addLongname(f)
     # # with args! only in tree mode!!
     the.params.clear()
-    return f or name
+    return f
 
 
 def execute(command):

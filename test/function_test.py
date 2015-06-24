@@ -1,6 +1,7 @@
 import _global
 
 _global.use_tree = False
+from ast import *
 from parser_test_helper import *
 # from extensions import *
 
@@ -9,6 +10,9 @@ class FunctionTest(ParserBaseTest):
 
     def test_opencv(self):
         parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
+        fbody=[]
+        f=Function(name="create fullscreen window",arguments=[Argument(name="n")],body=fbody)
+        assert_equals(the.result,f)
         parse("create a fullscreen window with name \"test\"")
 
     def test_fibonacci(self):

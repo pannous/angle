@@ -110,7 +110,7 @@ class Argument(kast.arg):
         self.name       =args['name']       if 'name'    in args else None
         self.preposition=args['preposition']if'preposition'in args else None
         #  big python headache: starting from 0 or 1 ?? (self,x,y) etc
-        self.position   =args['position']   #if'position'in args else None
+        self.position   =args['position']   if'position'in args else 0
         self.type       =args['type']       if 'type'    in args else None
         self.default    =args['default']    if 'default' in args else None
         self.value      =args['value']      if 'value'   in args else None
@@ -118,10 +118,11 @@ class Argument(kast.arg):
 
     def __eq__(self,other):
         ok = True
+        has_type=self.type and other.type
         ok= ok and  self.name == other.name
         ok= ok and  self.preposition== other.preposition
-        ok= ok and  self.type == other.type
-        ok= ok and  self.position == other.position
+        ok= ok and  self.type == other.type or not has_type
+        # ok= ok and  self.position == other.position #may differ!
         ok= ok and  self.default == other.default
         ok= ok and  self.value == other.value
         return ok
