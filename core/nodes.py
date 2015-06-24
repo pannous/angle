@@ -43,13 +43,15 @@ class Function:
         self.modifier =None
         self.arguments =[]
         self.decorators=[]
-        self.scope     =args['scope']  if 'scope' in args  else None
-        if 'owner' in args: self.object    =args['owner']
-        if 'object' in args: self.object    =args['object']
-        if 'clazz' in args:self.clazz   =args['clazz'] #1st param: self
-        if 'modifier' in args:self.modifier=args['modifier'] # public etc
-        if 'decorators' in args:self.decorators =args['decorators'] # @annotation functions
-        if 'arguments' in args:self.arguments   =args['arguments'] # as [Argument]
+        self.scope     =args['scope']   if 'scope' in args   else None
+        self.object    =args['owner']   if 'owner' in args   else None
+        self.object    =args['object']  if 'object' in args  else None
+        self.clazz   =args['clazz']     if 'clazz' in args   else None #1st param: self
+        self.modifier=args['modifier']  if 'modifier' in args   else None# public etc
+        self.decorators =args['decorators'] if 'decorators' in args   else None # @annotation functions
+        self.arguments  =args['arguments']  if 'arguments'  in args   else None # as [Argument]
+        self.return_type=args['return_type']if 'return_type' in args   else None # as [Argument]
+
         # self.scope    =args['scope'] # == class??
 
         # integrate a function between x and y => object = a function (class)

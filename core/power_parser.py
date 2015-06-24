@@ -105,10 +105,8 @@ class SystemStackError(StandardError):
     pass
 
 
-
 def app_path():
     return "./"
-
 
 def dictionary_path():
     app_path() + "word-lists/"
@@ -144,73 +142,38 @@ def star(lamb):
     throwing = True
     old_state = current_value  # DANGER! must set current_value=None :{
     max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
-    current = 0
     good = []
-    # try:
     old_nodes = list(nodes) #clone
-    # entry_node_offset=len(nodes)-1
-    # if(entry_node_offset>48)
-    # entry_node=last_node
-    #
     old=current_token
-    # oldstring = the.string
-    # last_string = ""
     try:
         while not checkEndOfLine():# many statements, so ';' is ok! but: MULTILINE!?!
-            # if the.string == "" or the.string == last_string: break
-            # last_string = the.string
             match = lamb() # yield  # <------!!!!!!!!!!!!!!!!!!!
             if not match: break
             old=current_token
-            # oldstring = the.string  # (partial)  success
             good.append(match)
-            if current > max and throwing: raise " too many occurrences of " + to_source(lamb)
-
+            if len(good) > max and throwing: raise " too many occurrences of " + to_source(lamb)
     except NotMatching as e:
         set_token(old)
-        # the.string = oldstring  # partially reconstruct
         if very_verbose and not good:
             verbose
             "NotMatching star " + str(e)
-            # if tokens and len(tokens)>0: verbose "expected any of "+tokens.to_s
             if verbose: print_pointer
-
     except EndOfDocument as e:
-        # raise e
-        verbose("EndOfDocument")
-        #break
-        #return false
+        verbose("EndOfDocument") # ok in star!
     except IgnoreException as e:
         error(e)
         error("error in star " + to_source(lamb))
-        # warn e
-    # except Exception as e:
-    #     error(e)
-    #     raise e
-
     if len(good) == 1: return good[0]
-    if not not good: return good
+    if good: return good
     # else: restore!
     throwing = was_throwing
     set_token(old)
-    # the.string = oldstring
     # invalidate_obsolete(old_nodes)
     nodes = old_nodes
-    # cleanup_nodes_till entry_node
-    # for i in entry_node_offset...nodes.size:
-    #   nodes.delete_at i
-    #
     return old_state
-    # except
-    #
-    # use _22
-    #def maybe(token):
-    #  return token token except True
-    #
 
 
 def ignore_rest_of_line():
-
     if not re.search("\n",the.string):
         the.string = ""
         return
@@ -226,21 +189,12 @@ def pointer_string():
         l=the.current_token[3][1]-offset
     return the.current_line[offset:]+"\n"+the.current_line + "\n" + " " * (offset) + "^"*l + "\n"
 
-    offset = len(original_string) - len(the.string)
-    if offset < 0: offset = 0
-    return original_string + "\n" + " " * (offset) + "^"*l + "\n"
-
 
 def print_pointer(force=False):
     if(force or the._verbose):
         print(the.current_token,  file=sys.stderr)
         print(pointer_string(),  file=sys.stderr)
     return OK
-
-
-def clean_backtrace(x):
-    x = x.select(lambda x: not re.search(r'ruby')).join("\n",x)
-    x
 
 
 def error(e, force=False):
@@ -256,67 +210,11 @@ def error(e, force=False):
             import TreeBuilder
             TreeBuilder.show_tree()
         if not angle.verbose: raise e  # SyntaxError(e):
-        # exit
 
 
 def warn(e):
     print(e.message)
 
-
-# def one(*matches):
-#
-#     oldString = the.string
-#     for match in matches:
-#         try:
-#             the.string = oldString
-#             # if match and not isinstance(match, Symbol): return match
-#             # if isinstance(match, Symbol): result = send(match)
-#             return angel.result  # if result:
-#         except NotMatching as e:
-#             verbose("NotMatching one " + str(match) + "(" + str(e) + ")")
-#             # raise GivingUp.new
-#             if not check_rollback_allowed: error
-#             return e
-#         # except Exception as e:
-#         #     error(e)
-#         #     return e
-#
-#     if check_rollback_allowed: the.string = oldString
-#     if throwing: verbose
-#     "Should have matched one of " + str(matches)
-#     raise NotMatching()
-    # throw "Should have matched one of "+matches
-
-    # hack for kleene star etc  _22 == maybe(tokens}
-
-
-# def method_missing(sym, *args, block)  # <- NoMethodError use node.blah to get blah!():
-# syms = str(sym)
-#     cut = syms[0.. - 2]
-#     depth = depth + 1
-#     # return send(cut) if(syms.end_with?"!")
-#     if (syms.endswith("?")):
-#         old_last = last_pattern
-#         last_pattern = cut
-#         if len(args) == 0: x = maybe(send(cut)}
-#         if len(args) == 1: x = maybe(send(cut, args[0])}
-#         if len(args) > 1: x = maybe(send(cut, args)}
-#         last_pattern = old_last
-#         depth = depth - 1
-#         return x
-#
-#     if (syms.endswith("!")):
-#         print("DEPRECATED!!")
-#         return star(send(cut, args))
-#
-#     #return star(send(cut)} if(syms.end_with?"*")
-#     #return plus{send(cut)} if(syms.end_with?"+")
-#     super(sym, *args, block)
-#     depth = depth + 1
-
-#
-# def __mul__(a):
-#     print(a)  # HUH??
 
 def caller():
     import inspect
@@ -334,16 +232,8 @@ def info(info):
     if the._verbose:
         print(info)
 
-def error(info):
-    # import traceback
-    # traceback.print_stack() # backtrace
-    # if the.verbose:
-    print(info,  file=sys.stderr)
-
-
 def to_source(block):
     return str(block)
-
 
 def filter_backtrace(e):
     return e
@@ -357,8 +247,8 @@ def tokens(tokenz):
 # so much cheaper!!! -> copy to ruby
 # TODO: COLLECT ALL
 def maybe_tokens(tokens0):
-    tokens = flatten(tokens0)
-    for t in tokens:
+    # tokens = flatten(tokens0)
+    for t in tokens0:
         if t==the.current_word:
             next_token()
             return t
@@ -1038,7 +928,9 @@ def token_old(t):
 
 
 def flatten(l):
-    if isinstance(l,tuple):l=list(l)
+    if isinstance(l,tuple):
+        if isinstance(l[0],list): return l[0]
+        return l#=list(l)
     if isinstance(l,str):return [l]
     if isinstance(l,list) and len(l)>0 and not isinstance(l[0],list):
         return l

@@ -20,9 +20,6 @@ import extensions
 from nodes import Quote
 from power_parser import * #app_path, verbose
 bash_commands=['ls','cd']
-main_verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply', 'make', 'get', 'eat', 'drink',
-               'go', 'know', 'take', 'see', 'come', 'think', 'look', 'give', 'use', 'find', 'tell', 'ask', 'work', 'seem', 'feel',
-               'leave', 'call', 'integrate', 'print', 'eat', 'test','say']
 
 
 method_tokens=  ['how to', 'function', 'definition for', 'definition of', 'define', 'method for', 'method',

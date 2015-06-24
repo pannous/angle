@@ -45,7 +45,7 @@ moduleNames=[]
 moduleClasses={} # reuse module->Classes  class->modules !
 moduleMethods={}
 methodToModulesMap={}
-allMethods=[]
+method_names=[]
 
 OK = 'OK'
 # result = ''
@@ -100,3 +100,8 @@ classes = {
 c_methods = ['printf']
 builtin_methods = ['puts', 'print']  # "puts"=>x_puts !!!
 # bash_methods=["say"]
+nouns=['window','bug']
+adjectives=['funny', 'big', 'small', 'good', 'bad']
+verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply', 'make', 'get', 'eat', 'drink',
+               'go', 'know', 'take', 'see', 'come', 'think', 'look', 'give', 'use', 'find', 'tell', 'ask', 'work', 'seem', 'feel',
+               'leave', 'call', 'integrate', 'print', 'eat', 'test','say']
