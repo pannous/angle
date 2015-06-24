@@ -1118,6 +1118,7 @@ def integer():
     if match:
         current_value = int(match.groups()[0])
         next_token()
+        # "E20": kast.Pow(10,20),
         if current_value == 0 :
             current_value = ZERO
         return current_value

@@ -132,7 +132,8 @@ def value():
         return number()
     current_value = None
     no_keyword_except(constants + numbers + result_words + nill_words + ['+', '-'])
-    the.result = maybe(quote) or \
+    the.result = maybe(bracelet) or \
+                 maybe(quote) or \
                  maybe(nill) or \
                  maybe(number) or \
                  maybe(true_variable) or \
@@ -244,7 +245,6 @@ def package_version():
     c = maybe_token(comparison_words)
     tokens(['v', 'version'])
     c = c or maybe_token(comparison_words)
-    subnode({'bigger': c})
     # current_value=
     the.result = c + " " + regex('\d(\.\d)*')[0]
     maybe_tokens("or later")
@@ -287,12 +287,12 @@ def context():
     return context
 
 
-# @Starttokens('(')
+#  surrounded by braces everything can be of value!
 def bracelet():
-    subnode({'brace': _('(')})
-    a = algebra()
-    subnode({'brace': _(')')})
-    return a
+    _('(') # ok, lists checked before
+    a = statement()
+    _(')')
+    return a # todo wrapped in (result=a)
 
 
 @Starttokens(operators)
@@ -301,35 +301,48 @@ def operator():
     return tokens(operators)
 
 
+def isUnary(op):
+    return
+
+# always Rightfully assume that the values left and right of the operator are the final values
+def ast_operator(op):
+    return kast_operator_map[op]
+
+def apply_op(stack, i, op):
+    if interpreting():  # and not angel.use_tree:
+        if op=="!" or op=="not":
+            stack[i:i+1]=not stack[i+1]
+        else:
+            stack[i-1:i+1]=do_math(stack[i-1], op, stack[i+1])
+    else:
+        if op=="!" or op=="not":
+            stack[i:i+1]=kast.Not(stack[i+1])
+        else:
+        # ast.BoolOp ??
+            stack[i-1:i+1]=kast.BinOp(stack[i-1],ast_operator(op), stack[i+1])
+
+def fold_algebra(stack):
+    used_operators = set(stack).intersection(operators)
+    while len(stack)>1:
+        for op in used_operators:
+            for i in range(0,len(stack)):
+                if stack[i]==op:
+                    apply_op(stack,i,op)
+
 def algebra():
     # global result
     must_contain_before(args=operators, before=[be_words, ',', ';', ':'])
-    stack = {}
+    stack = []
     stack[0] = the.result = maybe(value) or bracelet()  # any { maybe( value ) or maybe( bracelet ) )
-
     def lamb():
-        op = operator()  # operator KEYWORD!?! ==> the.string="" BUG     4 and 5 == TROUBLE!!!
+        op = maybe(comparation) or operator()
+        stack.append(op)
         if not op == 'and': no_rollback()
         y = maybe(value) or bracelet()
-        if interpreting():  # and not angel.use_tree:
-            if op == "/":  # 3'4==0 ? NOT WITH US!!:
-                y = float(y)
-            stack[0] = the.result = do_send(stack[0], op, y or the.result)
-            # try:
-            # except SyntaxError as e:
-            #     error(e)
-            #     # except Exception as e:
-            #     raise e
-        return the.result or True
-
-    the.result = star(lamb)
-    #         if angel.use_tree and not interpreting():
-    #             return parent_node()
-    #         # the.result=result
-    #         if angel.use_tree and interpret:
-    #             tree = parent_node()
-    #             if tree: the.result = tree.eval_node(variableValues, the.result)  # except the.result #wasteful!!
-    #         return the.result
+        stack.append(y)
+        return y or True
+    star(lamb)
+    the.result = fold_algebra(stack)
     return the.result
 
 
@@ -645,7 +658,6 @@ def expression(fallback=None):
     # more=more or maybe(quote) #  "bla " 7 " yeah"
     # if more.isa(Quote) except "": more+=maybe(expression0)
     # if more: ex+=more
-    # subnode (expression: ex)
     if ex == ZERO: ex = 0  # HERE ?
     the.result = ex
     return the.result
@@ -771,7 +783,6 @@ def bash_action():
     remove_tokens(['execute', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash'])
     command = maybe(quote)  # danger bash "hi">echo
     command = command or rest_of_line
-    subnode({'bash': command})
     # any{ maybe(  ) or   statements )
     if interpreting():
         try:
@@ -934,8 +945,6 @@ def extern_method_call():
 
     checkNewline()
     # raiseEnd
-    subnode({'method': ruby_method})  # why not maybe(auto})?
-    subnode({'args': args})
     current_value = ruby_method
     return current_value
     # return Object.method ruby_method.to_sym
@@ -1487,21 +1496,11 @@ def setter():
     var.modifier = mod
     the.variableTypes[var.name] = var.type
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
-    # the.result = var
-    # the.result = val
     # end_expression via statement!
-    # if interpret: return var
-
-    subnode({'var': var})
-    subnode({'val': val})
     the.token_map[var.name] = true_variable
     if not interpreting(): return kast.Assign(kast.Name(var.name, kast.Store()), val)
-
     if interpreting() and val != 0: return val
     return var
-    # if angel.use_tree: return parent_node()
-    # if not interpret: return old-the.string
-    #  or 'to'
     # 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
 
 
@@ -1829,8 +1828,8 @@ def comparison():  # WEAK maybe(pattern)):
     return comp
 
 
-def comparation_tree():
-    Todo()
+# def comparation_tree():
+#     Todo() VIA ALGEBRA!
 
 
 # is more or less
@@ -1857,7 +1856,6 @@ def comparation():
     # comp = comp and pointer() - start or eq
     # if Jens.smaller then ok:
     maybe_token('than')  # , 'then' #_22'then' ;) danger:
-    subnode({'comparation': comp})
     return comp or eq
 
 
@@ -1979,12 +1977,12 @@ def condition():
     lhs = action_or_expressions(quantifier)
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
-    if not use_verb: comp = maybe(comparation)
+    if not use_verb: comp = maybe(algebra)
+    # if not use_verb: comp = maybe(comparation)
     # allow_rollback # upto maybe(where)?
     if comp: rhs = action_or_expressions(None)
     if brace: _(')')
     negate = (negated or _not) and not (negated and _not)
-    subnode({'negate': negate})
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
     if not comp: return lhs
     # 1,2,3 are smaller 4  VS 1,2,4 in 3

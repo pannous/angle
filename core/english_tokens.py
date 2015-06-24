@@ -1,4 +1,5 @@
 # encoding: utf-8
+import ast
 from tokenize import tokenize, untokenize, NUMBER, STRING, NAME, OP
 from io import BytesIO
 import os
@@ -17,6 +18,7 @@ import extensions
 # Lexemes = simple words
 ##################
     # def __init__(self):
+import kast.kast
 from nodes import Quote
 from power_parser import * #app_path, verbose
 bash_commands=['ls','cd']
@@ -33,10 +35,6 @@ numbers= "1 2 3 4 5 6 7 8 9 0\
       1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
       tenth ninth eighth seventh sixth fifth fourth third second first\
       ten nine eight seven six five four three two one zero".split()
-
-operators= ["+", "*", "-", "/","//","%","|","||","&","&&","^","^^","**", "mod","modulo", "plus", "minus", "times","and","or","xor","power","to the"]
- # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
- # just make sure that 4 and False = False  4 and True == True
 
 special_chars=list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
@@ -135,10 +133,21 @@ be_words=['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have be
   # nicer, sweeter, ....
   #  '=>' '<=', DANGER
   # OR class_words
-comparison_words=['be','is of','is in','is a', 'is','element of','subset of','in', 'are', 'were',  '>=', '==', '<=',  '=<','=', '>', '<', '≠','≥','gt', 'lt', 'eq',\
-    'identical to', 'smaller or equal','greater or equal', 'equal to', 'bigger', 'greater', 'equals','smaller', 'less','more',  'the same as',\
-    'same as', 'similar', 'comes after',\
-    'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
+comparison_words=['be','is of','is in','is a', 'is','element of','subset of','in', 'are', 'were',\
+                  '>=', '==', '<=',  '=<','=', '>', '<', '≠','≤','≥','gt', 'lt', 'eq',\
+                  'identical to', 'smaller or equal','greater or equal', 'equal to',\
+                  'bigger', 'greater', 'equals','smaller', 'less','more', 'the same as',\
+                'same as', 'similar', 'comes after','inherits from','implements'\
+        'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
+
+logic_operators=["!","&&","&", "||","|","not", "and","or","xor","nor"]
+english_operators=["power","to the","times","divided by","divide by","plus", "minus","add","subtract", "mod","modulo",]
+operators= ["^","^^","**","*","/","//","+", "-","%"]+english_operators+comparison_words+logic_operators
+# todo sorted by decreasing precedence
+ # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
+ # just make sure that 4 and False = False  4 and True == True
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+
 
 once_words=['on the occasion that', 'whenever', 'wherever', "as soon as", "once"]
 
@@ -213,3 +222,93 @@ context_keywords=['context','module','package']
 self_modifying_operators=['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%=', '#=', '*=', '**=', '<<', '>>']
 
 newline_tokens=["\.\n", "\. ", "\n", "\r\n", ';']
+
+kast_operator_map={
+    "+": kast.Add(),
+    "plus": kast.Add(),
+    "add": kast.Add(),
+    "-": kast.Sub(),
+    "minus": kast.Sub(),
+    "subtract": kast.Sub(),
+    "*": kast.Mult(),
+    "times": kast.Mult(),
+    "mul": kast.Mult(),
+    "multiplied": kast.Mult(),
+    "multiplied with": kast.Mult(),
+    "multiplied by": kast.Mult(),
+    "multiply": kast.Mult(),
+    "multiply with": kast.Mult(),
+    "multiply by": kast.Mult(),
+    "/": kast.Div(),
+    "div": kast.Div(),
+    "divided": kast.Div(),
+    "divided with": kast.Div(),
+    "divided by": kast.Div(),
+    "divide": kast.Div(),
+    "divide with": kast.Div(),
+    "divide by": kast.Div(),
+    "xor": kast.BitXor(),
+    # "^": kast.BitXor(),
+    # "^": kast.Pow(),
+    "^^": kast.Pow(),
+    "**": kast.Pow(),
+    "pow": kast.Pow(),
+    "power": kast.Pow(),
+    "to the": kast.Pow(),
+    "to the power": kast.Pow(),
+    "to the power of": kast.Pow(),
+    "%": kast.Mod(),
+    "mod": kast.Mod(),
+    "modulo": kast.Mod(),
+    "!": kast.Not(),
+    "not": kast.Not(),
+    "&": kast.And(),# BitAnd ENGLISH: a & b ~== a and b
+    "&&": kast.And(),
+    "and": kast.And(),
+    "|": kast.BitOr(),
+    "||": kast.Or(),
+    "or": kast.Or(),
+    "!=": ast.NotEq(),
+    "does not equal": ast.NotEq(),
+    "doesn't equal": ast.NotEq(),
+    "not equal": ast.NotEq(),
+    "is not": ast.NotEq(),
+    "isn't": ast.NotEq(),
+    "isnt": ast.NotEq(),
+    "=": ast.Eq(),
+    "==": ast.Eq(),
+    "===": ast.Eq(),
+    "~=": ast.Eq(),
+    "is": ast.Eq(),
+    "eq": ast.Eq(),
+    "equal": ast.Eq(),
+    "is equal": ast.Eq(),
+    "equal to": ast.Eq(),
+    "is equal to": ast.Eq(),
+    "equals": ast.Eq(),
+    "same": ast.Eq(),
+    "same as": ast.Eq(), # is the same as ... rely on compariton!!
+    "identical": ast.Eq(),  # is identical to ... rely on compariton!!
+    ">": ast.Gt(),
+    "bigger": ast.Gt(),
+    "bigger than": ast.Gt(),
+    "more": ast.Gt(),
+    "more than": ast.Gt(),
+    "greater": ast.Gt(),
+    "greater than": ast.Gt(),
+    ">=": ast.GtE(),
+    "bigger or equal": ast.GtE(),
+    "more or equal": ast.GtE(),
+    "greater or equal": ast.GtE(),
+    "<": ast.Lt(),
+    "less": ast.Lt(),
+    "less than": ast.Lt(),
+    "smaller": ast.Lt(),
+    "smaller than": ast.Lt(),
+    "<=": ast.Lt(),
+    "less or equal": ast.Lt(),
+    "less than or equal": ast.Lt(),
+    "smaller or equal": ast.Lt(),
+    "smaller than or equal": ast.Lt(),
+
+}
