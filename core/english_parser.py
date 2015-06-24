@@ -290,9 +290,12 @@ def context():
 #  surrounded by braces everything can be of value!
 def bracelet():
     _('(') # ok, lists checked before
-    a = statement()
+    allow_rollback()
+    # a = value()
+    a = expression()
+    # a = statement()
     _(')')
-    return a # todo wrapped in (result=a)
+    return a # todo wrapped in (result=a) OK?
 
 
 @Starttokens(operators)
@@ -311,29 +314,33 @@ def ast_operator(op):
 def apply_op(stack, i, op):
     if interpreting():  # and not angel.use_tree:
         if op=="!" or op=="not":
-            stack[i:i+1]=not stack[i+1]
+            stack[i:i+2]=[not stack[i+1]]
         else:
-            stack[i-1:i+1]=do_math(stack[i-1], op, stack[i+1])
+            result = do_math(stack[i - 1], op, stack[i + 1])
+            stack[i-1:i+2]=[result]
     else:
         if op=="!" or op=="not":
-            stack[i:i+1]=kast.Not(stack[i+1])
+            stack[i:i+2]=[kast.Not(stack[i+1])]
         else:
         # ast.BoolOp ??
-            stack[i-1:i+1]=kast.BinOp(stack[i-1],ast_operator(op), stack[i+1])
+            stack[i-1:i+2]=[kast.BinOp(stack[i-1],ast_operator(op), stack[i+1])]
 
 def fold_algebra(stack):
-    used_operators = set(stack).intersection(operators)
+    used_operators = [x for x in operators if x in stack]
     while len(stack)>1:
         for op in used_operators:
-            for i in range(0,len(stack)):
+            i=0
+            while i<len(stack):
                 if stack[i]==op:
                     apply_op(stack,i,op)
+                i+=1
+    return stack
 
 def algebra():
     # global result
     must_contain_before(args=operators, before=[be_words, ',', ';', ':'])
     stack = []
-    stack[0] = the.result = maybe(value) or bracelet()  # any { maybe( value ) or maybe( bracelet ) )
+    stack.append(maybe(value) or bracelet())  # any { maybe( value ) or maybe( bracelet ) )
     def lamb():
         op = maybe(comparation) or operator()
         stack.append(op)
@@ -342,7 +349,7 @@ def algebra():
         stack.append(y)
         return y or True
     star(lamb)
-    the.result = fold_algebra(stack)
+    the.result = fold_algebra(stack)[0]
     return the.result
 
 
@@ -539,7 +546,7 @@ def close_bracket():  # for nice GivingUp):
 
 
 def json_hash():
-    must_contain(":", "=>", {'before': ")"})
+    must_contain_before(args=[":", "=>"], before=[")"])
     # z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
     z = maybe(regular_json_hash) or immediate_json_hash()
     return z
@@ -624,7 +631,7 @@ def quick_expression():
 
 def expression(fallback=None):
     start = pointer()
-    the.result = ex = quick_expression() or \
+    the.result = ex = maybe(quick_expression) or \
                       maybe(algebra) or \
                       maybe(json_hash) or \
                       maybe(evaluate_index) or \
@@ -2318,9 +2325,9 @@ def do_math(a, op, b):
     if op == '-': return a - b
     if op == 'minus': return a - b
     if op == 'substract': return a - b
-    if op == '/': return a / b
-    if op == 'devided': return a / b
-    if op == 'devided by': return a / b
+    if op == '/': return a / float(b)
+    if op == 'devided': return a / float(b)
+    if op == 'devided by': return a / float(b)
     if op == '%': return a % b
     if op == 'modulo': return a % b
     if op == '*': return a * b
