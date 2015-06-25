@@ -733,7 +733,7 @@ def maybe(expression):
         last_node = current_node
         return result
     except (NotMatching, EndOfLine) as e:
-        if verbose: verbose("Tried "+to_source(expression))
+        if verbose: verbose("Tried %d  "%the.current_offset+to_source(expression))
         interpreting(2) # remove the border, if above border
         # if verbose: verbose(e)
         # if verbose: string_pointer()

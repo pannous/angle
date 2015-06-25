@@ -7,8 +7,6 @@ import kast
 # import kast.cast
 import english_parser
 import power_parser
-import test._global
-from test import _global
 import the
 
 global parser
@@ -94,7 +92,8 @@ def assert_result_emitted(a, b, bla=None):
 
 def assert_result_is(a, b, bla=None):
     x=parse(a)
-    y=parse(b)
+    # y=parse(b)
+    y=b
     if bla:
         assert x==y, "%s %s SOULD EQUAL %s BUT WAS %s"%(bla,a,b,x)
     else:
@@ -252,9 +251,9 @@ class ParserBaseTest(unittest.TestCase):
 
     def initialize(self, args):
         if ENV['TEST_SUITE']:
-            _global.verbose = False
-        if _global.raking:
-            _global.emit = False
+            angle.verbose = False
+        if angle.raking:
+            angle.emit = False
         self.parser = english_parser.EnglishParser()
         super(args)
 
@@ -355,7 +354,7 @@ class ParserBaseTest(unittest.TestCase):
         self.parser.dont_interpret()
         interpretation = self.parser.parse(x)
         self.parser.full_tree()
-        if _global.emit:
+        if angle.emit:
             return parser.emit(interpretation, interpretation.root())
         else:
             return interpretation.evaluate()
@@ -369,7 +368,7 @@ class ParserBaseTest(unittest.TestCase):
             self.parser.do_interpret()
         if (isinstance(x,str), ):
             return x
-        if _global.emit:
+        if angle.emit:
             self.result = parse_tree(x)
         else:
             self.result = self.parser.parse(x)
@@ -387,7 +386,7 @@ class ParserBaseTest(unittest.TestCase):
         type(variables[v], )
 
     # def verbose(self):
-    #     if _global.raking:
+    #     if angle.raking:
     #         return None
     #     self.parser.verbose = True
 

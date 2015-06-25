@@ -23,8 +23,10 @@ import shutil
 #         angle.extensionMap[self.base]=clazz
 #         print(angle.extensionMap)
 
+
 def puts(x):
     print(x)
+    return x
 
 
 def grep(xs, x):
@@ -291,13 +293,14 @@ class xlist(list):
         return map(str, self)
 
     def rest(self):
-        self[1:-1]  # last:-1 after index!!!
+        index=1
+        return self[index:]
 
     def fix_int(self, i):
         if str(i) == "middle": i = self.count() / 2
         if isinstance(i, Numeric): return i - 1
         i = str(i).replace_numerals.to_i
-        i - 1
+        return i - 1
 
     def character(self, nr):
         return self.item(nr)
@@ -617,8 +620,8 @@ class xstr(str):
     #     TypeError: 'str' object does not support item assignment WTF
 
     def reverse(self):
-        return self[slice(start=None,stop=None,step=-1)]
-        # return self[::-1] #very pythonic,  It works by doing [begin:end:step]
+        # return self[slice(start=None,stop=None,step=-1)]
+        return self[::-1] #very pythonic,  It works by doing [begin:end:step]
         # a slower approach is ''.join(reversed(s))
 
     @staticmethod

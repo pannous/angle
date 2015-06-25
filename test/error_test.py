@@ -1,6 +1,6 @@
-import _global
-_global.use_tree = False
-_global.verbose = False
+import angle
+angle.use_tree = False
+angle.verbose = False
 from parser_test_helper import *
 
 class ErrorTest(ParserBaseTest):

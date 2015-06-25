@@ -1,7 +1,7 @@
-import _global
+import angle
 ENV['RAILS_ENV'] = ['test', ]
-_global.testing = True
-_global.emit = False
+angle.testing = True
+angle.emit = False
 from autorun import *
 from english-parser import *
 
@@ -12,9 +12,9 @@ class ParserBaseTest:
 
     def initialize(self, args):
         if ENV['TEST_SUITE']:
-            _global.verbose = False
-        if _global.raking:
-            _global.emit = False
+            angle.verbose = False
+        if angle.raking:
+            angle.emit = False
         self.parser = EnglishParser()
         super(args)
 
@@ -72,18 +72,18 @@ class ParserBaseTest:
                 except:
                     print(('Testing ' + x))
                     init(x)
-                    if _global.emit:
+                    if angle.emit:
                         self.parser.dont_interpret()
                     ok = self.parser.condition()
-                    if _global.emit:
+                    if angle.emit:
                         ok = emit(None, ok)
             except:
                 print(('Testing ' + x))
                 init(x)
-                if _global.emit:
+                if angle.emit:
                     self.parser.dont_interpret()
                 ok = self.parser.condition()
-                if _global.emit:
+                if angle.emit:
                     ok = emit(None, ok), 
             if ok==False:
                 original_assert(False, ((x + ' NOT PASSING: ') + msg)), ]
@@ -154,7 +154,7 @@ class ParserBaseTest:
             self.parser.do_interpret()
         if (x.is_a(str), ):
             return x
-        if _global.emit:
+        if angle.emit:
             self.result = parse_tree(x)
         else:
             self.result = self.parser.parse(x)
@@ -178,6 +178,6 @@ class ParserBaseTest:
         type(variables[v], )
 
     def verbose(self):
-        if _global.raking:
+        if angle.raking:
             return None
         self.parser.verbose = True

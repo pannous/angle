@@ -242,9 +242,9 @@ def regex(x):
 
 def package_version():
     maybe_token('with')
-    c = maybe_token(comparison_words)
+    c = maybe_tokens(comparison_words)
     tokens(['v', 'version'])
-    c = c or maybe_token(comparison_words)
+    c = c or maybe_tokens(comparison_words)
     # current_value=
     the.result = c + " " + regex('\d(\.\d)*')[0]
     maybe_tokens("or later")
@@ -410,7 +410,8 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
         return the.result
     if set and _('to'):  # or maybe_tokens(be_words): #LATER
         val = endNode()
-        l[n] = do_evaluate(val)
+        the.result= do_evaluate(val)
+        l[n] = the.result
     return the.result
 
 
@@ -619,11 +620,11 @@ def postoperations(context):
     return maybe_cast(context) or maybe_algebra(context) or context
 
 
-def quick_expression():
+def quick_expression(): #bad idea!
     if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         the.result = maybe(fun)
-        if the.current_word in operators or the.current_word in special_chars:  # - ';'
+        if the.current_word in operators + special_chars + ["element","item"] :  # - ';'
             raise_not_matching("quick_expression too simplistic")
         return the.result
     return False
@@ -697,6 +698,7 @@ def statement():
         maybe(once) or \
         maybe(piped_actions) or \
         maybe(declaration) or \
+        maybe(nth_item) or \
         maybe(setter) or \
         maybe(returns) or \
         maybe(requirements) or \
@@ -981,26 +983,6 @@ def get_module(module):
         return sys.modules[module]
 
 
-def get_method(method, clazz=object, assume=False):
-    if isinstance(method, Function):
-        return method
-    if not callable(method):
-        if method in the.methods:
-            method = the.methods[method]
-        if clazz in the.moduleMethods:
-            if method in the.moduleMethods[clazz]:
-                clazz = get_module(clazz)
-        elif not isinstance(clazz, type):  # lol:
-            clazz = type(clazz)
-        if method in dir(clazz):
-            found = getattr(clazz, method)  # NOT __get_attr__!!!
-            the.methods[method] = found
-            return found
-    if not callable(method) and not isinstance(method, Function):
-        raise_not_matching(str(method) + "not callable")
-    return method
-
-
 # In Python 2.7, built-in function objects such as print()
 # simply do not have enough information for you to discover what arguments they support!!
 def has_args(method, clazz=object, assume=False):
@@ -1008,7 +990,7 @@ def has_args(method, clazz=object, assume=False):
         return False
     if isinstance(method, Function):
         return len(method.arguments) > 0
-    method = get_method(method, clazz)
+    method = findMethod(clazz,method)
     try:
         args, varargs, varkw, defaults = inspect.getargspec(method)
         return len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0) > 0 or assume
@@ -1059,7 +1041,11 @@ def import_module(module_name):
 
 def subProperty(context):
     maybe_token(".")
-    property = maybe_tokens(dir(context))
+    properties = dir(context)
+    if type(context) in angle.extensionMap:
+        ext=angle.extensionMap[type(context)]
+        properties+=dir(ext)
+    property = maybe_tokens(properties)
     # the.moduleMethods[module_name] etc!
     if not property or callable(property) or is_method(property):
         return context, property  # save methods for later!
@@ -1071,12 +1057,16 @@ def true_method():
     no_keyword()
     should_not_start_with(auxiliary_verbs)
     xmodule = maybe_tokens(the.moduleNames)
+    xvariable = maybe_tokens(the.variables.keys())
     if xmodule:
         module, moduleMethods = import_module(xmodule)
         obj, name = subProperty(module)
         if obj == module: obj = None
         if obj: moduleMethods += dir(obj)
         name = name or maybe_tokens(moduleMethods)
+    elif xvariable :
+        variable = the.variables[xvariable]
+        obj, name = subProperty(variable.value)
     else:
         obj, property = subProperty(None)
         name = maybe_tokens(all_methods()) or maybe(verb)
@@ -1102,6 +1092,7 @@ def true_method():
 def method_call(obj=None):
     # verb_node
     module, obj, method = true_method()
+    method=findMethod(obj,method) # already? todo findMethods with S, ambiguous ones!!
     no_rollback() #maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
@@ -1113,6 +1104,7 @@ def method_call(obj=None):
         if angle.in_args: obj = maybe(maybe(nod))
         if not angle.in_args:
             obj = maybe(nod) or maybe(liste)  # danger: liste vs args below
+        method=findMethod(obj,method) # Now we know the object
         maybe_token(',')
         # print(sorted files)
         # if not in_args: obj=maybe( maybe(nod)  or  maybe(list)  or  expression )
@@ -1132,6 +1124,7 @@ def method_call(obj=None):
         more = maybe_token(',')
         if more: obj = [obj] + liste(False)
 
+    method=findMethod(obj,method,args) # if not unique before!
     angle.in_args = False
     if start_brace == '(': _(')')
     if start_brace == '[': _(']')
@@ -2210,15 +2203,19 @@ def do_evaluate_property(attr, node):
     if not attr: return False
     verbose("do_evaluate_property '" + str(attr) + "' in " + str(node))
     the.result = None  # delete old!
+    try:
+        the.result = do_send(node,attr)
+        return the.result
+    except:
+        verbose("do_send(node,attr) failed")
     if attr in dir(node):  # y.__att
-        return node.__getattributetokens(attr)
+        return node.__getattribute__(attr)
     if attr in ['type', 'class', 'kind']:
         return get_class(node)
     if isinstance(node, list):
         return map(lambda x: do_evaluate_property(attr, x), node)
     if isinstance(attr, _ast.AST):
         return todo("do_evaluate_property")
-    return the.result
 
 
 # Strange method, see resolve, do_evaluate
@@ -2290,10 +2287,7 @@ def do_evaluate(x, _type=None):
         # return x
 
 
-
-        # see do_evaluate ! merge
-
-
+# see do_evaluate ! merge
 def resolve(x):
     if not x: return x
     if is_dir(x): return extensions.Directory(x)
@@ -2354,36 +2348,40 @@ def instance(bounded_method):
     return bounded_method.im_self
 
 
-def findMethod(obj0, method0, args0):
+def findMethod(obj0, method0, args0=None):
     method = method0
+    _type = type(obj0)
+    if(isinstance(obj0,Variable)):
+        _type=obj0.type
+        obj0=obj0.value
     if isinstance(method, Function): return method
     if callable(method): return method
     if isinstance(method, list) and len(method) == 1: method = method[0]
-    if isinstance(method,str):
-        if method in the.methods:
-            return the.methods[method]
-        if method in locals():
-            return locals()[method];
-        if globals in locals():
-            return locals()[globals];
-        if method in dir(obj0):
-            return getattr(obj0, method)  # NOT __getattributetokens(name)!!!!
-        # method=method.__gettokens(obj0, ex)
-    elif type(obj0) in angle.extensionMap:
-        ex = angle.extensionMap[type(obj0)]
+    if not isinstance(method,str):
+        raise_not_matching("NO such METHOD %"%method)
+    if method in the.methods:
+        return the.methods[method]
+    if method in locals():
+        return locals()[method];
+    if globals in locals():
+        return locals()[globals];
+    if method in dir(obj0):
+        return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
+    if _type in angle.extensionMap:
+        ex = angle.extensionMap[_type]
         if method in dir(ex):
-            method = getattr(ex, method)  # NOT __getattributetokens(name)!!!!
-            method = method.__gettokens(obj0, ex)
-    elif type(obj0) == type and method in obj0.__dict__:
+            method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
+            method = method.__get__(obj0, ex) # bind!
+    elif isinstance(obj0,type) and method in obj0.__dict__:
         method = obj0.__dict__[method]  # class
-        method.__gettokens(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
+        method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
         # that returns the wrapped function as function and not as a method
     return method
     # if callable(method):method(args)
 
 
 # INTERPRET only,  todo cleanup method + argument matching + concept
-def do_send(obj0, method0, args0):
+def do_send(obj0, method0, args0=[]):
     if not interpreting(): return False
     if not method0: return False
 
@@ -2398,15 +2396,20 @@ def do_send(obj0, method0, args0):
 
     args = args0
     if isinstance(args, Argument): args = args.name_or_value
-    # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
-    args = eval_string(args)  # except NoMethodError
-    if args and isinstance(args, str): args = xstr(args).replace_numerals()
-    if (args and isinstance(args, list) and len(args) > 0 and args[0] == 'of'): return evaluate_property(args[1], obj0)
     if (method == 'of'): return evaluate_property(args, obj0)
-
+    # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
+    if args and isinstance(args, str): args = xstr(args).replace_numerals()
+    if (args and isinstance(args, list) and len(args) > 0):
+        if method.im_self==args[0]: args.remove(args[0])
+    args = eval_string(args)  # except NoMethodError
+    if method.im_self==args: args=None
+    def values(x):
+        return x.value
+    if(isinstance(args,list)):
+        args=map(values,args)
+    if(isinstance(args,Argument)):args=args.value
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
-    obj = resolve(obj0)
-
+    obj = do_evaluate(obj0)
     if not obj:
         if args:
             return method(args)
@@ -2414,11 +2417,11 @@ def do_send(obj0, method0, args0):
             return method()
 
     if not args and not callable(method) and method in dir(obj):
-        return obj.__getattributetokens(method)
+        return obj.__getattribute__(method)
 
     if (args and args[0] == 'of'):  # and has_args(method, obj)):
         if not callable(method) and method in dir(obj):
-            return obj.__getattributetokens(method)
+            return obj.__getattribute__(method)
         else:
             method(args[1])  # square of 7
 
@@ -2840,7 +2843,7 @@ def maybe_param(method, classOrModule):
     param = maybe(true_param)
     if param:
         return param.value or param
-    method = get_method(method, classOrModule)
+    method = findMethod(classOrModule,method)
     import inspect
 
     args, varargs, varkw, defaults = inspect.getargspec(method)

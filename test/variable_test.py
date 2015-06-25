@@ -1,5 +1,5 @@
 import pyasn1.type.char
-import _global
+import angle
 from parser_test_helper import *
 from power_parser import WrongType, ImmutableVaribale
 

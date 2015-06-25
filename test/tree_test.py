@@ -63,7 +63,7 @@ class TreeTest(ParserBaseTest):
         ok = self.parser.algebra()
         print((('Parsed input as ' + ok) + '!'))
         assert_equals(ok, 26)
-        if _global.use_tree==False:
+        if angle.use_tree==False:
             skip()
         current_node = root(interpretation(), )
         full_value = current_node.full_value()

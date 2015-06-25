@@ -1,9 +1,9 @@
-import _global
+import angle
 import english_parser
 import interpretation
 import test.parser_test_helper
 
-_global.use_tree = False
+angle.use_tree = False
 # from test_helper import *
 from test.parser_test_helper import *
 from english_parser import *
@@ -39,7 +39,7 @@ class ParserTest(ParserBaseTest): #EnglishParser
 
     # def NOmethod_missing(self, sym, args, block):
     #     syms = sym.to_s()
-    #     if _global.parser and contains(sym, _global.parser.methods()):
+    #     if angle.parser and contains(sym, angle.parser.methods()):
     #         [
     #         if equals(0, args.len()):
     #             x = maybe(),

@@ -1,5 +1,5 @@
-import _global
-_global.use_tree = False
+import angle
+angle.use_tree = False
 from parser_test_helper import *
 
 

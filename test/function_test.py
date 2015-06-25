@@ -1,6 +1,6 @@
-import _global
+import angle
 
-_global.use_tree = False
+angle.use_tree = False
 from ast import *
 from parser_test_helper import *
 # from extensions import *
@@ -9,14 +9,14 @@ from parser_test_helper import *
 class FunctionTest(ParserBaseTest):
 
     def test_opencv(self):
-        parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
+        i=parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
         fbody=[]
         f=Function(name="create fullscreen window",arguments=[Argument(name="n")],body=fbody)
         assert_equals(the.result,f)
         parse("create a fullscreen window with name \"test\"")
 
     def test_fibonacci(self):
-        dir = 'programs/'
+        dir = 'samples/'
         code = read(dir + ('fibonacci.e'))
         code = fix_encoding(code)
         p(code)
@@ -31,7 +31,7 @@ class FunctionTest(ParserBaseTest):
         print(parse('assert fibonacci of 10 is 55'))
 
     def test_identity(self):
-        dir = 'programs/'
+        dir = 'samples/'
         code = read(dir + ('identity.e'))
         code = fix_encoding(code)
         p(code)
@@ -44,24 +44,11 @@ class FunctionTest(ParserBaseTest):
         print(parse('identity(5)'))
         assert ('identity(5) is 5')
 
-    def test_programs(self):
-        dir = 'programs/'
-        for file in File.ls(dir):
-            code = read(File.open(dir + (file), 'rb', {'encoding': 'UTF-8', 'binary': True, }))
-            code = fix_encoding(code)
-            p(code)
-            print(parse(code))
-            fib = functions['fibonacci']
-            print(fib)
-            print(fib.call(5))
-            parse('fibonacci(5)')
-
     def test_basic_syntax(self):
-        assert_result_is("print 'hi'", 'nill')
-        assert_result_is("print 'hi'", 'nill')
+        assert_result_is("print 'hi'", 'hi')
+        assert_result_is("print 'hi'", 'hi')
 
     def test_complex_syntax(self):
-        init('here is how to define a method: done')
         init('here is how to define a method: done')
 
     def test_block(self):
@@ -109,7 +96,6 @@ class FunctionTest(ParserBaseTest):
 
     def test_simple_parameters(self):
         parse("puts 'hi'")
-        parse("puts 'hi'")
 
     def test_to_do_something(self):
         pass
@@ -121,13 +107,13 @@ class FunctionTest(ParserBaseTest):
 
     def test_java_style(self):
         parse('1.add(0)')
-        parse('1.add(0)')
+        assert_result_is('3.add(4)',7)
 
     def test_dot(self):
         parse("x='hi'")
-        assert_result_is('reverse of x', 'ih')
+        # assert_result_is('reverse of x', 'ih')
         assert_result_is('x.reverse', 'ih')
-        assert_result_is('reverse x', 'ih')
+        # assert_result_is('reverse x', 'ih')
 
     def test_rubyThing(self):
         parse('Math.hypot(3,3)')
@@ -150,7 +136,6 @@ class FunctionTest(ParserBaseTest):
 
     def test_array_arg(self):
         assert_equals(parse('rest of [1,2,3]'), [2, 3])
-        assert_equals(parse('rest of [1,2,3]'), [2, 3])
 
     def test_array_index(self):
         assert_equals(parse('x=[1,2,3];x[2]'), 3)
@@ -160,6 +145,10 @@ class FunctionTest(ParserBaseTest):
         parse('x=[1,2,3]')
         assert_equals(parse('second element in [1,2,3]'), 2)
         assert_equals(parse('third element in x'), 3)
+
+
+    def test_natural_array_index_setter(self):
+        parse('x=[1,2,3]')
         assert_equals(parse('set third element in x to 8'), 8)
         assert_equals(parse('x'), [1, 2, 8])
 

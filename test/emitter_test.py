@@ -1,6 +1,6 @@
-import _global
-_global.use_tree = True
-_global.verbose = False
+import angle
+angle.use_tree = True
+angle.verbose = False
 from parser_test_helper import *
 from c-emitter import *
 
@@ -8,12 +8,12 @@ from c-emitter import *
 class EmitterTest(ParserBaseTest):
 
     def init(self):
-        _global.use_tree = True
-        _global.use_tree = True
+        angle.use_tree = True
+        angle.use_tree = True
 
     def initialize(self):
-        _global.use_tree = True
-        _global.use_tree = True
+        angle.use_tree = True
+        angle.use_tree = True
     
 
     def last_result(self, x):
@@ -25,12 +25,12 @@ class EmitterTest(ParserBaseTest):
         assert_equals(last_result(parse_tree(x, True)), r)
 
     def test_js_emitter(self):
-        if _global.use_tree==False:
+        if angle.use_tree==False:
             skip()
         assert_result_emitted('x=5;increase x', 6)
 
     def test_int_setter(self):
-        if _global.use_tree==False:
+        if angle.use_tree==False:
             skip()
         assert_result_emitted('x=5;puts x', 5)
 
@@ -40,7 +40,7 @@ class EmitterTest(ParserBaseTest):
         assert_equals(result(), 2)
 
     def test_printf(self):
-        _global.use_tree = True
+        angle.use_tree = True
         self.parser.dont_interpret()
         parse("printf 'hello world'", False)
         interpretation = (self.parser.interpretation() or Interpretation())
@@ -69,7 +69,7 @@ class EmitterTest(ParserBaseTest):
         assert_result_emitted('xs=[1,4,7];invert xs', [7, 4, 1])
 
     def test_setter(self):
-        _global.use_tree = True
+        angle.use_tree = True
         self.parser.dont_interpret()
         parse("x='ho';puts x")
         interpretation = (self.parser.interpretation() or Interpretation())

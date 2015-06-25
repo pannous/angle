@@ -1,4 +1,4 @@
-import _global
+import angle
 from parser_test_helper import *
 
 
