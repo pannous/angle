@@ -267,7 +267,9 @@ def requirements():
     type = type or maybe_tokens(require_types)
     # maybe(source) maybe(really)
     dependency = maybe(quote)
+
     no_rollback(5)
+
     # maybe(list_of){packages)
     dependency = dependency or word()  # regex "\w+(\/\w*)*(\.\w*)*\.?\*?" # rest_of_line
     version = maybe(package_version)
@@ -289,13 +291,13 @@ def context():
 
 #  surrounded by braces everything can be of value!
 def bracelet():
-    _('(') # ok, lists checked before
+    _('(')  # ok, lists checked before
     allow_rollback()
     # a = value()
     a = expression()
     # a = statement()
     _(')')
-    return a # todo wrapped in (result=a) OK?
+    return a  # todo wrapped in (result=a) OK?
 
 
 @Starttokens(operators)
@@ -307,40 +309,45 @@ def operator():
 def isUnary(op):
     return
 
+
 # always Rightfully assume that the values left and right of the operator are the final values
 def ast_operator(op):
     return kast_operator_map[op]
 
+
 def apply_op(stack, i, op):
     if interpreting():  # and not angel.use_tree:
-        if op=="!" or op=="not":
-            stack[i:i+2]=[not stack[i+1]]
+        if op == "!" or op == "not":
+            stack[i:i + 2] = [not stack[i + 1]]
         else:
             result = do_math(stack[i - 1], op, stack[i + 1])
-            stack[i-1:i+2]=[result]
+            stack[i - 1:i + 2] = [result]
     else:
-        if op=="!" or op=="not":
-            stack[i:i+2]=[kast.Not(stack[i+1])]
+        if op == "!" or op == "not":
+            stack[i:i + 2] = [kast.Not(stack[i + 1])]
         else:
-        # ast.BoolOp ??
-            stack[i-1:i+2]=[kast.BinOp(stack[i-1],ast_operator(op), stack[i+1])]
+            # ast.BoolOp ??
+            stack[i - 1:i + 2] = [kast.BinOp(stack[i - 1], ast_operator(op), stack[i + 1])]
+
 
 def fold_algebra(stack):
     used_operators = [x for x in operators if x in stack]
-    while len(stack)>1:
+    while len(stack) > 1:
         for op in used_operators:
-            i=0
-            while i<len(stack):
-                if stack[i]==op:
-                    apply_op(stack,i,op)
-                i+=1
+            i = 0
+            while i < len(stack):
+                if stack[i] == op:
+                    apply_op(stack, i, op)
+                i += 1
     return stack
+
 
 def algebra():
     # global result
     must_contain_before(args=operators, before=[be_words, ',', ';', ':'])
     stack = []
     stack.append(maybe(value) or bracelet())  # any { maybe( value ) or maybe( bracelet ) )
+
     def lamb():
         op = maybe(comparation) or operator()
         stack.append(op)
@@ -348,6 +355,7 @@ def algebra():
         y = maybe(value) or bracelet()
         stack.append(y)
         return y or True
+
     star(lamb)
     the.result = fold_algebra(stack)[0]
     return the.result
@@ -410,7 +418,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
         return the.result
     if set and _('to'):  # or maybe_tokens(be_words): #LATER
         val = endNode()
-        the.result= do_evaluate(val)
+        the.result = do_evaluate(val)
         l[n] = the.result
     return the.result
 
@@ -620,11 +628,11 @@ def postoperations(context):
     return maybe_cast(context) or maybe_algebra(context) or context
 
 
-def quick_expression(): #bad idea!
+def quick_expression():  # bad idea!
     if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         the.result = maybe(fun)
-        if the.current_word in operators + special_chars + ["element","item"] :  # - ';'
+        if the.current_word in operators + special_chars + ["element", "item"]:  # - ';'
             raise_not_matching("quick_expression too simplistic")
         return the.result
     return False
@@ -734,7 +742,7 @@ def addLongname(f):
             args = f.arguments[1:]
             f2 = Function(name=name, arguments=args, return_type=f.return_type, body=f.body)
             the.methods[name] = f2
-            the.method_names.insert(0,name) # add longnames first!
+            the.method_names.insert(0, name)  # add longnames first!
             addLongname(f2)
             return f2
     return f
@@ -771,7 +779,7 @@ def method_definition():
     # ,modifiers:modifiers, annotations:annotations
     the.methods[name] = f or parent_node() or b
     the.method_names.append(name)
-    f=addLongname(f)
+    f = addLongname(f)
     # # with args! only in tree mode!!
     the.params.clear()
     return f
@@ -990,7 +998,7 @@ def has_args(method, clazz=object, assume=False):
         return False
     if isinstance(method, Function):
         return len(method.arguments) > 0
-    method = findMethod(clazz,method)
+    method = findMethod(clazz, method)
     try:
         args, varargs, varkw, defaults = inspect.getargspec(method)
         return len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0) > 0 or assume
@@ -1043,8 +1051,8 @@ def subProperty(context):
     maybe_token(".")
     properties = dir(context)
     if type(context) in angle.extensionMap:
-        ext=angle.extensionMap[type(context)]
-        properties+=dir(ext)
+        ext = angle.extensionMap[type(context)]
+        properties += dir(ext)
     property = maybe_tokens(properties)
     # the.moduleMethods[module_name] etc!
     if not property or callable(property) or is_method(property):
@@ -1064,7 +1072,7 @@ def true_method():
         if obj == module: obj = None
         if obj: moduleMethods += dir(obj)
         name = name or maybe_tokens(moduleMethods)
-    elif xvariable :
+    elif xvariable:
         variable = the.variables[xvariable]
         obj, name = subProperty(variable.value)
     else:
@@ -1073,12 +1081,12 @@ def true_method():
     if not name:
         raise NotMatching('no method found')
     if maybe_tokens(articles):
-        obj=' '.join(one_or_more(word))
+        obj = ' '.join(one_or_more(word))
         longName = name + " " + obj
         if longName in the.method_names:
-            name=longName
-        # if the.current_word.endswith("ed"):
-        # sorted files -> sort files ?
+            name = longName
+            # if the.current_word.endswith("ed"):
+            # sorted files -> sort files ?
     return xmodule, obj, name  # .to_s
 
 
@@ -1092,8 +1100,8 @@ def true_method():
 def method_call(obj=None):
     # verb_node
     module, obj, method = true_method()
-    method=findMethod(obj,method) # already? todo findMethods with S, ambiguous ones!!
-    no_rollback() #maybe doch?
+    method = findMethod(obj, method)  # already? todo findMethods with S, ambiguous ones!!
+    no_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
     if start_brace: no_rollback()
@@ -1104,7 +1112,7 @@ def method_call(obj=None):
         if angle.in_args: obj = maybe(maybe(nod))
         if not angle.in_args:
             obj = maybe(nod) or maybe(liste)  # danger: liste vs args below
-        method=findMethod(obj,method) # Now we know the object
+        method = findMethod(obj, method)  # Now we know the object
         maybe_token(',')
         # print(sorted files)
         # if not in_args: obj=maybe( maybe(nod)  or  maybe(list)  or  expression )
@@ -1114,17 +1122,19 @@ def method_call(obj=None):
     if has_args(method, module or obj, assume_args):
         angle.in_args = True
         args = []
+
         def call_args():
             if len(args) > 0: maybe_tokens([',', 'and'])
             args.append(call_arg())
             return args
+
         args = star(call_args)
         if not args: args = obj;obj = None
     else:
         more = maybe_token(',')
         if more: obj = [obj] + liste(False)
 
-    method=findMethod(obj,method,args) # if not unique before!
+    method = findMethod(obj, method, args)  # if not unique before!
     angle.in_args = False
     if start_brace == '(': _(')')
     if start_brace == '[': _(']')
@@ -2204,7 +2214,7 @@ def do_evaluate_property(attr, node):
     verbose("do_evaluate_property '" + str(attr) + "' in " + str(node))
     the.result = None  # delete old!
     try:
-        the.result = do_send(node,attr)
+        the.result = do_send(node, attr)
         return the.result
     except:
         verbose("do_send(node,attr) failed")
@@ -2351,14 +2361,14 @@ def instance(bounded_method):
 def findMethod(obj0, method0, args0=None):
     method = method0
     _type = type(obj0)
-    if(isinstance(obj0,Variable)):
-        _type=obj0.type
-        obj0=obj0.value
+    if (isinstance(obj0, Variable)):
+        _type = obj0.type
+        obj0 = obj0.value
     if isinstance(method, Function): return method
     if callable(method): return method
     if isinstance(method, list) and len(method) == 1: method = method[0]
-    if not isinstance(method,str):
-        raise_not_matching("NO such METHOD %"%method)
+    if not isinstance(method, str):
+        raise_not_matching("NO such METHOD %" % method)
     if method in the.methods:
         return the.methods[method]
     if method in locals():
@@ -2371,8 +2381,8 @@ def findMethod(obj0, method0, args0=None):
         ex = angle.extensionMap[_type]
         if method in dir(ex):
             method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
-            method = method.__get__(obj0, ex) # bind!
-    elif isinstance(obj0,type) and method in obj0.__dict__:
+            method = method.__get__(obj0, ex)  # bind!
+    elif isinstance(obj0, type) and method in obj0.__dict__:
         method = obj0.__dict__[method]  # class
         method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
         # that returns the wrapped function as function and not as a method
@@ -2400,14 +2410,16 @@ def do_send(obj0, method0, args0=[]):
     # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
     if args and isinstance(args, str): args = xstr(args).replace_numerals()
     if (args and isinstance(args, list) and len(args) > 0):
-        if method.im_self==args[0]: args.remove(args[0])
+        if method.im_self == args[0]: args.remove(args[0])
     args = eval_string(args)  # except NoMethodError
-    if method.im_self==args: args=None
+    if method.im_self == args: args = None
+
     def values(x):
         return x.value
-    if(isinstance(args,list)):
-        args=map(values,args)
-    if(isinstance(args,Argument)):args=args.value
+
+    if (isinstance(args, list)):
+        args = map(values, args)
+    if (isinstance(args, Argument)): args = args.value
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
     obj = do_evaluate(obj0)
     if not obj:
@@ -2843,7 +2855,7 @@ def maybe_param(method, classOrModule):
     param = maybe(true_param)
     if param:
         return param.value or param
-    method = findMethod(classOrModule,method)
+    method = findMethod(classOrModule, method)
     import inspect
 
     args, varargs, varkw, defaults = inspect.getargspec(method)
