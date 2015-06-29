@@ -675,18 +675,13 @@ def caller_depth():
     # filter_stack(caller).count #-1
 
 
-def no_rollback():
-    depth = caller_depth() - 1
-    while len(the.rollback_depths) > 0 and the.rollback_depths[-1] > depth:
-        the.rollback_depths.pop()
-    the.rollback_depths.append(the.no_rollback_depth)
-    the.no_rollback_depth = depth
-
-
 def allow_rollback(n=0):
     if n < 0: the.rollback_depths = []
-    if len(the.rollback_depths) > 1:
-        the.no_rollback_depth = the.rollback_depths.pop()
+    depth = caller_depth() - 1
+    if len(the.rollback_depths) > 0:
+        while the.rollback_depths[-1] > depth:
+            the.no_rollback_depth =the.rollback_depths.pop()
+            if len(the.rollback_depths)==0: break
     else:
         the.no_rollback_depth = -1
 
@@ -694,7 +689,7 @@ def allow_rollback(n=0):
 def adjust_rollback(depth=-10):
     try:
         if depth == -10: depth = caller_depth()
-        if depth + 2 < the.no_rollback_depth:
+        if depth <= the.no_rollback_depth:
             allow_rollback()
     except (Exception, Error) as e:
         error(e)

@@ -30,10 +30,10 @@ class ConditionTest(ParserBaseTest):
         assert_result_is('if 1<2 then 5 else 4', 5)
 
     def test_return2(self):
-        assert_result_is('if(1<2) then 3 else 4', 3)
         assert_result_is('if(3<2) then 3 else 4', 4)
         assert_result_is('if 3<2 then 5 else 4', 4)
         assert_result_is('if 1<2 then false else 4', False)
+        assert_result_is('if(1<2) then 3 else 4', 3)
         # assert_result_is('if 1<2 then false else 4', 'false')
 
     def test_if_(self):

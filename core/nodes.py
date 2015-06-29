@@ -95,7 +95,7 @@ class FunctionCall:
     #attr_accessor :name, :arguments, :scope, :module, :class, :object
     def __init__(self,name=None, arguments=None, **args):
         self.name     =name or args['name']
-        self.arguments=arguments or args['arguments']
+        self.arguments=args['arguments'] if 'scope' in args else arguments
         if 'scope' in args: self.scope    =args['scope']
         if 'class' in args: self.clazz    =args['class']
         if 'module' in args: self.clazz   = self.clazz or args['module']

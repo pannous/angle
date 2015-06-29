@@ -16,18 +16,16 @@
 # import re
 # import __builtin__
 import _ast
-import copy
 import traceback
-import sys
 # import HelperMethods
 # import Interpretation
 # import HelperMethods
 # import kast
-import array
 import interpretation
 import inspect
 from english_tokens import *
 from kast import kast
+from power_parser import maybe,allow_rollback
 from power_parser import *
 import power_parser
 from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
@@ -224,14 +222,12 @@ def javascript_require(dependency):
 
 
 def includes(dependency, type, version):
-    if re.search(r'\.js$'): return javascript_require(dependency, dependency)
-    if type and "javascript script js".split().has(type): return javascript_require(dependency)
-    # if not type or "ruby gem".split().has(type): return ruby_require(dependency)
+    if re.search(r'\.js$',the.current_word):
+        return javascript_require(dependency)
+    if type and type in "javascript script js".split():
+        return javascript_require(dependency)
 
-    # #{escape_token t)
-
-
-def regex(x):
+def regexp(x):
     ## global the.string
     match = re.search(x, the.string)
     match = match or re.search(r'(?im)^\s*%s' % x, the.string)
@@ -246,35 +242,27 @@ def package_version():
     tokens(['v', 'version'])
     c = c or maybe_tokens(comparison_words)
     # current_value=
-    the.result = c + " " + regex('\d(\.\d)*')[0]
+    the.result = c + " " + regexp('\d(\.\d)*')
     maybe_tokens("or later")
     return the.result
 
-    # (:use [native])
-
-
-#
-# def maybe(quote):
-#     pass
 
 @Starttokens(import_keywords)
-def requirements():
-    type = maybe_tokens(require_types)
+def imports(): #requirements
+    _type = maybe_tokens(require_types)
     tokens(import_keywords)
-    type = type or maybe_tokens(require_types)
+    _type = _type or maybe_tokens(require_types)
     maybe_tokens("file script header source src".split())
     maybe_tokens(['gem', 'package', 'library', 'module', 'context'])
-    type = type or maybe_tokens(require_types)
+    _type = _type or maybe_tokens(require_types)
     # maybe(source) maybe(really)
     dependency = maybe(quote)
-
-    no_rollback(5)
-
+    allow_rollback()
     # maybe(list_of){packages)
     dependency = dependency or word()  # regex "\w+(\/\w*)*(\.\w*)*\.?\*?" # rest_of_line
     version = maybe(package_version)
-    if interpreting(): includes(dependency, type, version)  #
-    the.result = {'dependency': {'type': type, 'package': dependency, 'version': version}}
+    if interpreting(): includes(dependency, _type, version)  #
+    the.result = {'dependency': {'type': _type, 'package': dependency, 'version': version}}
     return the.result
 
 
@@ -351,13 +339,14 @@ def algebra():
     def lamb():
         op = maybe(comparation) or operator()
         stack.append(op)
-        if not op == 'and': no_rollback()
+        if not op == 'and': allow_rollback()
         y = maybe(value) or bracelet()
         stack.append(y)
         return y or True
 
     star(lamb)
     the.result = fold_algebra(stack)[0]
+    if the.result==False: the.result=FALSE
     return the.result
 
 
@@ -407,13 +396,13 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     maybe_tokens(['in', 'of'])
     l = resolve(maybe(true_variable)) or maybe(liste) or quote()  # or (expression) with parenthesis!!
     if re.search(r'^char', type):
-        the.result = "".join(l).__getitemtokens(n)
+        the.result = "".join(l).__getitem__(n)
         return the.result
     if type in type_names:
         l = l.select(lambda x: isinstance(x, type))  # or x.is_a(type)!
     elif isinstance(l, str):
         l = l.split(" ")
-    the.result = l[n]  # .__getitemtokens(n)
+    the.result = l[n]  # .__getitem__(n)
     if angle.in_condition:
         return the.result
     if set and _('to'):  # or maybe_tokens(be_words): #LATER
@@ -567,7 +556,7 @@ def json_hash():
 @Starttokens('{')
 def regular_json_hash():
     _('{')
-    maybe_token(':') and no_rollback()  # {:a:.) Could also mean list of maybe(symbols) Nah
+    maybe_token(':') and allow_rollback()  # {:a:.) Could also mean list of maybe(symbols) Nah
     h = {}
 
     def lamb():
@@ -604,7 +593,7 @@ def immediate_json_hash():  # a:{b) OR a{b():c)):
     w = word()  # expensive
     # maybe(lambda:starts_with("={")) and maybe_token('=') or:c)
     starts_with_("{") or _('=>')  # or _(':') disastrous :  BLOCK START!
-    no_rollback()
+    allow_rollback()
     r = regular_json_hash()
     return {str(the.result): r}  # AH! USEFUL FOR NON-symbols !!!
 
@@ -685,7 +674,7 @@ def piped_actions():
     the.in_pipe = True
     a = statement()
     token('|')
-    no_rollback()
+    allow_rollback()
     c = true_method() or bash_action()
     args = star(call_arg)
     if callable(c): args = [args, Argument(value=a)]  # with owner
@@ -709,7 +698,7 @@ def statement():
         maybe(nth_item) or \
         maybe(setter) or \
         maybe(returns) or \
-        maybe(requirements) or \
+        maybe(imports) or \
         maybe(method_definition) or \
         maybe(assert_that) or \
         maybe(breaks) or \
@@ -753,7 +742,7 @@ def method_definition():
     # annotations=maybe(annotations)
     # modifiers=maybe(modifiers)
     tokens(method_tokens)  # how to
-    no_rollback()
+    allow_rollback()
     name = maybe(noun) or verb  # integrate or word
     # obj=maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
     brace = maybe_token('(')
@@ -823,7 +812,7 @@ def if_then_else():
     # if ok == False:
     #     ok = FALSE
     o = maybe(otherwise) or FALSE
-    if ok != "OK" and ok != False:  # and ok !=FALSE:
+    if ok != "OK" and ok != False:# and ok !=FALSE ^^:
         the.result = ok
     else:
         the.result = o
@@ -845,7 +834,7 @@ def action_if():
 
 def if_then():
     tokens(if_words)
-    no_rollback()  # 100
+    allow_rollback()  # 100
     c = condition_tree()
     if c == None: raise InternalError("no condition_tree")
     # c=condition()
@@ -859,7 +848,7 @@ def if_then():
     # if not use_block: b=statement
     # if not use_block: b=action()
     allow_rollback()
-    if c == False: return c
+    if c == False or c==FALSE: return False
     if interpreting():
         if check_condition(c):
             return do_execute_block(b)
@@ -876,7 +865,7 @@ def future_event():
 @Starttokens(once_words)
 def once_trigger():
     tokens(once_words)
-    no_rollback()
+    allow_rollback()
     dont_interpret()
     c = maybe(future_event) or condition()  # eval later, variables might not be set yet!!!
     maybe_token('then')
@@ -891,7 +880,7 @@ def _do():
 @Starttokens('do')
 def action_once():
     if not _do(): must_contain(once_words)  # and
-    no_rollback()
+    allow_rollback()
     maybe_newline()
     b = action_or_block()
     # _do=maybe_token('do')
@@ -940,7 +929,7 @@ def print_variables():
 @Starttokens(invoke_keywords)
 def extern_method_call():
     call = tokens(invoke_keywords)
-    if call: no_rollback()
+    if call: allow_rollback()
     ruby_method = maybe_tokens(builtin_methods + core_methods)
     if not ruby_method: raise UndefinedRubyMethod(word())
     args = rest_of_line
@@ -1101,10 +1090,10 @@ def method_call(obj=None):
     # verb_node
     module, obj, method = true_method()
     method = findMethod(obj, method)  # already? todo findMethods with S, ambiguous ones!!
-    no_rollback()  # maybe doch?
+    allow_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
-    if start_brace: no_rollback()
+    if start_brace: allow_rollback()
     if module or obj or is_object_method(method):  # todo  not has_object(method) is_class_method:
         obj = obj or None  # globals
     else:
@@ -1160,7 +1149,7 @@ def bla():
 def applescript():
     _('tell')
     tokens(['application', 'app'])
-    no_rollback()
+    allow_rollback()
     app = quote
     the.result = "tell application \"%s\"" % app
     if maybe_token('to'):
@@ -1223,7 +1212,7 @@ def new():
 @Starttokens(['return', 'returns'])
 def returns():
     tokens(['return', 'returns'])
-    no_rollback()
+    allow_rollback()
     the.result = maybe(expression)
     if interpreting():
         the.params.clear()
@@ -1351,7 +1340,7 @@ def datetime():
     # later: 5 secs from now  , _(5pm) == AT 5pm
     must_contain(time_words)
     _kind = tokens(event_kinds)
-    no_rollback()
+    allow_rollback()
     maybe_tokens(['around', 'about'])
     # import chronic_duration
     # WAH! every second  VS  every second hour WTF ! lol
@@ -1440,7 +1429,7 @@ def get_obj(o):
 
 def property():
     must_contain_before([".", "'s"], xlist(special_chars) - '.')
-    no_rollback()
+    allow_rollback()
     owner = class_constant
     owner = get_obj(owner) or variables[true_variable(False)].value  # reference
     _('.')
@@ -1471,7 +1460,7 @@ def declaration():
 def setter():
     must_contain_before(args=be_words + ['set'], before=['>', '<', '+', '-', '|', '/', '*'])
     _let = maybe_tokens(let_words)
-    if _let: no_rollback()
+    if _let: allow_rollback()
     a = maybe(_the)
     mod = maybe_tokens(modifiers)
     _type = maybe(typeNameMapped)
@@ -1858,7 +1847,7 @@ def comparation():
         comp = maybe_tokens(comparison_words)
     else:
         comp = tokens(comparison_words)
-        no_rollback()
+        allow_rollback()
 
     if eq: maybe_token('to')
     maybe_tokens(['and', 'or', 'xor', 'nor'])
@@ -2018,6 +2007,7 @@ def condition():
 
 
 # @Starttokens('(')
+#  SEE ALGEBRA!
 def condition_tree(recurse=True):
     brace = maybe_token('(')
     maybe_token('either')  # todo don't match 'either of'!!!
@@ -2321,6 +2311,8 @@ def is_math(method):
 
 
 def do_math(a, op, b):
+    if isinstance(a,Variable):a=a.value
+    if isinstance(b,Variable):b=b.value
     # a = float(a)
     # b = float(b)
     if op == '+': return a + b
@@ -2340,11 +2332,27 @@ def do_math(a, op, b):
     if op == '**': return a ** b
     if op == 'to the': return a ** b
     if op == 'power': return a ** b
-    if op == '&&': return a & b
+    if op == 'and': return a and b
+    if op == '&&': return a and b
+    # if op == '&': return a and b
     if op == '&': return a & b
     if op == '^': return a ^ b
     if op == '|': return a | b
     if op == '||': return a | b
+    if op == 'or': return a or b
+    if op == '<': return a < b
+    if op == 'smaller': return a < b
+    if op == '>': return a > b
+    if op == 'bigger': return a > b
+    if op == '<=': return a <= b
+    if op == '>=': return a >= b
+    if op == '==': return a == b
+    if op == '=': return a == b
+    if op == 'is': return a == b
+    if op == 'equals': return a == b
+    if op == '!=': return a != b
+    if op == 'is not': return a != b
+    if op == 'isn\'t': return a != b
     raise Exception("UNKNOWN OPERATOR " + op)
 
 
@@ -2698,7 +2706,7 @@ def jeannie(request):
 @Starttokens(eval_keywords)
 def evaluate():
     tokens(eval_keywords)
-    no_rollback()
+    allow_rollback()
     the_expression = rest_of_line
     try:
         the.result = eval(english_to_math(the_expression))  # if not the.result:
@@ -2962,7 +2970,7 @@ def repeat_every_times():
     maybe_tokens(['repeat'])
     b = maybe(action)
     interval = datetime()
-    no_rollback()
+    allow_rollback()
     if not b:
         start_block()
         dont_interpret()
@@ -2992,7 +3000,7 @@ def repeat_action_while():
 def repeat_with():
     _('repeat')
     _('with')
-    no_rollback()
+    allow_rollback()
     v = variable()
     _('in')
     c = collection()
@@ -3010,10 +3018,10 @@ def repeat_with():
 def while_loop():
     maybe_tokens(['repeat'])
     tokens(['while', 'as long as'])
-    no_rollback()  # no_rollback 13 # arbitrary value ! :{
+    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
     dont_interpret()
     c = condition()
-    no_rollback()
+    allow_rollback()
     maybe_tokens(['repeat'])  # keep gerunding
     maybe_tokens(['then'])  # ,':'
     if not check_condition(c): dont_interpret()
@@ -3030,7 +3038,7 @@ def until_loop():
     maybe_tokens(['repeat'])
     tokens(['until', 'as long as'])
     dont_interpret()
-    no_rollback()  # no_rollback 13 # arbitrary value ! :{
+    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
     c = condition()
     maybe_tokens(['repeat'])
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
@@ -3110,7 +3118,7 @@ def n_times_action():
     must_contain('times')
     n = number()  # or int_variable
     _('times')
-    no_rollback()
+    allow_rollback()
     maybe_tokens(['do'])
     maybe_tokens(['repeat'])
     dont_interpret()
@@ -3125,7 +3133,7 @@ def repeat_n_times():
     _('repeat')
     n = number()
     _('times')
-    no_rollback()
+    allow_rollback()
     dont_interpret()
     b = action_or_block()
     if interpreting(): int(n).times(lambda: do_execute_block(b))
