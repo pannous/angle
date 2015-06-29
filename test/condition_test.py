@@ -152,15 +152,15 @@ class ConditionTest(ParserBaseTest):
 
     def test_if_smaller(self):
         parse('x=2;if x is smaller 3 then x++')
-        assert_equals(variables['x'], 3)
+        assert_equals(the.variables['x'], 3)
         parse('x=2;if x is smaller three then x++')
-        assert_equals(variables['x'], 3)
+        assert_equals(the.variables['x'], 3)
         parse('x=2;if x is smaller three then x++')
-        assert_equals(variables['x'], 3)
+        assert_equals(the.variables['x'], 3)
         parse('x=2;if x is smaller than three then x++')
-        assert_equals(variables['x'], 3)
+        assert_equals(the.variables['x'], 3)
         parse('x=2;if x is smaller than three x++')
-        assert_equals(variables['x'], 3)
+        assert_equals(the.variables['x'], 3)
 
     def test_if_return(self):
         assert_equals(parse('if 1>0 then beep'), 'beeped')
@@ -183,7 +183,7 @@ class ConditionTest(ParserBaseTest):
         self.parser.do_interpret()
         c2 = self.parser.block()
         assert_equals(c2, 3)
-        assert_equals(variables['c'], 3)
+        assert_equals(the.variables['c'], 3)
 
     def test_if_in_loop(self):
         assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beep')

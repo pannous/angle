@@ -620,6 +620,8 @@ def maybe_algebra(context):
 
 
 def postoperations(context):
+    if the.current_word=="if": # YAY!
+        return the.result if condition() else maybe("else") and expression()
     return maybe_cast(context) or maybe_algebra(context) or context
 
 
@@ -1311,15 +1313,6 @@ def do_call_function(f, args=None):
     return do_send(f.object, f.name, args or f.arguments)
 
 
-def exec_ast(my_ast, args):
-    # import codegen
-    from astor import codegen
-    source=codegen.to_source(my_ast)
-    print(source) # => CODE
-    my_ast=ast.fix_missing_locations(my_ast)
-    code=compile(my_ast, 'file', 'exec')
-    exec(code)
-
 
 def do_execute_block(b, args={}):
     if not interpreting(): return
@@ -1328,7 +1321,7 @@ def do_execute_block(b, args={}):
     if b == True: return True
     if isinstance(b, FunctionCall): return do_call_function(b)
     if callable(b): return do_call_function(b, args)
-    if isinstance(b, kast.AST):exec_ast (b,args)  # TODO ARGS???
+    if isinstance(b, kast.AST):eval_ast (b,args)  # TODO ARGS???
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -2249,11 +2242,10 @@ def eval_string(x):
     return do_evaluate(x)
 
 
-def eval_ast(my_ast):
+def eval_ast(my_ast,args={}):
     import codegen
     import ast
-
-    try:
+    try: # todo args =-> SETTERS!
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
         if not type(my_ast) == ast.Module:

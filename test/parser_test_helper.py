@@ -41,34 +41,21 @@ def kind(x):
 def body(param):
     english_parser.rooty()
 
-
-def root(param):
-    english_parser.rooty()
-
-
-
-def interpretation():
-    pass
-
-
 def fix_encoding(x):
     return x
-
 
 def read(x):
     return open(x) or x.read()
 
-
 def count(x):
     len(x)
-
 
 def p(x):
     print(x)
 
 
 def last_result():
-    return the.result
+    return the.last_result
 
 
 def parse_tree(x):
@@ -328,19 +315,19 @@ class ParserBaseTest(unittest.TestCase):
         self.parser.init(string)
 
     def variables(self):
-        return self.parser.variables()
+        return the.variables
 
     def variableValues(self):
-        return self.parser.variableValues()
+        return the.variableValues
 
     def functions(self):
-        return self.parser.methods()
+        return the.methods
 
     def methods(self):
-        return self.parser.methods()
+        return the.methods
 
     def interpretation(self):
-        return self.parser.interpretation()
+        return self.interpretation
 
     def result(self):
         return the.result
@@ -353,7 +340,7 @@ class ParserBaseTest(unittest.TestCase):
         if isinstance(x,str):
             return x
         self.parser.dont_interpret()
-        interpretation = self.parser.parse(x)
+        self.interpretation = self.parser.parse(x)
         self.parser.full_tree()
         if angle.emit:
             return parser.emit(interpretation, interpretation.root())
