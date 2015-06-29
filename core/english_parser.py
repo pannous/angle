@@ -332,18 +332,17 @@ def fold_algebra(stack):
 
 def algebra():
     # global result
-    must_contain_before(args=operators, before=[be_words, ',', ';', ':'])
+    must_contain_before(args=operators, before=be_words+['then', ',', ';', ':'])# todo is smaller ->
     stack = []
     stack.append(maybe(value) or bracelet())  # any { maybe( value ) or maybe( bracelet ) )
-
     def lamb():
         op = maybe(comparation) or operator()
-        stack.append(op)
         if not op == 'and': allow_rollback()
         y = maybe(value) or bracelet()
+        if y==ZERO:y=0
+        stack.append(op) # after success of maybe(value)
         stack.append(y)
         return y or True
-
     star(lamb)
     the.result = fold_algebra(stack)[0]
     if the.result==False: the.result=FALSE
@@ -385,6 +384,13 @@ def special_blocks():
     # EXCLUDING start_block & end_block !!!
 
 
+def is_a(x, type0):
+    _type=mapType(type0)
+    if isinstance(_type,str): raise Exception("BAD TYPE %s"%type0)
+    if isinstance(x,_type): return True
+    return False
+
+
 def nth_item():  # Also redundant with property evaluation (But okay as a shortcut)):
     set = maybe_token('set')
     n = tokens(numbers + ['first', 'last', 'middle'])
@@ -398,10 +404,10 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     if re.search(r'^char', type):
         the.result = "".join(l).__getitem__(n)
         return the.result
-    if type in type_names:
-        l = l.select(lambda x: isinstance(x, type))  # or x.is_a(type)!
     elif isinstance(l, str):
         l = l.split(" ")
+    if isinstance(l,list) and type in type_names:
+        l = [x for x in l if is_a(x, type)]
     the.result = l[n]  # .__getitem__(n)
     if angle.in_condition:
         return the.result
@@ -620,6 +626,7 @@ def postoperations(context):
 def quick_expression():  # bad idea!
     if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
+        if look_ahead(['rd', 'st', 'nd']): fun=nth_item
         the.result = maybe(fun)
         if the.current_word in operators + special_chars + ["element", "item"]:  # - ';'
             raise_not_matching("quick_expression too simplistic")
@@ -630,10 +637,10 @@ def quick_expression():  # bad idea!
 def expression(fallback=None):
     start = pointer()
     the.result = ex = maybe(quick_expression) or \
+                      maybe(listselector) or \
                       maybe(algebra) or \
                       maybe(json_hash) or \
                       maybe(evaluate_index) or \
-                      maybe(listselector) or \
                       maybe(liste) or \
                       maybe(evaluate_property) or \
                       maybe(selfModify) or \
@@ -848,6 +855,7 @@ def if_then():
     # if not use_block: b=statement
     # if not use_block: b=action()
     allow_rollback()
+    if angle.did_interpret: do_interpret()
     if c == False or c==FALSE: return False
     if interpreting():
         if check_condition(c):
@@ -1239,8 +1247,8 @@ def action():
                  raise_not_matching("Not an action")
     # maybe( verb_node ) or
     # maybe( verb )
-    if not interpreting():
-        if not angle.use_tree: return (start, pointer())
+    # if not interpreting():
+    #     if not angle.use_tree: return (start, pointer())
     return the.result  # value or AST
 
 
@@ -1303,6 +1311,16 @@ def do_call_function(f, args=None):
     return do_send(f.object, f.name, args or f.arguments)
 
 
+def exec_ast(my_ast, args):
+    # import codegen
+    from astor import codegen
+    source=codegen.to_source(my_ast)
+    print(source) # => CODE
+    my_ast=ast.fix_missing_locations(my_ast)
+    code=compile(my_ast, 'file', 'exec')
+    exec(code)
+
+
 def do_execute_block(b, args={}):
     if not interpreting(): return
     global variableValues
@@ -1310,8 +1328,7 @@ def do_execute_block(b, args={}):
     if b == True: return True
     if isinstance(b, FunctionCall): return do_call_function(b)
     if callable(b): return do_call_function(b, args)
-    if isinstance(b, kast.AST):
-        exec (b)  # TODO ARGS???
+    if isinstance(b, kast.AST):exec_ast (b,args)  # TODO ARGS???
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -1972,7 +1989,7 @@ def condition():
     quantifier = maybe_tokens(quantifiers)  # vs selector()!
     filter = None
     if quantifier: filter = maybe(element_in)  # all words in
-    # angel.in_condition=True
+    angle.in_condition=True
     lhs = action_or_expressions(quantifier)
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
@@ -2263,6 +2280,7 @@ def do_evaluate(x, _type=None):
             #     raise InternalError("variableValues broken")
             return x.value or the.variableValues[x.name]
         if isinstance(x, kast.AST): eval_ast(x)
+        if x == True or x == False: return x
         if x == ZERO: return 0
         if x == TRUE: return True
         if x == FALSE: return FALSE
@@ -2270,16 +2288,14 @@ def do_evaluate(x, _type=None):
         if isinstance(x, str):
             if _type and isinstance(_type, extensions.Numeric): return float(x)
             if x in the.variableValues: return the.variableValues[x]
-        if x == True or x == False: return x
-        if isinstance(x, str) and _type and _type == float: return float(x)
+            if match_path(x): return resolve(x)
+            if _type and _type == float: return float(x)
+            return x
         # if isinstance(x, str) and type and is_a(type,float): return float(x)
-        if isinstance(x, TreeNode): return x.eval_node(variableValues)
-        if isinstance(x, str) and match_path(x): return resolve(x)
+        # if isinstance(x, TreeNode): return x.eval_node(variableValues)
         # :. todo METHOD / Function!
         # if isinstance(x, extensions.Method): return x.call  #Whoot
         # if callable(x): return x()  # Whoot
-        if isinstance(x, str): return x
-        if isinstance(x, str): return eval(x)  # except x
         return x  # DEFAULT!
     except (TypeError, SyntaxError)as e:
         print("ERROR #{e) in do_evaluate #{x)")
@@ -2394,6 +2410,8 @@ def findMethod(obj0, method0, args0=None):
         method = obj0.__dict__[method]  # class
         method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
         # that returns the wrapped function as function and not as a method
+    if isinstance(method, str):
+        raise_not_matching("NO such METHOD %s" % method)
     return method
     # if callable(method):method(args)
 
@@ -2402,6 +2420,7 @@ def findMethod(obj0, method0, args0=None):
 def do_send(obj0, method0, args0=[]):
     if not interpreting(): return False
     if not method0: return False
+    if method0 in be_words and obj0 == args0: return True # stupid unnecessary shortcut
 
     # try direct first!
     method = findMethod(obj0, method0, args0)
@@ -2420,7 +2439,7 @@ def do_send(obj0, method0, args0=[]):
     if (args and isinstance(args, list) and len(args) > 0):
         if method.im_self == args[0]: args.remove(args[0])
     args = eval_string(args)  # except NoMethodError
-    if method.im_self == args: args = None
+    if 'im_self' in dir(method) and method.im_self == args: args = None
 
     def values(x):
         return x.value

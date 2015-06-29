@@ -183,7 +183,7 @@ def name(x):
     return x
 
 
-def copy_variables():
+def copy_variables(variables=variables):
     global variableValues
     variable_keys = variables.keys()
     for name in variable_keys:
@@ -297,7 +297,7 @@ class ParserBaseTest(unittest.TestCase):
         if x==False and block:
             x = block()
         if x==False:
-            assert False, ((x + ' NOT PASSING: ') +str(  msg))
+            assert False, ('%s NOT PASSING: %s' % (x,msg))
         if isinstance(x,str):
             print(('Testing ' + x))
             init(x)
@@ -328,22 +328,23 @@ class ParserBaseTest(unittest.TestCase):
         self.parser.init(string)
 
     def variables(self):
-        self.parser.variables()
+        return self.parser.variables()
 
     def variableValues(self):
-        self.parser.variableValues()
+        return self.parser.variableValues()
 
     def functions(self):
-        self.parser.methods()
+        return self.parser.methods()
 
     def methods(self):
-        self.parser.methods()
+        return self.parser.methods()
 
     def interpretation(self):
-        self.parser.interpretation()
+        return self.parser.interpretation()
 
     def result(self):
-        self.parser.result()
+        return the.result
+        # self.parser.result
 
     def parse_file(self, file):
         parse(IO.read(file))
@@ -366,23 +367,13 @@ class ParserBaseTest(unittest.TestCase):
     def parse(self, x):
         if interpret:
             self.parser.do_interpret()
-        if (isinstance(x,str), ):
-            return x
         if angle.emit:
             self.result = parse_tree(x)
         else:
             self.result = self.parser.parse(x)
-            self.result = result(self.parser.interpretation(), )
-        self.variables = variables(self.parser.interpretation(), )
-        self.variableValues = self.variables.map_values()
-        if self.result.equals('false'):
-            self.result = False
-        if self.result.equals('true'):
-            self.result = True
-        self.result
+        return the.result
 
     def variableTypes(self, v):
-        type(variables[v], )
         type(variables[v], )
 
     # def verbose(self):

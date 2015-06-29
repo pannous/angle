@@ -2,29 +2,29 @@ import angle
 # angle.use_tree = angle.emit
 angle.use_tree = False
 from parser_test_helper import *
+from parser_test_helper import variables
 
 
 class ConditionTest(ParserBaseTest):
 
     def test_eq(self):
         variables['counter'] = 3
-        self.do_assert('counter == 3')
+        copy_variables(variables)
+        assert self.parse('counter == 3')
 
     def test_eq1(self):
         variables['counter'] = 3
-        self.do_assert('counter == 3')
-        self.do_assert('counter = 3')
+        copy_variables(variables)
+        self.variables()
+        assert self.parse('counter == 3')
+        assert self.parse('counter = 3')
         init('counter = 3')
         self.parser.condition()
-        self.do_assert('counter = 3')
-        self.do_assert('counter =3')
-        self.do_assert('counter is 3')
-        self.do_assert('counter equals 3')
-
-
-    def test_eq2(self):
-        variables['counter'] = 3
-        self.do_assert('counter is the same as 3')
+        assert self.parse('counter = 3')
+        assert self.parse('counter =3')
+        assert self.parse('counter is 3')
+        assert self.parse('counter equals 3')
+        assert self.parse('counter is the same as 3')
 
     def test_return(self):
         assert_result_is('if 1<2 then 5 else 4', 5)
@@ -57,7 +57,7 @@ class ConditionTest(ParserBaseTest):
         ok = self.parser.block()
         init('everything is fine')
         self.parser.condition()
-        self.do_assert('everything is fine')
+        assert self.parse('everything is fine')
 
     def test_list_quantifiers(self):
         check = parse('x is 5; if all 0,1,2 are smaller 3 then increase x')
@@ -76,24 +76,24 @@ class ConditionTest(ParserBaseTest):
         assert_equals(check, False)
 
     def test_assert(self):
-        self.do_assert(parse("assert 3rd word in 'hi my friend' is 'friend'"))
-        self.do_assert(parse("assert 3rd word in 'hi my friend' is 'friend'"))
+        assert self.parse("assert 3rd word in 'hi my friend' is 'friend'")
+        assert self.parse("assert 3rd word in 'hi my friend' is 'friend'")
         assert_result_is("assert 3rd word in 'hi my friend' is 'friend'", True)
 
 
     def test_and(self):
-        self.do_assert(parse('x=2;if x is smaller 3 and x is bigger 1 then true'))
-        self.do_assert(parse('x=2;if x is smaller 3 and x is bigger 1 then true else false'))
+        assert self.parse('x=2;if x is smaller 3 and x is bigger 1 then true')
+        assert self.parse('x=2;if x is smaller 3 and x is bigger 1 then true else false')
         assert_result_is('x=2;if x is smaller 3 and x is bigger 1 then true else false', True)
 
 
     def test_and1(self):
-        self.do_assert(parse('x=2;if x is smaller 3 but not x is smaller 1 then true'))
-        self.do_assert(parse('x=2;if x is smaller 3 but not x is smaller 1 then true'))
+        assert self.parse('x=2;if x is smaller 3 but not x is smaller 1 then true')
+        assert self.parse('x=2;if x is smaller 3 but not x is smaller 1 then true')
 
     def test_and2(self):
-        self.do_assert(parse('x=2;if x is smaller 3 and x is bigger 3 then "DONT REACH" else true'))
-        self.do_assert(parse('x=2;if x is smaller 3 and x is bigger 3 then "DONT REACH" else true'))
+        assert self.parse('x=2;if x is smaller 3 and x is bigger 3 then "DONT REACH" else true')
+        assert self.parse('x=2;if x is smaller 3 and x is bigger 3 then "DONT REACH" else true')
 
     def test_and22(self):
         assert_result_is('x=2;if x is smaller 3 and x is bigger 1 then 4 else 5', 4)
@@ -122,18 +122,29 @@ class ConditionTest(ParserBaseTest):
         assert_result_is('6;that*2', 12)
         assert_result_is('6;2*result', 12)
 
-    def test_if_it_result(self):
+    def test_if_it_result2(self):
         assert_result_is('x=1+2', 3)
-        self.do_assert('x=1+2;if it is 3 then true')
-        self.do_assert('x=1+2;if it is 3 then true else 0')
+        assert self.parse('x=1+2;if it is 3 then true')
+        assert self.parse('x=1+2;if it is 3 then true else 0')
+        assert self.parse('x=1+2;if it is 4 then False else 1')
+        x= self.parse('x=1+2;if it is 4 then 1')
+        assert x==False
+
+    def test_if_it_result(self):
+        x= self.parse('x=1+2;if it is 3 then False else False')
+        assert x==False
+        x= self.parse('x=1+2;if it is 3 then False else 1')
+        assert x==False
+        x= self.parse('x=1+2;if it is 3 then 1 else False')
+        assert x==1
 
     def test_or(self):
-        self.do_assert(parse('x=2;if x is smaller 1 or x is bigger 1 then true'))
-        self.do_assert(parse('x=2;if x is smaller 1 or x is bigger 1 then true'))
+        assert self.parse('x=2;if x is smaller 1 or x is bigger 1 then true')
+        assert self.parse('x=2;if x is smaller 1 or x is bigger 1 then true')
 
     def test_either_or(self):
-        self.do_assert(parse('x=2;if either x is smaller 1 or x is bigger 1 then true'))
-        self.do_assert(parse('x=2;if either x is smaller 1 or x is bigger 1 then true'))
+        assert self.parse('x=2;if either x is smaller 1 or x is bigger 1 then true')
+        assert self.parse('x=2;if either x is smaller 1 or x is bigger 1 then true')
 
     def test_else(self):
         assert_equals(parse('if 1 then false else 2'), False)
@@ -184,24 +195,25 @@ class ConditionTest(ParserBaseTest):
         assert_equals(ok, True)
 
     def test_if_then(self):
+        self.parser.do_interpret()
         init('if 1>0 then: beep;')
         self.parser.if_then()
         parse('if 1>0 then: beep;')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
         parse('if 1>0 then beep')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
         parse('if 1>0 then: beep')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
         parse('if 1>0 then: beep;end')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
 
     def test_if_then2(self):
         parse('if 1>0\n beep\nend')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
         parse('if 1>0 beep')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
         parse('if two is bigger than zero then beep')
-        assert_equals(self.result, 'beeped')
+        assert_equals(self.result(), 'beeped')
 
     def test_root(self):
         parse('1==1')
@@ -209,12 +221,12 @@ class ConditionTest(ParserBaseTest):
 
     def test_complicated(self):
         parse('x is 2; if all 0,2,4 are smaller 5 then increase x; assert x equals 3')
-        assert(self.result==True)
+        assert(self.result()==True)
     #
     # def test_complicated2(self):
     #     parse('x is 2; if 0,2,4 are all smaller 5 then increase x; assert x equals 3')
-    #     assert(self.result==True)
+    #     assert(self.result()==True)
     #
     # def test_complicated3(self):
     #     parse('x is 2; if 0,2,4 are smaller 5 then increase x; assert x equals 3')
-    #     assert(self.result==True)
+    #     assert(self.result()==True)

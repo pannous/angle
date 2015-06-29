@@ -545,6 +545,8 @@ def look_ahead(expect_next, doraise=False):
     token = the.tokenstream[the.token_number + 1]
     if expect_next == token[1]:
         return True
+    elif isinstance(expect_next,list) and token[1] in expect_next:
+        return True
     else:
         if doraise:
             raise (NotMatching(expect_next))
@@ -739,8 +741,7 @@ def block():  # type):
 
     the.last_result = the.result
     if interpreting(): return statements[-1]
-    if angle.debug:
-        print_pointer(True)
+    # if angle.debug:print_pointer(True)
     return statements  # content
     # if angel.use_tree:
     # p=parent_node()
@@ -752,6 +753,7 @@ def block():  # type):
 def maybe(expression):
     if not callable(expression):  # duck!
         return maybe_tokens(expression)
+    the.current_expression=expression
     global original_string, last_node, current_value, depth, nodes, current_node, last_token
     # allow_rollback 1
     depth = depth + 1
@@ -1145,7 +1147,7 @@ def number():
 
 
 def number_word():
-    n = __(english_tokens.numbers)
+    n = tokens(english_tokens.numbers)
     return extensions.xstr(n).parse_number()  # except NotMatching.new "no number"
 
 

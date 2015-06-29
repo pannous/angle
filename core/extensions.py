@@ -612,7 +612,9 @@ class xstr(str):
 
     def parse_number(self):
         x = self.replace_numerals()
-        return float(x)# eval(self).to_f
+        x=float(x)# eval(self).to_f
+        if x==0: return "0" # ZERO
+        return x
 
     # def __sub__(self, other): # []= MISSING in python!!
     #     x="abc"
