@@ -21,6 +21,7 @@ import traceback
 # import Interpretation
 # import HelperMethods
 # import kast
+import emitters.kast_emitter
 import interpretation
 import inspect
 from english_tokens import *
@@ -620,6 +621,7 @@ def maybe_algebra(context):
 
 
 def postoperations(context):
+    if the.current_word in be_words:return false # handled differently
     if the.current_word=="if": # YAY!
         return the.result if condition() else maybe("else") and expression()
     return maybe_cast(context) or maybe_algebra(context) or context
@@ -1313,29 +1315,35 @@ def do_call_function(f, args=None):
     return do_send(f.object, f.name, args or f.arguments)
 
 
+def prepare_args(args):
+    import copy
+    context_variables=copy.copy(the.variables)
+    if not isinstance(args, dict): args = {'arg': args}
+    for arg, val in args.iteritems():
+        if arg in context_variables:
+            v = context_variables[arg]
+            # v = v.clone
+            v.value = val
+            context_variables[str(arg)] = v  # to_sym todo NORM in hash!!!
+        else:
+            context_variables[str(arg)] = Variable(name=arg, value=val)
+    return context_variables
+
 
 def do_execute_block(b, args={}):
     if not interpreting(): return
     global variableValues
     if not b: return False
     if b == True: return True
-    if isinstance(b, FunctionCall): return do_call_function(b)
+    args=prepare_args(args)
+    if isinstance(b, FunctionCall): return do_call_function(b,args)
     if callable(b): return do_call_function(b, args)
-    if isinstance(b, kast.AST):eval_ast (b,args)  # TODO ARGS???
+    if isinstance(b, kast.AST):return eval_ast (b,args)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
     block_parser.variables = variables
     block_parser.variableValues = variableValues
-    if not isinstance(args, dict): args = {'arg': args}
-    for arg, val in args.iteritems():
-        if arg in block_parser.variables:
-            v = block_parser.variables[arg]
-            # v = v.clone
-            v.value = val
-            block_parser.variables[str(arg)] = v  # to_sym todo NORM in hash!!!
-        else:
-            block_parser.variables[str(arg)] = Variable(name=arg, value=val)
     # block_parser.variables+=args
     try:
         the.result = block_parser.parse.result
@@ -1625,7 +1633,7 @@ def must_not_start_with(words):
     should_not_start_with(words)
 
 
-def todo(x):
+def todo(x=""):
     raise NotImplementedError(x)
 
 
@@ -1898,7 +1906,8 @@ def check_list_condition(quantifier, lhs, comp, rhs):
         for item in lhs:
             if is_comparator(comp): the.result = do_compare(item, comp, rhs)
             if not is_comparator(comp): the.result = do_send(item, comp, rhs)
-            if not the.result and xlist(['all', 'each', 'every', 'everything', 'the whole']).matches(quantifier): break
+            # if not the.result and xlist(['all', 'each', 'every', 'everything', 'the whole']).matches(quantifier): break
+            if not the.result and quantifier in ['all', 'each', 'every', 'everything', 'the whole']: break
             if the.result and quantifier in ['either', 'one', 'some', 'few', 'any']: break
             if the.result and quantifier in ['no', 'not', 'none', 'nothing']:
                 negated = not negated
@@ -1915,7 +1924,7 @@ def check_list_condition(quantifier, lhs, comp, rhs):
             verbose("condition not met %s %s %s" % (lhs, comp, rhs))
 
         return the.result
-    except Exception as e:
+    except IgnoreException as e:
         # debug x #soft message
         error(e)  # exit!
     return False
@@ -1973,6 +1982,18 @@ def element_in():
     return n
 
 
+def get_type(object1):
+    todo("get_type")
+    # return object
+
+
+def method_dir(lhs):
+    object1 = do_evaluate(lhs)
+    if interpreting():
+        return dir(object1)
+    return get_type(object1).__dict__
+
+
 def condition():
     start = pointer()
     brace = maybe_token('(')
@@ -1986,8 +2007,7 @@ def condition():
     lhs = action_or_expressions(quantifier)
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
-    if not use_verb: comp = maybe(algebra)
-    # if not use_verb: comp = maybe(comparation)
+    if not use_verb: comp = maybe(comparation)
     # allow_rollback # upto maybe(where)?
     if comp: rhs = action_or_expressions(None)
     if brace: _(')')
@@ -1995,16 +2015,16 @@ def condition():
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
     if not comp: return lhs
     # 1,2,3 are smaller 4  VS 1,2,4 in 3
-    if isinstance(lhs, list) and not maybe(lambda: lhs.respond_to(comp)) and not isinstance(rhs, list):
+    if isinstance(lhs, list) and not maybe(lambda: comp in method_dir(lhs)) and not isinstance(rhs, list):
         quantifier = quantifier or "all"
     # if not comp: return  negate ?  not a : a
     cond = Condition(lhs=lhs, comp=comp, rhs=rhs)
     if interpreting():
         if quantifier:
             if negate:
-                return (not check_list_condition(quantifier))
+                return (not check_list_condition(quantifier,lhs, comp, rhs))
             else:
-                return check_list_condition(quantifier)
+                return check_list_condition(quantifier,lhs, comp, rhs)
         if negate:
             return (not check_condition(cond))
         else:
@@ -2241,53 +2261,90 @@ def eval_string(x):
     # if maybe(x.is_a) Array: return x.to_s
     return do_evaluate(x)
 
+class Reflector(object):
+    def __getitem__(self, name):
+        print("Reflector __getitem__ %s"%str(name))
+        if name in the.variables:
+            return do_evaluate(the.variables[name].value)
+        return name
+    def __setitem__(self, key, value):
+        print("Reflector __setitem__ %s %s"%(key,value))
+        if key in the.variables:
+            the.variables[key].value=value
+        else: the.variables[key]=Variable(name=key,value=value)
+        the.result=value
+
 
 def eval_ast(my_ast,args={}):
     import codegen
     import ast
     try: # todo args =-> SETTERS!
+        # context_variables=variableValues.copy()+globals()+locals()
+        context_variables=variableValues.copy()
+        context_variables.update(globals())
+        context_variables.update(locals())
+
+        variable_inits=[]
+        for k in args:
+            s=kast.setter(k,do_evaluate(args[k]))
+            variable_inits.append(s)
+        if not type(my_ast) == ast.Module:
+            my_ast = _ast.Module(body=variable_inits+[my_ast])
+        # elif args:my_ast.body=variable_inits+my_ast.body
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
-        if not type(my_ast) == ast.Module:
-            my_ast = _ast.Module(body=my_ast)
+        print ast.dump(my_ast)
         my_ast = ast.fix_missing_locations(my_ast)
         code = compile(my_ast, 'file', 'exec')
         # code=compile(my_ast, 'file', 'exec')
-        exec (code)
+        ret = eval(code,context_variables,Reflector())
+        ret=ret or the.result
+        print("GOT RESULT %s"%ret)
+        # err= sys.stdout.getvalue()
+        # if err: raise err
+        # z=exec (code)
+        return ret
     except Exception as e:
         print(my_ast)
         ast.dump(my_ast)
         raise e, None, sys.exc_info()[2]
 
 
-# see resolve eval_maybe(the.string)??
+
+
+
+
 def do_evaluate(x, _type=None):
-    if not interpreting(): return x
     try:
         if isinstance(x, type): return x
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
-        if isinstance(x, Variable):
-            # if not x.name in the.variableValues:
-            #     raise InternalError("variableValues broken")
-            return x.value or the.variableValues[x.name]
-        if isinstance(x, kast.AST): eval_ast(x)
         if x == True or x == False: return x
         if x == ZERO: return 0
         if x == TRUE: return True
         if x == FALSE: return FALSE
         if x == NILL: return None
+        if isinstance(x, Variable):
+            val= x.value or the.variableValues[x.name]
+            if not interpreting():
+                return val
+            else:
+                return emitters.kast_emitter.wrap_value(val)
+
         if isinstance(x, str):
             if _type and isinstance(_type, extensions.Numeric): return float(x)
             if x in the.variableValues: return the.variableValues[x]
             if match_path(x): return resolve(x)
             if _type and _type == float: return float(x)
+            if _type and _type == int: return int(x)
             return x
         # if isinstance(x, str) and type and is_a(type,float): return float(x)
         # if isinstance(x, TreeNode): return x.eval_node(variableValues)
         # :. todo METHOD / Function!
         # if isinstance(x, extensions.Method): return x.call  #Whoot
         # if callable(x): return x()  # Whoot
+        if not interpreting(): return x
+        if isinstance(x, kast.AST): return eval_ast(x)
         return x  # DEFAULT!
     except (TypeError, SyntaxError)as e:
         print("ERROR #{e) in do_evaluate #{x)")

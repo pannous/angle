@@ -60,12 +60,16 @@ class ConditionTest(ParserBaseTest):
         assert self.parse('everything is fine')
 
     def test_list_quantifiers(self):
+        check = parse('x=2;if all 0,1,2 are smaller 4 then x++')
+        assert_equals(check, 3) # YAY YAY
+
+    def test_list_quantifiers(self):
         check = parse('x is 5; if all 0,1,2 are smaller 3 then increase x')
         assert_equals(check, 6)
-
-    def test_list_quantifiers2(self):
         check = parse('x=2;if all 0,1,2 are smaller 2 then x++')
         assert_equals(check, False)
+
+    def test_list_quantifiers2(self):
         check = parse('x=2;if one of 0,1,2 is smaller 3 then x++')
         assert_equals(check, 3)
         check = parse('x=2;if many of 0,1,2 are smaller 3 then x++')

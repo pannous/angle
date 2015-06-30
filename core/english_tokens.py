@@ -156,7 +156,7 @@ be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have 
 # nicer, sweeter, ....
 #  '=>' '<=', DANGER
 # OR class_words
-comparison_words = ['is bigger', 'is greater','is less','is smaller','is equal','be', 'is of', 'is in', 'is a', 'is',\
+comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                     'element of', 'subset of', 'in', 'are', 'were', \
                     '>=', '==', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', 'gt', 'lt', 'eq', \
                     'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
@@ -344,5 +344,94 @@ kast_operator_map = {
     "less than or equal": ast.Lt(),
     "smaller or equal": ast.Lt(),
     "smaller than or equal": ast.Lt(),
+}
 
+
+kast_operator_map_min = {
+    "+": ast.Add(),
+    "-": ast.Sub(),
+    "*": ast.Mult(),
+    "/": ast.Div(),
+    "xor": ast.BitXor(),
+    # "^": ast.BitXor(),
+    # "^": ast.Pow(),
+    "^^": ast.Pow(),
+    "**": ast.Pow(),
+    "pow": ast.Pow(),
+    "power": ast.Pow(),
+    "to the": ast.Pow(),
+    "to the power": ast.Pow(),
+    "to the power of": ast.Pow(),
+    "%": ast.Mod(),
+    "mod": ast.Mod(),
+    "modulo": ast.Mod(),
+    "!": ast.Not(),
+    "not": ast.Not(),
+    "&": ast.And(),  # BitAnd ENGLISH: a & b ~== a and b
+    "&&": ast.And(),
+    "and": ast.And(),
+    "|": ast.BitOr(),
+    "||": ast.Or(),
+    "or": ast.Or(),
+    "!=": ast.NotEq(),
+    "=": ast.Eq(),
+    "==": ast.Eq(),
+    "===": ast.Eq(),
+    "~=": ast.Eq(),
+    "is": ast.Eq(),
+    "eq": ast.Eq(),
+    ">": ast.Gt(),
+    ">=": ast.GtE(),
+    "<": ast.Lt(),
+    "<=": ast.Lt(),
+    "in": ast.In(),
+    "contains": ast.In(),#^-1
+    "element of": ast.In(),
+
+}
+# safe_reductions={
+# 'is bigger', 'is greater','is less','is smaller','is equal','are smaller','are bigger',
+# }
+#  only in the position of operators!! BUT HOW AFTER TOKENIZATION!?
+reductions={
+     " div": '/',
+    " divided": '/',
+    " divided with": '/',
+    " divided by": '/',
+    " divide": '/',
+    " divide with": '/',
+    " divide by": '/',
+    " times ": '*',
+    " mul ": '*',
+    " multiplied ": '*',
+    " multiplied with ": '*',
+    " multiplied by ": '*',
+    " multiply ": '*',
+    " multiply with ": '*',
+    " multiply by ": '*',
+    " plus ": '+',
+    " add ": '+',
+    " minus ": '-',
+    " subtract ": '-',
+    " substract ": '-',
+    " or equal ": "=",
+    " is equal ": "=",
+    " equal ": "=",
+    " equals ": "==",
+    " is identical ": "==",
+    " identical ": "==",
+    " same as ": "==",
+    "= to ": "=",
+    " less ": " <",
+    " smaller ": " <",
+    " greater ": " >",
+    " bigger ": " <",
+    " more ": " <",
+    " than ": "",
+    "does not equal": "!=",
+    "doesn't equal": "!=",
+    "not equal": "!=",
+    "is not": "!=",
+    "isn't": "!=",
+    "isnt": "!=",
 }

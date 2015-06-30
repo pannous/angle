@@ -186,6 +186,12 @@ class Dir(Directory):
 #
 @extension
 class xdict(dict):
+    def clone(self):
+        import copy
+        return copy.copy(self)
+        # return copy.deepcopy(self)
+
+
     # filter ==  x.select{|z|z>1}
 
     # CAREFUL! MESSES with rails etc!!
@@ -223,6 +229,14 @@ class Class:
 
 @extension
 class xlist(list):
+    def clone(self):
+        import copy
+        return copy.copy(self)
+        # return copy.deepcopy(self)
+
+    def flatten(self):
+        from itertools import chain
+        return list(chain.from_iterable(self))
 
     def __sub__(self, other): # xlist-[1]-[2]
         return xlist(i for i in self if i not in other)
@@ -265,7 +279,7 @@ class xlist(list):
     #
     # remove: confusing!!
     def matches(self, regex):
-        for i in self.flatten:
+        for i in self.flatten():
             m = regex.match(i.gsub(r'([^\w])', "\\\\\\1"))  #escape_token(i))
             if m:
                 return m
