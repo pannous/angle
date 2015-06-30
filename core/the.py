@@ -87,6 +87,7 @@ methods = {
   'p':extensions.puts,
   'print':extensions.puts,
   'show':extensions.puts,
+  'increase':extensions.increase
   # 'reverse':extensions.xstr.reverse
 }  # name->method-node
 

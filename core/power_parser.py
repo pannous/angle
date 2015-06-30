@@ -907,6 +907,9 @@ def parse(s, the_file=None):
         the.result = english_parser.rooty()
         if the.result in ['True', 'true']: the.result = True
         if the.result in ['False', 'false']: the.result = False
+        import ast
+        if isinstance(the.result,ast.Num): the.result =  the.result.n
+        if isinstance(the.result,ast.Str): the.result =  the.result.s
         the.last_result = the.result
     except Exception as e:
         error(the_file)
@@ -1046,8 +1049,10 @@ def checkNewline():
 
 
 def checkEndOfLine():
-    return current_type == _token.NEWLINE or current_type == _token.ENDMARKER or the.token_number >= len(
-        the.tokenstream)
+    return current_type == _token.NEWLINE or \
+           current_type == _token.ENDMARKER or \
+           the.current_word=='' or \
+           the.token_number >= len(the.tokenstream)
     # if the.string.blank? # no:try,try,try  see raiseEnd: raise EndOfDocument.new
     # return not the.string or len(the.string)==0
 

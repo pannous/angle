@@ -28,6 +28,13 @@ def puts(x):
     print(x)
     return x
 
+def increase(x):
+    import nodes
+    # if isinstance(x, dict)
+    if isinstance(x, nodes.Variable):
+        x.value=x.value+1
+        return x.value
+    return x+1
 
 def grep(xs, x):
     xs.select(lambda y: str(y).match(x))

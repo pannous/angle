@@ -26,7 +26,7 @@ import interpretation
 import inspect
 from english_tokens import *
 from kast import kast
-from power_parser import maybe,allow_rollback
+from power_parser import maybe, allow_rollback
 from power_parser import *
 import power_parser
 from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
@@ -223,10 +223,11 @@ def javascript_require(dependency):
 
 
 def includes(dependency, type, version):
-    if re.search(r'\.js$',the.current_word):
+    if re.search(r'\.js$', the.current_word):
         return javascript_require(dependency)
     if type and type in "javascript script js".split():
         return javascript_require(dependency)
+
 
 def regexp(x):
     ## global the.string
@@ -249,7 +250,7 @@ def package_version():
 
 
 @Starttokens(import_keywords)
-def imports(): #requirements
+def imports():  # requirements
     _type = maybe_tokens(require_types)
     tokens(import_keywords)
     _type = _type or maybe_tokens(require_types)
@@ -333,20 +334,22 @@ def fold_algebra(stack):
 
 def algebra():
     # global result
-    must_contain_before(args=operators, before=be_words+['then', ',', ';', ':'])# todo is smaller ->
+    must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
     stack.append(maybe(value) or bracelet())  # any { maybe( value ) or maybe( bracelet ) )
+
     def lamb():
         op = maybe(comparation) or operator()
         if not op == 'and': allow_rollback()
         y = maybe(value) or bracelet()
-        if y==ZERO:y=0
-        stack.append(op) # after success of maybe(value)
+        if y == ZERO: y = 0
+        stack.append(op)  # after success of maybe(value)
         stack.append(y)
         return y or True
+
     star(lamb)
     the.result = fold_algebra(stack)[0]
-    if the.result==False: the.result=FALSE
+    if the.result == False: the.result = FALSE
     return the.result
 
 
@@ -386,9 +389,9 @@ def special_blocks():
 
 
 def is_a(x, type0):
-    _type=mapType(type0)
-    if isinstance(_type,str): raise Exception("BAD TYPE %s"%type0)
-    if isinstance(x,_type): return True
+    _type = mapType(type0)
+    if isinstance(_type, str): raise Exception("BAD TYPE %s" % type0)
+    if isinstance(x, _type): return True
     return False
 
 
@@ -407,7 +410,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
         return the.result
     elif isinstance(l, str):
         l = l.split(" ")
-    if isinstance(l,list) and type in type_names:
+    if isinstance(l, list) and type in type_names:
         l = [x for x in l if is_a(x, type)]
     the.result = l[n]  # .__getitem__(n)
     if angle.in_condition:
@@ -621,8 +624,8 @@ def maybe_algebra(context):
 
 
 def postoperations(context):
-    if the.current_word in be_words:return false # handled differently
-    if the.current_word=="if": # YAY!
+    if the.current_word in be_words: return false  # handled differently
+    if the.current_word == "if":  # YAY!
         return the.result if condition() else maybe("else") and expression()
     return maybe_cast(context) or maybe_algebra(context) or context
 
@@ -630,7 +633,7 @@ def postoperations(context):
 def quick_expression():  # bad idea!
     if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
-        if look_ahead(['rd', 'st', 'nd']): fun=nth_item
+        if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = maybe(fun)
         if the.current_word in operators + special_chars + ["element", "item"]:  # - ';'
             raise_not_matching("quick_expression too simplistic")
@@ -823,7 +826,7 @@ def if_then_else():
     # if ok == False:
     #     ok = FALSE
     o = maybe(otherwise) or FALSE
-    if ok != "OK" and ok != False:# and ok !=FALSE ^^:
+    if ok != "OK" and ok != False:  # and ok !=FALSE ^^:
         the.result = ok
     else:
         the.result = o
@@ -850,18 +853,19 @@ def if_then():
     if c == None: raise InternalError("no condition_tree")
     # c=condition()
     maybe_token('then')
-    maybe_token(':')
-    dont_interpret()  # if not c  else: dont do_execute_block twice!
-    b = expression_or_block()  # action_or_block()
-    maybe_newline()
+    if c != True:
+        dont_interpret()
+    b = expression_or_block()  # More general than:
+    # b = action_or_block()
+    maybe_newline()  # for else
     # o=maybe(otherwise)
     # if use_block: b=block
     # if not use_block: b=statement
     # if not use_block: b=action()
     allow_rollback()
     if angle.did_interpret: do_interpret()
-    if c == False or c==FALSE: return False
-    if interpreting():
+    if c == False or c == FALSE: return False
+    if interpreting() and c != True: # c==True done above!
         if check_condition(c):
             return do_execute_block(b)
         else:
@@ -995,7 +999,7 @@ def get_module(module):
 # In Python 2.7, built-in function objects such as print()
 # simply do not have enough information for you to discover what arguments they support!!
 def has_args(method, clazz=object, assume=False):
-    if method in ['invert', '++', '--']:  # increase by 8: todo all intransitive verbs with objects!
+    if method in ['increase', 'invert', '++', '--']:  # increase by 8: todo all intransitive verbs with objects!
         return False
     if isinstance(method, Function):
         return len(method.arguments) > 0
@@ -1309,24 +1313,28 @@ def close_tag(type):
 def do_call_function(f, args=None):
     if (callable(f)):
         if (args):
-            return f(args)
+            try:
+                return f(**args)  # match named params
+            except:
+                return f(*args.values())
         else:
             return f()
     return do_send(f.object, f.name, args or f.arguments)
 
 
-def prepare_args(args):
+def prepare_named_args(args):
     import copy
-    context_variables=copy.copy(the.variables)
+
+    context_variables = copy.copy(the.variables)
     if not isinstance(args, dict): args = {'arg': args}
     for arg, val in args.iteritems():
         if arg in context_variables:
             v = context_variables[arg]
             # v = v.clone
             v.value = val
-            context_variables[str(arg)] = v  # to_sym todo NORM in hash!!!
+            context_variables[str(arg)] = val  # v  # to_sym todo NORM in hash!!!
         else:
-            context_variables[str(arg)] = Variable(name=arg, value=val)
+            context_variables[str(arg)] = val  # Variable(name=arg, value=val)
     return context_variables
 
 
@@ -1335,10 +1343,10 @@ def do_execute_block(b, args={}):
     global variableValues
     if not b: return False
     if b == True: return True
-    args=prepare_args(args)
-    if isinstance(b, FunctionCall): return do_call_function(b,args)
+    args = prepare_named_args(args)
+    if isinstance(b, FunctionCall): return do_call_function(b, args)
     if callable(b): return do_call_function(b, args)
-    if isinstance(b, kast.AST):return eval_ast (b,args)
+    if isinstance(b, kast.AST): return eval_ast(b, args)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -2003,7 +2011,7 @@ def condition():
     quantifier = maybe_tokens(quantifiers)  # vs selector()!
     filter = None
     if quantifier: filter = maybe(element_in)  # all words in
-    angle.in_condition=True
+    angle.in_condition = True
     lhs = action_or_expressions(quantifier)
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
@@ -2015,16 +2023,16 @@ def condition():
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
     if not comp: return lhs
     # 1,2,3 are smaller 4  VS 1,2,4 in 3
-    if isinstance(lhs, list) and not maybe(lambda: comp in method_dir(lhs)) and not isinstance(rhs, list):
+    if isinstance(lhs, list) and not isinstance(rhs, list):  # and not maybe(lambda: comp in method_dir(lhs))
         quantifier = quantifier or "all"
     # if not comp: return  negate ?  not a : a
     cond = Condition(lhs=lhs, comp=comp, rhs=rhs)
     if interpreting():
         if quantifier:
             if negate:
-                return (not check_list_condition(quantifier,lhs, comp, rhs))
+                return (not check_list_condition(quantifier, lhs, comp, rhs))
             else:
-                return check_list_condition(quantifier,lhs, comp, rhs)
+                return check_list_condition(quantifier, lhs, comp, rhs)
         if negate:
             return (not check_condition(cond))
         else:
@@ -2261,35 +2269,39 @@ def eval_string(x):
     # if maybe(x.is_a) Array: return x.to_s
     return do_evaluate(x)
 
+
 class Reflector(object):
     def __getitem__(self, name):
-        print("Reflector __getitem__ %s"%str(name))
+        print("Reflector __getitem__ %s" % str(name))
         if name in the.variables:
             return do_evaluate(the.variables[name].value)
         return name
+
     def __setitem__(self, key, value):
-        print("Reflector __setitem__ %s %s"%(key,value))
+        print("Reflector __setitem__ %s %s" % (key, value))
         if key in the.variables:
-            the.variables[key].value=value
-        else: the.variables[key]=Variable(name=key,value=value)
-        the.result=value
+            the.variables[key].value = value
+        else:
+            the.variables[key] = Variable(name=key, value=value)
+        the.result = value
 
 
-def eval_ast(my_ast,args={}):
+def eval_ast(my_ast, args={}):
     import codegen
     import ast
-    try: # todo args =-> SETTERS!
+
+    try:  # todo args =-> SETTERS!
         # context_variables=variableValues.copy()+globals()+locals()
-        context_variables=variableValues.copy()
+        context_variables = variableValues.copy()
         context_variables.update(globals())
         context_variables.update(locals())
 
-        variable_inits=[]
+        variable_inits = []
         for k in args:
-            s=kast.setter(k,do_evaluate(args[k]))
+            s = kast.setter(k, do_evaluate(args[k]))
             variable_inits.append(s)
         if not type(my_ast) == ast.Module:
-            my_ast = _ast.Module(body=variable_inits+[my_ast])
+            my_ast = _ast.Module(body=variable_inits + [my_ast])
         # elif args:my_ast.body=variable_inits+my_ast.body
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
@@ -2297,9 +2309,9 @@ def eval_ast(my_ast,args={}):
         my_ast = ast.fix_missing_locations(my_ast)
         code = compile(my_ast, 'file', 'exec')
         # code=compile(my_ast, 'file', 'exec')
-        ret = eval(code,context_variables,Reflector())
-        ret=ret or the.result
-        print("GOT RESULT %s"%ret)
+        ret = eval(code, context_variables, Reflector())
+        ret = ret or the.result
+        print("GOT RESULT %s" % ret)
         # err= sys.stdout.getvalue()
         # if err: raise err
         # z=exec (code)
@@ -2308,10 +2320,6 @@ def eval_ast(my_ast,args={}):
         print(my_ast)
         ast.dump(my_ast)
         raise e, None, sys.exc_info()[2]
-
-
-
-
 
 
 def do_evaluate(x, _type=None):
@@ -2325,7 +2333,7 @@ def do_evaluate(x, _type=None):
         if x == FALSE: return FALSE
         if x == NILL: return None
         if isinstance(x, Variable):
-            val= x.value or the.variableValues[x.name]
+            val = x.value or the.variableValues[x.name]
             if not interpreting():
                 return val
             else:
@@ -2376,8 +2384,8 @@ def is_math(method):
 
 
 def do_math(a, op, b):
-    if isinstance(a,Variable):a=a.value
-    if isinstance(b,Variable):b=b.value
+    if isinstance(a, Variable): a = a.value
+    if isinstance(b, Variable): b = b.value
     # a = float(a)
     # b = float(b)
     if op == '+': return a + b
@@ -2414,6 +2422,8 @@ def do_math(a, op, b):
     if op == '==': return a == b
     if op == '=': return a == b
     if op == 'is': return a == b
+    if op == 'same as': return a == b
+    if op == 'the same as': return a == b
     if op == 'equals': return a == b
     if op == '!=': return a != b
     if op == 'is not': return a != b
@@ -2433,12 +2443,12 @@ def instance(bounded_method):
 
 def findMethod(obj0, method0, args0=None):
     method = method0
+    if callable(method): return method
+    if isinstance(method, Function): return method
     _type = type(obj0)
     if (isinstance(obj0, Variable)):
         _type = obj0.type
         obj0 = obj0.value
-    if isinstance(method, Function): return method
-    if callable(method): return method
     if isinstance(method, list) and len(method) == 1: method = method[0]
     if not isinstance(method, str):
         raise_not_matching("NO such METHOD %" % method)
@@ -2469,7 +2479,7 @@ def findMethod(obj0, method0, args0=None):
 def do_send(obj0, method0, args0=[]):
     if not interpreting(): return False
     if not method0: return False
-    if method0 in be_words and obj0 == args0: return True # stupid unnecessary shortcut
+    if method0 in be_words and obj0 == args0: return True  # stupid unnecessary shortcut
 
     # try direct first!
     method = findMethod(obj0, method0, args0)
@@ -2499,7 +2509,7 @@ def do_send(obj0, method0, args0=[]):
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
     obj = do_evaluate(obj0)
     if not obj:
-        if args:
+        if args and has_args(method):
             return method(args)
         else:
             return method()
@@ -2948,6 +2958,7 @@ def true_param():
 
 
 def true_variable(node=True):
+    # must_not_start_with(the.method_names)
     vars = the.variables.keys()
     if (len(vars) == 0): raise NotMatching()
     v = tokens(vars)
