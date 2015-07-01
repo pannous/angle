@@ -2316,6 +2316,8 @@ def eval_ast(my_ast, args={}):
         my_ast = ast.fix_missing_locations(my_ast)
         code = compile(my_ast, 'file', 'exec')
         # code=compile(my_ast, 'file', 'exec')
+        # eval can't handle arbitrary python code (eval("import math") ), and
+        # exec() doesn't return the results.
         ret = eval(code, context_variables, Reflector())
         ret = ret or the.result
         print("GOT RESULT %s" % ret)

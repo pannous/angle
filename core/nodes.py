@@ -91,7 +91,8 @@ class Function:
         #    EnglishParser.call_function self,args
 
 # NEEDS TO BE WRAPPED! Expr(Call(Name('beep', Load()), [], [], None, None))
-class FunctionCall(ast.Expr):
+# class FunctionCall(ast.Expr):
+class FunctionCall(ast.Assign):
     def __init__(self, name=None, arguments=None,object=None, **args):
         # super(FunctionCall, self).__init__(*margs, **args)
         # self.args = []
@@ -113,6 +114,7 @@ class FunctionCall(ast.Expr):
         if isinstance(name,str): name=kast.name(name)
         if not isinstance(name,kast.Name): raise Exception("NO NAME %s"%name)
         arguments=[] #todo!!
+        self.targets=[ast.Name(id="__result__",ctx=ast.Store())]
         self.value=kast.call(name,arguments)# ast.Call(func=name,
 
 

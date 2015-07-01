@@ -190,8 +190,7 @@ class ConditionTest(ParserBaseTest):
         assert_equals(the.variables['c'], 3)
 
     def test_if_in_loop(self):
-        assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beep')
-        assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beep')
+        assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beeped')
 
     def test_comparisons(self):
         init('two is bigger than zero')
