@@ -22,6 +22,7 @@ variables = {}
 variableValues = {}
 variableTypes = {}
 emit=False
+base_test=None
 
 def contains(a,b):
     return a in b or b in a
@@ -169,6 +170,9 @@ def equals(a, b):
 def name(x):
     return x
 
+def assert_that(x,msg=None, block=None):
+    return base_test.do_assert(x,msg=None, block=None)
+
 
 def copy_variables(variables=variables):
     global variableValues
@@ -199,6 +203,7 @@ class ParserBaseTest(unittest.TestCase):
     parser=property(lambda :p,0)
 
     def setUp(self):
+        base_test=self
         the._verbose=True # False
         clear_test()
         the.variables={}

@@ -341,9 +341,11 @@ def algebra():
     def lamb():
         op = maybe(comparation) or operator()
         if not op == 'and': allow_rollback()
+        n = maybe_token('not')
         y = maybe(value) or bracelet()
         if y == ZERO: y = 0
         stack.append(op)  # after success of maybe(value)
+        stack.append(n) if n else 0
         stack.append(y)
         return y or True
 
@@ -514,7 +516,7 @@ def selfModify():
 def plusEqual():
     must_contain(self_modifying_operators)
     v = variable()
-    mod = maybe_tokens(self_modifying_operators)
+    mod = tokens(self_modifying_operators)
     exp = expression()  # value
     arg = do_evaluate(exp, v.type)
     if not interpreting():
@@ -631,14 +633,16 @@ def postoperations(context):
 
 
 def quick_expression():  # bad idea!
-    if the.current_word in the.token_map:
+    the.result=False
+    if the.current_word in the.method_names + the.methods.keys():
+        the.result = method_call() # already wrapped maybe(method_call)
+    elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
-        the.result = maybe(fun)
-        if the.current_word in operators + special_chars + ["element", "item"]:  # - ';'
-            raise_not_matching("quick_expression too simplistic")
-        return the.result
-    return False
+        the.result = fun() # already wrapped maybe(fun)
+    if the.current_word!=";" and the.current_word in operators + special_chars + ["element", "item"]:
+        raise_not_matching("quick_expression too simplistic")
+    return the.result
 
 
 def expression(fallback=None):
@@ -701,6 +705,8 @@ def piped_actions():
 
 
 def statement():
+    if starts_with(done_words): # allow empty blocks
+        raise_not_matching("end of block")
     raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     x = maybe(loops) or \
@@ -834,8 +840,9 @@ def if_then_else():
 
 
 def action_if():
+    must_not_start_with("if")
     must_contain('if')
-    a = action_or_expressions
+    a = action_or_expression()
     _('if')
     c = condition_tree()
     if interpreting():
@@ -848,22 +855,15 @@ def action_if():
 
 def if_then():
     tokens(if_words)
-    allow_rollback()  # 100
+    # no_rollback()
     c = condition_tree()
     if c == None: raise InternalError("no condition_tree")
     # c=condition()
-    maybe_token('then')
+    started=maybe_token('then')
     if c != True:
         dont_interpret()
-    b = expression_or_block()  # More general than:
-    # b = action_or_block()
+    b = action_or_block(started)
     maybe_newline()  # for else
-    # o=maybe(otherwise)
-    # if use_block: b=block
-    # if not use_block: b=statement
-    # if not use_block: b=action()
-    allow_rollback()
-    if angle.did_interpret: do_interpret()
     if c == False or c == FALSE: return False
     if interpreting() and c != True: # c==True done above!
         if check_condition(c):
@@ -1241,7 +1241,7 @@ def breaks():
 
 
 #	 or 'say' x=(.*) -> 'bash "say $quote"'
-def action():
+def action(): # NOT THE SAME AS EXPRESSION!?
     start = pointer()
     maybe(bla)
     the.result = maybe(special_blocks) or \
@@ -1260,16 +1260,24 @@ def action():
     return the.result  # value or AST
 
 
-def action_or_block():  # expression_or_block ??):
-    _start = maybe_tokens(start_block_words)
+
+def action_or_expression(fallback=None): # if a/e then a/b
+    return maybe(action) or expression(fallback)
+
+def expression_or_block():  # action_or_block):
+    action_or_block()
+
+def action_or_block(started=False):  # expression_or_block
+    _start = maybe_tokens(start_block_words) or started
     if _start:
         # allow_rollback()
-        if maybe_newline():
+        if maybe_newline() or must_contain(done_words,False):
             # 1) def x do \n block \n (end)
             ab = block()
         else:
             # 2) def x do action (end)
-            ab = action()
+            ab = action_or_expression()
+            # ab = action()
     else:
         if maybe_newline():
             # allow_rollback()
@@ -1277,27 +1285,21 @@ def action_or_block():  # expression_or_block ??):
             ab = block()
         else:
             raise_not_matching("expecting action or block start")
+    if _start=="then" and the.current_word=="else": return ab
     maybe_newline() or end_block(_start)
     return ab
-
-
-def expression_or_block():  # action_or_block):
-    a = maybe(action) or maybe(expression)
-    if a: return a
-    b = block()
-    return b
-
 
 def end_block(type=None):
     return done(type)
 
-
 def done(_type=None):
-    if _type and maybe(lambda: close_tag(_type)): return OK
+    # if _type and maybe(lambda: close_tag(_type)): return OK
+    if checkEndOfFile(): return OK
     if checkEndOfLine(): return OK
     checkNewline()
     ok = tokens(done_words)
-    if _type: token(_type)
+    if _type and not _type in start_block_words:
+        token(_type)
     ignore_rest_of_line()
     return ok
 
@@ -1346,7 +1348,8 @@ def do_execute_block(b, args={}):
     args = prepare_named_args(args)
     if isinstance(b, FunctionCall): return do_call_function(b, args)
     if callable(b): return do_call_function(b, args)
-    if isinstance(b, kast.AST): return eval_ast(b, args)
+    if isinstance(b, kast.AST): return eval_ast(b, [args])
+    if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -1382,7 +1385,7 @@ def datetime():
 def collection():
     return maybe(ranger) or \
            maybe(true_variable) or \
-           action_or_expressions()
+           action_or_expression()
 
 
 @Starttokens('for')
@@ -1895,8 +1898,9 @@ def either_or():
 
 
 def is_comparator(c):
-    ok = c in comparison_words or \
-         c in class_words
+    ok = c in comparison_words
+    ok = ok or c in class_words
+    ok = ok or isinstance(c,ast.cmpop)
     # or \
     # (c - "is ") in comparison_words.contains() or \
     # comparison_words.contains(c - "are ") or \
@@ -1939,10 +1943,13 @@ def check_list_condition(quantifier, lhs, comp, rhs):
 
 
 def check_condition(cond=None, negate=False):
-    if cond == None: raise InternalError("NO Condition given!")
     if cond == True or cond == 'True': return True
     if cond == False or cond == 'False': return False
-    if not isinstance(cond, (Condition)):  return cond
+    if isinstance(cond, ast.BinOp): cond=Condition(lhs=cond.left,comp=cond.op,rhs=cond.right)
+    if cond == None or not isinstance(cond, Condition):
+        raise InternalError("NO Condition given! %s"%cond)
+
+        # return cond
     try:
         lhs = cond.lhs
         rhs = cond.rhs
@@ -1950,7 +1957,7 @@ def check_condition(cond=None, negate=False):
         if not comp: return False
         if lhs and isinstance(lhs, str): lhs = lhs.strip()  # None==None ok
         if rhs and isinstance(rhs, str): rhs = rhs.strip()  # " a "=="a" !?!?!? NOOO! maybe(why)
-        comp = comp.strip()
+        if isinstance(comp, str): comp = comp.strip()
         if is_comparator(comp):
             the.result = do_compare(lhs, comp, rhs)
         else:
@@ -1966,6 +1973,7 @@ def check_condition(cond=None, negate=False):
         if negate: the.result = not the.result
         if not the.result:
             verbose("condition not met %s %s %s" % (lhs, comp, rhs))
+        verbose("condition met %s %s %s" % (lhs, comp, rhs))
         return the.result
     except IgnoreException as e:
         # debug x #soft message
@@ -1973,16 +1981,9 @@ def check_condition(cond=None, negate=False):
     return False
 
 
-def action_or_expressions(fallback=None):
-    return maybe(action) or expression(fallback)
-    # maybe(expressions(fallback))
-    # expressions(fallback)
-
     # all of 1,2,3
     # all even numbers in [1,2,3,4]
     # one element in 1,2,3
-
-
 def element_in():
     must_contain_before(["of", "in"], special_chars)
     n = noun()
@@ -2012,16 +2013,16 @@ def condition():
     filter = None
     if quantifier: filter = maybe(element_in)  # all words in
     angle.in_condition = True
-    lhs = action_or_expressions(quantifier)
+    lhs = action_or_expression(quantifier)
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
+    if not comp: return lhs
     # allow_rollback # upto maybe(where)?
-    if comp: rhs = action_or_expressions(None)
+    if comp: rhs = action_or_expression(None)
     if brace: _(')')
     negate = (negated or _not) and not (negated and _not)
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
-    if not comp: return lhs
     # 1,2,3 are smaller 4  VS 1,2,4 in 3
     if isinstance(lhs, list) and not isinstance(rhs, list):  # and not maybe(lambda: comp in method_dir(lhs))
         quantifier = quantifier or "all"
@@ -2074,7 +2075,7 @@ def condition_tree(recurse=True):
 
 def otherwise():
     maybe_newline()
-    must_contain('else', 'otherwise')
+    must_contain(['else', 'otherwise'])
     pre = maybe_tokens(['else', 'otherwise'])
     maybe_token(':')
     e = expression()
@@ -2275,6 +2276,9 @@ class Reflector(object):
         print("Reflector __getitem__ %s" % str(name))
         if name in the.variables:
             return do_evaluate(the.variables[name].value)
+        if name in the.methods:
+            return the.methods[name]
+        raise Exception("UNKNOWN ITEM %s"%name)
         return name
 
     def __setitem__(self, key, value):
@@ -2283,6 +2287,7 @@ class Reflector(object):
             the.variables[key].value = value
         else:
             the.variables[key] = Variable(name=key, value=value)
+        the.variableValues[key]=value
         the.result = value
 
 
@@ -2297,12 +2302,14 @@ def eval_ast(my_ast, args={}):
         context_variables.update(locals())
 
         variable_inits = []
-        for k in args:
-            s = kast.setter(k, do_evaluate(args[k]))
-            variable_inits.append(s)
+        # for k in args:
+        #     s = kast.setter(k, do_evaluate(args[k]))
+        #     variable_inits.append(s)
         if not type(my_ast) == ast.Module:
-            my_ast = _ast.Module(body=variable_inits + [my_ast])
+            my_ast=flatten(my_ast)
+            my_ast = _ast.Module(body=variable_inits + my_ast)
         # elif args:my_ast.body=variable_inits+my_ast.body
+        print(my_ast.body)
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
         print ast.dump(my_ast)
@@ -2352,7 +2359,8 @@ def do_evaluate(x, _type=None):
         # if isinstance(x, extensions.Method): return x.call  #Whoot
         # if callable(x): return x()  # Whoot
         if not interpreting(): return x
-        if isinstance(x, kast.AST): return eval_ast(x)
+        if isinstance(x, kast.AST): return eval_ast([x])
+        if isinstance(x,list) and isinstance(x[0], kast.AST): return eval_ast(x)
         return x  # DEFAULT!
     except (TypeError, SyntaxError)as e:
         print("ERROR #{e) in do_evaluate #{x)")
@@ -2407,6 +2415,9 @@ def do_math(a, op, b):
     if op == 'power': return a ** b
     if op == 'and': return a and b
     if op == '&&': return a and b
+    if op == 'but':
+        if isinstance(a,list):return a.remove(b)
+        return a and b
     # if op == '&': return a and b
     if op == '&': return a & b
     if op == '^': return a ^ b
@@ -2421,7 +2432,10 @@ def do_math(a, op, b):
     if op == '>=': return a >= b
     if op == '==': return a == b
     if op == '=': return a == b
-    if op == 'is': return a == b
+    if op == 'is': return a == b # NOT the same as a is b:
+    if op == '===': return a is b
+    if op == 'is identical': return a is b
+    if op == 'is exactly': return a is b
     if op == 'same as': return a == b
     if op == 'the same as': return a == b
     if op == 'equals': return a == b
@@ -2568,15 +2582,19 @@ def do_compare(a, comp, b):
     if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a)  # EEK PHP STYLE !? REALLY??
     if isinstance(a, int) and re.search(r'^\+?\-?\.?\d', str(b)): b = int(b)  # EEK PHP STYLE !? REALLY??
     if isinstance(comp, str): comp = comp.strip()
-    if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<':
+    if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp,ast.Lt):
         return a < b
-    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>':
+    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(comp,ast.Gt):
         return a > b
-    elif comp == 'smaller or equal' or comp == '<=':
+    elif comp == 'smaller or equal' or comp == '<=' or isinstance(comp,ast.LtE):
         return a <= b
-    elif comp == 'bigger or equal' or comp == '>=':
+    elif comp == 'bigger or equal' or comp == '>=' or isinstance(comp,ast.GtE):
         return a >= b
-    elif comp in be_words:
+    elif comp in ['!=','is not'] or isinstance(comp,ast.NotEq):
+        return a == b
+    elif comp in ['in','element of'] or isinstance(comp,ast.In):
+        return a in b
+    elif comp in be_words or isinstance(comp,ast.Eq):
         return a == b
     elif class_words.index(comp):
         return issubclass(a, b) or isinstance(a, b)  # issubclass? a bird is an animal OK
@@ -2619,7 +2637,7 @@ def simpleProperty():
 
 
 def selectable():
-    must_contain('that', 'whose', 'which')
+    must_contain(['that', 'whose', 'which'])
     maybe_tokens(['every', 'all', 'those'])
     xs = resolve(true_variable()) or endNoun()
     s = maybe(selector)  # rhs=xs, lhs implicit! (BAD!)
@@ -2703,8 +2721,9 @@ def check_end_of_statement():
     return checkEndOfLine() or the.current_word == ";" or maybe_tokens(done_words)
 
 
+# End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return checkEndOfLine() or the.previous_word == ';' or token(';')  # consume ";", but DON'T consume done_words here!
+    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(';')  # consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):
@@ -2731,7 +2750,7 @@ def english_to_math(s):
 
 def evaluate_index():
     should_not_start_with('[')
-    must_contain('[', ']')
+    must_contain(['[', ']'])
     v = endNode()  # true_variable()
     _('[')
     i = endNode()
@@ -3047,19 +3066,9 @@ def repeat_every_times():
     must_contain(time_words)
     dont_interpret()  # 'cause later
     maybe_tokens(['repeat'])
-    b = maybe(action)
+    action_or_block()
     interval = datetime()
-    allow_rollback()
-    if not b:
-        start_block()
-        dont_interpret()
-        b = maybe(action) or block()
-        end_block()
-
         # event=Event(interval:interval,event:b)
-        # event=Event(interval, b)
-        # event
-        # if angel.use_tree: parent_node()
 
 
 def repeat_action_while():
@@ -3103,9 +3112,10 @@ def while_loop():
     allow_rollback()
     maybe_tokens(['repeat'])  # keep gerunding
     maybe_tokens(['then'])  # ,':'
-    if not check_condition(c): dont_interpret()
+    dont_interpret()
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
     r = False
+    adjust_interpret()
     if not interpreting():
         return kast.While(test=c, body=b)
     while (check_condition(c)):
@@ -3131,7 +3141,7 @@ def until_loop():
 
 def looped_action():
     must_not_start_with('while')
-    must_contain('as long as', 'while')
+    must_contain(['as long as', 'while'])
     dont_interpret()
     maybe_tokens(['do'])
     maybe_tokens(['repeat'])

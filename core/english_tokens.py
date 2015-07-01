@@ -165,7 +165,7 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                                                                           'comes before', 'exact', 'exactly', '~>',
                     'at least', 'at most']
 
-logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "or", "xor", "nor"]
+logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor"]
 english_operators = ["power", "to the", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
                      "modulo", ]
 operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators + comparison_words + logic_operators

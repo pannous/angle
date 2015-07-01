@@ -404,9 +404,9 @@ def init(strings):
         # result           =None NOO, keep old!
 
 
-def s(s):
-    allow_rollback()
-    init(s)
+# def s(s):
+#     allow_rollback()
+#     init(s)
     # parser.init the.string
 
 
@@ -480,27 +480,26 @@ def remove_tokens(*tokenz):
         #     the.string = the.string.replace(r' *%s *' % t, " ")
 
 
-def must_contain(*args):  # before ;\n
+def must_contain(args,do_raise=True):  # before ;\n
     if isinstance(args[-1], dict):
         return must_contain_before(args[0:-2], args[-1]['before'])
     old = current_token
     while not (checkEndOfLine()):
-        for x in flatten(args):
+        for x in args:
             if current_word == x:
                 set_token(old)
                 return x
         next_token()
-        if current_word == ';' or current_word == '\n':
+        if do_raise and (current_word == ';' or current_word == '\n'):
             break
     set_token(old)
-    raise NotMatching("must_contain " + str(args))
+    if do_raise:raise NotMatching("must_contain " + str(args))
+    return False
 
 
 def must_contain_before(args, before):  # ,before():None
     old = current_token
     good = None
-    args = flatten(args)
-    before = flatten(before)
     while not (checkEndOfLine() or current_word in before and not current_word in args):
         if current_word in args:
             good = current_word
@@ -573,10 +572,17 @@ def caller_name():
 #   if caller[i].index("parser"): return name
 
 
+ # remove the border, if above border
+def adjust_interpret():
+    depth = caller_depth()
+    if (angle.interpret_border > depth-2):
+        angle.interpret = angle.did_interpret
+        angle.interpret_border = -1  # remove the border
+        do_interpret()
+
 def do_interpret():
-    global interpret, interpret_border, did_interpret
-    interpret_border = -1
-    did_interpret = angle.interpret
+    if(angle.did_interpret != angle.interpret):
+        angle.did_interpret = angle.interpret
     angle.interpret = True
 
 
@@ -588,12 +594,8 @@ def dont_interpret():
     angle.interpret = False
 
 
-def interpreting(n=0):
+def interpreting():
     if angle.use_tree: return False
-    depth = caller_depth()
-    if (angle.interpret_border > depth - n):
-        angle.interpret = angle.did_interpret
-        angle.interpret_border = -1  # remove the border
     return angle.interpret
 
 
@@ -730,6 +732,9 @@ def block():  # type):
                 s = statement()
                 statements.append(s)
             except NotMatching as e:
+                if starts_with(english_tokens.done_words):
+                    return False # ALL GOOD
+                print("Giving up block")
                 print_pointer(True)
                 raise Exception(str(e) + "\nGiving up block\n" + pointer_string())
             # content = pointer() - start
@@ -776,7 +781,7 @@ def maybe(expression):
         return result
     except (NotMatching, EndOfLine) as e:
         if verbose: verbose("Tried %d  " % the.current_offset + to_source(expression))
-        interpreting(2)  # remove the border, if above border
+        adjust_interpret()  # remove the border, if above border
         # if verbose: verbose(e)
         # if verbose: string_pointer()
         cc = caller_depth()
@@ -977,16 +982,15 @@ def token_old(t):
 
 
 def flatten(l):
-    if isinstance(l, tuple):
-        if isinstance(l[0], list): return l[0]
-        return l  # =list(l)
     if isinstance(l, str): return [l]
-    if isinstance(l, list) and len(l) > 0 and not isinstance(l[0], list):
-        return l
-    if callable(l): l = l()
-    from itertools import chain
+    if isinstance(l, list) or isinstance(l, tuple):
+        for k in l:
+            if isinstance(k, list):
+                l.remove(k)
+                l.append(*k)
+    # verbose("NOT flattenable: %s"%s)
+    return l
 
-    return list(chain.from_iterable(l))
 
 
 def tokens(tokenz):
@@ -1031,6 +1035,8 @@ def escape_token(t):
 
 def starts_with(tokenz):
     if checkEndOfLine(): return False
+    if isinstance(tokenz,str):
+        return tokenz == the.current_word
     for t in tokenz:
         if t == the.current_word:
             return t

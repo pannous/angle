@@ -1,6 +1,7 @@
 import ast
-import kast
-import kast.kast
+# import kast
+# import kast.kast
+from kast import kast #grrr
 import power_parser
 
 __author__ = 'me'
@@ -8,8 +9,9 @@ __author__ = 'me'
 # see resolve eval_maybe(the.string)??
 def wrap_value(val):
     t=type(val)
-    if isinstance(val,str):return ast.Str(val)
-    if isinstance(val,int):return ast.Num(val)
-    if isinstance(val,float):return ast.Num(val)
+    if isinstance(val,str):return kast.Str(val)
+    if isinstance(val,int):return kast.Num(val)
+    if isinstance(val,float):return kast.Num(val)
+    if val==None:return kast.none
     raise Exception("UNKNOWN TYPE %s : %s !"%(val,t))
 

@@ -2,7 +2,7 @@ import ast
 from kast import kast
 from the import *
 
-class Condition(object):
+class Condition(object):#todo: BinOp ?
     def __init__(self, **kwargs): #ruby : initialize
         self.lhs = kwargs['lhs']
         self.comp= kwargs['comp']
@@ -90,16 +90,30 @@ class Function:
         # self.parser. self.context.
         #    EnglishParser.call_function self,args
 
-class FunctionCall:
+# NEEDS TO BE WRAPPED! Expr(Call(Name('beep', Load()), [], [], None, None))
+class FunctionCall(ast.Expr):
+    def __init__(self, name=None, arguments=None,object=None, **args):
+        # super(FunctionCall, self).__init__(*margs, **args)
+        # self.args = []
+        # self.keywords = []
+        # self.kwargs = self.starargs = None
+        if callable(name): name=name.__name__#lulwoot
 
-    #attr_accessor :name, :arguments, :scope, :module, :class, :object
-    def __init__(self,name=None, arguments=None, **args):
-        self.name     =name or args['name']
-        self.arguments=args['arguments'] if 'scope' in args else arguments
-        if 'scope' in args: self.scope    =args['scope']
-        if 'class' in args: self.clazz    =args['class']
-        if 'module' in args: self.clazz   = self.clazz or args['module']
-        if 'object' in args: self.object   =args['object']
+        #or args['name']
+        # self.func = name
+        self.name = name or args['name']
+        self.arguments = args['arguments'] if 'arguments' in args else arguments
+        if object:self.object =object
+        # self. = args['object'] if 'object' in args else object NOOO, MESSES
+        # if 'object' in args and args['object']: self.object = args['object']
+        if 'scope' in args: self.scope = args['scope']
+        if 'class' in args: self.clazz = args['class']
+        if 'module' in args: self.clazz = self.clazz or args['module']
+        # AST CONTENT:
+        if isinstance(name,str): name=kast.name(name)
+        if not isinstance(name,kast.Name): raise Exception("NO NAME %s"%name)
+        arguments=[] #todo!!
+        self.value=kast.call(name,arguments)# ast.Call(func=name,
 
 
 class Argument(kast.arg):
@@ -181,6 +195,20 @@ class Variable(kast.Name):
         #     self.position == x.position &&
         #     self.default == x.default &&
         #     self.value == x.value
+
+    # HACK!
+    def __add__(self, other):
+        self.value+=other
+        return self.value
+    def __mul__(self, other):
+        self.value*=other
+        return self.value
+    def __sub__(self, other):
+        self.value-=other
+        return self.value
+    def __div__(self, other):
+        self.value/=other
+        return self.value
 
 class Property(Variable):
     pass
