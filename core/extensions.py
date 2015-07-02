@@ -697,6 +697,13 @@ class xint(int):
     def times(self, x):
         return self * x
 
+    def times_do(self,fun):
+        x=None
+        for i in range(0,self):
+            x=fun()
+        return x
+            
+
     def less(self, x):
         if isinstance(x, str): return self < int(x)
         return super.__lt__(x)

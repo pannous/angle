@@ -23,6 +23,7 @@ import traceback
 # import kast
 import types
 import sys
+import stem.util.system
 import emitters.kast_emitter
 import interpretation
 import inspect
@@ -360,16 +361,29 @@ def algebra(val=None):
 
 def read_block(type=None):
     block = []
-    start_block(type)
+    _(type)
     while True:
         if maybe(lambda: end_block(type)): break
-        block.append(rest_of_line)
+        block.append(rest_of_line())
     return block
+
+# @Starttokens("<") #OK?
+def read_xml_block(t=None):
+    _("<")
+    t=t or word()
+    if maybe_token('/'): return _(">")
+    _(">")
+    b=read_xml_block()
+    _("</")
+    token(t)
+    _(">")
+    return b
+
 
 
 @Starttokens("<html>")
 def html_block():
-    return read_block('html')
+    return read_xml_block('html')
 
 
 @Starttokens(['js', 'script', 'javascript'])
@@ -643,6 +657,7 @@ def quick_expression():  # bad idea!
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
     if the.current_word=='': return the.result
+    if the.current_word=='.': return method_call(the.result)
     if the.current_word=='[':
         return evaluate_index(the.result)
     if the.current_word in operators:
@@ -1081,7 +1096,7 @@ def subProperty(context):
     return property, None
 
 
-def true_method():
+def true_method(obj=None):
     no_keyword()
     should_not_start_with(auxiliary_verbs)
     xmodule = maybe_tokens(the.moduleNames)
@@ -1096,7 +1111,7 @@ def true_method():
         variable = the.variables[xvariable]
         obj, name = subProperty(variable.value)
     else:
-        obj, property = subProperty(None)
+        obj, property = subProperty(obj)
         name = maybe_tokens(all_methods()) or maybe(verb)
     if not name:
         raise NotMatching('no method found')
@@ -1119,7 +1134,7 @@ def true_method():
 # read mail or module read mail or object read mail bla(1) or a.bla(1)  vs ruby_method_call !!
 def method_call(obj=None):
     # verb_node
-    module, obj, method = true_method()
+    module, obj, method = true_method(obj)
     method = findMethod(obj, method)  # already? todo findMethods with S, ambiguous ones!!
     allow_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
@@ -2392,7 +2407,8 @@ def resolve(x):
 
 
 def self_modifying(method):
-    return method == 'increase' or method == 'decrease' or re.search(r'\!$', str(method))
+    method=method.__name__
+    return method == 'increase' or method == 'decrease' or method.endswith("!")
 
 
 #
@@ -2506,7 +2522,8 @@ def findMethod(obj0, method0, args0=None):
 def align_args(args, clazz, method):
     if args and isinstance(args, str): args = xstr(args).replace_numerals()
     if isinstance(args, Argument): args = args.name_or_value
-
+    selfmodifying=self_modifying(method)
+    if selfmodifying: return args # todo
     def values(x):
         return x.value
 
@@ -2558,14 +2575,7 @@ def do_send(obj0, method0, args0=[]):
     obj = do_evaluate(obj0)
     args = align_args(args0, obj, method)
     number_of_arguments = has_args(method, obj, not not args)
-    if not obj:
-        if args and number_of_arguments > 0:
-            return method(args)
-        else:
-            return method()
 
-    if not args and not callable(method) and method in dir(obj):
-        return obj.__getattribute__(method)
     # if (args and args[0] == 'of'):  # and has_args(method, obj)):
     #     if not callable(method) and method in dir(obj):
     #         return obj.__getattribute__(method)
@@ -2573,6 +2583,14 @@ def do_send(obj0, method0, args0=[]):
     #         method(args[1])  # square of 7
     print >> sys.stderr, ("CALLING %s %s with %s" % (obj, method, args))
 
+    if not args and not callable(method) and method in dir(obj):
+        return obj.__getattribute__(method)
+
+    if not obj:
+        if args and number_of_arguments > 0:
+            return method(args)
+        else:
+            return method()
     if is_math(method_name):
         return do_math(obj, method_name, args)
 
@@ -2609,8 +2627,8 @@ def do_send(obj0, method0, args0=[]):
     # puts object_method.parameters #todo MATCH!
 
     # => selfModify todo
-    if (obj0 or args) and self_modifying(method):
-        name = str(obj0 or args)  # .to_sym()  #
+    if (obj0 or args0) and self_modifying(method):
+        name = str(obj0 or args0)  # .to_sym()  #
         the.variables[name].value = the.result  #
         the.variableValues[name] = the.result
 
@@ -2658,21 +2676,7 @@ def do_compare(a, comp, b):
             error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
             return a.send(comp + '?', b)
 
-
-def filter(liste, criterion):
-    global rhs, lhs, comp
-    if not criterion: return liste
-    mylist = eval_string(liste)
-    # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
-    if angle.use_tree:
-        method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
-        args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
-    else:
-        method = comp or criterion()
-        args = rhs
-    mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
-
-
+# see method_call!!
 def simpleProperty():
     must_contain_before(".", special_chars + keywords)
     module = token(the.moduleNames)  # or token(the.classes) # or objs!!
@@ -2693,6 +2697,20 @@ def selectable():
     if interpreting(): xs = filter(xs, s)  # except xs
     return xs
 
+
+# see selectable
+def filter(liste, criterion):
+    global rhs, lhs, comp
+    if not criterion: return liste
+    mylist = eval_string(liste)
+    # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
+    if angle.use_tree:
+        method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
+        args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
+    else:
+        method = comp or criterion()
+        args = rhs
+    mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
 def ranger():
     if in_params: return False
@@ -2748,22 +2766,13 @@ def endNoun(included=None):
     return str(obj)
 
 
-def any_ruby_line():
-    ## global the.string
-    line = the.string
-    the.string = the.string.gsub(r'.*', '')
-    checkNewline()
-    return line
+def start_xml_block(type):
+    _('<')
+    if type:_(type)
+    else: type=word()
+    _('>')
+    return type
 
-
-def start_block(type=None):
-    if type:
-        xmls = _('<')
-        _(type)
-        if xmls: _('>')
-
-    if checkNewline(): return OK
-    return maybe_tokens(start_block_words)  # OPTIONAL!!!???
 
 
 def check_end_of_statement():
@@ -2772,12 +2781,13 @@ def check_end_of_statement():
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(
-        ';')  # consume ";", but DON'T consume done_words here!
+    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(';')
+      # consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):
-    s = s.replace_numerals
+    s = xstr(s)
+    s = s.replace_numerals()
     s = s.replace(' plus ', '+')
     s = s.replace(' minus ', '-')
     s = s.replace(r'(\d+) multiply (\d+)', "\\1 * \\2")
@@ -2826,7 +2836,7 @@ def evaluate_property():
     maybe_token('all')  # list properties (all files in x)
     must_contain_before(['of', 'in', '.'], '(')
     raiseNewline()
-    x = endNoun(type_keywords)
+    x = endNoun(included=type_keywords)
     tokens(['of', 'in'])
     y = expression()
     if not interpreting(): return parent_node()
@@ -2886,74 +2896,6 @@ def svg(x):
 #       print("Error when configuring history: #{e)")
 #
 
-def start_shell():
-    angle.verbose = False
-    print('usage:')
-    print("\t./angle 6 plus six")
-    print("\t.r'angle examples'test.e")
-    print("\t./angle (no args for shell)")
-    # parser=EnglishParser()
-    # import readline
-    # maybe(lambda:load_history_why('~/.english_history'))
-    # http:r''www.unicode.orgr'charts'PDF/U2980.pdf
-    # Readline.readline('⦠ ', True)
-    input0 = input()
-    while input0:
-        # while input = Readline.readline('angle-script⦠ ', True)
-        # Readline.write_history_file("~/.english_history")
-        # while True
-        #   print("> ")
-        #   input = STDIN.gets.strip()
-        try:
-            # interpretation= parser.parse input
-            interpretation = parse(input)
-            if not interpretation: next
-            if angle.use_tree: print(interpretation.tree)
-            print(interpretation.result)
-        except IgnoreException as e:
-            pass
-
-        # except NotMatching as e:
-        #   print('Syntax Error')
-        # except GivingUp as e:
-        #   print('Syntax Error')
-        # except Exception as e:
-        #     print(e)
-        input0 = input()
-    print("")
-    exit()
-
-
-def startup():
-    ARGV = sys.argv
-    # ARGF=sys.argv
-    if len(ARGV) == 0: return start_shell()  # and not ARGF:
-    all = ARGV.join(' ')
-    a = ARGV[0].to_s
-    # read from commandline argument or pipe!!
-    # all=ARGF.read or File.read(a) except a
-    # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
-    if isinstance(all, str): all = all.split("\n")
-
-    # puts "parsing #{all)"
-    for line in all:
-        if not line: continue
-        try:
-            interpretation = parse(line.encode('utf-8'))
-            # interpretation=EnglishParser().parse line.encode('utf-8')
-            the.result = interpretation.the.result
-            if angle.use_tree: print(interpretation.tree)
-            if the.result and not not the.result and not the.result == Nil: print(the.result)
-        except NotMatching as e:
-            print(e)
-            print('Syntax Error')
-        except GivingUp as e:
-            print('Syntax Error')
-        except e:
-            print(e)
-            print(e.backtrace.join("\n"))
-
-    print("")
 
 
 def be(): tokens(be_words)
@@ -3073,7 +3015,7 @@ def fileName():
     match = is_file(the.string, False)
     if match:
         path = match[0]
-        path = path.gsub(r'^/home', "'Users")
+        path = path.gsub(r'^/home', "/Users") if stem.util.system.is_mac() else path
         path = extensions.File(path)
         next_token()
         the.current_value = path
@@ -3086,7 +3028,7 @@ def linuxPath():
     match = match_path(the.string)
     if match:
         path = match[0]
-        path = path.gsub(r'^/home', "'Users")
+        path = path.gsub(r'^/home', "/Users") if stem.util.system.is_mac() else path
         path = extensions.Dir(path)  # except path
         next_token()
         the.current_value = path
@@ -3108,6 +3050,60 @@ def loops():
            maybe(as_long_condition_block) or \
            maybe(forever) or \
            raise_not_matching("Not a loop")
+
+
+@Starttokens(['for','repeat with'])
+def repeat_with():
+    maybe_token('for') or _('repeat') and _('with')
+    allow_rollback()
+    v = variable()
+    _('in')
+    c = collection()
+    b = action_or_block()
+    if interpreting():
+        for i in c:
+            do_execute_block(b, {v: i})
+        return the.result
+    return kast.For(target=v, iter=c, body=b)
+    #     'iter',
+    #     'body',
+    #     'orelse',)
+
+@Starttokens(['while', 'as long as'])
+def while_loop():
+    maybe_tokens(['repeat'])
+    tokens(['while', 'as long as'])
+    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
+    dont_interpret()
+    c = condition()
+    allow_rollback()
+    maybe_tokens(['repeat'])  # keep gerunding
+    maybe_tokens(['then'])  # ,':'
+    dont_interpret()
+    b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
+    r = False
+    adjust_interpret()
+    if not interpreting():
+        return kast.While(test=c, body=b)
+    while (check_condition(c)):
+        r = do_execute_block(b)
+    return r  # or OK
+
+@Starttokens(['until', 'as long as'])
+def until_loop():
+    maybe_tokens(['repeat'])
+    tokens(['until', 'as long as'])
+    dont_interpret()
+    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
+    c = condition()
+    maybe_tokens(['repeat'])
+    b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
+    r = False
+    if interpreting():
+        while (not check_condition(c)):
+            r = do_execute_block(b)
+
+    return r
 
 
 # beep every 4 seconds
@@ -3137,66 +3133,12 @@ def repeat_action_while():
     return the.result
 
 
-def repeat_with():
-    _('repeat')
-    _('with')
-    allow_rollback()
-    v = variable()
-    _('in')
-    c = collection()
-    b = action_or_block()
-    if interpreting():
-        for i in c:
-            do_execute_block(b, {v: i})
-        return the.result
-    return kast.For(target=v, iter=c, body=b)
-    #     'iter',
-    #     'body',
-    #     'orelse',)
-
-
-def while_loop():
-    maybe_tokens(['repeat'])
-    tokens(['while', 'as long as'])
-    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
-    dont_interpret()
-    c = condition()
-    allow_rollback()
-    maybe_tokens(['repeat'])  # keep gerunding
-    maybe_tokens(['then'])  # ,':'
-    dont_interpret()
-    b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
-    r = False
-    adjust_interpret()
-    if not interpreting():
-        return kast.While(test=c, body=b)
-    while (check_condition(c)):
-        r = do_execute_block(b)
-    return r  # or OK
-
-
-def until_loop():
-    maybe_tokens(['repeat'])
-    tokens(['until', 'as long as'])
-    dont_interpret()
-    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
-    c = condition()
-    maybe_tokens(['repeat'])
-    b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
-    r = False
-    if interpreting():
-        while (not check_condition(c)):
-            r = do_execute_block(b)
-
-    return r
-
-
+# todo: merge with looped_action_until
 def looped_action():
     must_not_start_with('while')
     must_contain(['as long as', 'while'])
     dont_interpret()
-    maybe_tokens(['do'])
-    maybe_tokens(['repeat'])
+    maybe_tokens(['do','repeat'])
     a = action()  # or semi-block
     tokens(['as long as', 'while'])
     c = condition()
@@ -3205,16 +3147,14 @@ def looped_action():
     if interpreting():
         while (check_condition(c)):
             r = do_execute_block(a)
-
     return r
 
 
 def looped_action_until():
     must_contain('until')
+    b = maybe_tokens(['do','repeat'])
     dont_interpret()
-    maybe_tokens(['do'])
-    maybe_tokens(['repeat'])
-    a = action()  # or semi-block
+    a = action_or_block('until') if b else action()
     _('until')
     c = condition()
     r = False
@@ -3226,19 +3166,17 @@ def looped_action_until():
 
 
 def is_number(n):
-    str(n).replace_numerals().to_i() != 0  # hum
+    return xstr(n).parse_number() != 0  # hum
 
     # notodo: LTR parser just here!
     # say hello 6 times   #=> (say hello 6) times ? give up for now
     # say hello 6 times 5 #=> hello 30 ??? SyntaxError! say hello (6 times 5)
-
-
-def action_n_times():
+def action_n_times(a=None):
     must_contain('times')
     dont_interpret()
     maybe_tokens(['do'])
     # maybe_tokens "repeat"
-    a = action()
+    a = a or action()
     # ws=a.join(' ').split(' ') except [a]
 
     # if is_number ws[-1] # greedy action hack "say hello 6" times:
@@ -3260,34 +3198,31 @@ def n_times_action():
     n = number()  # or int_variable
     _('times')
     allow_rollback()
-    maybe_tokens(['do'])
-    maybe_tokens(['repeat'])
+    maybe_tokens(['do','repeat'])
     dont_interpret()
     a = action_or_block()
     if interpreting():
-        int(n).times(lambda: do_evaluate(a))
+        xint(n).times_do(lambda: do_evaluate(a))
     return a
 
-
+@Starttokens('repeat')
 def repeat_n_times():
-    must_contain('times')
     _('repeat')
     n = number()
     _('times')
-    allow_rollback()
     dont_interpret()
     b = action_or_block()
-    if interpreting(): int(n).times(lambda: do_execute_block(b))
+    adjust_interpret()
+    if interpreting():
+        xint(n).times_do(lambda: do_execute_block(b))
     return b
     # if angel.use_tree: parent_node()
 
 
 # if action was (not) parsed before: todo: node cache: skip action(X) -> _'forever'
-def forever():
+def forever(a=None):
     must_contain('forever')
-    dont_interpret()
-    allow_rollback
-    a = action()
+    a = a or action()
     _('forever')
     if interpreting():
         while (True):
@@ -3297,7 +3232,8 @@ def forever():
 def as_long_condition_block():
     _('as long as')
     c = condition()
-    a = block()  # danger, block might contain condition()
+    if not c: dont_interpret()
+    a = action_or_block()  # danger, block might contain condition()
     if interpreting():
         while (check_condition(c)):
             do_execute_block(a)
@@ -3306,3 +3242,73 @@ def as_long_condition_block():
 def ruby_action():
     _('ruby')
     exec (action or quote)
+
+
+def start_shell():
+    angle.verbose = False
+    print('usage:')
+    print("\t./angle 6 plus six")
+    print("\t.r'angle examples'test.e")
+    print("\t./angle (no args for shell)")
+    # parser=EnglishParser()
+    # import readline
+    # maybe(lambda:load_history_why('~/.english_history'))
+    # http:r''www.unicode.orgr'charts'PDF/U2980.pdf
+    # Readline.readline('⦠ ', True)
+    input0 = input()
+    while input0:
+        # while input = Readline.readline('angle-script⦠ ', True)
+        # Readline.write_history_file("~/.english_history")
+        # while True
+        #   print("> ")
+        #   input = STDIN.gets.strip()
+        try:
+            # interpretation= parser.parse input
+            interpretation = parse(input)
+            if not interpretation: next
+            if angle.use_tree: print(interpretation.tree)
+            print(interpretation.result)
+        except IgnoreException as e:
+            pass
+
+        # except NotMatching as e:
+        #   print('Syntax Error')
+        # except GivingUp as e:
+        #   print('Syntax Error')
+        # except Exception as e:
+        #     print(e)
+        input0 = input()
+    print("")
+    exit()
+
+
+def startup():
+    ARGV = sys.argv
+    # ARGF=sys.argv
+    if len(ARGV) == 0: return start_shell()  # and not ARGF:
+    all = ARGV.join(' ')
+    a = ARGV[0].to_s
+    # read from commandline argument or pipe!!
+    # all=ARGF.read or File.read(a) except a
+    # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
+    if isinstance(all, str): all = all.split("\n")
+
+    # puts "parsing #{all)"
+    for line in all:
+        if not line: continue
+        try:
+            interpretation = parse(line.encode('utf-8'))
+            # interpretation=EnglishParser().parse line.encode('utf-8')
+            the.result = interpretation.the.result
+            if angle.use_tree: print(interpretation.tree)
+            if the.result and not not the.result and not the.result == Nil: print(the.result)
+        except NotMatching as e:
+            print(e)
+            print('Syntax Error')
+        except GivingUp as e:
+            print('Syntax Error')
+        except e:
+            print(e)
+            print(e.backtrace.join("\n"))
+
+    print("")

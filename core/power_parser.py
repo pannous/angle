@@ -196,11 +196,8 @@ def star(lamb):
 
 
 def ignore_rest_of_line():
-    if not re.search("\n", the.string):
-        the.string = ""
-        return
-    return the.string.replace(r'.*?\n', "\n")
-
+    while not checkEndOfLine():
+        next_token()
 
 def pointer_string():
     if not the.current_token:
@@ -714,11 +711,8 @@ def invalidate_obsolete(old_nodes):
 # start_block INCLUDED!! (optional !?!)
 def block():  # type):
     global last_result, original_string
-    from english_parser import start_block, statement, end_of_statement, end_block
-
-    maybe(newline)
-    start_block()  # NEWLINE ALONE == START!!!?!?!
-    # allow_rollback()
+    from english_parser import statement, end_of_statement, end_block
+    maybe_newline() or maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
     start = pointer()
     statements = [statement()]
     # content = pointer() - start

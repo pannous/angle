@@ -23,7 +23,7 @@ class FunctionTest(ParserBaseTest):
         print(parse(code))
         fib = functions['fibonacci']
         print(fib)
-        assert (equals('number', fib.args[0].name))  # name(args[0], )))
+        assert (equals('number', fib.arguments[0].name))  # name(args[0], )))
         f10 = fib.call(10)
         print(f10)
         assert_equals(f10, 55)
@@ -37,7 +37,7 @@ class FunctionTest(ParserBaseTest):
         print (code)
         print(parse(code))
         identity = functions['identity']
-        assert (equals('x', identity.args[0].name))
+        assert (equals('x', identity.arguments[0].name))
         print(identity)
         print(identity.call(5))
         assert (equals(5, identity.call(5)))
@@ -84,6 +84,7 @@ class FunctionTest(ParserBaseTest):
         assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
     def test_blue_yay(self):
+        the.parser.do_interpret()
         assert_result_is("def test{puts 'yay'};test", 'yay')
         assert_result_is("def test{puts 'yay'};test", 'yay')
 
@@ -166,8 +167,9 @@ class FunctionTest(ParserBaseTest):
         pass
 
     def test_add(self):
+    # todo:  copying method invocation logic to AST
         parse('counter is one; repeat three times: increase counter; done repeating;')
-        assert_equals(variables['counter'], 4)
+        assert_equals(the.variableValues['counter'], 4)
 
     def _test_svg_dom(self):
         init('<svg><circle cx="$x" cy="50" r="$radius" stroke="black" fill="$color" id="circle"/></svg>')
