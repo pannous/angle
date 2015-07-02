@@ -334,11 +334,12 @@ def fold_algebra(stack):
     return stack
 
 
-def algebra():
+def algebra(val=None):
     # global result
     must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
-    stack.append(maybe(value) or bracelet())  # any { maybe( value ) or maybe( bracelet ) )
+    val=val or maybe(value) or bracelet()
+    stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
 
     def lamb():
         op = maybe(comparation) or operator()
@@ -594,9 +595,6 @@ def regular_json_hash():
     # careful with blocks/closures ! map{puts it) VS data{a:"b")
 
 
-def evaluate_index(args):
-    pass
-
 
 def starts_with_(param):
     return maybe(lambda: starts_with(param))
@@ -627,10 +625,10 @@ def maybe_algebra(context):
     return do_send(context, op, z)
 
 
-def postoperations(context):
+def postoperations(context):# see quick_expression !!
     if the.current_word in be_words: return false  # handled differently
     if the.current_word == "if":  # YAY!
-        return the.result if condition() else maybe("else") and expression()
+        return the.result if _("if") and condition() else maybe("else") and expression() or None
     return maybe_cast(context) or maybe_algebra(context) or context
 
 
@@ -638,10 +636,17 @@ def quick_expression():  # bad idea!
     the.result = False
     if the.current_word in the.method_names + the.methods.keys():
         the.result = method_call()  # already wrapped maybe(method_call)
+    elif the.current_word in the.variables.keys():
+        the.result = true_variable()
     elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
+    if the.current_word=='': return the.result
+    if the.current_word=='[':
+        return evaluate_index(the.result)
+    if the.current_word in operators:
+        return algebra(the.result)
     if the.current_word != ";" and the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
     return the.result
@@ -711,7 +716,8 @@ def statement():
         raise_not_matching("end of block")
     raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
-    x = maybe(loops) or \
+    x = maybe(quick_expression) or \
+        maybe(loops) or \
         maybe(if_then_else) or \
         maybe(action_if) or \
         maybe(once) or \
@@ -729,10 +735,8 @@ def statement():
         maybe(expression) or \
         raise_not_matching("Not a statement")
     # AS RETURN VALUE! DANGER!
-    if x:
-        the.result = x
-    else:
-        print "WTF?"
+    the.result = x
+    the.last_result= x
     check_comment()
     return the.result
 
@@ -866,6 +870,7 @@ def if_then():
         dont_interpret()
     b = action_or_block(started)
     maybe_newline()  # for else
+    adjust_interpret()
     if c == False or c == FALSE: return False
     if interpreting() and c != True:  # c==True done above!
         if check_condition(c):
@@ -1295,7 +1300,9 @@ def action_or_block(started=False):  # expression_or_block
             # 3) def x \n block \n (end)
             ab = block()
         else:
-            raise_not_matching("expecting action or block start")
+            # 4) generous!! if 1>0 beep
+            ab = action_or_expression()
+            # raise_not_matching("expecting action or block start")
     if _start == "then" and the.current_word == "else": return ab
     maybe_newline() or end_block(_start)
     return ab
@@ -2791,23 +2798,25 @@ def english_to_math(s):
     return s
 
 
-def evaluate_index():
-    should_not_start_with('[')
-    must_contain(['[', ']'])
-    v = endNode()  # true_variable()
+def evaluate_index(obj=None):
+    if not obj:
+        should_not_start_with('[')
+        must_contain(['[', ']'])
+        obj = endNode()  # true_variable()
     _('[')
     i = endNode()
     _(']')
-    set = maybe_token('=')
-    if set: set = expression
+    set = maybe_token('=') or None
+    if set: set = expression()
     # if interpreting(): the.result=v.send :index,i
     # if interpreting(): the.result=do_send v,:[], i
     # if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
-    va = resolve(v)
+    va = resolve(obj)
     if interpreting(): the.result = va[i]  # va.__index__(i)  # old value
-    if set and interpreting():
+    if set!=None:# and interpreting():
         the.result = va[i] = set  # va.__index__(i, set)
-    if set and isinstance(v, Variable): v.value = va
+    if set!=None and isinstance(obj, Variable):
+        obj.value = va
 
     # if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
     return the.result

@@ -139,7 +139,13 @@ class FunctionTest(ParserBaseTest):
 
     def test_array_index(self):
         assert_equals(parse('x=[1,2,3];x[2]'), 3)
+
+    def test_array_index_set(self):
         assert_equals(parse('x=[1,2,3];x[2]=0;x'), [1, 2, 0])
+
+    def test_x(self):
+        the.variables['x']=Variable(name='x',value=1)
+        assert_equals(parse('x'), 1)
 
     def test_natural_array_index(self):
         parse('x=[1,2,3]')

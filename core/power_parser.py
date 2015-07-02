@@ -1069,7 +1069,7 @@ def checkEndOfFile():
 
 
 def maybe_newline():
-    newline(doraise=False)
+    return newline(doraise=False)
 
 
 def newline(doraise=False):

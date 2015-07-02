@@ -45,6 +45,8 @@ class ConditionTest(ParserBaseTest):
 
     def test_else_(self):
         assert_result_is('if(3<2) then 3 else 4', 4)
+
+    def test_else_2(self):
         assert_result_is('if 3<2 then 5 else 4', 4)
         assert_result_is('if 3<2 then 5 else False', False)
 
@@ -120,6 +122,8 @@ class ConditionTest(ParserBaseTest):
         assert_result_is('x=3;x', 3)
         assert_result_is('x=3;it', 3)
         assert_result_is('x=3;it*2', 6)
+
+    def test_it2(self):
         assert_result_is('3;it*2', 6)
         assert_result_is('2*it', 12)
         assert_result_is('it*2', 24)
@@ -172,7 +176,6 @@ class ConditionTest(ParserBaseTest):
 
     def test_if_return2(self):
         assert_equals(parse('return 1 if 1'), 1)
-        assert_equals(parse('return 1 if 1'), 1)
 
     def assert_c_ok(self):
         variables['c'] = [0, ]
@@ -217,8 +220,13 @@ class ConditionTest(ParserBaseTest):
     def test_if_then3(self):
         parse('if 1>0\n beep\nend')
         assert_equals(self.result(), 'beeped')
+
+    def test_if_then4(self):
+        # skip()
         parse('if 1>0 beep')
         assert_equals(self.result(), 'beeped')
+
+    def test_if_then5(self):
         parse('if two is bigger than zero then beep')
         assert_equals(self.result(), 'beeped')
 
