@@ -21,6 +21,8 @@ import traceback
 # import Interpretation
 # import HelperMethods
 # import kast
+import types
+import sys
 import emitters.kast_emitter
 import interpretation
 import inspect
@@ -450,7 +452,7 @@ def liste(check=True):
     if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
     # +[' '] ???
     start_brace = maybe_tokens(['[', '{', '('])  # only one!
-    if not start_brace and inside_list: raise NotMatching('not a deep list')
+    if not start_brace and (inside_list or in_args): raise NotMatching('not a deep list')
 
     # all<<expression(start_brace)
     # angel.verbose=True #debug
@@ -633,14 +635,14 @@ def postoperations(context):
 
 
 def quick_expression():  # bad idea!
-    the.result=False
+    the.result = False
     if the.current_word in the.method_names + the.methods.keys():
-        the.result = method_call() # already wrapped maybe(method_call)
+        the.result = method_call()  # already wrapped maybe(method_call)
     elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
-        the.result = fun() # already wrapped maybe(fun)
-    if the.current_word!=";" and the.current_word in operators + special_chars + ["element", "item"]:
+        the.result = fun()  # already wrapped maybe(fun)
+    if the.current_word != ";" and the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
     return the.result
 
@@ -705,7 +707,7 @@ def piped_actions():
 
 
 def statement():
-    if starts_with(done_words): # allow empty blocks
+    if starts_with(done_words):  # allow empty blocks
         raise_not_matching("end of block")
     raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
@@ -859,13 +861,13 @@ def if_then():
     c = condition_tree()
     if c == None: raise InternalError("no condition_tree")
     # c=condition()
-    started=maybe_token('then')
+    started = maybe_token('then')
     if c != True:
         dont_interpret()
     b = action_or_block(started)
     maybe_newline()  # for else
     if c == False or c == FALSE: return False
-    if interpreting() and c != True: # c==True done above!
+    if interpreting() and c != True:  # c==True done above!
         if check_condition(c):
             return do_execute_block(b)
         else:
@@ -998,17 +1000,25 @@ def get_module(module):
 
 # In Python 2.7, built-in function objects such as print()
 # simply do not have enough information for you to discover what arguments they support!!
-def has_args(method, clazz=object, assume=False):
+def has_args(method, clazz=object, assume=0):
     if method in ['increase', 'invert', '++', '--']:  # increase by 8: todo all intransitive verbs with objects!
-        return False
+        return 0
     if isinstance(method, Function):
-        return len(method.arguments) > 0
+        return len(method.arguments)
     method = findMethod(clazz, method)
     try:
+        is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
+        if (is_builtin):
+            doku = help(method.__name__)
+            convention = doku[1]  # no Python documentation found for 'hypot'
+            num = len(convention.split(","))
+            return num
         args, varargs, varkw, defaults = inspect.getargspec(method)
-        return len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0) > 0 or assume
+        alle = len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
+        if alle == 0: return assume
+        return alle
     except:
-        return assume
+        return assume or 0
 
 
 def c_method():
@@ -1074,9 +1084,9 @@ def true_method():
     if xmodule:
         module, moduleMethods = import_module(xmodule)
         obj, name = subProperty(module)
-        if obj == module: obj = None
+        # if obj == module: obj = None
         if obj: moduleMethods += dir(obj)
-        name = name or maybe_tokens(moduleMethods)
+        if not name: name = maybe_tokens(moduleMethods)
     elif xvariable:
         variable = the.variables[xvariable]
         obj, name = subProperty(variable.value)
@@ -1241,7 +1251,7 @@ def breaks():
 
 
 #	 or 'say' x=(.*) -> 'bash "say $quote"'
-def action(): # NOT THE SAME AS EXPRESSION!?
+def action():  # NOT THE SAME AS EXPRESSION!?
     start = pointer()
     maybe(bla)
     the.result = maybe(special_blocks) or \
@@ -1260,18 +1270,19 @@ def action(): # NOT THE SAME AS EXPRESSION!?
     return the.result  # value or AST
 
 
-
-def action_or_expression(fallback=None): # if a/e then a/b
+def action_or_expression(fallback=None):  # if a/e then a/b
     return maybe(action) or expression(fallback)
+
 
 def expression_or_block():  # action_or_block):
     action_or_block()
+
 
 def action_or_block(started=False):  # expression_or_block
     _start = maybe_tokens(start_block_words) or started
     if _start:
         # allow_rollback()
-        if maybe_newline() or must_contain(done_words,False):
+        if maybe_newline() or must_contain(done_words, False):
             # 1) def x do \n block \n (end)
             ab = block()
         else:
@@ -1285,12 +1296,14 @@ def action_or_block(started=False):  # expression_or_block
             ab = block()
         else:
             raise_not_matching("expecting action or block start")
-    if _start=="then" and the.current_word=="else": return ab
+    if _start == "then" and the.current_word == "else": return ab
     maybe_newline() or end_block(_start)
     return ab
 
+
 def end_block(type=None):
     return done(type)
+
 
 def done(_type=None):
     # if _type and maybe(lambda: close_tag(_type)): return OK
@@ -1312,23 +1325,12 @@ def close_tag(type):
     return type
 
 
-def do_call_function(f, args=None):
-    if (callable(f)):
-        if (args):
-            try:
-                return f(**args)  # match named params
-            except:
-                return f(*args.values())
-        else:
-            return f()
-    return do_send(f.object, f.name, args or f.arguments)
-
-
+# Similar to align_args
 def prepare_named_args(args):
     import copy
 
     context_variables = copy.copy(the.variables)
-    if not isinstance(args, dict): args = {'arg': args}
+    if not isinstance(args, dict): return args  # = {'arg': args}
     for arg, val in args.iteritems():
         if arg in context_variables:
             v = context_variables[arg]
@@ -1345,9 +1347,9 @@ def do_execute_block(b, args={}):
     global variableValues
     if not b: return False
     if b == True: return True
+    if callable(b): return do_send(None, b, args)
+    if isinstance(b, FunctionCall): return do_send(b.object, b.name, args or b.arguments)
     args = prepare_named_args(args)
-    if isinstance(b, FunctionCall): return do_call_function(b, args)
-    if callable(b): return do_call_function(b, args)
     if isinstance(b, kast.AST): return eval_ast(b, [args])
     if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
     if isinstance(b, TreeNode): b = b.content
@@ -1900,7 +1902,7 @@ def either_or():
 def is_comparator(c):
     ok = c in comparison_words
     ok = ok or c in class_words
-    ok = ok or isinstance(c,ast.cmpop)
+    ok = ok or isinstance(c, ast.cmpop)
     # or \
     # (c - "is ") in comparison_words.contains() or \
     # comparison_words.contains(c - "are ") or \
@@ -1945,9 +1947,9 @@ def check_list_condition(quantifier, lhs, comp, rhs):
 def check_condition(cond=None, negate=False):
     if cond == True or cond == 'True': return True
     if cond == False or cond == 'False': return False
-    if isinstance(cond, ast.BinOp): cond=Condition(lhs=cond.left,comp=cond.op,rhs=cond.right)
+    if isinstance(cond, ast.BinOp): cond = Condition(lhs=cond.left, comp=cond.op, rhs=cond.right)
     if cond == None or not isinstance(cond, Condition):
-        raise InternalError("NO Condition given! %s"%cond)
+        raise InternalError("NO Condition given! %s" % cond)
 
         # return cond
     try:
@@ -1984,6 +1986,8 @@ def check_condition(cond=None, negate=False):
     # all of 1,2,3
     # all even numbers in [1,2,3,4]
     # one element in 1,2,3
+
+
 def element_in():
     must_contain_before(["of", "in"], special_chars)
     n = noun()
@@ -2278,7 +2282,7 @@ class Reflector(object):
             return do_evaluate(the.variables[name].value)
         if name in the.methods:
             return the.methods[name]
-        raise Exception("UNKNOWN ITEM %s"%name)
+        raise Exception("UNKNOWN ITEM %s" % name)
         return name
 
     def __setitem__(self, key, value):
@@ -2287,7 +2291,7 @@ class Reflector(object):
             the.variables[key].value = value
         else:
             the.variables[key] = Variable(name=key, value=value)
-        the.variableValues[key]=value
+        the.variableValues[key] = value
         the.result = value
 
 
@@ -2306,7 +2310,7 @@ def eval_ast(my_ast, args={}):
         #     s = kast.setter(k, do_evaluate(args[k]))
         #     variable_inits.append(s)
         if not type(my_ast) == ast.Module:
-            my_ast=flatten(my_ast)
+            my_ast = flatten(my_ast)
             my_ast = _ast.Module(body=variable_inits + my_ast)
         # elif args:my_ast.body=variable_inits+my_ast.body
         print(my_ast.body)
@@ -2362,7 +2366,7 @@ def do_evaluate(x, _type=None):
         # if callable(x): return x()  # Whoot
         if not interpreting(): return x
         if isinstance(x, kast.AST): return eval_ast([x])
-        if isinstance(x,list) and isinstance(x[0], kast.AST): return eval_ast(x)
+        if isinstance(x, list) and isinstance(x[0], kast.AST): return eval_ast(x)
         return x  # DEFAULT!
     except (TypeError, SyntaxError)as e:
         print("ERROR #{e) in do_evaluate #{x)")
@@ -2418,7 +2422,7 @@ def do_math(a, op, b):
     if op == 'and': return a and b
     if op == '&&': return a and b
     if op == 'but':
-        if isinstance(a,list):return a.remove(b)
+        if isinstance(a, list): return a.remove(b)
         return a and b
     # if op == '&': return a and b
     if op == '&': return a & b
@@ -2434,7 +2438,7 @@ def do_math(a, op, b):
     if op == '>=': return a >= b
     if op == '==': return a == b
     if op == '=': return a == b
-    if op == 'is': return a == b # NOT the same as a is b:
+    if op == 'is': return a == b  # NOT the same as a is b:
     if op == '===': return a is b
     if op == 'is identical': return a is b
     if op == 'is exactly': return a is b
@@ -2491,6 +2495,38 @@ def findMethod(obj0, method0, args0=None):
     # if callable(method):method(args)
 
 
+# Similar to prepare_named_args for block ast eval!
+def align_args(args, clazz, method):
+    if args and isinstance(args, str): args = xstr(args).replace_numerals()
+    if isinstance(args, Argument): args = args.name_or_value
+
+    def values(x):
+        return x.value
+
+    if (isinstance(args, list)):
+        args = map(values, args)
+    if (isinstance(args, Argument)): args = args.value
+
+    is_bound = 'im_self' in dir(method) and method.im_self
+    if is_bound:
+        if method.im_self == args: args = None
+        if (args and isinstance(args, list) and len(args) > 0):
+            if method.im_self == args[0]: args.remove(args[0])
+    args = eval_string(args)  # except NoMethodError
+    return args
+    if isinstance(method, Function):
+        method = findMethod(clazz, method)
+    try:
+        margs, varargs, varkw, defaults = inspect.getargspec(method)
+        expect = len(margs) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
+        if isinstance(args, list):
+            if (len(args) > expect):
+                args = [args]
+        return args
+    except:
+        return args
+
+
 # INTERPRET only,  todo cleanup method + argument matching + concept
 def do_send(obj0, method0, args0=[]):
     if not interpreting(): return False
@@ -2506,38 +2542,29 @@ def do_send(obj0, method0, args0=[]):
         return the.result
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
-    args = args0
-    if isinstance(args, Argument): args = args.name_or_value
-    if (method == 'of'): return evaluate_property(args, obj0)
+    if (method == 'of'): return evaluate_property(args0, obj0)
     # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
-    if args and isinstance(args, str): args = xstr(args).replace_numerals()
-    if (args and isinstance(args, list) and len(args) > 0):
-        if method.im_self == args[0]: args.remove(args[0])
-    args = eval_string(args)  # except NoMethodError
-    if 'im_self' in dir(method) and method.im_self == args: args = None
+    is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
+    is_bound = 'im_self' in dir(method) and method.im_self
 
-    def values(x):
-        return x.value
-
-    if (isinstance(args, list)):
-        args = map(values, args)
-    if (isinstance(args, Argument)): args = args.value
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
     obj = do_evaluate(obj0)
+    args = align_args(args0, obj, method)
+    number_of_arguments = has_args(method, obj, not not args)
     if not obj:
-        if args and has_args(method):
+        if args and number_of_arguments > 0:
             return method(args)
         else:
             return method()
 
     if not args and not callable(method) and method in dir(obj):
         return obj.__getattribute__(method)
-
-    if (args and args[0] == 'of'):  # and has_args(method, obj)):
-        if not callable(method) and method in dir(obj):
-            return obj.__getattribute__(method)
-        else:
-            method(args[1])  # square of 7
+    # if (args and args[0] == 'of'):  # and has_args(method, obj)):
+    #     if not callable(method) and method in dir(obj):
+    #         return obj.__getattribute__(method)
+    #     else:
+    #         method(args[1])  # square of 7
+    print >> sys.stderr, ("CALLING %s %s with %s" % (obj, method, args))
 
     if is_math(method_name):
         return do_math(obj, method_name, args)
@@ -2545,14 +2572,25 @@ def do_send(obj0, method0, args0=[]):
     if not callable(method):
         raise MethodMissingError(type(obj), method, args)
 
-    if not args or not has_args(method, obj, False):
-        if method.im_self:
+    if not args or not number_of_arguments:
+        if is_bound or is_builtin:
             the.result = method() or NILL
         else:
             the.result = method(obj) or NILL
     elif has_args(method, obj, True):
-        if method.im_self:
-            the.result = method(args) or NILL
+        if is_bound or is_builtin:
+            if isinstance(args, dict):
+                try:
+                    the.result = method(**args) or NILL
+                except:
+                    the.result = method(*args.values()) or NILL
+            if isinstance(args, list) or isinstance(args, tuple):
+                if len(args) == 1 and number_of_arguments == 1:
+                    the.result = method(args) or NILL
+                else:
+                    the.result = method(*args) or NILL
+            else:
+                the.result = method(args) or NILL
         else:
             the.result = method(obj, args) or NILL
             # the.result = method(obj, *args) or NILL
@@ -2584,19 +2622,20 @@ def do_compare(a, comp, b):
     if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a)  # EEK PHP STYLE !? REALLY??
     if isinstance(a, int) and re.search(r'^\+?\-?\.?\d', str(b)): b = int(b)  # EEK PHP STYLE !? REALLY??
     if isinstance(comp, str): comp = comp.strip()
-    if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp,ast.Lt):
+    if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp, ast.Lt):
         return a < b
-    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(comp,ast.Gt):
+    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(
+            comp, ast.Gt):
         return a > b
-    elif comp == 'smaller or equal' or comp == '<=' or isinstance(comp,ast.LtE):
+    elif comp == 'smaller or equal' or comp == '<=' or isinstance(comp, ast.LtE):
         return a <= b
-    elif comp == 'bigger or equal' or comp == '>=' or isinstance(comp,ast.GtE):
+    elif comp == 'bigger or equal' or comp == '>=' or isinstance(comp, ast.GtE):
         return a >= b
-    elif comp in ['!=','is not'] or isinstance(comp,ast.NotEq):
+    elif comp in ['!=', 'is not'] or isinstance(comp, ast.NotEq):
         return a == b
-    elif comp in ['in','element of'] or isinstance(comp,ast.In):
+    elif comp in ['in', 'element of'] or isinstance(comp, ast.In):
         return a in b
-    elif comp in be_words or isinstance(comp,ast.Eq):
+    elif comp in be_words or isinstance(comp, ast.Eq):
         return a == b
     elif class_words.index(comp):
         return issubclass(a, b) or isinstance(a, b)  # issubclass? a bird is an animal OK
@@ -2630,6 +2669,7 @@ def filter(liste, criterion):
 def simpleProperty():
     must_contain_before(".", special_chars + keywords)
     module = token(the.moduleNames)  # or token(the.classes) # or objs!!
+    module = get_module(module)
     _(".")
     prop = word()
     if interpreting():
@@ -2725,7 +2765,8 @@ def check_end_of_statement():
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(';')  # consume ";", but DON'T consume done_words here!
+    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(
+        ';')  # consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):
@@ -2763,9 +2804,9 @@ def evaluate_index():
     # if interpreting(): the.result=do_send v,:[], i
     # if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
     va = resolve(v)
-    if interpreting(): the.result = va.__indextokens(i)  # old value
+    if interpreting(): the.result = va[i]  # va.__index__(i)  # old value
     if set and interpreting():
-        the.result = va.__indextokens(i, set)
+        the.result = va[i] = set  # va.__index__(i, set)
     if set and isinstance(v, Variable): v.value = va
 
     # if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
@@ -3070,7 +3111,7 @@ def repeat_every_times():
     maybe_tokens(['repeat'])
     action_or_block()
     interval = datetime()
-        # event=Event(interval:interval,event:b)
+    # event=Event(interval:interval,event:b)
 
 
 def repeat_action_while():

@@ -1,6 +1,7 @@
 import ast
 from kast import kast
 from the import *
+import sys #
 
 class Condition(object):#todo: BinOp ?
     def __init__(self, **kwargs): #ruby : initialize
@@ -133,6 +134,9 @@ class Argument(kast.arg):
         # scope.variables[name]=self
 
     def __eq__(self,other):
+        if not other:
+            print >> sys.stderr, "missing argument %s"%self
+            return False
         ok = True
         has_type=self.type and other.type
         ok= ok and  self.name == other.name

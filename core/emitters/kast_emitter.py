@@ -12,6 +12,7 @@ def wrap_value(val):
     if isinstance(val,str):return kast.Str(val)
     if isinstance(val,int):return kast.Num(val)
     if isinstance(val,float):return kast.Num(val)
+    if isinstance(val,list):return kast.List(map(wrap_value,val),ast.Load())
     if val==None:return kast.none
     raise Exception("UNKNOWN TYPE %s : %s !"%(val,t))
 

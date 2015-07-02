@@ -279,7 +279,7 @@ def tokens(tokenz):
 def maybe_tokens(tokens0):
     # tokens = flatten(tokens0)
     for t in tokens0:
-        if t == the.current_word:
+        if t == the.current_word or t.lower() == the.current_word.lower() :
             next_token()
             return t
         if " " in t:

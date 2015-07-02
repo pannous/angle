@@ -19,7 +19,7 @@ class FunctionTest(ParserBaseTest):
         dir = 'samples/'
         code = read(dir + ('fibonacci.e'))
         code = fix_encoding(code)
-        p(code)
+        print(code)
         print(parse(code))
         fib = functions['fibonacci']
         print(fib)
@@ -34,7 +34,7 @@ class FunctionTest(ParserBaseTest):
         dir = 'samples/'
         code = read(dir + ('identity.e'))
         code = fix_encoding(code)
-        p(code)
+        print (code)
         print(parse(code))
         identity = functions['identity']
         assert (equals('x', identity.args[0].name))
@@ -72,7 +72,7 @@ class FunctionTest(ParserBaseTest):
 
     def test_params_call(self):
         f=self.test_params()
-        assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)
+        assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
     def test_function_object(self):
         parse('how to increase a number x by y: x+y;')
@@ -81,7 +81,7 @@ class FunctionTest(ParserBaseTest):
         arg2 = Argument({'name': 'y', 'preposition': 'by', 'position': 2, })
         f = Function({'arguments': arg2, 'name': 'increase', 'body': 'x+y;', 'object': arg1, })
         assert_equal(f, g)
-        assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)
+        assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
     def test_blue_yay(self):
         assert_result_is("def test{puts 'yay'};test", 'yay')
@@ -115,11 +115,11 @@ class FunctionTest(ParserBaseTest):
         assert_result_is('x.reverse', 'ih')
         # assert_result_is('reverse x', 'ih')
 
-    def test_rubyThing(self):
-        parse('Math.hypot(3,3)')
+    def test_rubyStyle(self):
+        parse('Math.hypot(3,4)')
         parse('Math.sqrt 8')
         parse('Math.sqrt( 8 )')
-        parse('Math.ancestors')
+        # parse('Math.e ~= 2.71828')
 
     def test_x_name(self):
         variables['x'] = Variable(name='x',value=7)
