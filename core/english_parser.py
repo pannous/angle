@@ -1497,16 +1497,16 @@ def property():
     return Property(name=properti, owner=owner)
 
 
-# difference to setter? just public int var const test
+# difference to setter? just public int var const test # no be_words
 def declaration():
     must_not_contain(be_words)
     # must_contain_before  be_words+['set'],';'
     a = the_()
     mod = maybe_tokens(modifiers)
     type = typeNameMapped()
-    maybe_tokens(['var', 'val', 'value of'])
+    maybe_tokens(['var', 'val', 'let'])
     mod = mod or maybe_tokens(modifiers)  # public static :.
-    var = maybe(property) or maybe(known_variable) or variable(a, ctx=kast.Store())
+    var = maybe(known_variable) or variable(a, ctx=kast.Store())
     if var.type:
         assure_same_type(var, type)
     else:
@@ -2053,7 +2053,8 @@ def condition():
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
-    if not comp: return lhs
+    angle.in_condition=False
+    if not comp:return lhs
     # allow_rollback # upto maybe(where)?
     if comp: rhs = action_or_expression(None)
     if brace: _(')')
@@ -2297,6 +2298,8 @@ def do_evaluate_property(attr, node):
 def eval_string(x):
     if not x: return None
     if isinstance(x, Variable): return x.value
+    if isinstance(x, ast.Num): return x.n
+    if isinstance(x, ast.Str): return x.s
     if isinstance(x, extensions.File): return x.to_path
     # if isinstance(x, str): return x
     # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x

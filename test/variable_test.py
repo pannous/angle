@@ -8,7 +8,9 @@ class VariableTest(ParserBaseTest):
     def setUp(self):
         angle.use_tree=False
         the.variables.clear()
-        # self.super.setUp()
+        the.variableTypes.clear()
+        the.variableValues.clear()
+        # super(ParserBaseTest).setUp()
 
     def dont_test_a_setter_article_vs_variable(self):
         parse('a=green')
@@ -18,7 +20,7 @@ class VariableTest(ParserBaseTest):
 
     def test_variableTypes(self):
         init('an integer i')
-        self.parser.variable()
+        self.parser.variable(None,ast.Store())
 
     def test_variable_type_syntax(self):
         parse('int i=3')
@@ -71,6 +73,7 @@ class VariableTest(ParserBaseTest):
         assert_has_error("int i;i='hi'", WrongType)
 
     def test_variable_scope(self):
+        skip()
         parse("""def cycle
                     i = 1
                     while i > 10
