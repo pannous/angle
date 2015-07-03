@@ -7,6 +7,7 @@ from power_parser import WrongType, ImmutableVaribale
 class VariableTest(ParserBaseTest):
     def setUp(self):
         angle.use_tree=False
+        the.variables.clear()
         # self.super.setUp()
 
     def dont_test_a_setter_article_vs_variable(self):
@@ -26,6 +27,13 @@ class VariableTest(ParserBaseTest):
 
     def test_variable_type_cast(self):
         parse('int i;i=3.2 as int')
+
+
+    def test_variable_range(self):
+        i=parse('list i is 5 to 10')
+        i=parse('i is 5 to 10')
+        assert_equal(i,range(5,10+1)) # count from 1 to 10 => 10 INCLUDED, thus +1!
+
 
     def test_variable_type_cast2(self):
         skip()

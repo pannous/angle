@@ -102,7 +102,7 @@ class GivingUp(StandardError):
     pass
 
 
-class ShouldNotMatchKeyword(NotMatching):
+class MustNotMatchKeyword(NotMatching):
     pass
 
 
@@ -365,6 +365,9 @@ def load_module_methods():
     import english_parser
 
     for mo, mes in the.moduleMethods.items():
+        if len(mo)<2:
+            print("TO TINY METHOD:%s"%mo)
+            continue
         the.token_map[mo] = english_parser.method_call
         for meth in mes:
             the.token_map[meth] = english_parser.method_call
@@ -480,6 +483,7 @@ def remove_tokens(*tokenz):
 def must_contain(args,do_raise=True):  # before ;\n
     if isinstance(args[-1], dict):
         return must_contain_before(args[0:-2], args[-1]['before'])
+    if isinstance(args, str):args=[args]
     old = current_token
     while not (checkEndOfLine()):
         for x in args:

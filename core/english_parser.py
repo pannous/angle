@@ -16,6 +16,8 @@
 # import re
 # import __builtin__
 import _ast
+import ast
+from ast import NodeVisitor
 import traceback
 # import HelperMethods
 # import Interpretation
@@ -95,7 +97,7 @@ def should_not_start_with(words):
     bad = starts_with(words)
     if not bad: return OK
     if bad: info("should_not_match DID match #{bad)")
-    if bad: raise NotMatching(ShouldNotMatchKeyword(bad))
+    if bad: raise NotMatching(MustNotMatchKeyword(bad))
 
 
 def remove_from_list(keywords0, excepty):
@@ -138,7 +140,7 @@ def value():
                  maybe(quote) or \
                  maybe(nill) or \
                  maybe(number) or \
-                 maybe(true_variable) or \
+                 maybe(known_variable) or \
                  maybe(boolean) or \
                  maybe(constant) or \
                  maybe(it) or \
@@ -423,7 +425,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     maybe_tokens(['.', 'rd', 'st', 'nd'])
     type = maybe_tokens(['item', 'element', 'object', 'word', 'char', 'character'] + type_names)  # noun
     maybe_tokens(['in', 'of'])
-    l = resolve(maybe(true_variable)) or maybe(liste) or quote()  # or (expression) with parenthesis!!
+    l = resolve(maybe(known_variable)) or maybe(liste) or quote()  # or (expression) with parenthesis!!
     if re.search(r'^char', type):
         the.result = "".join(l).__getitem__(n)
         return the.result
@@ -450,7 +452,7 @@ def listselector():
 @Starttokens('{')
 def functionalselector():
     _('{')
-    xs = true_variable()
+    xs = known_variable()
     crit = selector()
     _('}')
     return filter(xs, crit)
@@ -651,13 +653,19 @@ def quick_expression():  # bad idea!
     if the.current_word in the.method_names + the.methods.keys():
         the.result = method_call()  # already wrapped maybe(method_call)
     elif the.current_word in the.variables.keys():
-        the.result = true_variable()
+        the.result = known_variable()
     elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
     if the.current_word=='': return the.result
     if the.current_word=='.': return method_call(the.result)
+    if the.current_word=='to':return ranger(the.result)
+    if the.current_word=='if':return action_if(the.result)
+    if the.current_word in be_words:
+        if angle.in_condition: return the.result
+        if isinstance(the.result,Variable):return setter(the.result)
+        else:raise_not_matching("better try setter")
     if the.current_word=='[':
         return evaluate_index(the.result)
     if the.current_word in operators:
@@ -734,7 +742,6 @@ def statement():
     x = maybe(quick_expression) or \
         maybe(loops) or \
         maybe(if_then_else) or \
-        maybe(action_if) or \
         maybe(once) or \
         maybe(piped_actions) or \
         maybe(declaration) or \
@@ -860,10 +867,10 @@ def if_then_else():
     return the.result
 
 
-def action_if():
-    must_not_start_with("if")
+def action_if(a):
+    if not a:must_not_start_with("if")
     must_contain('if')
-    a = action_or_expression()
+    a = a or action_or_expression()
     _('if')
     c = condition_tree()
     if interpreting():
@@ -1408,7 +1415,7 @@ def datetime():
 
 def collection():
     return maybe(ranger) or \
-           maybe(true_variable) or \
+           maybe(known_variable) or \
            action_or_expression()
 
 
@@ -1484,7 +1491,7 @@ def property():
     must_contain_before([".", "'s"], xlist(special_chars) - '.')
     allow_rollback()
     owner = class_constant
-    owner = get_obj(owner) or variables[true_variable(False)].value  # reference
+    owner = get_obj(owner) or variables[known_variable(False)].value  # reference
     _('.')
     properti = word
     return Property(name=properti, owner=owner)
@@ -1492,14 +1499,14 @@ def property():
 
 # difference to setter? just public int var const test
 def declaration():
-    should_not_contain('=')
+    must_not_contain(be_words)
     # must_contain_before  be_words+['set'],';'
     a = the_()
     mod = maybe_tokens(modifiers)
     type = typeNameMapped()
     maybe_tokens(['var', 'val', 'value of'])
     mod = mod or maybe_tokens(modifiers)  # public static :.
-    var = maybe(property) or variable(a, ctx=kast.Store())
+    var = maybe(property) or maybe(known_variable) or variable(a, ctx=kast.Store())
     if var.type:
         assure_same_type(var, type)
     else:
@@ -1510,7 +1517,8 @@ def declaration():
 
 
 @Starttokens(let_words)
-def setter():
+def setter(var=None):
+    # if not var:
     must_contain_before(args=be_words + ['set'], before=['>', '<', '+', '-', '|', '/', '*'])
     _let = maybe_tokens(let_words)
     if _let: allow_rollback()
@@ -1519,8 +1527,10 @@ def setter():
     _type = maybe(typeNameMapped)
     maybe_tokens(['var', 'val', 'value of'])  # same as let? don't overwrite?
     mod = mod or maybe(modifier)  # public static :.
-    var = maybe(property) or variable(a, ctx=kast.Store())
-    # _22("always") => pointer()
+    # else:
+    #     _type=var.type
+    #     mod=var.modifier
+    var = var or maybe(property) or variable(a, ctx=kast.Store())
     setta = maybe_tokens(['to']) or be()  # or not_to_be 	contain -> add or create
     # val = maybe(adjective) or expressions()
     val = expression()
@@ -1549,7 +1559,7 @@ def setter():
     the.variableTypes[var.name] = var.type
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
     # end_expression via statement!
-    the.token_map[var.name] = true_variable
+    the.token_map[var.name] = known_variable
     if not interpreting(): return kast.Assign(kast.Name(var.name, kast.Store()), val)
     if interpreting() and val != 0: return val
     return var
@@ -1652,13 +1662,13 @@ def word(include=None):
     # NOT SAME AS should_not_start_with!!!
 
 
-def should_not_contain(words):
+def must_not_contain(words):
     old = the.current_token
     words = flatten(words)
     while not checkEndOfLine() and the.current_word != ';':
         for w in words:
             if w == the.current_word:
-                raise ShouldNotMatchKeyword(w)
+                raise MustNotMatchKeyword(w)
         next_token()
     set_token(old)
     return OK
@@ -1695,7 +1705,7 @@ def call_cast(x, typ):
 def nod():  # options{generateAmbigWarnings=false)):
     return maybe(number) or \
            maybe(quote) or \
-           maybe(true_variable) or \
+           maybe(known_variable) or \
            maybe(true_param) or \
            the_noun_that()
     # maybe(the_noun_that)  # or
@@ -2316,6 +2326,12 @@ class Reflector(object):
         the.variableValues[key] = value
         the.result = value
 
+class PrepareTreeVisitor(ast.NodeTransformer):
+    def visit_int(self,x):
+        return ast.Num(x)
+
+    # def generic_visit(self, node):
+
 
 def eval_ast(my_ast, args={}):
     import codegen
@@ -2335,6 +2351,7 @@ def eval_ast(my_ast, args={}):
             my_ast = flatten(my_ast)
             my_ast = _ast.Module(body=variable_inits + my_ast)
         # elif args:my_ast.body=variable_inits+my_ast.body
+        PrepareTreeVisitor().visit(my_ast)
         print(my_ast.body)
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
@@ -2692,7 +2709,7 @@ def simpleProperty():
 def selectable():
     must_contain(['that', 'whose', 'which'])
     maybe_tokens(['every', 'all', 'those'])
-    xs = resolve(true_variable()) or endNoun()
+    xs = resolve(known_variable()) or endNoun()
     s = maybe(selector)  # rhs=xs, lhs implicit! (BAD!)
     if interpreting(): xs = filter(xs, s)  # except xs
     return xs
@@ -2712,14 +2729,14 @@ def filter(liste, criterion):
         args = rhs
     mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
-def ranger():
+def ranger(a=None):
     if in_params: return False
     must_contain('to')
     maybe_token('from')
-    a = number()
+    a = a or number()
     _('to')
     b = number()
-    return range(a, b)  # a:b # (a:b).to_a
+    return range(a, b+1) # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 
 # #  or  endNode have adjective  or  endNode attribute  or  endNode verbTo verb # or endNode auxiliary gerundium
@@ -2734,7 +2751,7 @@ def endNode():
         maybe(simpleProperty) or \
         maybe(evaluate_property) or \
         maybe(selectable) or \
-        maybe(true_variable) or \
+        maybe(known_variable) or \
         maybe(article) and word() or \
         maybe(ranger) or \
         maybe(value) or \
@@ -2970,7 +2987,7 @@ def true_param():
     return v
 
 
-def true_variable(node=True):
+def known_variable(node=True):
     # must_not_start_with(the.method_names)
     vars = the.variables.keys()
     if (len(vars) == 0): raise NotMatching()
