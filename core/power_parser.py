@@ -980,12 +980,12 @@ def token_old(t):
 
 
 def flatten(l):
-    if isinstance(l, str): return [l]
     if isinstance(l, list) or isinstance(l, tuple):
         for k in l:
             if isinstance(k, list):
                 l.remove(k)
                 l.append(*k)
+    else:return [l]
     # verbose("NOT flattenable: %s"%s)
     return l
 

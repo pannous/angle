@@ -86,6 +86,9 @@ class Function:
                 self.arguments==other.args
         return False
 
+    def call(self,args):
+        import english_parser
+        english_parser.eval_ast(FunctionCall(self,args))
 
         # def call(*args):
         # self.parser. self.context.
@@ -94,16 +97,17 @@ class Function:
 # NEEDS TO BE WRAPPED! Expr(Call(Name('beep', Load()), [], [], None, None))
 # class FunctionCall(ast.Expr):
 class FunctionCall(ast.Assign):
-    def __init__(self, name=None, arguments=None,object=None, **args):
+    def __init__(self, func=None, arguments=None,object=None, **args):
         # super(FunctionCall, self).__init__(*margs, **args)
         # self.args = []
         # self.keywords = []
         # self.kwargs = self.starargs = None
-        if callable(name): name=name.__name__#lulwoot
+        if callable(func): func=func.__name__#lulwoot
+        if isinstance(func,Function): func=func.name #eek name->func!
 
         #or args['name']
         # self.func = name
-        self.name = name or args['name']
+        self.name = func or args['func'] or args['name']
         self.arguments = args['arguments'] if 'arguments' in args else arguments
         if object:self.object =object
         # self. = args['object'] if 'object' in args else object NOOO, MESSES
@@ -112,11 +116,11 @@ class FunctionCall(ast.Assign):
         if 'class' in args: self.clazz = args['class']
         if 'module' in args: self.clazz = self.clazz or args['module']
         # AST CONTENT:
-        if isinstance(name,str): name=kast.name(name)
-        if not isinstance(name,kast.Name): raise Exception("NO NAME %s"%name)
+        if isinstance(func,str): func=kast.name(func)
+        if not isinstance(func,kast.Name): raise Exception("NO NAME %s"%func)
         arguments=[] #todo!!
         self.targets=[ast.Name(id="__result__",ctx=ast.Store())]
-        self.value=kast.call(name,arguments)# ast.Call(func=name,
+        self.value=kast.call(func,arguments)# ast.Call(func=name,
 
 
 class Argument(kast.arg):

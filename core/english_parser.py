@@ -650,15 +650,16 @@ def postoperations(context):# see quick_expression !!
 
 def quick_expression():  # bad idea!
     the.result = False
-    if the.current_word in the.method_names + the.methods.keys():
-        the.result = method_call()  # already wrapped maybe(method_call)
-    elif the.current_word in the.variables.keys():
+    if the.current_word in the.variables.keys():
         the.result = known_variable()
+    elif the.current_word in the.method_names + the.methods.keys():
+        the.result = method_call()  # already wrapped maybe(method_call)
     elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
     if the.current_word=='': return the.result
+    if the.current_word==';': return the.result
     if the.current_word=='.': return method_call(the.result)
     if the.current_word=='to':return ranger(the.result)
     if the.current_word=='if':return action_if(the.result)
@@ -755,7 +756,7 @@ def statement():
         maybe(new) or \
         maybe(action) or \
         maybe(expression) or \
-        raise_not_matching("Not a statement")
+        raise_not_matching("Not a statement %s"%pointer_string())
     # AS RETURN VALUE! DANGER!
     the.result = x
     the.last_result= x
@@ -1066,6 +1067,7 @@ def all_methods():
     if not the.method_names:
         constructors = the.classes.keys() + type_names
         the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+    the.method_names = [x for x in the.method_names if len(x)>2]
     return the.method_names
 
 
@@ -1184,7 +1186,7 @@ def method_call(obj=None):
     if not interpreting():
         if method == "puts" or method == "print":
             return kast.Print(dest=None, values=[args], nl=True)
-        return FunctionCall(name=method, arguments=args, object=obj)
+        return FunctionCall(func=method, arguments=args, object=obj)
     the.result = do_send(obj, method, args)
     return the.result
 
@@ -2846,8 +2848,7 @@ def evaluate_index(obj=None):
     if set!=None:# and interpreting():
         the.result = va[i] = set  # va.__index__(i, set)
     if set!=None and isinstance(obj, Variable):
-        obj.value = va
-
+        the.result=obj.value = va
     # if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
     return the.result
 

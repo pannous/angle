@@ -15,6 +15,10 @@ class FunctionTest(ParserBaseTest):
         assert_equals(the.result,f)
         parse("create a fullscreen window with name \"test\"")
 
+    def test_fibonacci_0(self):
+        # parse("define fibonacci number n\npass")
+        parse("define fibonacci number n\nif n<2 then 1 else fibonacci n-1 + fibonacci n-2\nend")
+
     def test_fibonacci(self):
         dir = 'samples/'
         code = read(dir + ('fibonacci.e'))
@@ -40,7 +44,8 @@ class FunctionTest(ParserBaseTest):
         assert (equals('x', identity.arguments[0].name))
         print(identity)
         print(identity.call(5))
-        assert (equals(5, identity.call(5)))
+        print(identity(5))
+        assert (equals(5, identity(5)))
         print(parse('identity(5)'))
         assert ('identity(5) is 5')
 
@@ -52,8 +57,8 @@ class FunctionTest(ParserBaseTest):
         init('here is how to define a method: done')
 
     def test_block(self):
-        variables['x'] = Variable(name='x',value=1)
-        variables['y'] = Variable(name='x',value=2)
+        the.variables['x'] = Variable(name='x',value=1)
+        the.variables['y'] = Variable(name='x',value=2)
         z = parse('x+y;')
         assert_equals(len(self.parser.variables()), 2)
         assert_equals(z, 3)
@@ -72,7 +77,7 @@ class FunctionTest(ParserBaseTest):
 
     def test_params_call(self):
         f=self.test_params()
-        assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
+        assert_equals(self.parser.do_send(f, {'x': 1, 'y': 2, }), 3)
 
     def test_function_object(self):
         parse('how to increase a number x by y: x+y;')
@@ -84,13 +89,16 @@ class FunctionTest(ParserBaseTest):
         assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
     def test_blue_yay(self):
-        the.parser.do_interpret()
+        self.parser.do_interpret()
         assert_result_is("def test{puts 'yay'};test", 'yay')
         assert_result_is("def test{puts 'yay'};test", 'yay')
 
     def test_class_method(self):
-        parse('how to list all numbers smaller x: [1..x]')
-        g = functions['list']
+        # parse('how to list all numbers smaller x: [1..x]')
+        # parse('to get numbers smaller x: [1..x]')
+        parse('to get numbers smaller x: return 1 to x - 1')
+        g = functions['get']
+        # g = functions['get numbers smaller eeek']
         f = Function({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
         assert_equal(f, g)
         assert_equals(self.parser.call_function(f, 4), [1, 2, 3])
