@@ -9,6 +9,10 @@ from test.parser_test_helper import *
 from english_parser import *
 
 
+def s(param):
+    pass
+
+
 class ParserTest(ParserBaseTest): #EnglishParser
     # ,EnglishParser   --> TypeError: Error when calling the metaclass bases
     # metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
@@ -69,45 +73,6 @@ class ParserTest(ParserBaseTest): #EnglishParser
         setter()
         assert(self.variableValues.contains('color'))
 
-    def test_root(self):
-        s('hello who does the world end')
-        token('hello')
-        question()
-        star()
-        _('the world')
-        assert(verb())
-        print('Parsed successfully!')
-
-    def aa(self):
-        print('aa')
-        print('aa')
-
-    def bb(self):
-        raise(NotMatching(test()))
-        raise(NotMatching(test()))
-
-    def cc(self):
-        print('cc')
-        return ''
-
-    def dd(self):
-        print('dd')
-        throw('dd')
-
-    def test_any(self):
-        s('a b c d')
-        one('aa', 'bb', 'cc')
-        assert(any())
-
-    def test_action(self):
-        s('eat a sandwich; done')
-        assert(action())
-        assert((match('sandwich', string()), ))
-
-    def test_methods(self):
-        test_method2()
-        test_method4()
-
     def test_method(self):
         s('how to integrate a bug do test done')
         assert(method_definition())
@@ -127,7 +92,6 @@ class ParserTest(ParserBaseTest): #EnglishParser
     def test_expression(self):
         s('eat a sandwich;')
         assert(action())
-        print(x())
 
     def raise_test(self):
         raise('test')
@@ -144,7 +108,7 @@ class ParserTest(ParserBaseTest): #EnglishParser
     def test_while(self):
         allow_rollback()
         s('while i is smaller or less then y do\n evaluate the function at point I\n add the result to the sum\n increase I by the step size\ndone')
-        looper()
+        self.looper()
 
     def test_setter3(self):
         s('step size is the length of the interval, divided by the number of steps')
@@ -160,7 +124,7 @@ class ParserTest(ParserBaseTest): #EnglishParser
 
     def test_looper(self):
         s('while i is smaller or less then y do\nyawn\nend')
-        looper()
+        self.looper()
 
     def test_method_call(self):
         s('evaluate the function at point I')
@@ -189,28 +153,21 @@ class ParserTest(ParserBaseTest): #EnglishParser
         assert(javascript())
 
     def test_ruby_method_call(self):
-        test_ruby_def()
         parse('NOW CALL via english')
         s("call ruby_block_test 'yeah'")
         assert(extern_method_call())
 
     def test_ruby_def(self):
         s("def ruby_block_test x='yuhu'\n  puts x\n  return x+'yay'\nend")
-        assert(ruby_def())
-        ruby_block_test()
 
     def test_ruby_all(self):
         s("\ndef ruby_block_test x='yuhu'\n  puts x\n  return x+'yay'\nend\ncall ruby_block_test 'yeah'\n")
-        root()
 
     def test_ruby_variables(self):
         s('x=7;puts x;x+1;')
-        root()
 
     def test_ruby(self):
         s("def ruby_block_test\n  puts 'ooooo'\n  return 'yay'\nend")
-        execute_ruby_block()
-        ruby_block_test()
 
     def test_algebra(self):
         s('2* ( 3 + 10 ) ')

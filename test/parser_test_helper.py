@@ -269,7 +269,7 @@ class ParserBaseTest(unittest.TestCase):
         if ((a==b or str(a)==str(b))):
             print('TEST PASSED! %s      %s == %s' % ( self.parser.original_string, a, b))
         else:
-            assert(a==b, ((str(a) + ' should equal ') + str(b)))
+            assert a==b, ((str(a) + ' should equal ') + str(b))
             # print(filter_stack(caller()))
 
     def assert_that(self, x,msg=None, block=None):
