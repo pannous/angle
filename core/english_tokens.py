@@ -175,10 +175,10 @@ operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 
-once_words = ['on the occasion that', 'whenever', 'wherever', "as soon as", "once"]
+once_words = [ 'whenever', 'wherever', "as soon as", "once"] #'on the occasion that',
 
-if_words = ['if', 'in case that', 'provided that', 'assuming that', 'conceding that', 'granted that', \
-            'on the assumption that', 'supposing that', 'with the condition that']
+if_words = ['if'] #, 'in case that', 'provided that', 'assuming that', 'conceding that', 'granted that', \
+# 'on the assumption that', 'supposing that', 'with the condition that']
 
 #  NOT: '0','0.0','0,nix','zero',
 nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nill', 'nul', 'nothing', 'not a thing', 'null', 'undefined', \

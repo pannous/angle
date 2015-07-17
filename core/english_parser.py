@@ -74,7 +74,7 @@ def boolean():
 def should_not_start_with(words):
     bad = starts_with(words)
     if not bad: return OK
-    if bad: info("should_not_match DID match "+bad)
+    if bad: info("should_not_match DID match %s"%bad)
     if bad: raise NotMatching(MustNotMatchKeyword(bad))
 
 
@@ -327,7 +327,8 @@ def algebra(val=None):
         op = maybe(comparation) or operator()
         # if not op == 'and': allow_rollback()
         n = maybe_token('not')
-        y = maybe(value) or bracelet()
+        # y = maybe(value) or bracelet()
+        y = maybe(expression) or bracelet() # so deep ok
         if y == ZERO: y = 0
         stack.append(op)  # after success of maybe(value)
         stack.append(n) if n else 0
@@ -628,11 +629,6 @@ def postoperations(context):  # see quick_expression !!
 
 def quick_expression():  # bad idea!
     the.result = False
-    if the.current_word == '': return the.result
-    if the.current_word == ';': return the.result
-    if the.current_word == '.': return method_call(the.result)
-    if the.current_word == 'to': return ranger(the.result)
-    if the.current_word == 'if': return action_if(the.result)
     if the.current_word in the.params.keys():
         the.result = true_param()
     if the.current_word in the.variables.keys():
@@ -653,7 +649,13 @@ def quick_expression():  # bad idea!
         return evaluate_index(the.result)
     if the.current_word in operators:
         return algebra(the.result)
-    if the.current_word != ";" and the.current_word in operators + special_chars + ["element", "item"]:
+    if the.result and the.current_word == 'to': return ranger(the.result)
+    if the.result and the.current_word == 'if': return action_if(the.result)
+    if the.current_word == '': return the.result
+    if the.current_word == ';': return the.result
+    if the.current_word == '.': return method_call(the.result)
+    if the.current_word in operators:return algebra(the.result)
+    if the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
     return the.result
 
@@ -886,6 +888,7 @@ def if_then():
     started = maybe_token('then')
     if c != True:
         dont_interpret()
+    adjust_rollback()
     b = action_or_block(started)
     maybe_newline()  # for else
     adjust_interpret()
@@ -1148,9 +1151,9 @@ def method_call(obj=None):
         obj = obj or None  # globals
     else:
         maybe_token('of')
-        if angle.in_args: obj = maybe(maybe(nod))
+        obj = maybe(the.classes.keys()) or maybe(the.moduleNames) #exclude vars
         if not angle.in_args:
-            obj = maybe(nod) or maybe(liste)  # danger: liste vs args below
+            obj = obj or maybe(liste)  # danger: liste vs args below
         method = findMethod(obj, method)  # Now we know the object
         maybe_token(',')
         # print(sorted files)
@@ -1280,7 +1283,8 @@ def breaks():
 def action():  # NOT THE SAME AS EXPRESSION!?
     start = pointer()
     maybe(bla)
-    the.result = maybe(special_blocks) or \
+    the.result = maybe(quick_expression) or \
+                 maybe(special_blocks) or \
                  maybe(applescript) or \
                  maybe(bash_action) or \
                  maybe(evaluate) or \
@@ -1644,8 +1648,6 @@ def variable(a=None, ctx=kast.Load()):
 
 
 word_regex = r'^\s*[a-zA-Z]+[\w_]*'
-
-
 def word(include=None):
     ## global the.string
     # danger:greedy!!!
@@ -1741,15 +1743,19 @@ def call_arg(position=1):
     pre = maybe_tokens(prepositions) or ""  # might be superfluous if calling"BY":
     maybe_tokens(articles)
     # allow_rollback()
-    a = maybe(variable)
-    if a: return Argument(name=a.name, type=a.type, preposition=pre, position=position, value=a)
+    # a = maybe(variable)# and not the.current_word in operators
+    # if a: return Argument(name=a.name, type=a.type, preposition=pre, position=position, value=a)
     type = maybe(typeNameMapped)
     if look_ahead('='):
         name = maybe(word)
         maybe_token('=')
     else:
         name = None
-    value = endNode()
+    # value = endNode()
+    value = expression() # allow f(x-1)
+    if isinstance(value,Variable):
+        name=value.name, type=type or value.type
+    # value = expression()
     # method=get_method(name,obj)
     # if isinstance(method,Function):
     #     for a in method.arguments:
@@ -2059,6 +2065,7 @@ def condition():
     if quantifier: filter = maybe(element_in)  # all words in
     angle.in_condition = True
     lhs = action_or_expression(quantifier)
+    if starts_with("then"): return lhs
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
@@ -2164,8 +2171,8 @@ def the_noun_that():
     else:
         if n in the.variables:
             return the.variables[n]
-        if n in the.methods:
-            return the.methods[n]
+        # if n in the.methods:
+        #     return the.methods[n]
         if n in the.classes:
             return the.classes[n]
         raise_not_matching("only 'that' filtered nouns for now!")

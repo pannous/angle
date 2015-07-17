@@ -174,12 +174,15 @@ def star(lamb):
             old = current_token
             good.append(match)
             if len(good) > max and throwing: raise " too many occurrences of " + to_source(lamb)
+    except GivingUp as e:
+        verbose("GivingUp ok in star")  # ok in star!
+        set_token(old)
+        return good
     except NotMatching as e:
         set_token(old)
         if very_verbose and not good:
-            verbose
-            "NotMatching star " + str(e)
-            if verbose: print_pointer
+            verbose("NotMatching star " + str(e))
+            if verbose: print_pointer()
     except EndOfDocument as e:
         verbose("EndOfDocument")  # ok in star!
     except IgnoreException as e:
@@ -229,7 +232,7 @@ def error(e, force=False):
             import TreeBuilder
 
             TreeBuilder.show_tree()
-        if not angle.verbose: raise e  # SyntaxError(e):
+        if not angle._verbose: raise e,None, sys.exc_info()[2]  # SyntaxError(e):
 
 
 def warn(e):
@@ -687,6 +690,7 @@ def allow_rollback(n=0):
         while the.rollback_depths[-1] > depth:
             the.no_rollback_depth =the.rollback_depths.pop()
             if len(the.rollback_depths)==0: break
+        the.no_rollback_depth = the.rollback_depths[-1]
     else:
         the.no_rollback_depth = -1
 
