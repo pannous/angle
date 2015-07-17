@@ -70,7 +70,12 @@ class Function:
         return self.clazz!=None and self.modifier=="staticmethod"
 
     def argc(self):
-        self.arguments.count
+        return    self.arguments.count
+
+    def __str__(self):
+        if self.clazz:
+            return "<Function %s %s>"%(self.clazz,self.name)
+        return "<Function %s>"%(self.name)
 
     def __eq__(self, other):
         if isinstance(other,Function):

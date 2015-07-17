@@ -690,6 +690,10 @@ def allow_rollback(n=0):
     else:
         the.no_rollback_depth = -1
 
+def no_rollback():
+    depth = caller_depth() - 1
+    the.no_rollback_depth=depth
+    the.rollback_depths.append(depth)
 
 def adjust_rollback(depth=-10):
     try:
@@ -713,6 +717,9 @@ def invalidate_obsolete(old_nodes):
 
 
 # start_block INCLUDED!! (optional !?!)
+def beginning_of_line():
+    return the.current_token[2][1]==0
+
 def block():  # type):
     global last_result, original_string
     from english_parser import statement, end_of_statement, end_block
@@ -722,7 +729,7 @@ def block():  # type):
     # content = pointer() - start
     end_of_block = maybe(end_block)  # ___ done_words
     if not end_of_block:
-        end_of_statement()  # danger might act as block end!
+        beginning_of_line() or end_of_statement()  # danger might act as block end!
 
         def lamb():
             try:
@@ -1047,9 +1054,10 @@ def raiseNewline():
 
 # see checkEndOfLine
 def checkNewline():
-    if (current_type == _token.NEWLINE):
-        return english_tokens.NEWLINE
-    return False
+    return checkEndOfLine()
+    # if (current_type == _token.NEWLINE):
+    #     return english_tokens.NEWLINE
+    # return False
 
 
 def checkEndOfLine():
@@ -1071,6 +1079,7 @@ def maybe_newline():
 
 
 def newline(doraise=False):
+    if the.current_word=='':return True
     if checkNewline() == english_tokens.NEWLINE:
         next_token()
         if (the.current_type == 54):
@@ -1184,6 +1193,8 @@ def integer():
         current_value = int(match.groups()[0])
         next_token()
         # "E20": kast.Pow(10,20),
+        import ast
+        if not interpreting(): return ast.Num(current_value)
         if current_value == 0:
             current_value = ZERO
         return current_value

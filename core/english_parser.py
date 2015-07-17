@@ -1,28 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
-# import ast
-# import types
-# import tree
-
-# global inside_list
-# inside_list=False
-# import time
-# import traceback
-# import sys
-# import __builtin__ # class function(object) etc
-# import inspect
-# import kast
-# from kast import *
-# import re
-# import __builtin__
 import _ast
 import ast
 from ast import NodeVisitor
 import traceback
-# import HelperMethods
-# import Interpretation
-# import HelperMethods
-# import kast
 import types
 import sys
 import stem.util.system
@@ -31,16 +12,13 @@ import interpretation
 import inspect
 from english_tokens import *
 from kast import kast
-from power_parser import maybe, allow_rollback
 from power_parser import *
 import power_parser
 from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
-# from power_parser import Starttokens
 from angle import *
 from extensions import *
 import token as _token
 import the
-# from the import the.string
 from tree import TreeNode
 
 
@@ -96,7 +74,7 @@ def boolean():
 def should_not_start_with(words):
     bad = starts_with(words)
     if not bad: return OK
-    if bad: info("should_not_match DID match #{bad)")
+    if bad: info("should_not_match DID match "+bad)
     if bad: raise NotMatching(MustNotMatchKeyword(bad))
 
 
@@ -264,7 +242,7 @@ def imports():  # requirements
     _type = _type or maybe_tokens(require_types)
     # maybe(source) maybe(really)
     dependency = maybe(quote)
-    allow_rollback()
+    no_rollback()
     # maybe(list_of){packages)
     dependency = dependency or word()  # regex "\w+(\/\w*)*(\.\w*)*\.?\*?" # rest_of_line
     version = maybe(package_version)
@@ -287,7 +265,6 @@ def context():
 #  surrounded by braces everything can be of value!
 def bracelet():
     _('(')  # ok, lists checked before
-    allow_rollback()
     # a = value()
     a = expression()
     # a = statement()
@@ -295,7 +272,7 @@ def bracelet():
     return a  # todo wrapped in (result=a) OK?
 
 
-@Starttokens(operators)
+# @Starttokens(operators) #NOT STANDALONE!
 def operator():
     # if current_type==_token.OP ok
     return tokens(operators)
@@ -334,19 +311,21 @@ def fold_algebra(stack):
                 if stack[i] == op:
                     apply_op(stack, i, op)
                 i += 1
-    return stack
+    # if not interpreting():
+    #     return kast.setter("result",stack[0])
+    return stack[0]
 
 
 def algebra(val=None):
     # global result
     must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
-    val=val or maybe(value) or bracelet()
+    val = val or maybe(value) or bracelet()
     stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
 
     def lamb():
         op = maybe(comparation) or operator()
-        if not op == 'and': allow_rollback()
+        # if not op == 'and': allow_rollback()
         n = maybe_token('not')
         y = maybe(value) or bracelet()
         if y == ZERO: y = 0
@@ -356,7 +335,7 @@ def algebra(val=None):
         return y or True
 
     star(lamb)
-    the.result = fold_algebra(stack)[0]
+    the.result = fold_algebra(stack)
     if the.result == False: the.result = FALSE
     return the.result
 
@@ -369,18 +348,18 @@ def read_block(type=None):
         block.append(rest_of_line())
     return block
 
+
 # @Starttokens("<") #OK?
 def read_xml_block(t=None):
     _("<")
-    t=t or word()
+    t = t or word()
     if maybe_token('/'): return _(">")
     _(">")
-    b=read_xml_block()
+    b = read_xml_block()
     _("</")
     token(t)
     _(">")
     return b
-
 
 
 @Starttokens("<html>")
@@ -587,7 +566,7 @@ def json_hash():
 @Starttokens('{')
 def regular_json_hash():
     _('{')
-    maybe_token(':') and allow_rollback()  # {:a:.) Could also mean list of maybe(symbols) Nah
+    maybe_token(':')  # and allow_rollback()  # {:a:.) Could also mean list of maybe(symbols) Nah
     h = {}
 
     def lamb():
@@ -611,7 +590,6 @@ def regular_json_hash():
     # careful with blocks/closures ! map{puts it) VS data{a:"b")
 
 
-
 def starts_with_(param):
     return maybe(lambda: starts_with(param))
 
@@ -621,7 +599,7 @@ def immediate_json_hash():  # a:{b) OR a{b():c)):
     w = word()  # expensive
     # maybe(lambda:starts_with("={")) and maybe_token('=') or:c)
     starts_with_("{") or _('=>')  # or _(':') disastrous :  BLOCK START!
-    allow_rollback()
+    no_rollback()
     r = regular_json_hash()
     return {str(the.result): r}  # AH! USEFUL FOR NON-symbols !!!
 
@@ -641,7 +619,7 @@ def maybe_algebra(context):
     return do_send(context, op, z)
 
 
-def postoperations(context):# see quick_expression !!
+def postoperations(context):  # see quick_expression !!
     if the.current_word in be_words: return false  # handled differently
     if the.current_word == "if":  # YAY!
         return the.result if _("if") and condition() else maybe("else") and expression() or None
@@ -650,30 +628,39 @@ def postoperations(context):# see quick_expression !!
 
 def quick_expression():  # bad idea!
     the.result = False
+    if the.current_word == '': return the.result
+    if the.current_word == ';': return the.result
+    if the.current_word == '.': return method_call(the.result)
+    if the.current_word == 'to': return ranger(the.result)
+    if the.current_word == 'if': return action_if(the.result)
+    if the.current_word in the.params.keys():
+        the.result = true_param()
     if the.current_word in the.variables.keys():
         the.result = known_variable()
-    elif the.current_word in the.method_names + the.methods.keys():
+    if the.current_word in the.method_names + the.methods.keys():
         the.result = method_call()  # already wrapped maybe(method_call)
-    elif the.current_word in the.token_map:
+    if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
-    if the.current_word=='': return the.result
-    if the.current_word==';': return the.result
-    if the.current_word=='.': return method_call(the.result)
-    if the.current_word=='to':return ranger(the.result)
-    if the.current_word=='if':return action_if(the.result)
     if the.current_word in be_words:
         if angle.in_condition: return the.result
-        if isinstance(the.result,Variable):return setter(the.result)
-        else:raise_not_matching("better try setter")
-    if the.current_word=='[':
+        if isinstance(the.result, Variable):
+            return setter(the.result)
+        else:
+            raise_not_matching("better try setter")
+    if the.current_word == '[':
         return evaluate_index(the.result)
     if the.current_word in operators:
         return algebra(the.result)
     if the.current_word != ";" and the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
     return the.result
+
+
+@Starttokens(["pass", ";"])
+def passing():
+    return tokens(["pass", ";"])
 
 
 def expression(fallback=None):
@@ -687,6 +674,7 @@ def expression(fallback=None):
                       maybe(evaluate_property) or \
                       maybe(selfModify) or \
                       maybe(endNode) or \
+                      maybe(passing) or \
                       raise_not_matching("Not an expression: " + pointer_string())  # and print_pointer(True)
     # maybe(method_call) or \
     # maybe(swift_hash) or \
@@ -723,7 +711,7 @@ def piped_actions():
     the.in_pipe = True
     a = statement()
     token('|')
-    allow_rollback()
+    no_rollback()
     c = true_method() or bash_action()
     args = star(call_arg)
     if callable(c): args = [args, Argument(value=a)]  # with owner
@@ -756,10 +744,10 @@ def statement():
         maybe(new) or \
         maybe(action) or \
         maybe(expression) or \
-        raise_not_matching("Not a statement %s"%pointer_string())
+        raise_not_matching("Not a statement %s" % pointer_string())
     # AS RETURN VALUE! DANGER!
     the.result = x
-    the.last_result= x
+    the.last_result = x
     check_comment()
     return the.result
 
@@ -772,7 +760,7 @@ def statement():
 #     x+y
 # end
 # define the sum of numbers x,y and z as number x+y+z
-def addLongname(f):
+def addMethodNames(f):
     if len(f.arguments) > 0:
         obj = f.arguments[0]
         if not obj.preposition:
@@ -781,7 +769,7 @@ def addLongname(f):
             f2 = Function(name=name, arguments=args, return_type=f.return_type, body=f.body)
             the.methods[name] = f2
             the.method_names.insert(0, name)  # add longnames first!
-            addLongname(f2)
+            addMethodNames(f2)
             return f2
     return f
 
@@ -791,9 +779,9 @@ def method_definition():
     # annotations=maybe(annotations)
     # modifiers=maybe(modifiers)
     tokens(method_tokens)  # how to
-    allow_rollback()
-    name = maybe(noun) or verb  # integrate or word
-    # obj=maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
+    no_rollback()
+    name = word(include=english_operators)# maybe(noun) or verb()  # integrate or word
+    # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
     brace = maybe_token('(')
     args = []
 
@@ -812,13 +800,20 @@ def method_definition():
     angle.in_params = False
     if brace: token(')')
     dont_interpret()
-    b = action_or_block()  # define z as 7 allowed !!!
-    f = Function(name=name, arguments=args, return_type=return_type, body=b)
+
+    f = Function(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
     # ,modifiers:modifiers, annotations:annotations
-    the.methods[name] = f or parent_node() or b
+    the.methods[name] = f
     the.method_names.append(name)
-    f = addLongname(f)
+    f2 = addMethodNames(f)
     # # with args! only in tree mode!!
+    b = action_or_block()  # define z as 7 allowed !!!
+    if not isinstance(b,list):b=[b]
+    # if not isinstance(b[-1],(ast.AST)):
+    b[-1]=kast.setter("result",b[-1])
+    #     b[-1]=(ast.Expr(b[-1]))
+    f.body = b
+    f2.body = b #ürx
     the.params.clear()
     return f
 
@@ -869,7 +864,7 @@ def if_then_else():
 
 
 def action_if(a):
-    if not a:must_not_start_with("if")
+    if not a: must_not_start_with("if")
     must_contain('if')
     a = a or action_or_expression()
     _('if')
@@ -884,7 +879,7 @@ def action_if(a):
 
 def if_then():
     tokens(if_words)
-    # no_rollback()
+    no_rollback()
     c = condition_tree()
     if c == None: raise InternalError("no condition_tree")
     # c=condition()
@@ -911,7 +906,7 @@ def future_event():
 @Starttokens(once_words)
 def once_trigger():
     tokens(once_words)
-    allow_rollback()
+    no_rollback()
     dont_interpret()
     c = maybe(future_event) or condition()  # eval later, variables might not be set yet!!!
     maybe_token('then')
@@ -926,7 +921,7 @@ def _do():
 @Starttokens('do')
 def action_once():
     if not _do(): must_contain(once_words)  # and
-    allow_rollback()
+    no_rollback()
     maybe_newline()
     b = action_or_block()
     # _do=maybe_token('do')
@@ -975,7 +970,7 @@ def print_variables():
 @Starttokens(invoke_keywords)
 def extern_method_call():
     call = tokens(invoke_keywords)
-    if call: allow_rollback()
+    if call: no_rollback()
     ruby_method = maybe_tokens(builtin_methods + core_methods)
     if not ruby_method: raise UndefinedRubyMethod(word())
     args = rest_of_line
@@ -1067,7 +1062,7 @@ def all_methods():
     if not the.method_names:
         constructors = the.classes.keys() + type_names
         the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
-    the.method_names = [x for x in the.method_names if len(x)>2]
+    the.method_names = [x for x in the.method_names if len(x) > 2]
     return the.method_names
 
 
@@ -1145,10 +1140,10 @@ def method_call(obj=None):
     # verb_node
     module, obj, method = true_method(obj)
     method = findMethod(obj, method)  # already? todo findMethods with S, ambiguous ones!!
-    allow_rollback()  # maybe doch?
+    # no_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
-    if start_brace: allow_rollback()
+    if start_brace: no_rollback()
     if module or obj or is_object_method(method):  # todo  not has_object(method) is_class_method:
         obj = obj or None  # globals
     else:
@@ -1182,7 +1177,7 @@ def method_call(obj=None):
     angle.in_args = False
     if start_brace == '(': _(')')
     if start_brace == '[': _(']')
-    if start_brace == '{': _(')')
+    if start_brace == '{': _('}')
     if not interpreting():
         if method == "puts" or method == "print":
             return kast.Print(dest=None, values=[args], nl=True)
@@ -1204,7 +1199,7 @@ def bla():
 def applescript():
     _('tell')
     tokens(['application', 'app'])
-    allow_rollback()
+    no_rollback()
     app = quote
     the.result = "tell application \"%s\"" % app
     if maybe_token('to'):
@@ -1228,10 +1223,12 @@ def applescript():
 def assert_that():
     _('assert')
     maybe_token('that')
+    no_rollback()
     # s=statement()
+    do_interpret()
     s = condition()
     if interpreting():
-        assert check_condition(s)
+        assert check_condition(s),s
     return s
 
 
@@ -1267,7 +1264,7 @@ def new():
 @Starttokens(['return', 'returns'])
 def returns():
     tokens(['return', 'returns'])
-    allow_rollback()
+    no_rollback()
     the.result = maybe(expression)
     if interpreting():
         the.params.clear()
@@ -1307,6 +1304,11 @@ def expression_or_block():  # action_or_block):
     action_or_block()
 
 
+def maybe_indent():
+    if the.current_type==_token.INDENT:
+        next_token()
+
+
 def action_or_block(started=False):  # expression_or_block
     _start = maybe_tokens(start_block_words) or started
     if _start:
@@ -1325,6 +1327,7 @@ def action_or_block(started=False):  # expression_or_block
             ab = block()
         else:
             # 4) generous!! if 1>0 beep
+            maybe_indent()
             ab = action_or_expression()
             # raise_not_matching("expecting action or block start")
     if _start == "then" and the.current_word == "else": return ab
@@ -1335,16 +1338,19 @@ def action_or_block(started=False):  # expression_or_block
 def end_block(type=None):
     return done(type)
 
-
 def done(_type=None):
     # if _type and maybe(lambda: close_tag(_type)): return OK
     if checkEndOfFile(): return OK
-    if checkEndOfLine(): return OK
+    # if checkEndOfLine(): return OK NOT ENOUGH FOR BLOCK!
+    if the.current_line == "\n": return OK
+    if the.current_line == "end\n": return OK #todoooo
+    if the.current_type==_token.DEDENT: return OK
     checkNewline()
     ok = tokens(done_words)
     if _type and not _type in start_block_words:
         token(_type)
     ignore_rest_of_line()
+    # maybe_newline()
     return ok
 
 
@@ -1356,7 +1362,7 @@ def close_tag(type):
     return type
 
 
-# Similar to align_args
+# Similar to align_args DIFFERENCE?
 def prepare_named_args(args):
     import copy
 
@@ -1381,7 +1387,7 @@ def do_execute_block(b, args={}):
     if callable(b): return do_send(None, b, args)
     if isinstance(b, FunctionCall): return do_send(b.object, b.name, args or b.arguments)
     args = prepare_named_args(args)
-    if isinstance(b, kast.AST): return eval_ast(b, [args])
+    if isinstance(b, kast.AST): return eval_ast(b, args)
     if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
@@ -1402,7 +1408,7 @@ def datetime():
     # later: 5 secs from now  , _(5pm) == AT 5pm
     must_contain(time_words)
     _kind = tokens(event_kinds)
-    allow_rollback()
+    no_rollback()
     maybe_tokens(['around', 'about'])
     # import chronic_duration
     # WAH! every second  VS  every second hour WTF ! lol
@@ -1491,7 +1497,7 @@ def get_obj(o):
 
 def property():
     must_contain_before([".", "'s"], xlist(special_chars) - '.')
-    allow_rollback()
+    no_rollback()
     owner = class_constant
     owner = get_obj(owner) or variables[known_variable(False)].value  # reference
     _('.')
@@ -1523,7 +1529,7 @@ def setter(var=None):
     # if not var:
     must_contain_before(args=be_words + ['set'], before=['>', '<', '+', '-', '|', '/', '*'])
     _let = maybe_tokens(let_words)
-    if _let: allow_rollback()
+    if _let: no_rollback()
     a = maybe(_the)
     mod = maybe_tokens(modifiers)
     _type = maybe(typeNameMapped)
@@ -1593,6 +1599,7 @@ def current_context():
 def variable(a=None, ctx=kast.Load()):
     a = a or maybe_tokens(articles)
     if a != 'a': a = None  # hack for a variable
+    must_not_start_with(keywords)
     typ = maybe(typeNameMapped)  # DOESN'T BELONG HERE! why not?
     # maybe_tokens(["name","label"]) #ignore?
     p = maybe_tokens(possessive_pronouns)
@@ -1912,7 +1919,7 @@ def comparation():
         comp = maybe_tokens(comparison_words)
     else:
         comp = tokens(comparison_words)
-        allow_rollback()
+        no_rollback()
 
     if eq: maybe_token('to')
     maybe_tokens(['and', 'or', 'xor', 'nor'])
@@ -2055,8 +2062,8 @@ def condition():
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
-    angle.in_condition=False
-    if not comp:return lhs
+    angle.in_condition = False
+    if not comp: return lhs
     # allow_rollback # upto maybe(where)?
     if comp: rhs = action_or_expression(None)
     if brace: _(')')
@@ -2172,16 +2179,19 @@ def the_noun_that():
 
 
 def const_defined(c):
+    if c == "Pass": return False
+    if c in angle.moduleClasses:
+        return True
+    # SLOW: LIVE
     import inspect
-
-    modules = dict(sys.modules)  # dictionary changed size during iteration
-    for module in modules:
-        for name, obj in inspect.getmembers(modules[module]):
-            try:
-                if name == c and inspect.isclass(obj):
-                    return obj
-            except Exception as e:
-                raise e
+    # modules = dict(sys.modules)  # dictionary changed size during iteration
+    # for module in modules:
+    #     for name, obj in inspect.getmembers(modules[module]):
+    #         try:
+    #             if name == c and inspect.isclass(obj):
+    #                 return obj
+    #         except Exception as e:
+    #             raise e
     return False
 
 
@@ -2315,12 +2325,14 @@ def eval_string(x):
 class Reflector(object):
     def __getitem__(self, name):
         print("Reflector __getitem__ %s" % str(name))
-        if name in the.variables:
-            return do_evaluate(the.variables[name].value)
-        if name in the.methods:
+        if name in the.params:
+            the.result=do_evaluate(the.params[name])
+        elif name in the.variables:
+            the.result=do_evaluate(the.variables[name].value)
+        elif name in the.methods:
             return the.methods[name]
-        raise Exception("UNKNOWN ITEM %s" % name)
-        return name
+        else: raise Exception("UNKNOWN ITEM %s" % name)
+        return the.result
 
     def __setitem__(self, key, value):
         print("Reflector __setitem__ %s %s" % (key, value))
@@ -2331,11 +2343,15 @@ class Reflector(object):
         the.variableValues[key] = value
         the.result = value
 
-class PrepareTreeVisitor(ast.NodeTransformer):
-    def visit_int(self,x):
-        return ast.Num(x)
 
-    # def generic_visit(self, node):
+class PrepareTreeVisitor(ast.NodeTransformer):
+    def visit_int(self, x):
+        return ast.Num(x)
+    def visit_Variable(self, x):
+        return ast.Name(x.id,ast.Load())
+        # x.ctx=ast.Load()
+        # return x
+        # def generic_visit(self, node):
 
 
 def eval_ast(my_ast, args={}):
@@ -2344,9 +2360,10 @@ def eval_ast(my_ast, args={}):
 
     try:  # todo args =-> SETTERS!
         # context_variables=variableValues.copy()+globals()+locals()
-        context_variables = variableValues.copy()
-        context_variables.update(globals())
-        context_variables.update(locals())
+        the.params = variableValues.copy()
+        the.params.update(args)
+        # context_variables.update(globals())
+        # context_variables.update(locals())
 
         variable_inits = []
         # for k in args:
@@ -2366,12 +2383,13 @@ def eval_ast(my_ast, args={}):
         # code=compile(my_ast, 'file', 'exec')
         # eval can't handle arbitrary python code (eval("import math") ), and
         # exec() doesn't return the results.
-        ret = eval(code, context_variables, Reflector())
+        ret = eval(code, the.params, Reflector())
         ret = ret or the.result
         print("GOT RESULT %s" % ret)
         # err= sys.stdout.getvalue()
         # if err: raise err
         # z=exec (code)
+        the.params.clear()
         return ret
     except Exception as e:
         print(my_ast)
@@ -2429,7 +2447,7 @@ def resolve(x):
 
 
 def self_modifying(method):
-    method=method.__name__
+    method = method.__name__
     return method == 'increase' or method == 'decrease' or method.endswith("!")
 
 
@@ -2539,20 +2557,43 @@ def findMethod(obj0, method0, args0=None):
     return method
     # if callable(method):method(args)
 
+def align_function_args(args, clazz, method):
+    newArgs={}
+    if not isinstance(args,(dict,list)):
+        args=[args]
+    for param in method.arguments:
+            if isinstance(args,dict):
+                if param.name in args:
+                    param.value=args[param.name]
+                elif param.default:
+                        param.value=param.default
+                else: raise Exception("MISSING ARGUMENT %s"%param.name)
+            elif isinstance(args,list):
+                if param.position < len(args):
+                    param.value=args[param.position]
+                elif param.default:
+                        param.value=param.default
+                else: raise Exception("MISSING ARGUMENT %s"%param.name)
+            newArgs[param.name]=param.value
+    return newArgs
+    # return method.arguments
 
 # Similar to prepare_named_args for block ast eval!
 def align_args(args, clazz, method):
     if args and isinstance(args, str): args = xstr(args).replace_numerals()
     if isinstance(args, Argument): args = args.name_or_value
-    selfmodifying=self_modifying(method)
-    if selfmodifying: return args # todo
+
     def values(x):
         return x.value
 
     if (isinstance(args, list)):
         args = map(values, args)
     if (isinstance(args, Argument)): args = args.value
+    if isinstance(method,Function):
+        return align_function_args(args, clazz, method)
 
+    selfmodifying = self_modifying(method)
+    if selfmodifying: return args  # todo
     is_bound = 'im_self' in dir(method) and method.im_self
     if is_bound:
         if method.im_self == args: args = None
@@ -2575,17 +2616,14 @@ def align_args(args, clazz, method):
 
 # INTERPRET only,  todo cleanup method + argument matching + concept
 def do_send(obj0, method0, args0=[]):
-    if not interpreting(): return False
-    if not method0: return False
+    if not method0: raise Exception("NO METHOD GIVEN %s %s"%(obj0,args0)) # return False
+    if not interpreting(): return FunctionCall(func=method0, arguments=args0, object=obj0)
     if method0 in be_words and obj0 == args0: return True  # stupid unnecessary shortcut
 
     # try direct first!
     method = findMethod(obj0, method0, args0)
     method_name = callable(method) and str(method) or method0  # what for??
 
-    if isinstance(method, Function):
-        the.result = do_execute_block(method.body, args0)
-        return the.result
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
     if (method == 'of'): return evaluate_property(args0, obj0)
@@ -2598,6 +2636,9 @@ def do_send(obj0, method0, args0=[]):
     args = align_args(args0, obj, method)
     number_of_arguments = has_args(method, obj, not not args)
 
+    if isinstance(method, Function):
+        the.result = do_execute_block(method.body, args)
+        return the.result
     # if (args and args[0] == 'of'):  # and has_args(method, obj)):
     #     if not callable(method) and method in dir(obj):
     #         return obj.__getattribute__(method)
@@ -2698,6 +2739,7 @@ def do_compare(a, comp, b):
             error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
             return a.send(comp + '?', b)
 
+
 # see method_call!!
 def simpleProperty():
     must_contain_before(".", special_chars + keywords)
@@ -2734,6 +2776,7 @@ def filter(liste, criterion):
         args = rhs
     mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
+
 def ranger(a=None):
     if in_params: return False
     must_contain('to')
@@ -2741,7 +2784,7 @@ def ranger(a=None):
     a = a or number()
     _('to')
     b = number()
-    return range(a, b+1) # count from 1 to 10 => 10 INCLUDED, thus +1!
+    return range(a, b + 1)  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 
 # #  or  endNode have adjective  or  endNode attribute  or  endNode verbTo verb # or endNode auxiliary gerundium
@@ -2790,11 +2833,12 @@ def endNoun(included=None):
 
 def start_xml_block(type):
     _('<')
-    if type:_(type)
-    else: type=word()
+    if type:
+        _(type)
+    else:
+        type = word()
     _('>')
     return type
-
 
 
 def check_end_of_statement():
@@ -2803,8 +2847,8 @@ def check_end_of_statement():
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return checkEndOfLine() or starts_with(done_words) or the.previous_word == ';' or token(';')
-      # consume ";", but DON'T consume done_words here!
+    return maybe_newline() or starts_with(done_words) or the.previous_word == ';' or token(';')
+    # consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):
@@ -2845,10 +2889,10 @@ def evaluate_index(obj=None):
     # if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
     va = resolve(obj)
     if interpreting(): the.result = va[i]  # va.__index__(i)  # old value
-    if set!=None:# and interpreting():
+    if set != None:  # and interpreting():
         the.result = va[i] = set  # va.__index__(i, set)
-    if set!=None and isinstance(obj, Variable):
-        the.result=obj.value = va
+    if set != None and isinstance(obj, Variable):
+        the.result = obj.value = va
     # if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
     return the.result
 
@@ -2886,7 +2930,7 @@ def jeannie(request):
 @Starttokens(eval_keywords)
 def evaluate():
     tokens(eval_keywords)
-    allow_rollback()
+    no_rollback()
     the_expression = rest_of_line
     try:
         the.result = eval(english_to_math(the_expression))  # if not the.result:
@@ -3073,10 +3117,10 @@ def loops():
            raise_not_matching("Not a loop")
 
 
-@Starttokens(['for','repeat with'])
+@Starttokens(['for', 'repeat with'])
 def repeat_with():
     maybe_token('for') or _('repeat') and _('with')
-    allow_rollback()
+    no_rollback()
     v = variable()
     _('in')
     c = collection()
@@ -3090,11 +3134,12 @@ def repeat_with():
     #     'body',
     #     'orelse',)
 
+
 @Starttokens(['while', 'as long as'])
 def while_loop():
     maybe_tokens(['repeat'])
     tokens(['while', 'as long as'])
-    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
+    no_rollback()
     dont_interpret()
     c = condition()
     allow_rollback()
@@ -3110,12 +3155,13 @@ def while_loop():
         r = do_execute_block(b)
     return r  # or OK
 
+
 @Starttokens(['until', 'as long as'])
 def until_loop():
     maybe_tokens(['repeat'])
     tokens(['until', 'as long as'])
     dont_interpret()
-    allow_rollback()  # no_rollback 13 # arbitrary value ! :{
+    no_rollback()
     c = condition()
     maybe_tokens(['repeat'])
     b = action_or_block()  # Danger when interpreting it might contain conditions and breaks
@@ -3159,7 +3205,7 @@ def looped_action():
     must_not_start_with('while')
     must_contain(['as long as', 'while'])
     dont_interpret()
-    maybe_tokens(['do','repeat'])
+    maybe_tokens(['do', 'repeat'])
     a = action()  # or semi-block
     tokens(['as long as', 'while'])
     c = condition()
@@ -3173,7 +3219,7 @@ def looped_action():
 
 def looped_action_until():
     must_contain('until')
-    b = maybe_tokens(['do','repeat'])
+    b = maybe_tokens(['do', 'repeat'])
     dont_interpret()
     a = action_or_block('until') if b else action()
     _('until')
@@ -3192,6 +3238,8 @@ def is_number(n):
     # notodo: LTR parser just here!
     # say hello 6 times   #=> (say hello 6) times ? give up for now
     # say hello 6 times 5 #=> hello 30 ??? SyntaxError! say hello (6 times 5)
+
+
 def action_n_times(a=None):
     must_contain('times')
     dont_interpret()
@@ -3218,13 +3266,14 @@ def n_times_action():
     must_contain('times')
     n = number()  # or int_variable
     _('times')
-    allow_rollback()
-    maybe_tokens(['do','repeat'])
+    no_rollback()
+    maybe_tokens(['do', 'repeat'])
     dont_interpret()
     a = action_or_block()
     if interpreting():
         xint(n).times_do(lambda: do_evaluate(a))
     return a
+
 
 @Starttokens('repeat')
 def repeat_n_times():

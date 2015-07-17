@@ -15,9 +15,30 @@ class FunctionTest(ParserBaseTest):
         assert_equals(the.result,f)
         parse("create a fullscreen window with name \"test\"")
 
+    def test_dedent(self):
+        parse("define identity number n\n\tn\nassert identity(1) is 1")
+
+    def test_identity2(self):
+        parse("define identity number n\n\tn\nassert identity(1) is 1")
+        # parse("define identity number n\nn\nend\nassert identity(1) is 1")
+
+    def test_add2(self):
+        parse("define add number n\nn+2\nend\nassert add(1) is 3")
+        # parse("define add number n\nn+2\nend\nassert add(1,2) is 3")
+        # parse("define add number n to number m\nn+2\nend\nassert add(1,2) is 3")
+        # parse("define add number n to number m\nn+m\nend\nassert add(1,2) is 3")
+
+    def test_add3(self):
+        parse("define add number n to number m\nn+m\nend\nassert add 1 to 2 is 3")
+
+        # parse("define fibonacci number n\nn+1\nend\nassert fibonacci(1) is 2")
+
     def test_fibonacci_0(self):
         # parse("define fibonacci number n\npass")
-        parse("define fibonacci number n\nif n<2 then 1 else fibonacci n-1 + fibonacci n-2\nend")
+        # parse("define fibonacci number n\npass\nend")
+
+        parse("define fibonacci number n\nif n<2 then 1 else fibonacci(n-1)+ fibonacci(n-2)\nend")
+        # parse("define fibonacci number n\nif n<2 then 1 else fibonacci n-1 + fibonacci n-2\nend")
 
     def test_fibonacci(self):
         dir = 'samples/'
