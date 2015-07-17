@@ -7,7 +7,7 @@ before_install:
     - git submodule update --init --recursive
 
 before_script:
-  export PYTHONPATH=$PYTHONPATH:$(pwd):/home/travis/build/pannous/angle/core/
+  export PYTHONPATH=$PYTHONPATH:$(pwd):/home/travis/build/pannous/angle/core/:/home/travis/build/pannous/angle/kast/
 
     
 language: python
