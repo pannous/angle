@@ -8,7 +8,7 @@ import types
 import sys
 import stem.util.system
 import emitters.kast_emitter
-import interpretation
+# import interpretation
 import inspect
 from english_tokens import *
 from kast import kast
@@ -25,6 +25,24 @@ from tree import TreeNode
 def parent_node():
     pass
 
+
+def self_modify(v, mod, arg):
+    val = v.value
+    if mod == '|=': the.result = val | arg
+    if mod == '||=': the.result = val or arg
+    if mod == '&=': the.result = val & arg
+    if mod == '&&=': the.result = val and arg
+    if mod == '+=': the.result = val + arg
+    if mod == '-=': the.result = val - arg
+    if mod == '*=': the.result = val * arg
+    if mod == '**=': the.result = val ** arg
+    if mod == '/=': the.result = val / arg
+    if mod == '%=': the.result = val % arg
+    if mod == '^=': the.result = val ^ arg
+    # if mod == '<<': the.result = val.append(arg)
+    if mod == '<<': the.result = val << (arg)
+    if mod == '>>': the.result = val >> arg
+    return the.result
 
 # ## global the.string
 

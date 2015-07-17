@@ -46,7 +46,7 @@ def substitute_variables(args):
         args = args.replace(r'([^\w])#{variable)([^\w])', "\\1#{value)\\2")
 
     #args.strip()
-    args
+    return args
 
     # todo : why maybe(special) direct eval, rest_of_line
 
