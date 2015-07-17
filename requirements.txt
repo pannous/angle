@@ -1,3 +1,2 @@
 astor
-yaml
 stem

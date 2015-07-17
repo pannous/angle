@@ -2,6 +2,7 @@ import inspect
 import sys
 import collections
 import importlib
+import yaml
 import the
 
 try:
@@ -9,7 +10,7 @@ try:
 except:
    import pickle
 # import the
-import yaml
+# import yaml
 
 h={}
 done={}
