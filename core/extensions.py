@@ -50,8 +50,10 @@ def say(x):
 
 def beep():
     print("\aBEEP ")
-    import os
-    os.system("say 'beep'")
+    import angle
+    if not angle.testing:
+        import os
+        os.system("say 'beep'")
     return 'beeped'
 
 

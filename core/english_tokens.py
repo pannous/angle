@@ -56,7 +56,7 @@ quantifiers = ["any", "all", "every", "one", "each", "some", "most", "many", "no
                "everything", "the whole"]  # +number
 # articles+):
 
-result_words = ['it', 'they', 'result', 'its', 'that']
+result_words = ['it', 'they', 'result', 'its', 'that','the result']
 
 type_keywords = ["class", "interface", "module", "type", "kind"]
 
@@ -227,7 +227,8 @@ bla_words = ['tell me', 'hey', 'could you', 'give me', \
              'love to', 'like to', 'i asked you to', 'would you', 'could i', \
              'i tell you to', 'i told you to', 'would you', 'come on', \
              'i wanna', 'i want to', 'i want', 'tell me', 'i need to', \
-             'i need']
+             'i need','either']
+# either HAS MEANING! if x is either 3 or 4 != if x is 3 or 4 ==if x is 3
 
 attributes = ['sucks', 'default']
 

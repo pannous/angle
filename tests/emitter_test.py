@@ -2,7 +2,7 @@ import angle
 angle.use_tree = True
 angle.verbose = False
 from parser_test_helper import *
-from c-emitter import *
+# from c-emitter import *
 
 
 class EmitterTest(ParserBaseTest):

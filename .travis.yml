@@ -7,7 +7,9 @@ before_install:
     - git submodule update --init --recursive
 
 before_script:
-  export PYTHONPATH=$PYTHONPATH:$(pwd):/home/travis/build/pannous/angle/core/:/home/travis/build/pannous/angle/kast/
+  export PYTHONPATH=$PYTHONPATH:/home/travis/build/pannous/angle/tests/
+  export PYTHONPATH=$PYTHONPATH:/home/travis/build/pannous/angle/core/
+  export PYTHONPATH=$PYTHONPATH:/home/travis/build/pannous/angle/kast/
 
     
 language: python
@@ -21,4 +23,4 @@ python:
 # command to install dependencies
 install: "pip install -r requirements.txt"
 # command to run tests
-script: nosetests
+script: unittests

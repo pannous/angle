@@ -114,11 +114,12 @@ def no_keyword_except(excepty=None):
 def no_keyword():
     return no_keyword_except([])
 
-
+@Starttokens(constants)
 def constant():
     return tokens(constants)
 
 
+@Starttokens(result_words)
 def it():
     tokens(result_words)
     return the.last_result
@@ -335,18 +336,18 @@ def fold_algebra(stack):
 
 
 def algebra(val=None):
+    # if angle.in_algebra: return False
     # global result
     must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
     val = val or maybe(value) or bracelet()
     stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
-
     def lamb():
         op = maybe(comparation) or operator()
         # if not op == 'and': allow_rollback()
         n = maybe_token('not')
-        # y = maybe(value) or bracelet()
-        y = maybe(expression) or bracelet() # so deep ok
+        y = maybe(value) or bracelet()
+        # y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
         if y == ZERO: y = 0
         stack.append(op)  # after success of maybe(value)
         stack.append(n) if n else 0
@@ -480,6 +481,7 @@ def liste(check=True):
     def lamb():
         tokens([',', 'and'])
         e = endNode()
+        if e==ZERO: e=0
         # e=expression()
         all.append(e)
         return e
@@ -499,11 +501,11 @@ def must_contain_substring(param):  # ++ != '+' '+' tokens :(
         raise_not_matching("must_contain_substring(%s)" % param)
 
 
-def plusPlus():
+def plusPlus(v=None):
     must_contain_substring('++')
     start = pointer()
     pre = maybe_token('+') and token('+')
-    v = variable()
+    v = v or variable()
     pre or _('+') and token('+')
     if not interpreting(): return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Add(), kast.Num(1))
     the.result = do_evaluate(v, v.type) + 1
@@ -511,10 +513,10 @@ def plusPlus():
     return the.result
 
 
-def minusMinus():
+def minusMinus(v=None):
     must_contain_substring('--')
     pre = maybe_token('-') and token('-')
-    v = variable()
+    v = v or variable()
     pre or _('-') and token('-')
     if not interpreting():
         return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Sub(), kast.Num(1))
@@ -644,29 +646,36 @@ def postoperations(context):  # see quick_expression !!
         return the.result if _("if") and condition() else maybe("else") and expression() or None
     return maybe_cast(context) or maybe_algebra(context) or context
 
-
 def quick_expression():  # bad idea!
+    if the.current_word == '': raise EndOfLine()
+    if the.current_word == ';': raise EndOfStatement()
     the.result = False
-    if the.current_word in the.params.keys():
-        the.result = true_param()
-    if the.current_word in the.variables.keys():
-        the.result = known_variable()
-    if the.current_word in the.method_names + the.methods.keys():
-        the.result = method_call()  # already wrapped maybe(method_call)
+    if the.current_word.startswith("'"):
+        the.result=quote()
     if the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
-    if the.current_word in be_words:
-        if angle.in_condition: return the.result
+    elif the.current_word in the.params.keys():
+        the.result = true_param()
+    elif the.current_word in the.variables.keys():
+        the.result = known_variable()
+    elif the.current_word in the.method_names + the.methods.keys():
+        the.result = method_call()  # already wrapped maybe(method_call)
+    if the.current_word=='+' and look_ahead('+'):
+            the.result=plusPlus(the.result)
+    if the.current_word=='-' and look_ahead('-'):
+            the.result=minusMinus(the.result)
+    if not angle.in_condition and the.current_word in be_words :
         if isinstance(the.result, Variable):
             return setter(the.result)
         else:
             raise_not_matching("better try setter")
-    if the.current_word == '[':
-        return evaluate_index(the.result)
     if the.current_word in operators:
         return algebra(the.result)
+    if the.current_word == '|': return piped_actions(the.result)
+    if the.current_word == '[':
+        return evaluate_index(the.result)
     if the.result and the.current_word == 'to': return ranger(the.result)
     if the.result and the.current_word == 'if': return action_if(the.result)
     if the.current_word == '': return the.result
@@ -683,8 +692,9 @@ def passing():
     return tokens(["pass", ";"])
 
 
-def expression(fallback=None):
-    start = pointer()
+def expression(fallback=None,resolve=True):
+    if the.current_word == '': raise EndOfLine()
+    if the.current_word == ';': raise EndOfStatement()
     the.result = ex = maybe(quick_expression) or \
                       maybe(listselector) or \
                       maybe(algebra) or \
@@ -707,7 +717,7 @@ def expression(fallback=None):
         #     return (start, pointer())
         return the.result  # AST NODE, Hopefully
 
-    if ex and interpreting():
+    if resolve and ex and interpreting():
         the.last_result = the.result = do_evaluate(ex)
         # TODO PYTHON except SyntaxError:
     if not the.result or the.result == SyntaxError and not ex == SyntaxError:
@@ -725,15 +735,16 @@ def expression(fallback=None):
     return the.result
 
 
-def piped_actions():
-    if the.in_pipe: return False
+def piped_actions(a=False):
+    if angle.in_pipe: return False
     must_contain("|")
-    the.in_pipe = True
-    a = statement()
+    angle.in_pipe = True
+    a = a or statement()
     token('|')
     no_rollback()
     c = true_method() or bash_action()
     args = star(call_arg)
+    angle.in_pipe = False
     if callable(c): args = [args, Argument(value=a)]  # with owner
     if interpreting():
         the.result = do_send(a, c, args)
@@ -746,7 +757,7 @@ def piped_actions():
 def statement():
     if starts_with(done_words):  # allow empty blocks
         raise_not_matching("end of block")
-    raiseNewline()  # maybe(really) maybe(why)
+    # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     x = maybe(quick_expression) or \
         maybe(loops) or \
@@ -766,6 +777,8 @@ def statement():
         maybe(expression) or \
         raise_not_matching("Not a statement %s" % pointer_string())
     # AS RETURN VALUE! DANGER!
+
+    angle.in_condition=False # hack!
     the.result = x
     the.last_result = x
     check_comment()
@@ -840,8 +853,7 @@ def method_definition():
 
 def execute(command):
     import os
-
-    os.system(command)
+    return os.popen(command).read()
     # NOT: exec(command) !! == eval
 
 
@@ -850,13 +862,14 @@ def bash_action():
     # import bindingsr'shell'bash-commands
     ok = starts_with(['bash'] + bash_commands)
     if not ok: raise_not_matching("no bash commands")
-    remove_tokens(['execute', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash'])
+    no_rollback()
+    remove_tokens('execute', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
     command = maybe(quote)  # danger bash "hi">echo
-    command = command or rest_of_line
+    command = command or rest_of_line()
     # any{ maybe(  ) or   statements )
     if interpreting():
         try:
-            print('going to execute ' + command)
+            print('Going to execute ' + command)
             the.result = execute(command)
             print('the.result:')
             print(the.result)
@@ -888,7 +901,8 @@ def action_if(a):
     must_contain('if')
     a = a or action_or_expression()
     _('if')
-    c = condition_tree()
+    # c = condition_tree()
+    c = condition()
     if interpreting():
         if check_condition(c):
             return do_execute_block(a)
@@ -900,9 +914,10 @@ def action_if(a):
 def if_then():
     tokens(if_words)
     no_rollback()
-    c = condition_tree()
+    c = condition()
+    # c = condition_tree()
+    # c = algebra()
     if c == None: raise InternalError("no condition_tree")
-    # c=condition()
     started = maybe_token('then')
     if c != True:
         dont_interpret()
@@ -1059,7 +1074,7 @@ def has_args(method, clazz=object, assume=0):
             return num
         args, varargs, varkw, defaults = inspect.getargspec(method)
         alle = len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
-        if alle == 0: return assume
+        # if alle == 0: return assume
         return alle
     except:
         return assume or 0
@@ -1247,6 +1262,7 @@ def assert_that():
     no_rollback()
     # s=statement()
     do_interpret()
+    # s = condition_old()
     s = condition()
     if interpreting():
         assert check_condition(s),s
@@ -1770,9 +1786,10 @@ def call_arg(position=1):
     else:
         name = None
     # value = endNode()
-    value = expression() # allow f(x-1)
+    value = expression(fallback=None,resolve=False) # allow f(x-1)
     if isinstance(value,Variable):
-        name=value.name, type=type or value.type
+        name=value.name
+        type=type or value.type
     # value = expression()
     # method=get_method(name,obj)
     # if isinstance(method,Function):
@@ -1998,7 +2015,7 @@ def check_list_condition(quantifier, lhs, comp, rhs):
         if quantifier == 'most' or quantifier == 'many': the.result = count > min
         if quantifier == 'at least one': the.result = count >= 1
         # todo "at least two","at most two","more than 3","less than 8","all but 8"
-        # if not the.result= not the.result
+        if negated: the.result= not the.result
         if not the.result:
             verbose("condition not met %s %s %s" % (lhs, comp, rhs))
 
@@ -2055,8 +2072,9 @@ def check_condition(cond=None, negate=False):
 
 def element_in():
     must_contain_before(["of", "in"], special_chars)
-    n = noun()
-    tokens(['in' "of"])
+    # n = noun()
+    n = maybe(noun)
+    tokens(['in',"of"])
     return n
 
 
@@ -2071,10 +2089,24 @@ def method_dir(lhs):
         return dir(object1)
     return get_type(object1).__dict__
 
+# def condition():
+def condition_new():
+    angle.in_condition = True
+    # if contains('all',
+    maybe_token('either')
+    # c=action_or_expression()
+    c=expression()
+    # c=algebra() # too weak ^^
+    # c=maybe(algebra) or action_or_expression()
+    angle.in_condition = False
+    return c
 
+
+# def condition_old():
 def condition():
     start = pointer()
     brace = maybe_token('(')
+    maybe_token('either')
     negated = maybe_token('not')
     if negated: brace = brace or maybe_token('(')
     # a=endNode:(
@@ -2082,16 +2114,16 @@ def condition():
     filter = None
     if quantifier: filter = maybe(element_in)  # all words in
     angle.in_condition = True
-    lhs = action_or_expression(quantifier)
+    lhs = action_or_expression(quantifier) #OK: algebra!
     if starts_with("then"): return lhs
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
-    angle.in_condition = False
-    if not comp: return lhs
     # allow_rollback # upto maybe(where)?
     if comp: rhs = action_or_expression(None)
     if brace: _(')')
+    angle.in_condition = False
+    if not comp: return lhs
     negate = (negated or _not) and not (negated and _not)
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
     # 1,2,3 are smaller 4  VS 1,2,4 in 3
@@ -2421,9 +2453,11 @@ def eval_ast(my_ast, args={}):
         ast.dump(my_ast)
         raise e, None, sys.exc_info()[2]
 
-
+# see eval_string() !!!
 def do_evaluate(x, _type=None):
     try:
+        if isinstance(x, ast.Num): return x.n
+        if isinstance(x, ast.Str): return x.s
         if isinstance(x, type): return x
         if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
         if isinstance(x, list) and len(x) != 1: return x
@@ -2674,18 +2708,17 @@ def do_send(obj0, method0, args0=[]):
     if not args and not callable(method) and method in dir(obj):
         return obj.__getattribute__(method)
 
-    if not obj:
-        if args and number_of_arguments > 0:
-            return method(args)
-        else:
-            return method()
-    if is_math(method_name):
-        return do_math(obj, method_name, args)
-
     if not callable(method):
         raise MethodMissingError(type(obj), method, args)
 
-    if not args or not number_of_arguments:
+    if is_math(method_name):
+        return do_math(obj, method_name, args)
+    if not obj:
+        if args and number_of_arguments > 0:
+            the.result=method(*args)
+        else:
+            the.result=method()
+    elif not args or not number_of_arguments:
         if is_bound or is_builtin:
             the.result = method() or NILL
         else:
@@ -2715,10 +2748,11 @@ def do_send(obj0, method0, args0=[]):
     # puts object_method.parameters #todo MATCH!
 
     # => selfModify todo
-    if (obj0 or args0) and self_modifying(method):
-        name = str(obj0 or args0)  # .to_sym()  #
-        the.variables[name].value = the.result  #
-        the.variableValues[name] = the.result
+    #  OK, done elsewhere!
+    # if (obj0 or args0) and self_modifying(method):
+    #     name = str(obj0 or args0)  # .to_sym()  #
+    #     the.variables[name].value = the.result  #
+    #     the.variableValues[name] = the.result
 
     # todo : None OK, error not!
     # if the.result == NoMethodError: msg = "ERROR CALLING #{obj).#{method)(): #{args))"
@@ -2925,7 +2959,7 @@ def evaluate_index(obj=None):
 def evaluate_property():
     maybe_token('all')  # list properties (all files in x)
     must_contain_before(['of', 'in', '.'], '(')
-    raiseNewline()
+    # raiseNewline()
     x = endNoun(included=type_keywords)
     tokens(['of', 'in'])
     y = expression()
@@ -3031,7 +3065,7 @@ def adjective():
 
 def quote():
     raiseEnd()
-    if the.current_type == _token.STRING:
+    if the.current_type == _token.STRING or the.current_word[0]=="'":
         the.result = the.current_word[1:-1]
         if not interpreting():
             the.result = kast.Str(s=the.result)

@@ -189,6 +189,8 @@ def copy_variables(variables=variables):
 
 class ParserBaseTest(unittest.TestCase):
 
+    def context(self):
+        pass
     global p,_p,parser,_parser
     parser=p= english_parser#.EnglishParser() # Module, lol hack
     _parser=_p= english_parser#.EnglishParser

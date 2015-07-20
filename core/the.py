@@ -8,6 +8,7 @@ global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
 global in_condition,in_pipe,in_args,extensions,line_number
 _verbose =  True # False angel.verbose() and not angel.raking()  # false
+testing = False
 very_verbose = _verbose
 current_expression=None
 use_tree=False

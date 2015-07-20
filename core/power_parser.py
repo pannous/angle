@@ -90,6 +90,10 @@ class EndOfLine(NotMatching):
     pass
 
 
+class EndOfStatement(EndOfLine):
+    pass
+
+
 class MaxRecursionReached(StandardError):
     pass
 
@@ -154,7 +158,7 @@ def isnumeric(start):
 
 # _try=maybe
 
-def star(lamb):
+def star(lamb,giveUp=False):
     global throwing, nodes
     # checkEnd
     if (len(nodes) > max_depth):
@@ -175,6 +179,7 @@ def star(lamb):
             good.append(match)
             if len(good) > max and throwing: raise " too many occurrences of " + to_source(lamb)
     except GivingUp as e:
+        if giveUp:  raise e, None, sys.exc_info()[2]
         verbose("GivingUp ok in star")  # ok in star!
         set_token(old)
         return good
@@ -182,7 +187,7 @@ def star(lamb):
         set_token(old)
         if very_verbose and not good:
             verbose("NotMatching star " + str(e))
-            if verbose: print_pointer()
+            # if verbose: print_pointer()
     except EndOfDocument as e:
         verbose("EndOfDocument")  # ok in star!
     except IgnoreException as e:
@@ -228,10 +233,9 @@ def error(e, force=False):
         # print(clean_backtrace e.backtrace)
         # print(e.str( class )+" "+e.str(message))
         print_pointer()
-        if angle.use_tree:
-            import TreeBuilder
-
-            TreeBuilder.show_tree()
+        # if angle.use_tree:
+        #     import TreeBuilder
+        #     TreeBuilder.show_tree()
         if not angle._verbose: raise e,None, sys.exc_info()[2]  # SyntaxError(e):
 
 
@@ -354,6 +358,11 @@ def parse_tokens(s):
     _token.INDENT  # not available here :(
     return the.tokenstream
 
+def method_allowed(meth):
+    if len(meth)<2: return False
+    if meth in english_tokens.keywords: return False
+    return True
+
 
 def load_module_methods():
     try:
@@ -368,15 +377,16 @@ def load_module_methods():
     import english_parser
 
     for mo, mes in the.moduleMethods.items():
-        if len(mo)<2:
-            print("TO TINY METHOD:%s"%mo)
+        if not method_allowed(mo):
             continue
         the.token_map[mo] = english_parser.method_call
         for meth in mes:
-            the.token_map[meth] = english_parser.method_call
+            if method_allowed(meth):
+                the.token_map[meth] = english_parser.method_call
     for mo, cls in the.moduleClasses.items():
         for meth in cls:  # class as CONSTRUCTOR
-            the.token_map[meth] = english_parser.method_call
+            if method_allowed(meth):
+                the.token_map[meth] = english_parser.method_call
 
 
 def init(strings):
@@ -488,6 +498,7 @@ def must_contain(args,do_raise=True):  # before ;\n
         return must_contain_before(args[0:-2], args[-1]['before'])
     if isinstance(args, str):args=[args]
     old = current_token
+    pre=the.previous_word
     while not (checkEndOfLine()):
         for x in args:
             if current_word == x:
@@ -497,6 +508,7 @@ def must_contain(args,do_raise=True):  # before ;\n
         if do_raise and (current_word == ';' or current_word == '\n'):
             break
     set_token(old)
+    the.previous_word=pre
     if do_raise:raise NotMatching("must_contain " + str(args))
     return False
 
@@ -612,52 +624,52 @@ def check_rollback_allowed():
 
 # if no result: same as try but throws
 
-
-def any(block):
-    global throwing
-    raiseEnd()
-    # if checkEnd: return
-    last_try = 0
-    # if level>20: throw "Max recursion reached #{to_source(block)}"
-    if len(caller()) > 180: raise MaxRecursionReached(to_source(block))
-    was_throwing = throwing
-    throwing = False
-    # throwing[level]=false
-    old = current_token
-    # oldString = the.string
-    result = False
-    try:
-        result = block()  # yield  # <--- !!!!!
-        if not result:
-            set_token(old)
-            # the.string = oldString
-            raise NoResult(to_source(block))
-        return result
-    except EndOfDocument:
-        verbose("EndOfDocument")
-    except EndOfLine:
-        verbose("EndOfLine")
-    except GivingUp as e:
-        raise e
-    except NotMatching:
-        verbose("NotMatching")
-        # retry
-    except IgnoreException as e:
-        verbose("Error in %s" % to_source(block))
-        error(e)
-
-    if result: verbose("Succeeded with any #{to_source(block)}")
-    # if verbose and not result: string_pointer()
-    last_token = pointer_string()  # if not last_token:
-    if check_rollback_allowed():
-        set_token(old)
-        # the.string = oldString
-    throwing = was_throwing
-    # throwing[level]=True
-    # level=level-1
-    if result: return result
-    raise NotMatching(to_source(block))
-    # throw "Not matching #{to_source(block)}"
+# same as maybe
+# def any(block):
+#     global throwing
+#     raiseEnd()
+#     # if checkEnd: return
+#     last_try = 0
+#     # if level>20: throw "Max recursion reached #{to_source(block)}"
+#     if len(caller()) > 180: raise MaxRecursionReached(to_source(block))
+#     was_throwing = throwing
+#     throwing = False
+#     # throwing[level]=false
+#     old = current_token
+#     # oldString = the.string
+#     result = False
+#     try:
+#         result = block()  # yield  # <--- !!!!!
+#         if not result:
+#             set_token(old)
+#             # the.string = oldString
+#             raise NoResult(to_source(block))
+#         return result
+#     except EndOfDocument:
+#         verbose("EndOfDocument")
+#     except EndOfLine:
+#         verbose("EndOfLine")
+#     except GivingUp as e:
+#         raise e
+#     except NotMatching:
+#         verbose("NotMatching")
+#         # retry
+#     except IgnoreException as e:
+#         verbose("Error in %s" % to_source(block))
+#         error(e)
+#
+#     if result: verbose("Succeeded with any #{to_source(block)}")
+#     # if verbose and not result: string_pointer()
+#     last_token = pointer_string()  # if not last_token:
+#     if check_rollback_allowed():
+#         set_token(old)
+#         # the.string = oldString
+#     throwing = was_throwing
+#     # throwing[level]=True
+#     # level=level-1
+#     if result: return result
+#     raise NotMatching(to_source(block))
+#     # throw "Not matching #{to_source(block)}"
 
 
 def read_source(x):
@@ -687,10 +699,10 @@ def allow_rollback(n=0):
     if n < 0: the.rollback_depths = []
     depth = caller_depth() - 1
     if len(the.rollback_depths) > 0:
+        the.no_rollback_depth = the.rollback_depths[-1]
         while the.rollback_depths[-1] > depth:
             the.no_rollback_depth =the.rollback_depths.pop()
             if len(the.rollback_depths)==0: break
-        the.no_rollback_depth = the.rollback_depths[-1]
     else:
         the.no_rollback_depth = -1
 
@@ -737,7 +749,7 @@ def block():  # type):
 
         def lamb():
             try:
-                print_pointer(True)
+                # print_pointer(True)
                 s = statement()
                 statements.append(s)
             except NotMatching as e:
@@ -749,7 +761,7 @@ def block():  # type):
             # content = pointer() - start
             return end_of_statement()
 
-        star(lamb)
+        star(lamb,giveUp=True)
         # maybe(end_of_statement)
         end_block()
 
@@ -803,11 +815,10 @@ def maybe(expression):
             error("NO ROLLBACK, GIVING UP!!!")
             # if angle._verbose:
             #     print(last_token)
-            print_pointer()  # ALWAYS!
-            if angle.use_tree:
-                import TreeBuilder
-
-                TreeBuilder.show_tree()  # Not reached
+            # print_pointer()  # ALWAYS!
+            # if angle.use_tree:
+            #     import TreeBuilder
+            #     TreeBuilder.show_tree()  # Not reached
             ex = GivingUp(to_source(expression) + "\n" + pointer_string())
             raise ex, None, sys.exc_info()[2]
             # error e #exit
@@ -848,13 +859,12 @@ def maybe(expression):
     return False
 
 
-def one_or_more(block):
-    all = [block()]
-    more = star(block)
+def one_or_more(expressions):
+    all = [expressions()]
+    more = star(expressions)
     if more:
         all.append(more)
     return all
-
 
 def to_source(block):
     return str(block)
@@ -960,10 +970,10 @@ def token(t):  # _new
     raiseEnd()
     if current_word == t:
         next_token()
-        return current_word
+        return t
     else:
         if throwing: verbose('expected ' + str(result))  #
-        print_pointer()
+        # print_pointer()
         raise NotMatching(t + "\n" + pointer_string())
 
 
@@ -1053,8 +1063,7 @@ def starts_with(tokenz):
 
 
 def raiseNewline():
-    if not the.string: raise EndOfLine()
-
+    if checkEndOfLine(): raise EndOfLine()
 
 # see checkEndOfLine
 def checkNewline():
@@ -1062,7 +1071,6 @@ def checkNewline():
     # if (current_type == _token.NEWLINE):
     #     return english_tokens.NEWLINE
     # return False
-
 
 def checkEndOfLine():
     return current_type == _token.NEWLINE or \
@@ -1084,7 +1092,7 @@ def maybe_newline():
 
 def newline(doraise=False):
     if the.current_word=='':return True
-    if checkNewline() == english_tokens.NEWLINE:
+    if checkNewline() == english_tokens.NEWLINE or the.current_word==';':
         next_token()
         if (the.current_type == 54):
             next_token()  # ??? \r\n ? or what is this, python?

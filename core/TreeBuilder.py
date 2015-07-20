@@ -43,9 +43,8 @@ class MethodInterception:
     #test_setter Should never be set ("")!?
     #"token","tokens","number",
     # "setter",  "endNode",
-    # "rest_of_line","word",
-    ignore_parent+#delete+
-        ["_", "_22", "interpretation","must_not_match","system_verbs","starts_with","bla", "should_not_match", "do_send",
+    # "rest_of_line","word",#delete+
+    ignore_parent+["_", "_22", "interpretation","must_not_match","system_verbs","starts_with","bla", "should_not_match", "do_send",
          "pronouns","is_object_method", "method_tokens",
          "end_expression", "end_of_statement","end_block", "done",
          "do_evaluate", "other_verbs",

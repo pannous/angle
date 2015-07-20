@@ -5,16 +5,20 @@ from parser_test_helper import *
 
 
 class AlgebraTest(ParserBaseTest):
-    
-    def test_algebra1(self):
-        assert_result_is(u'two minus 1\xbd', None)
-        assert_result_is('3 minus one', 2)
-        init(u'4\xbd')
-        assert_equals(self.parser.fraction(), None)
-        init(u'4\xbd+3\xbd')
+
+    def setUp(self):
         self.parser.do_interpret()
-        assert_equals(self.parser.algebra(), 8)
-        assert_result_is(u'4\xbd+3\xbd', '8')
+        angle.use_tree=False
+
+    def test_algebra1(self):
+        assert_result_is('two minus 1', 1)
+        assert_result_is('3 minus one', 2)
+        init('4.0')
+        assert_equals(self.parser.fraction(), 4)
+        init('4.0+3.0')
+        self.parser.do_interpret()
+        assert_equals(self.parser.algebra(), 7)
+        assert_result_is('4.0+3.0', 7.0)
 
     def test_algebra_NOW(self):
         # skip('test_algebra_NOW, DONT SKIP!')
