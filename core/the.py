@@ -68,7 +68,6 @@ current_node=None
 current_value=None
 parser=globals()
 context=None
-throwing=False
 def is_number(s):            #isint isnum
     return isinstance(s,int) or isinstance(s,float) or isinstance(s,str) and s.isdigit() # is number isnumeric
 debug=False # True

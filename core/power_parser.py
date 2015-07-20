@@ -6,6 +6,7 @@ from __future__ import print_function  # for stderr
 # from english_parser import result, comment, condition, root
 import sys
 import tokenize
+import english_parser
 import english_tokens
 import re
 import token as _token
@@ -160,24 +161,18 @@ def isnumeric(start):
 # _try=maybe
 
 def star(lamb,giveUp=False):
-    global throwing
-    # checkEnd
-    if (depth > max_depth):
-        raise SystemStackError("if(len(nodes)>max_depth)")
-
-    was_throwing = throwing
-    throwing = True
-    old_state = current_value  # DANGER! must set current_value=None :{
-    max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
+    if (depth > max_depth): raise SystemStackError("if(len(nodes)>max_depth)")
     good = []
     old = current_token
+    old_state = current_value #?
     try:
         while not checkEndOfLine():  # many statements, so ';' is ok! but: MULTILINE!?!
             match = lamb()  # yield  # <------!!!!!!!!!!!!!!!!!!!
             if not match: break
             old = current_token
             good.append(match)
-            if len(good) > max and throwing: raise " too many occurrences of " + to_source(lamb)
+            max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
+            if len(good) > max: raise " too many occurrences of " + to_source(lamb)
     except GivingUp as e:
         if giveUp:  raise e, None, sys.exc_info()[2]
         verbose("GivingUp ok in star")  # ok in star!
@@ -196,7 +191,6 @@ def star(lamb,giveUp=False):
     if len(good) == 1: return good[0]
     if good: return good
     # else: restore!
-    throwing = was_throwing
     set_token(old)
     # invalidate_obsolete(old_nodes)
     return old_state
@@ -736,14 +730,11 @@ def invalidate_obsolete(old_nodes):
         n.invalid()
         n.destroy()
 
-def maybe_indentation():
-    if the.current_type==_token.INDENT:next_token()
-
 # start_block INCLUDED!! (optional !?!)
 def beginning_of_line():
     return the.current_type==_token.INDENT or the.current_token[2][1]==0
 
-def block():  # type):
+def block(multiple=False):  # type):
     global last_result, original_string
     from english_parser import statement, end_of_statement, end_block
     maybe_newline() or not "=>" in the.current_line and maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
@@ -751,14 +742,15 @@ def block():  # type):
     statements = [statement()]
     # content = pointer() - start
     end_of_block = maybe(end_block)  # ___ done_words
-    if not end_of_block:
+    if multiple or not end_of_block:
         end_of_statement()  # danger might act as block end!
+        if multiple: maybe_newline()
         # star(end_of_statement)
 
         def lamb():
             try:
                 # print_pointer(True)
-                maybe_indentation()
+                maybe_indent()
                 s = statement()
                 statements.append(s)
             except NotMatching as e:
@@ -978,32 +970,9 @@ def token(t):  # _new
         next_token()
         return t
     else:
-        if throwing: verbose('expected ' + str(result))  #
+        # verbose('expected ' + str(result))  #
         # print_pointer()
         raise NotMatching(t + "\n" + pointer_string())
-
-
-def token_old(t):
-    global throwing
-    if isinstance(t, list): return tokens(t)
-    # if checkEnd: return None
-    # if t.is_a? Array #HOW TH ?? method_missing: t=t[0]
-    the.string = the.string.strip()
-    if the.string.startswith('/*'): comment_block()
-    raiseEnd()
-    if starts_with(t):
-        current_value = t.strip()
-        the.string = the.string[len(t): - 1]
-        if re.match(r'^\w ', the.string) and re.match(r'^\w ', t):
-            raise NotMatching(t + " (the.strings needs whitespace, special chars don't)")
-        else:
-            the.string = the.string.strip()
-            return current_value
-    else:
-        if throwing: verbose('expected ' + str(result))  #
-        print_pointer()
-        raise NotMatching(t)
-        # todo: proper token stream, pre-lex'ed
 
 
 def flatten(l):
@@ -1024,33 +993,6 @@ def tokens(tokenz):
     if (ok): return ok
     raise NotMatching(str(tokenz) + "\n" + pointer_string())
 
-
-def tokens_old(*tokenz):
-    global throwing
-    # encoding: utf-8
-    if isinstance(tokenz, classmethod):
-        tokenz = tokenz()
-    tokenz = flatten(tokenz)
-    raiseEnd()
-    if the.string.startswith('/*'): comment_block()
-    the.string = the.string.strip() + ' '
-    for t in flatten(tokenz):
-        # if t.is_a Variable: next
-        # if t=='' # todo debug HOW: next
-        if (t == "\n" and not the.string): return True
-        if re.search(r'^\w', t):
-            match = re.search(r'(?im)^\s*' + t, the.string)
-            if match and re.search(r'^\w', the.string[match.end():]):
-                continue  # next must be space or so!: next
-        else:  # special char
-            match = re.search(r'(?im)^\s*' + escape_token(t), the.string)
-        if match:
-            x = current_value = t
-            the.string = the.string[match.end():].strip()
-            the.string2 = the.string
-            return x
-    raise NotMatching(result)
-    # if throwing:
 
 
 def escape_token(t):
@@ -1243,3 +1185,8 @@ def complex():
         next_token()
         return current_value
     return False
+
+
+def maybe_indent():
+    while the.current_type==_token.INDENT or the.current_word==' ':
+        next_token()

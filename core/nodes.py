@@ -161,7 +161,7 @@ class Argument(kast.arg):
         return ok
 
     def name_or_value(self):
-        self.value or self.name
+        return self.value or self.name
 
         # str(def)ym(self):
         #   str(self.name)ym

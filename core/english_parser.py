@@ -197,7 +197,7 @@ def raiseSyntaxError():
 
 
 def rooty():
-    power_parser.block()
+    power_parser.block(multiple=True)
     # maybe(block) or \
     #  maybe(statement) or \
     #    raiseSyntaxError()# raise_not_matching("")
@@ -768,6 +768,7 @@ def statement():
         raise_not_matching("end of block")
     # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
+    maybe_indent()
     x = maybe(quick_expression) or \
         maybe(setter) or \
         maybe(returns) or \
@@ -1350,11 +1351,6 @@ def action_or_expression(fallback=None):  # if a/e then a/b
 
 def expression_or_block():  # action_or_block):
     action_or_block()
-
-
-def maybe_indent():
-    if the.current_type==_token.INDENT:
-        next_token()
 
 
 def action_or_block(started=False):  # expression_or_block
@@ -2373,23 +2369,6 @@ def do_evaluate_property(attr, node):
     if isinstance(attr, _ast.AST):
         return todo("do_evaluate_property")
 
-
-# Strange method, see resolve, do_evaluate
-def eval_string(x):
-    if not x: return None
-    if isinstance(x, Variable): return x.value
-    if isinstance(x, ast.Num): return x.n
-    if isinstance(x, ast.Str): return x.s
-    if isinstance(x, extensions.File): return x.to_path
-    # if isinstance(x, str): return x
-    # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
-    # if maybe(x.is_a) Array: x=x.join(" ")
-    if isinstance(x, list) and len(x) == 1: return x[0]
-    if isinstance(x, list): return x
-    # if maybe(x.is_a) Array: return x.to_s
-    return do_evaluate(x)
-
-
 class Reflector(object):
     def __getitem__(self, name):
         if name=="__tracebackhide__":
@@ -2641,6 +2620,10 @@ def findMethod(obj0, method0, args0=None):
 
 def align_function_args(args, clazz, method):
     newArgs={}
+    if isinstance(args,(dict,tuple,list)) and len(method.arguments)==1:
+        return {method.arguments[0].name:args}
+
+
     if not isinstance(args,(dict,list)):
         args=[args]
     for param in method.arguments:
@@ -2660,21 +2643,35 @@ def align_function_args(args, clazz, method):
     return newArgs
     # return method.arguments
 
+
+
+# Strange method, see resolve, do_evaluate
+def eval_string(x):
+    if not x: return None
+    if isinstance(x, Variable): return x.value
+    if isinstance(x, ast.Num): return x.n
+    if isinstance(x, ast.Str): return x.s
+    if isinstance(x, extensions.File): return x.to_path
+    if isinstance(x, Argument): return x.name_or_value() #args.value
+    # if isinstance(x, str): return x
+    # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
+    # if maybe(x.is_a) Array: x=x.join(" ")
+    if isinstance(x, list) and len(x) == 1: return x[0]
+    if isinstance(x, list): return x
+    # if maybe(x.is_a) Array: return x.to_s
+    return do_evaluate(x)
+
 def values(x):
-    if isinstance(x,Variable):
-        return x.value
-    return x
+    return eval_string(x)
 
 # Similar to prepare_named_args for block ast eval!
 def align_args(args, clazz, method):
-    if args and isinstance(args, str): args = xstr(args).replace_numerals()
-    if isinstance(args, Argument): args = args.name_or_value
-    if (isinstance(args, list)):
-        args = map(values, args)
-    if (isinstance(args, Argument)): args = args.value
+    # if args and isinstance(args, str): args = xstr(args).replace_numerals()
+    # if not isinstance(args,list):
+    #     if isinstance(args,dict):
     if isinstance(method,Function):
         return align_function_args(args, clazz, method)
-
+    if (isinstance(args, (list,tuple))): args = map(values, args)
     selfmodifying = self_modifying(method)
     if selfmodifying: return args  # todo
     is_bound = 'im_self' in dir(method) and method.im_self
@@ -2682,7 +2679,6 @@ def align_args(args, clazz, method):
         if method.im_self == args: args = None
         if (args and isinstance(args, list) and len(args) > 0):
             if method.im_self == args[0]: args.remove(args[0])
-    args = eval_string(args)  # except NoMethodError
     return args
     if isinstance(method, Function):
         method = findMethod(clazz, method)
@@ -2703,10 +2699,10 @@ def call_unbound(method,args):
        except:
            the.result = method(*args.values()) or NILL
    if isinstance(args, list) or isinstance(args, tuple):
-       if len(args) == 1:#and number_of_arguments == 1:
-           the.result = method(args) or NILL
-       else:
-           the.result = method(*args) or NILL
+       the.result = method(*args) or NILL
+       # if len(args) > 1 and number_of_arguments == 1:
+       #     the.result = method(args) or NILL
+       # else:
    else:
        the.result = method(args) or NILL
 
@@ -2815,7 +2811,7 @@ def do_compare(a, comp, b):
     elif comp == 'equal' or comp == 'the same' or comp == 'the same as' or comp == 'the same as' or comp == '=' or comp == '==':
         return a == b  # Redundant
     elif comp in be_words or isinstance(comp, ast.Eq) or 'same' in comp:
-        return isinstance(a, b) or a == b
+        return a == b or isinstance(b,types.TypeType) and isinstance(a, b)
     else:
         try:
             return a.send(comp, b)  # raises!
