@@ -5,7 +5,6 @@ from parser_test_helper import *
 
 
 class HashTest(ParserBaseTest):
-    
 
     # def test_hash_symbol_invariance_extension(self):
     #     a = {'a': 1, }
@@ -17,9 +16,11 @@ class HashTest(ParserBaseTest):
         init('{a{b:"b";c:"c"}}')
         self.parser.json_hash()
 
+    def test_simple(self):
+        assert_equals(parse('{:a => "b"}'), {'a': 'b', })
+
     def test_invariances(self):
-        assert_result_is('{a:"b"}', {'a': 'b', })
-        assert_result_is('{a:"b"}', {'a': 'b', })
+        assert_result_is('{a:"b"}', {'a': 'b' })
 
     def test_invariances2(self):
         assert_equals(parse('{a{b:"b",c:"c"}}'), {'a': {'c': 'c', 'b': 'b', }, })

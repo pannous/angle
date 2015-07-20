@@ -583,11 +583,11 @@ def json_hash():
     # colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
     # careful with blocks!! {puts "s") VS {a:"s")
 
-
+# careful with blocks/closures ! map{puts it} VS data{a:"b")
 @Starttokens('{')
 def regular_json_hash():
     _('{')
-    maybe_token(':')  # and allow_rollback()  # {:a:.) Could also mean list of maybe(symbols) Nah
+    maybe_token(':')  and no_rollback()
     h = {}
 
     def lamb():
@@ -596,19 +596,18 @@ def regular_json_hash():
         key = word()
         if quoted: tokens(['"', "'"])
         # Property versus hash !!
-        maybe_tokens(['=>', '=']) or starts_with("{") or maybe_tokens(['=>', ':'])
-        inside_list = True
-        # h[key] = expression0 # no
-        h[the.result] = expression()
+        maybe_tokens(['=>', '=',':','>']) or starts_with("{")
+        maybe_tokens(['=>', '=',':','>'])
+        # angle.inside_list = True
+        val=expression()
+        h[key] = val
+        return {key:val}
 
     star(lamb)
-    # no_rollback()
-    close_bracket()
-    inside_list = False
+    _('}')
+    # angle.inside_list = False
     return h
-
-    # maybe(expensive)
-    # careful with blocks/closures ! map{puts it) VS data{a:"b")
+    # careful with blocks/closures ! map{puts it} VS data{a:"b")
 
 
 def starts_with_(param):
@@ -646,9 +645,15 @@ def postoperations(context):  # see quick_expression !!
         return the.result if _("if") and condition() else maybe("else") and expression() or None
     return maybe_cast(context) or maybe_algebra(context) or context
 
+
+def contains(token):
+    return token in the.current_line
+
+
 def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
+    if the.current_word == '{' and contains("=>"):return json_hash()
     the.result = False
     if the.current_word.startswith("'"):
         the.result=quote()
@@ -2383,6 +2388,8 @@ def eval_string(x):
 
 class Reflector(object):
     def __getitem__(self, name):
+        if name=="__tracebackhide__":
+            return False # for py.test
         print("Reflector __getitem__ %s" % str(name))
         if name in the.params:
             the.result=do_evaluate(the.params[name])
@@ -2390,8 +2397,6 @@ class Reflector(object):
             the.result=do_evaluate(the.variables[name].value)
         elif name in the.methods:
             return the.methods[name]
-        elif name=="__tracebackhide__":
-            return False # for py.test
         else: raise Exception("UNKNOWN ITEM %s" % name)
         return the.result
 

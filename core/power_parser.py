@@ -161,7 +161,7 @@ def isnumeric(start):
 def star(lamb,giveUp=False):
     global throwing, nodes
     # checkEnd
-    if (len(nodes) > max_depth):
+    if (depth > max_depth):
         raise SystemStackError("if(len(nodes)>max_depth)")
 
     was_throwing = throwing
@@ -739,7 +739,7 @@ def beginning_of_line():
 def block():  # type):
     global last_result, original_string
     from english_parser import statement, end_of_statement, end_block
-    maybe_newline() or maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
+    maybe_newline() or not "=>" in the.current_line and maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
     start = pointer()
     statements = [statement()]
     # content = pointer() - start
@@ -778,16 +778,14 @@ def block():  # type):
 
 
 def maybe(expression):
+    global original_string, last_node, current_value, depth, nodes, current_node, last_token
     if not callable(expression):  # duck!
         return maybe_tokens(expression)
     the.current_expression=expression
-    global original_string, last_node, current_value, depth, nodes, current_node, last_token
-    # allow_rollback 1
     depth = depth + 1
-    if (caller_depth() > angle.max_depth): raise SystemStackError("len(nodes)>max_depth)")
+    if (depth > angle.max_depth): raise SystemStackError("len(nodes)>max_depth)")
     old = current_token
     try:
-        old_nodes = list(nodes)  # .clone()
         result = expression()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         adjust_rollback()
         if angle.debug and (callable(result)):
@@ -811,7 +809,6 @@ def maybe(expression):
         if cc >= rb:
             set_token(old)  # OK
             current_value = None
-            invalidate_obsolete(old_nodes)
         if cc < rb:  # and not cc+2<rb # not check_rollback_allowed:
             error("NO ROLLBACK, GIVING UP!!!")
             # if angle._verbose:
@@ -844,6 +841,8 @@ def maybe(expression):
     except Error as e:
         error(e)
         raise e
+    finally:
+        depth=depth-1
     # except Exception as e:
     #     error(block)
     #     import traceback
@@ -854,9 +853,7 @@ def maybe(expression):
     #     quit()
     # finally:
     adjust_rollback()
-    depth = depth - 1
     set_token(old)  # if rollback:
-    nodes = old_nodes  # restore
     return False
 
 
