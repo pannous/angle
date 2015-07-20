@@ -224,9 +224,9 @@ event_kinds = ['in', 'at', 'every', 'from', 'between', 'after', 'before', 'until
 bla_words = ['tell me', 'hey', 'could you', 'give me', \
              'i would like to', 'can you', 'please', 'let us', "let's", 'can i', \
              'can you', 'would you', 'i would', 'i ask you to', "i'd", \
-             'love to', 'like to', 'i asked you to', 'would you', 'could i', \
-             'i tell you to', 'i told you to', 'would you', 'come on', \
-             'i wanna', 'i want to', 'i want', 'tell me', 'i need to', \
+             'love to', 'like to', 'i asked you to', 'could i', \
+             'i tell you to', 'i told you to', 'come on', \
+             'i wanna', 'i want to', 'i want', 'i need to', \
              'i need','either']
 # either HAS MEANING! if x is either 3 or 4 != if x is 3 or 4 ==if x is 3
 
@@ -256,7 +256,7 @@ invoke_keywords = ['call', 'execute', 'run', 'start', 'evaluate', 'eval', 'invok
 context_keywords = ['context', 'module', 'package']
 self_modifying_operators = ['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%=', '#=', '*=', '**=', '<<', '>>']
 
-newline_tokens = ["\.\n", "\. ", "\n", "\r\n", ';']
+newline_tokens = [ "\n", "\r\n", ';',"\.\n", "\. "]
 
 kast_operator_map = {
     "+": ast.Add(),

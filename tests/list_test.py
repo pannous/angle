@@ -1,6 +1,6 @@
 import angle
 angle.use_tree = False
-angle.verbose = False
+angle._verbose = False
 from parser_test_helper import *
 
 
@@ -76,16 +76,16 @@ class ListTest(ParserBaseTest):
 
     def test_concatenation(self):
         parse('x is 1,2,3;y=4,5,6')
-        assert(equals([1, 2, 3], value(variables['x'], )))
-        assert(equals(3, len(value(variables['y'], ), )))
+        assert(equals([1, 2, 3], the.variableValues['x'], ))
+        assert(equals(3, len(the.variableValues['y'], ), ))
         init('x + y')
         z = self.parser.algebra()
-        assert_equals(z.length(), 6)
+        assert_equals(z.len(), 6)
         z = parse('x + y')
-        assert_equals(z.length(), 6)
-        assert_equals(length(result(), ), 6)
+        assert_equals(z.len(), 6)
+        assert_equals(len(result(), ), 6)
         z = parse('x plus y')
-        assert_equals(z.length(), 6)
+        assert_equals(z.len(), 6)
 
     def test_concatenation_plus(self):
         parse('x is 1,2;y=3,4')
@@ -95,7 +95,7 @@ class ListTest(ParserBaseTest):
     def test_concatenation2(self):
         parse('x is 1,2,3;y=4,5,6')
         parse('x + y')
-        assert(equals(6, length(result(), )))
+        assert(equals(6, len(result(), )))
         parse('z is x + y')
         assert_equals(variables['z'], [1, 2, 3, 4, 5, 6])
 
@@ -109,7 +109,7 @@ class ListTest(ParserBaseTest):
         init('x + y == 1,2,3,4')
         self.parser.condition()
         assert('x + y == 1,2,3,4')
-        assert_equals(parse('x plus y'), plus([3, 4]))
+        assert_equals(parse('x plus y'), [1,2,3,4])
         assert('x plus y == [1,2,3,4]')
 
     def test_concatenation4(self):
@@ -138,10 +138,10 @@ class ListTest(ParserBaseTest):
     def test_type3(self):
         parse('x be 1,2,3;y= class of x')
         assert(equals(list, variables['y']))
-        assert_equals(type(variables['x'], ), list)
-        assert_equals(type(value(variables['x'], ), ), list)
-        assert_equals(kind(value(variables['x'], ), ), list)
-        assert_equals(variables['y'], list)
+        assert_equals(variables['x'].type, list)
+        assert_equals(type(the.variableValues['x']), list)
+        # assert_equals(kind(the.variableValues['x'], list)
+        assert_equals(variables['y'].value, list)
         assert('y is a Array')
         assert('y is an Array')
         assert('y is Array')
@@ -156,7 +156,7 @@ class ListTest(ParserBaseTest):
         assert('kind of x is Array')
         assert('type of x is Array')
 
-    def test_length(self):
+    def test_len(self):
         variables['xs'] = [Variable({'value': [1, 2, 3], 'name': 'xs', }), ]
         assert('length of xs is 3')
         assert('size of xs is 3')

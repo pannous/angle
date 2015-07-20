@@ -102,7 +102,9 @@ class FunctionTest(ParserBaseTest):
         g = functions['increase']
         arg1 = Argument({'type': 'number', 'position': 1, 'name': 'x', 'preposition': None, })
         arg2 = Argument({'name': 'y', 'preposition': 'by', 'position': 2, })
-        f = Function({'arguments': arg2, 'name': 'increase', 'body': 'x+y;', 'object': arg1, })
+        body='x+y;'
+        body=ast.BinOp(left=ast.Name('x'),op=ast.Add,right=ast.Name('y'))
+        f = Function({'arguments': arg2, 'name': 'increase', 'body': body, 'object': arg1, })
         assert_equal(f, g)
         assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
@@ -192,7 +194,7 @@ class FunctionTest(ParserBaseTest):
     def test_add_time(self):
         pass
 
-    def test_add(self):
+    def test_increase(self):
     # todo:  copying method invocation logic to AST
         parse('counter is one; repeat three times: increase counter; done repeating;')
         assert_equals(the.variableValues['counter'], 4)

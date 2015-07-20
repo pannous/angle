@@ -26,7 +26,7 @@ class Starttokens(object):
         decorator_self = self
         for t in self.starttokens:
             if t in the.token_map:
-                print("ALREADY mapped %s to %s, now %s" % (t, the.token_map[t], original_func))
+                    print("ALREADY MAPPED \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
             the.token_map[t] = original_func
         return original_func
         # def wrappee( *args, **kwargs):
@@ -286,7 +286,7 @@ def maybe_tokens(tokens0):
         if t == the.current_word or t.lower() == the.current_word.lower() :
             next_token()
             return t
-        if " " in t:
+        if " " in t: # EXPENSIVE
             old = the.current_token
             for to in t.split(" "):
                 if to != the.current_word:
@@ -734,7 +734,7 @@ def invalidate_obsolete(old_nodes):
 
 # start_block INCLUDED!! (optional !?!)
 def beginning_of_line():
-    return the.current_token[2][1]==0
+    return the.current_type==_token.INDENT or the.current_token[2][1]==0
 
 def block():  # type):
     global last_result, original_string
@@ -745,7 +745,8 @@ def block():  # type):
     # content = pointer() - start
     end_of_block = maybe(end_block)  # ___ done_words
     if not end_of_block:
-        beginning_of_line() or end_of_statement()  # danger might act as block end!
+        end_of_statement()  # danger might act as block end!
+        # star(end_of_statement)
 
         def lamb():
             try:
@@ -1100,6 +1101,7 @@ def newline(doraise=False):
             next_token()  # IGNORE FOR NOW!!!!
         return english_tokens.NEWLINE
     found = maybe_tokens(english_tokens.newline_tokens)
+    if found: return found # todo CLEANUP!!!
     if checkNewline() == english_tokens.NEWLINE:  # get new line: return NEWLINE
         next_token()
         return found
@@ -1206,7 +1208,7 @@ def integer():
         next_token()
         # "E20": kast.Pow(10,20),
         import ast
-        if not interpreting(): return ast.Num(current_value)
+        # if not interpreting(): return ast.Num(current_value)
         if current_value == 0:
             current_value = ZERO
         return current_value

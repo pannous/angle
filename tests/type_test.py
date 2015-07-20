@@ -7,11 +7,11 @@ class TypeTest(ParserBaseTest):
 
     def test_typed_variable(self):
         parse('Int i=7')
-        assert_equals(variableTypes['i'], int)
+        assert_equals(the.variables['i'].type, int)
 
     def test_typed_variable2(self):
         parse('int i=7')
-        assert_equals(variableTypes['i'], int)
+        assert_equals(the.variables['i'].type, int)
 
     # def test_typed_variable2(self):
     #     parse('int i=7')
@@ -48,12 +48,12 @@ class TypeTest(ParserBaseTest):
 
     def test_type3(self):
         parse('x be 1,2,3;y= class of x')
-        assert_equals(variables['x'].type , list)
-        assert_equals(type(variableValues['x']) , list)
-        assert_equals(type(variables['x'].value) , list)
-        assert_equals(variableValues['y'], list)
-        assert_equals(variables['y'].value, list)
-        assert_equals(variables['y'].type, type)
+        assert_equals(the.variables['x'].type , list)
+        assert_equals(type(the.variableValues['x']) , list)
+        assert_equals(type(the.variables['x'].value) , list)
+        assert_equals(the.variableValues['y'], list)
+        assert_equals(the.variables['y'].value, list)
+        assert_equals(the.variables['y'].type, type)
 
     def test_type33(self):
         parse('x be 1,2,3;y= class of x')

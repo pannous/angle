@@ -1,6 +1,6 @@
 import angle
 angle.use_tree = False
-angle.verbose = False
+angle._verbose = False
 from parser_test_helper import *
 
 

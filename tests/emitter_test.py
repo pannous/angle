@@ -1,11 +1,11 @@
 import angle
 angle.use_tree = True
-angle.verbose = False
+angle._verbose = False
 from parser_test_helper import *
 # from c-emitter import *
 
 
-class EmitterTest(ParserBaseTest):
+class EmitterTest:#(ParserBaseTest):
 
     def init(self):
         angle.use_tree = True
@@ -15,10 +15,6 @@ class EmitterTest(ParserBaseTest):
         angle.use_tree = True
         angle.use_tree = True
     
-
-    def last_result(self, x):
-        split[-1]
-        split[-1]
 
     def assert_result_emitted(self, x, r):
         assert_equals(last_result(parse_tree(x, True)), r)

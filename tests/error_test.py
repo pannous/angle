@@ -1,6 +1,6 @@
 import angle
 angle.use_tree = False
-angle.verbose = False
+angle._verbose = False
 from parser_test_helper import *
 
 class ErrorTest(ParserBaseTest):
@@ -29,7 +29,7 @@ class ErrorTest(ParserBaseTest):
         try:
                 assert_has_no_error('dfsafdsa ewdfsa}{P}{P;@#%')
         except:
-            p("OK")
+            puts("OK")
 
     def test_type3(self):
         assert_has_error('x be 1,2,3y= class of x')
@@ -39,8 +39,8 @@ class ErrorTest(ParserBaseTest):
         assert_has_error('square 1,2 andy 3')
         assert_has_error('square 1,2 andy 3')
 
+    @unittest.expectedFailure
     def test_x(self):
-        parse('x')
         parse('x')
 
     def test_endNode_as(self):

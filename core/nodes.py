@@ -107,7 +107,7 @@ class FunctionCall(ast.Assign):
         # self.args = []
         # self.keywords = []
         # self.kwargs = self.starargs = None
-        if callable(func): func=func.__name__#lulwoot
+        if callable(func):func=func.__name__#lulwoot  keep self.method=func?
         if isinstance(func,Function): func=func.name #eek name->func!
 
         #or args['name']

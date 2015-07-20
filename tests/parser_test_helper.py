@@ -20,7 +20,6 @@ methods = {}
 functions = {}
 variables = {}
 variableValues = {}
-variableTypes = {}
 emit=False
 base_test=None
 
@@ -93,6 +92,8 @@ def parse_file(x):
 
 
 def assert_equals(a, b, bla=None):
+    if a == 'False':a=False
+    if isinstance(a,ast.List):a=a.value
     assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)
 
 
@@ -107,7 +108,9 @@ class SkippingTest(Exception):
     pass
 
 def skip(me=0):
-    raise SkippingTest()
+    raise unittest.SkipTest()
+     # TestCase.skipTest()
+    # raise SkippingTest()
 
 
 def assert_has_error(x,ex=None):
@@ -137,10 +140,9 @@ def sleep(s):
     pass
 
 def clear_test():
-    global variables,variableValues,variableTypes
+    global variables,variableValues
     variables={}
     variableValues={}
-    variableTypes={}
 
 def parse(s):
     interpretation= english_parser.parse(s)
@@ -149,7 +151,6 @@ def parse(s):
     variableValues.update(the.variableValues)
     functions.update(the.methods)
     methods.update(the.methods)
-    variableTypes.update(the.variableTypes)
     return r
 
 
@@ -219,8 +220,8 @@ class ParserBaseTest(unittest.TestCase):
     def setUpClass(cls):
         pass # reserved for expensive environment one time set up
 
-    def test_true(self):
-        assert True
+    # def test_true(self):
+    #     assert True
     # def test_globals(self):
     #     self.assertIsInstance(p,Parser)
 
@@ -245,7 +246,7 @@ class ParserBaseTest(unittest.TestCase):
 
     def initialize(self, args):
         if ENV['TEST_SUITE']:
-            angle.verbose = False
+            angle._verbose = False
         if angle.raking:
             angle.emit = False
         self.parser = english_parser.EnglishParser()

@@ -56,7 +56,7 @@ class Starttokens(object):
         decorator_self = self
         for t in self.starttokens:
             if t in the.token_map:
-                print("ALREADY mapped %s to %s, now %s" % (t, the.token_map[t], original_func))
+                print("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
             the.token_map[t] = original_func
         return original_func
 
@@ -671,9 +671,9 @@ def quick_expression():  # bad idea!
             return setter(the.result)
         else:
             raise_not_matching("better try setter")
+    if the.current_word == '|': return piped_actions(the.result or the.last_result)
     if the.current_word in operators:
         return algebra(the.result)
-    if the.current_word == '|': return piped_actions(the.result)
     if the.current_word == '[':
         return evaluate_index(the.result)
     if the.result and the.current_word == 'to': return ranger(the.result)
@@ -681,7 +681,8 @@ def quick_expression():  # bad idea!
     if the.current_word == '': return the.result
     if the.current_word == ';': return the.result
     if the.current_word == '.': return method_call(the.result)
-    if the.current_word in operators:return algebra(the.result)
+    if the.current_word in operators:
+        return algebra(the.result)
     if the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
     return the.result
@@ -760,18 +761,18 @@ def statement():
     # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     x = maybe(quick_expression) or \
-        maybe(loops) or \
-        maybe(if_then_else) or \
-        maybe(once) or \
-        maybe(piped_actions) or \
-        maybe(declaration) or \
-        maybe(nth_item) or \
         maybe(setter) or \
         maybe(returns) or \
         maybe(imports) or \
         maybe(method_definition) or \
         maybe(assert_that) or \
         maybe(breaks) or \
+        maybe(loops) or \
+        maybe(if_then_else) or \
+        maybe(once) or \
+        maybe(piped_actions) or \
+        maybe(declaration) or \
+        maybe(nth_item) or \
         maybe(new) or \
         maybe(action) or \
         maybe(expression) or \
@@ -1174,8 +1175,8 @@ def true_method(obj=None):
 # read mail or module read mail or object read mail bla(1) or a.bla(1)  vs ruby_method_call !!
 def method_call(obj=None):
     # verb_node
-    module, obj, method = true_method(obj)
-    method = findMethod(obj, method)  # already? todo findMethods with S, ambiguous ones!!
+    module, obj, method_name = true_method(obj)
+    method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
     # no_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
@@ -1215,8 +1216,8 @@ def method_call(obj=None):
     if start_brace == '[': _(']')
     if start_brace == '{': _('}')
     if not interpreting():
-        if method == "puts" or method == "print":
-            return kast.Print(dest=None, values=[args], nl=True)
+        if method_name == "puts" or method_name == "print":
+            return kast.Print(dest=None, values=map(values,args), nl=True)
         return FunctionCall(func=method, arguments=args, object=obj)
     the.result = do_send(obj, method, args)
     return the.result
@@ -1384,10 +1385,11 @@ def done(_type=None):
     if the.current_line == "end\n": return OK #todoooo
     if the.current_type==_token.DEDENT: return OK
     checkNewline()
-    ok = tokens(done_words)
+    ok = maybe_tokens(done_words)
     if _type and not _type in start_block_words:
         token(_type)
-    ignore_rest_of_line()
+    # if ok: ignore_rest_of_line() NO: def x:0;end;puts x
+    if _type and the.previous_word== ";": return OK # REALLY??
     # maybe_newline()
     return ok
 
@@ -2388,6 +2390,8 @@ class Reflector(object):
             the.result=do_evaluate(the.variables[name].value)
         elif name in the.methods:
             return the.methods[name]
+        elif name=="__tracebackhide__":
+            return False # for py.test
         else: raise Exception("UNKNOWN ITEM %s" % name)
         return the.result
 
@@ -2402,6 +2406,15 @@ class Reflector(object):
 
 
 class PrepareTreeVisitor(ast.NodeTransformer):
+        # emitters.kast_emitter.wrap_value(val)
+    def visit_list(self, x):
+        return kast.List(x,ast.Load())
+        # return kast.List(map(wrap_value,val),ast.Load())
+
+    def visit_float(self, x):
+        return ast.Num(x)
+    def visit_str(self, x):
+        return ast.Str(x)
     def visit_int(self, x):
         return ast.Num(x)
     def visit_Variable(self, x):
@@ -2468,10 +2481,11 @@ def do_evaluate(x, _type=None):
         if x == NILL: return None
         if isinstance(x, Variable):
             val = x.value or the.variableValues[x.name]
-            if not interpreting():
-                return val
-            else:
-                return emitters.kast_emitter.wrap_value(val)
+            return val
+            # if not interpreting():
+            #     return val
+            # else:
+            #     return emitters.kast_emitter.wrap_value(val) # LATER!!
 
         if isinstance(x, str):
             if _type and isinstance(_type, extensions.Numeric): return float(x)
@@ -2637,14 +2651,13 @@ def align_function_args(args, clazz, method):
     return newArgs
     # return method.arguments
 
+def values(x):
+    return x.value
+
 # Similar to prepare_named_args for block ast eval!
 def align_args(args, clazz, method):
     if args and isinstance(args, str): args = xstr(args).replace_numerals()
     if isinstance(args, Argument): args = args.name_or_value
-
-    def values(x):
-        return x.value
-
     if (isinstance(args, list)):
         args = map(values, args)
     if (isinstance(args, Argument)): args = args.value
@@ -2906,7 +2919,7 @@ def check_end_of_statement():
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return maybe_newline() or starts_with(done_words) or the.previous_word == ';' or token(';')
+    return beginning_of_line() or maybe_newline() or starts_with(done_words) or the.previous_word == ';' or token(';')
     # consume ";", but DON'T consume done_words here!
 
 
@@ -3374,7 +3387,7 @@ def ruby_action():
 
 
 def start_shell():
-    angle.verbose = False
+    angle._verbose = False
     print('usage:')
     print("\t./angle 6 plus six")
     print("\t.r'angle examples'test.e")
