@@ -169,7 +169,6 @@ def star(lamb,giveUp=False):
     old_state = current_value  # DANGER! must set current_value=None :{
     max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
     good = []
-    old_nodes = list(nodes)  # clone
     old = current_token
     try:
         while not checkEndOfLine():  # many statements, so ';' is ok! but: MULTILINE!?!
@@ -199,7 +198,6 @@ def star(lamb,giveUp=False):
     throwing = was_throwing
     set_token(old)
     # invalidate_obsolete(old_nodes)
-    nodes = old_nodes
     return old_state
 
 
@@ -731,6 +729,8 @@ def invalidate_obsolete(old_nodes):
         n.invalid()
         n.destroy()
 
+def maybe_indentation():
+    if the.current_type==_token.INDENT:next_token()
 
 # start_block INCLUDED!! (optional !?!)
 def beginning_of_line():
@@ -751,6 +751,7 @@ def block():  # type):
         def lamb():
             try:
                 # print_pointer(True)
+                maybe_indentation()
                 s = statement()
                 statements.append(s)
             except NotMatching as e:
@@ -794,7 +795,6 @@ def maybe(expression):
             verbose("GOT result from " + str(expression) + " : " + str(result))
         else:
             verbose("No result from " + str(expression))
-            invalidate_obsolete(old_nodes)
             set_token(old)
             # the.string = old
         last_node = current_node
@@ -822,7 +822,6 @@ def maybe(expression):
             # error e #exit
             # raise SyntaxError(e)
     except EndOfDocument as e:
-        invalidate_obsolete(old_nodes)
         set_token(old)
         verbose("EndOfDocument")
         # raise e

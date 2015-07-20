@@ -59,7 +59,11 @@ class StringTest(ParserBaseTest):
         parse("y is ' world'")
         parse('z is x + y')
         self.assert_equals(the.variables['z'], 'hi world')
+
+    def test_concatenation_b0(self):
+        parse("x is 'hi'")
         parse("y is ' you'\n       z is x + y")
+        # parse("y is ' you'\nz is x + y")
         self.assert_equals(the.variables['z'], 'hi you')
 
     def test_concatenation_b1(self):
@@ -159,7 +163,8 @@ class StringTest(ParserBaseTest):
     def test_type2(self):
         parse("x='hi';\n      class of x")
         parse("x='hi';class of x")
-        self.assert_equals(result(), Quote)
+        self.assert_equals(result(), str)
+        # self.assert_equals(result(), Quote)
 
     def test_result(self):
         parse("x be 'hello world';show x;x; class of x")

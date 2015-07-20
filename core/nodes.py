@@ -24,6 +24,7 @@ class Quote(str,ast.Str):
     # todont!!
     def __eq__(self, x):
         # if x.name==String: True
+        if str(x)=="str": return True
         if str(x)=="String": return True
         if str(x)=="Quote": return True
         return False

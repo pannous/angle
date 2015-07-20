@@ -657,7 +657,7 @@ def quick_expression():  # bad idea!
     the.result = False
     if the.current_word.startswith("'"):
         the.result=quote()
-    if the.current_word in the.token_map:
+    elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         the.result = fun()  # already wrapped maybe(fun)
@@ -693,7 +693,7 @@ def quick_expression():  # bad idea!
     return the.result
 
 
-@Starttokens(["pass", ";"])
+@Starttokens(["pass"])#, ";"
 def passing():
     return tokens(["pass", ";"])
 
