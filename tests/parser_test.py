@@ -85,7 +85,8 @@ class ParserTest(tests.parser_test_helper.ParserBaseTest): #EnglishParser
         assert(method_definition())
 
     def test_method4(self):
-        s('how to integrate a bug\n      test\n    ok')
+        # s('how to integrate a bug\n      test\n    ok')
+        s('to integrate a bug\n      test\nok')
         assert(method_definition())
 
     def test_expression(self):

@@ -1,6 +1,6 @@
 #GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
 
-extensionMap ={}
+extensionMap ={} # str->xstr
 import extensions
 
 global string, last_node, current_value, nodes, depth,rollback_depths,OK
@@ -53,7 +53,7 @@ OK = 'OK'
 result=None
 last_result=None
 listeners = []
-nodes = []
+# nodes = []
 
 rollback = []
 tree = []

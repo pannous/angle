@@ -128,6 +128,9 @@ class FunctionCall(ast.Assign):
         self.targets=[ast.Name(id="__result__",ctx=ast.Store())]
         self.value=kast.call(func,arguments)# ast.Call(func=name,
 
+    # def invoke(self):
+    #     do_send
+
 
 class Argument(kast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value

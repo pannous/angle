@@ -158,11 +158,14 @@ def value():
 
     # attr_accessor :methods, :result, :last_result, :interpretation, :variables, :variableValues,:variableType #remove the later!
 
+class Interpretation:
+    pass
 
 def interpretation():
-    import interpretation
+    # import interpretation
 
-    interpretation = interpretation.Interpretation()
+    # interpretation = interpretation.Interpretation()
+    interpretation = Interpretation()
     i = interpretation  # Interpretation.new
     i.result = the.result
     i.tree = the.result
@@ -788,6 +791,7 @@ def statement():
     the.result = x
     the.last_result = x
     check_comment()
+    adjust_interpret()
     return the.result
 
     # one :action, :if_then ,:once , :looper
@@ -2657,7 +2661,9 @@ def align_function_args(args, clazz, method):
     # return method.arguments
 
 def values(x):
-    return x.value
+    if isinstance(x,Variable):
+        return x.value
+    return x
 
 # Similar to prepare_named_args for block ast eval!
 def align_args(args, clazz, method):

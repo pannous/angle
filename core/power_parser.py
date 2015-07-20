@@ -11,6 +11,7 @@ import re
 import token as _token
 import angle
 from exceptions import *
+import nodes
 from the import *
 import the
 
@@ -159,7 +160,7 @@ def isnumeric(start):
 # _try=maybe
 
 def star(lamb,giveUp=False):
-    global throwing, nodes
+    global throwing
     # checkEnd
     if (depth > max_depth):
         raise SystemStackError("if(len(nodes)>max_depth)")
@@ -385,11 +386,17 @@ def load_module_methods():
         for meth in cls:  # class as CONSTRUCTOR
             if method_allowed(meth):
                 the.token_map[meth] = english_parser.method_call
+    for _type in angle.extensionMap:
+        ex = angle.extensionMap[_type]
+        for method in dir(ex):
+            the.token_map[method] = english_parser.method_call
+
+
 
 
 def init(strings):
     # global is ok within one file but do not use it across different files
-    global no_rollback_depth, rollback_depths, line_number, original_string, root, lines, nodes, depth, lhs, rhs, comp
+    global no_rollback_depth, rollback_depths, line_number, original_string, root, lines,  depth, lhs, rhs, comp
     if not the.moduleMethods:
         load_module_methods()
     the.no_rollback_depth = -1
@@ -779,7 +786,7 @@ def block():  # type):
 
 
 def maybe(expression):
-    global original_string, last_node, current_value, depth, nodes, current_node, last_token
+    global original_string, last_node, current_value, depth, current_node, last_token
     if not callable(expression):  # duck!
         return maybe_tokens(expression)
     the.current_expression=expression
@@ -926,6 +933,8 @@ def parse(s, the_file=None):
         allow_rollback()
         init(s)
         the.result = english_parser.rooty()
+        if isinstance(the.result , nodes.FunctionCall):
+            the.result =english_parser.do_execute_block(the.result )
         if the.result in ['True', 'true']: the.result = True
         if the.result in ['False', 'false']: the.result = False
         import ast

@@ -22,6 +22,7 @@ variables = {}
 variableValues = {}
 emit=False
 base_test=None
+global base_test
 
 def contains(a,b):
     return a in b or b in a
@@ -206,6 +207,7 @@ class ParserBaseTest(unittest.TestCase):
     parser=property(lambda :p,0)
 
     def setUp(self):
+        global base_test
         base_test=self
         the._verbose=True # False
         clear_test()

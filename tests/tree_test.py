@@ -14,7 +14,8 @@ class TreeTest(ParserBaseTest):
         assert_result_is(u'4\xbd+3\xbd', '8')
 
     def test_method4(self):
-        init('how to integrate a bug\n      test\n    ok')
+        # init('how to integrate a bug\n      test\n    ok')
+        init('how to integrate a bug\n      test\nok')
         assert(self.parser.method_definition())
 
     def _test_block(self):
