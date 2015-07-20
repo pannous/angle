@@ -2024,7 +2024,7 @@ def check_list_condition(quantifier, lhs, comp, rhs):
         # todo "at least two","at most two","more than 3","less than 8","all but 8"
         if negated: the.result= not the.result
         if not the.result:
-            verbose("condition not met %s %s %s" % (lhs, comp, rhs))
+            verbose("List condition not met %s %s %s" % (lhs, comp, rhs))
 
         return the.result
     except IgnoreException as e:
@@ -2690,6 +2690,19 @@ def align_args(args, clazz, method):
     except:
         return args
 
+def call_unbound(method,args):
+   if isinstance(args, dict):
+       try:
+           the.result = method(**args) or NILL
+       except:
+           the.result = method(*args.values()) or NILL
+   if isinstance(args, list) or isinstance(args, tuple):
+       if len(args) == 1:#and number_of_arguments == 1:
+           the.result = method(args) or NILL
+       else:
+           the.result = method(*args) or NILL
+   else:
+       the.result = method(args) or NILL
 
 # INTERPRET only,  todo cleanup method + argument matching + concept
 def do_send(obj0, method0, args0=[]):
@@ -2733,7 +2746,7 @@ def do_send(obj0, method0, args0=[]):
         return do_math(obj, method_name, args)
     if not obj:
         if args and number_of_arguments > 0:
-            the.result=method(*args)
+            call_unbound(method,args)
         else:
             the.result=method()
     elif not args or not number_of_arguments:
@@ -2743,18 +2756,7 @@ def do_send(obj0, method0, args0=[]):
             the.result = method(obj) or NILL
     elif has_args(method, obj, True):
         if is_bound or is_builtin:
-            if isinstance(args, dict):
-                try:
-                    the.result = method(**args) or NILL
-                except:
-                    the.result = method(*args.values()) or NILL
-            if isinstance(args, list) or isinstance(args, tuple):
-                if len(args) == 1 and number_of_arguments == 1:
-                    the.result = method(args) or NILL
-                else:
-                    the.result = method(*args) or NILL
-            else:
-                the.result = method(args) or NILL
+            call_unbound(method,args)
         else:
             the.result = method(obj, args) or NILL
             # the.result = method(obj, *args) or NILL
@@ -2789,8 +2791,7 @@ def do_compare(a, comp, b):
     if isinstance(comp, str): comp = comp.strip()
     if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp, ast.Lt):
         return a < b
-    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(
-            comp, ast.Gt):
+    elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(comp, ast.Gt):
         return a > b
     elif comp == 'smaller or equal' or comp == '<=' or isinstance(comp, ast.LtE):
         return a <= b
@@ -2800,15 +2801,15 @@ def do_compare(a, comp, b):
         return a == b
     elif comp in ['in', 'element of'] or isinstance(comp, ast.In):
         return a in b
-    elif comp in be_words or isinstance(comp, ast.Eq):
-        return a == b
-    elif class_words.index(comp):
-        return issubclass(a, b) or isinstance(a, b)  # issubclass? a bird is an animal OK
-        # if b.isa(Class): return a.isa(b)
-    elif be_words.index(comp) or re.search(r'same', comp):
-        return isinstance(a, b) or a.__eqtokens(b)
+    elif comp in class_words:
+        if a==b or isinstance(a, b): return True
+        if isinstance(a,Variable):return issubclass(a.type, b) or isinstance(a.value, b)
+        if isinstance(a,types.TypeType):return issubclass(a, b)  # issubclass? a bird is an animal OK
+        return False
     elif comp == 'equal' or comp == 'the same' or comp == 'the same as' or comp == 'the same as' or comp == '=' or comp == '==':
         return a == b  # Redundant
+    elif comp in be_words or isinstance(comp, ast.Eq) or 'same' in comp:
+        return isinstance(a, b) or a == b
     else:
         try:
             return a.send(comp, b)  # raises!
