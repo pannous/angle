@@ -24,5 +24,6 @@ python:
 install: "pip install -r requirements.txt"
 # command to run tests
 # script: nosetests
-script: py.test --cov-report term-missing --cov app -v
+script: py.test #--cov-report term-missing --cov app -v
 #script: python tests.py
+#script: make test
