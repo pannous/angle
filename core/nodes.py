@@ -185,8 +185,8 @@ class Variable(kast.Name):
         # self.class  =args[:module]
         # scope.variables[name]=self
 
-    def __len__(self):
-        return len(self.value)
+    # def __len__(self):
+    #     return len(self.value)
 
     def c(self): #unwrap, for optimization):
         # if type==Numeric: return "NUM2INT(#{name})"
