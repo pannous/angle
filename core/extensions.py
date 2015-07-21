@@ -658,8 +658,13 @@ class xstr(str):
     def reverse_string(str):
         return xstr(str).reverse()
 
-class xchar(int):
-    pass
+class xchar(str):
+    def __coerce__(self, other):
+        if isinstance(other,int):
+            other=chr(other)
+        # if isinstance(other,str):
+        #     other=chr(other)
+        return (type(other)(self), other)
 
 #class Fixnum Float
 # class Numeric:

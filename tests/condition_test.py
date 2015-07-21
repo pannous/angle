@@ -11,6 +11,7 @@ class ConditionTest(ParserBaseTest):
     def setUp(self):
         self.parser.do_interpret()
         angle.use_tree=False
+        angle.in_args=False
 
     def test_eq(self):
         variables['counter'] = 3
@@ -118,10 +119,6 @@ class ConditionTest(ParserBaseTest):
 
     def test_and3(self):
         assert_result_is('if 1 is smaller 3 and 1 is bigger 3 then 4 else 5', 5)
-
-    def test_and4(self):
-        assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
-        assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
 
     def test_no_rollback(self):
         assert_has_error('x=2;if x is smaller 3 and x is bigger 1 then for end')
@@ -255,6 +252,12 @@ class ConditionTest(ParserBaseTest):
         # ; is  consumed for end of action but also needed for end of statement
         parse('x is 2; if all 0,2,4 are smaller 5 then increase x; assert x equals 3')
         assert(the.result==True)
+
+
+    def test_zbug_and4(self):
+        assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
+        assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
+
     #
     # def test_complicated2(self):
     #     parse('x is 2; if 0,2,4 are all smaller 5 then increase x; assert x equals 3')

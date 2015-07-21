@@ -662,6 +662,8 @@ def quick_expression():  # bad idea!
     the.result = False
     if the.current_word.startswith("'"):
         the.result=quote()
+    elif the.current_word in english_tokens.type_names:
+        return maybe(setter) or method_definition()
     elif the.current_word in the.token_map:
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
@@ -1464,9 +1466,9 @@ def assure_same_type(var, type):
     else:
         oldType = None
     # try:
-    if oldType and type and not issubclass(type, oldType):  # FAIL:::type <= oldType:
+    if oldType and type and not issubclass(oldType,type):  # FAIL:::type <= oldType:
         raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(type))
-    if oldType and var.type and not issubclass(var.type, oldType):
+    if oldType and var.type and not issubclass(oldType,var.type):
         raise WrongType(var.name + " has type " + str(oldType) + ", cannot set to " + str(var.type))
     if type and var.type and not (issubclass(var.type, type) or issubclass(type, var.type)):  # DOWNCAST TODO
         raise WrongType(var.name + " has type " + str(var.type) + ", Can't set to " + str(type))
@@ -1476,7 +1478,7 @@ def assure_same_type(var, type):
 def assure_same_type_overwrite(var, val):
     oldType = var.type
     oldValue = var.value
-    if oldType and not isinstance(val, oldType):
+    if oldType and not isinstance(val, oldType) and not issubclass(oldType,type(val)):
         raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
     if var.final and var.value and not val == var.value:
         raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))

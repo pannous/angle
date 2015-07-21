@@ -8,7 +8,9 @@ export ANGLE_HOME=$PWD
 echo export ANGLE_HOME=$PWD
 echo "export ANGLE_HOME=$PWD" >> ~/.bashrc
 
-sudo ln -s $ENGLISH_SCRIPT_HOME/bin/angle /usr/bin/angle
+sudo ln -s $ANGLE_HOME/bin/angle /usr/bin/angle
 
 echo "Adding TextMate support, like syntax highlighting"
 git clone git@github.com:pannous/EnglishScript.tmbundle.git ~/Library/Application\ Support/TextMate/Bundles/EnglishScript.tmbundle/ 2>/dev/null
+
+echo "OK, now run ./bin/angle"

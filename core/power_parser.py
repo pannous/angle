@@ -347,58 +347,7 @@ def parse_tokens(s):
             the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
 
     tokenize.tokenize(BytesIO(s.encode('utf-8')).readline, tokeneater)  # tokenize the string
-    _token.INDENT  # not available here :(
     return the.tokenstream
-
-def method_allowed(meth):
-    if len(meth)<2: return False
-    if meth in ["evaluate","eval"]:return False
-    if meth in english_tokens.keywords: return False
-    return True
-
-def load_module_methods():
-
-    import warnings
-    warnings.filterwarnings("ignore", category=UnicodeWarning)
-
-    if not the.method_names: # todo pickle
-        constructors = the.classes.keys() + english_tokens.type_names
-        the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
-        the.method_names = [x for x in the.method_names if len(x) > 2]
-
-    try:
-        import cPickle as pickle
-    except:
-        import pickle
-    # static, load only once, create with module_method_map.py
-    the.methodToModulesMap = pickle.load(open("data/method_modules.bin"))
-    the.moduleMethods = pickle.load(open("data/module_methods.bin"))
-    the.moduleNames = pickle.load(open("data/module_names.bin"))
-    the.moduleClasses = pickle.load(open("data/module_classes.bin"))
-    import english_parser
-
-    for mo, mes in the.moduleMethods.items():
-        if not method_allowed(mo):
-            continue
-        the.token_map[mo] = english_parser.method_call
-        for meth in mes:
-            if method_allowed(meth):
-                the.token_map[meth] = english_parser.method_call
-    for mo, cls in the.moduleClasses.items():
-        for meth in cls:  # class as CONSTRUCTOR
-            if method_allowed(meth):
-                the.token_map[meth] = english_parser.method_call
-    # for _type in angle.extensionMap:
-    #     ex = angle.extensionMap[_type]
-    #     for method in dir(ex):
-    #         the.token_map[method] = english_parser.method_call
-    #         the.method_names.append(method)
-    #         the.methods[method]=getattr(ex,method)
-            # try:
-            #     the.methods[method]=getattr(ex,method).im_func #wow, as function!
-            # except:
-            #     print("wrapper_descriptor not a function %s"%method)
-
 
 def init(strings):
     # global is ok within one file but do not use it across different files
@@ -1202,3 +1151,54 @@ def complex():
 def maybe_indent():
     while the.current_type==_token.INDENT or the.current_word==' ':
         next_token()
+
+
+def method_allowed(meth):
+    if len(meth)<2: return False
+    if meth in ["evaluate","eval","int","True","False","true","false","the"]:return False
+    if meth in english_tokens.keywords: return False
+    return True
+
+def load_module_methods():
+
+    import warnings
+    warnings.filterwarnings("ignore", category=UnicodeWarning)
+
+    try:
+        import cPickle as pickle
+    except:
+        import pickle
+    # static, load only once, create with module_method_map.py
+    the.methodToModulesMap = pickle.load(open("data/method_modules.bin"))
+    the.moduleMethods = pickle.load(open("data/module_methods.bin"))
+    the.moduleNames = pickle.load(open("data/module_names.bin"))
+    the.moduleClasses = pickle.load(open("data/module_classes.bin"))
+    import english_parser
+
+    for mo, mes in the.moduleMethods.items():
+        if not method_allowed(mo):continue
+        the.token_map[mo] = english_parser.method_call
+        for meth in mes:
+            if method_allowed(meth):
+                the.token_map[meth] = english_parser.method_call
+    for mo, cls in the.moduleClasses.items():
+        for meth in cls:  # class as CONSTRUCTOR
+            if method_allowed(meth):
+                the.token_map[meth] = english_parser.method_call
+
+
+    # if not the.method_names: # todo pickle
+    constructors = the.classes.keys() + english_tokens.type_names
+    the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+    the.method_names = [meth for meth in the.method_names if method_allowed(meth)]
+    # for _type in angle.extensionMap:
+    #     ex = angle.extensionMap[_type]
+    #     for method in dir(ex):
+    #         the.token_map[method] = english_parser.method_call
+    #         the.method_names.append(method)
+    #         the.methods[method]=getattr(ex,method)
+            # try:
+            #     the.methods[method]=getattr(ex,method).im_func #wow, as function!
+            # except:
+            #     print("wrapper_descriptor not a function %s"%method)
+
