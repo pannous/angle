@@ -655,7 +655,6 @@ def contains(token):
 def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
-    if the.current_line.endswith("times"): return action_n_times()
     if the.current_word == '{' and (contains("=>") or contains(":")):
         return hash_dict()
     the.result = False
@@ -694,6 +693,7 @@ def quick_expression():  # bad idea!
         return algebra(the.result)
     if the.current_word in operators + special_chars + ["element", "item"]:
         raise_not_matching("quick_expression too simplistic")
+    if the.current_line.endswith("times"): return action_n_times(the.result)
     return the.result
 
 
