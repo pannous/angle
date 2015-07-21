@@ -191,6 +191,11 @@ def copy_variables(variables=variables):
 
 class ParserBaseTest(unittest.TestCase):
 
+    def setUp(self):
+        the.variables.clear()
+        the.variableTypes.clear()
+        the.variableValues.clear()
+
     def context(self):
         pass
     global p,_p,parser,_parser

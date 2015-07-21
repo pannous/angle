@@ -9,7 +9,8 @@ class StringTest(ParserBaseTest):
     def test_string_methods(self):
         parse("invert 'hi'")
         self.assert_equals(the.result, 'ih')
-        self.assert_that("invert 'hi' is 'ih'")
+        self.assert_that("invert('hi') is 'ih'")
+        # self.assert_that("invert 'hi' is 'ih'") # todo HIGHER BINDING OF CALL!
 
     def test_nth_word(self):
         self.assert_that("3rd word in 'hi my friend !!!' is 'friend'")

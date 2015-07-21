@@ -343,6 +343,8 @@ def algebra(val=None):
     val = val or maybe(value) or bracelet()
     stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
     def lamb():
+        if the.current_word in be_words and angle.in_args:
+            return False # f x is 0 == f(x) is 0 NOT f(x is 0) !!
         op = maybe(comparation) or operator()
         # if not op == 'and': allow_rollback()
         n = maybe_token('not')
@@ -574,7 +576,7 @@ def close_bracket():  # for nice GivingUp):
     return _(')')
 
 
-def hash_dict():
+def hash_map():
     must_contain_before(args=[":", "=>"], before=["}"])
     # z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
     z = maybe(regular_hash) or immediate_hash()
@@ -656,7 +658,7 @@ def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
     if the.current_word == '{' and (contains("=>") or contains(":")):
-        return hash_dict()
+        return hash_map()
     the.result = False
     if the.current_word.startswith("'"):
         the.result=quote()
@@ -708,7 +710,7 @@ def expression(fallback=None,resolve=True):
     the.result = ex = maybe(quick_expression) or \
                       maybe(listselector) or \
                       maybe(algebra) or \
-                      maybe(hash_dict) or \
+                      maybe(hash_map) or \
                       maybe(evaluate_index) or \
                       maybe(liste) or \
                       maybe(evaluate_property) or \
@@ -1049,10 +1051,13 @@ def has_args(method, clazz=object, assume=0):
     try:
         is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
         if (is_builtin):
-            doku = help(method.__name__)
-            convention = doku[1]  # no Python documentation found for 'hypot'
-            num = len(convention.split(","))
-            return num
+            doku = method.__doc__
+            if doku :  # no Python documentation found for 'hypot'
+                convention = doku.split('\n')[0]
+                num = len(convention.split(","))
+                return num
+            warn("BuiltinMethodType => no idea about the method arguments!")
+            return assume
         args, varargs, varkw, defaults = inspect.getargspec(method)
         alle = len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
         # if alle == 0: return assume
@@ -1074,17 +1079,8 @@ def builtin_method():
     return m
     # m ? m.name : None
 
-
-def all_methods():
-    if not the.method_names:
-        constructors = the.classes.keys() + type_names
-        the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
-    the.method_names = [x for x in the.method_names if len(x) > 2]
-    return the.method_names
-
-
 def is_method(name):
-    return name in all_methods() or maybe(verb)
+    return name in the.method_names or maybe(verb)
 
 
 def import_module(module_name):
@@ -1133,7 +1129,7 @@ def true_method(obj=None):
         obj, name = subProperty(variable.value)
     else:
         obj, property = subProperty(obj)
-        name = maybe_tokens(all_methods()) or maybe(verb)
+        name = maybe_tokens(the.method_names) or maybe(verb)
     if not name:
         raise NotMatching('no method found')
     if maybe_tokens(articles):
@@ -2545,10 +2541,13 @@ def do_math(a, op, b):
     raise Exception("UNKNOWN OPERATOR " + op)
 
 
-def isbound(method):
+def is_bound(method):
     # return hasattr(m, '__self__')
     return method.__self__ is not None
     # the new synonym for im_self is __self__, and im_func is also available as __func__.
+
+def is_unbound(method):
+    return hasattr(method, 'im_class') and method.__self__ is None
 
 
 def instance(bounded_method):
@@ -2564,27 +2563,33 @@ def findMethod(obj0, method0, args0=None):
         _type = obj0.type
         obj0 = obj0.value
     if isinstance(method, list) and len(method) == 1: method = method[0]
-    if not isinstance(method, str):
-        raise_not_matching("NO such METHOD %" % method)
-    if method in the.methods:
-        return the.methods[method]
-    if method in locals():
-        return locals()[method];
-    if globals in locals():
-        return locals()[globals];
-    if method in dir(obj0):
-        return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
     if _type in angle.extensionMap:
         ex = angle.extensionMap[_type]
         if method in dir(ex):
             method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
             method = method.__get__(obj0, ex)  # bind!
-    elif isinstance(obj0, type) and method in obj0.__dict__:
+            return method
+    # if method in angle.extensionMap and not obj0:
+    #     return the.extensionMap[method]
+    if method in the.methods:
+        return the.methods[method]
+    if method in locals():
+        return locals()[method];
+    if method in globals():
+        return globals()[method];
+    if method in dir(obj0):
+        return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
+    if isinstance(obj0, type) and method in obj0.__dict__:
         method = obj0.__dict__[method]  # class
         method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
+        return method
+    # elif "im_class" in
+    #     method = method.__get__(args[0],method.im_class)
         # that returns the wrapped function as function and not as a method
-    if isinstance(method, str):
-        raise_not_matching("NO such METHOD %s" % method)
+    # if isinstance(method, str):
+    #     raise_not_matching("NO such METHOD %s" % method)
+    # if not isinstance(method, str):
+    #     raise_not_matching("NO such METHOD %s" % method)
     return method
     # if callable(method):method(args)
 
@@ -2642,8 +2647,8 @@ def align_args(args, clazz, method):
     if isinstance(method,Function):
         return align_function_args(args, clazz, method)
     if (isinstance(args, (list,tuple))): args = map(values, args)
-    selfmodifying = self_modifying(method)
-    if selfmodifying: return args  # todo
+    # selfmodifying = self_modifying(method)
+    # if selfmodifying: return args  # todo
     is_bound = 'im_self' in dir(method) and method.im_self
     if is_bound:
         if method.im_self == args: args = None
@@ -2662,15 +2667,17 @@ def align_args(args, clazz, method):
     except:
         return args
 
-def call_unbound(method,args):
+def call_unbound(method,args,number_of_arguments):
    if isinstance(args, dict):
        try:
            the.result = method(**args) or NILL
        except:
            the.result = method(*args.values()) or NILL
    if isinstance(args, list) or isinstance(args, tuple):
-       the.result = method(*args) or NILL
-       # if len(args) > 1 and number_of_arguments == 1:
+       # if is_unbound(method) and len(args) == 1 and number_of_arguments == 1:
+       #  the.result = method.__get__(args[0],method.im_class)()
+       # else:
+        the.result = method(*args) or NILL
        #     the.result = method(args) or NILL
        # else:
    else:
@@ -2706,7 +2713,7 @@ def do_send(obj0, method0, args0=[]):
     #         return obj.__getattribute__(method)
     #     else:
     #         method(args[1])  # square of 7
-    print >> sys.stderr, ("CALLING %s %s with %s" % (obj, method, args))
+    print >> sys.stderr, ("CALLING %s %s with %s" % (obj or "", method, args))
 
     if not args and not callable(method) and method in dir(obj):
         return obj.__getattribute__(method)
@@ -2718,7 +2725,7 @@ def do_send(obj0, method0, args0=[]):
         return do_math(obj, method_name, args)
     if not obj:
         if args and number_of_arguments > 0:
-            call_unbound(method,args)
+            call_unbound(method,args,number_of_arguments)
         else:
             the.result=method()
     elif not args or not number_of_arguments:
@@ -2728,7 +2735,7 @@ def do_send(obj0, method0, args0=[]):
             the.result = method(obj) or NILL
     elif has_args(method, obj, True):
         if is_bound or is_builtin:
-            call_unbound(method,args)
+            call_unbound(method,args,number_of_arguments)
         else:
             the.result = method(obj, args) or NILL
             # the.result = method(obj, *args) or NILL

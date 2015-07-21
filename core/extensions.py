@@ -42,6 +42,8 @@ def grep(xs, x):
 def ls(path):
     return os.listdir(path)
 
+def length(self):
+    return len(self)
 
 def say(x):
     print(x)
@@ -238,6 +240,8 @@ class Class:
 
 @extension
 class xlist(list):
+    def length(self):
+        return len(self)
     def clone(self):
         import copy
         return copy.copy(self)
@@ -315,8 +319,7 @@ class xlist(list):
     def names(self):
         return map(str, self)
 
-    def rest(self):
-        index=1
+    def rest(self,index=1):
         return self[index:]
 
     def fix_int(self, i):
@@ -335,7 +338,9 @@ class xlist(list):
         return self[self.fix_int(nr)]
 
     def invert(self):
-        return self.reverse
+        self.reverse()
+        return self
+
 
     def get(self, x):
         return self[self.index(x)]

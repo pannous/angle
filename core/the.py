@@ -82,13 +82,16 @@ def parent_node():
 core_methods = ['show', 'now', 'yesterday', 'help']  # maybe(difference)
 # SEE typeNameMapped!
 methods = {
-  'beep': extensions.beep,
-  'puts':extensions.puts,
-  'p':extensions.puts,
-  'print':extensions.puts,
-  'show':extensions.puts,
-  'increase':extensions.increase
-  # 'reverse':extensions.xstr.reverse
+    'length': len,
+    'size': len,
+    'count': len,
+    'beep': extensions.beep,
+    'puts':extensions.puts,
+    'p':extensions.puts,
+    'print':extensions.puts,
+    'show':extensions.puts,
+    'increase':extensions.increase
+    # 'reverse':extensions.xstr.reverse
 }  # name->method-node
 
 #add later!

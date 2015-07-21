@@ -158,13 +158,13 @@ class ListTest(ParserBaseTest):
         self.assert_that('type of x is Array')
 
     def test_type4(self):
-        variables['x'] = [Variable({'name': 'x', 'value': [1, 2, 3], }), ]
+        variables['x'] = Variable({'name': 'x', 'value': [1, 2, 3], })
         self.assert_that('class of x is Array')
         self.assert_that('kind of x is Array')
         self.assert_that('type of x is Array')
 
     def test_len(self):
-        variables['xs'] = [Variable({'value': [1, 2, 3], 'name': 'xs', }), ]
+        variables['xs'] = Variable({'value': [1, 2, 3], 'name': 'xs', })
         self.assert_that('length of xs is 3')
         self.assert_that('size of xs is 3')
         self.assert_that('count of xs is 3')
@@ -175,13 +175,14 @@ class ListTest(ParserBaseTest):
         assert_equals(parse('square [1,2 and 3]'), [1, 4, 9])
 
     def test_map2(self):
-        parse("def square x:x*x")
         self.assert_that('square of 1,2 and 3 == 1,4,9')
         assert_equals(parse('square 1,2,3'), [1, 4, 9])
         assert_equals(parse('square 1,2 and 3'), [1, 4, 9])
 
     def test_map22(self):
-        parse("def square x:x*x")
+        # parse("def square x:x*x")
+        # parse("def square(x:int)->int:x*x")
+        # parse("def square(xs:list)->list:square all in xs")
         assert_result_is('square 1,2 and 3', [1, 4, 9])
         self.assert_that('square of [1,2 and 3] equals 1,4,9')
         parse('assert square of [1,2 and 3] equals 1,4,9')
@@ -198,4 +199,4 @@ class ListTest(ParserBaseTest):
         init('{1,2,3}')
         assert_equals(self.parser.liste(), [1, 2, 3])
         init('{a:1,b:2,c:3}')
-        assert_equals(self.parser.json_hash(), {'b': 2, 'a': 1, 'c': 3, })
+        assert_equals(self.parser.hash_map(), {'b': 2, 'a': 1, 'c': 3, })

@@ -43,7 +43,7 @@ class FunctionTest(ParserBaseTest):
         code = fix_encoding(code)
         print(code)
         print(parse(code))
-        fib = functions['fibonacci']
+        fib = the.methods['fibonacci']
         print(fib)
         assert (equals('number', fib.arguments[0].name))  # name(args[0], )))
         f10 = fib.call(10)
@@ -58,7 +58,7 @@ class FunctionTest(ParserBaseTest):
         code = fix_encoding(code)
         print (code)
         print(parse(code))
-        identity = functions['identity']
+        identity = the.methods['identity']
         assert (equals('x', identity.arguments[0].name))
         print(identity)
         print(identity.call(5))
@@ -78,12 +78,12 @@ class FunctionTest(ParserBaseTest):
         the.variables['x'] = Variable(name='x',value=1)
         the.variables['y'] = Variable(name='x',value=2)
         z = parse('x+y;')
-        assert_equals(len(self.parser.variables()), 2)
+        assert_equals(len(self.parser.variables), 2)
         assert_equals(z, 3)
 
     def test_params(self):
         parse('how to increase x by y: x+y;')
-        g = functions['increase']
+        g = the.methods['increase']
         #  big python headache: starting from position 0 or 1 ?? (self,x,y) etc
         # args = [Argument({'name': 'x', 'preposition': None, 'position': 1, }),
         #         Argument({'preposition': 'by', 'name': 'y', 'position': 2, })]
@@ -99,7 +99,7 @@ class FunctionTest(ParserBaseTest):
 
     def test_function_object(self):
         parse('how to increase a number x by y: x+y;')
-        g = functions['increase']
+        g = the.methods['increase']
         arg1 = Argument({'type': 'number', 'position': 1, 'name': 'x', 'preposition': None, })
         arg2 = Argument({'name': 'y', 'preposition': 'by', 'position': 2, })
         body='x+y;'
@@ -117,8 +117,8 @@ class FunctionTest(ParserBaseTest):
         # parse('how to list all numbers smaller x: [1..x]')
         # parse('to get numbers smaller x: [1..x]')
         parse('to get numbers smaller x: return 1 to x - 1')
-        g = functions['get']
-        # g = functions['get numbers smaller eeek']
+        g = the.methods['get']
+        # g = the.methods['get numbers smaller eeek']
         f = Function({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
         assert_equal(f, g)
         assert_equals(self.parser.call_function(f, 4), [1, 2, 3])

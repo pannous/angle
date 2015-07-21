@@ -357,8 +357,14 @@ def method_allowed(meth):
     return True
 
 def load_module_methods():
+
     import warnings
     warnings.filterwarnings("ignore", category=UnicodeWarning)
+
+    if not the.method_names: # todo pickle
+        constructors = the.classes.keys() + english_tokens.type_names
+        the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+        the.method_names = [x for x in the.method_names if len(x) > 2]
 
     try:
         import cPickle as pickle
@@ -382,13 +388,16 @@ def load_module_methods():
         for meth in cls:  # class as CONSTRUCTOR
             if method_allowed(meth):
                 the.token_map[meth] = english_parser.method_call
-    for _type in angle.extensionMap:
-        ex = angle.extensionMap[_type]
-        for method in dir(ex):
-            the.token_map[method] = english_parser.method_call
-            the.method_names.append(method)
-            the.methods[method]=getattr(ex,method)
-
+    # for _type in angle.extensionMap:
+    #     ex = angle.extensionMap[_type]
+    #     for method in dir(ex):
+    #         the.token_map[method] = english_parser.method_call
+    #         the.method_names.append(method)
+    #         the.methods[method]=getattr(ex,method)
+            # try:
+            #     the.methods[method]=getattr(ex,method).im_func #wow, as function!
+            # except:
+            #     print("wrapper_descriptor not a function %s"%method)
 
 
 def init(strings):
@@ -802,7 +811,7 @@ def maybe(expression):
         last_node = current_node
         return result
     except (NotMatching, EndOfLine) as e:
-        if verbose: verbose("Tried %d  " % the.current_offset + to_source(expression))
+        if verbose: verbose("Tried %d %s %s" % (the.current_offset , the.current_word, expression))
         adjust_interpret()  # remove the border, if above border
         # if verbose: verbose(e)
         # if verbose: string_pointer()
