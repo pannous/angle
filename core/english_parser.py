@@ -2297,7 +2297,7 @@ def gerund():
     the.string = the.string[match.end():]
     pr = maybe_tokens(prepositions)  # wrapped in
     if pr: maybe(endNode)
-    current_value = match[1]
+    current_value = match.group(1)
     return current_value
 
 
@@ -2308,7 +2308,7 @@ def postjective():  # 4 squared , 'bla' inverted, buttons pushed in, mail read b
     the.string = the.string[match.end():]
     pr = not checkEndOfLine() and maybe_tokens(prepositions)  # wrapped in
     if pr and not checkEndOfLine(): maybe(endNode)  # silver
-    current_value = match[1]
+    current_value = match.group(1)
     return current_value
 
     # TODO: big cleanup!

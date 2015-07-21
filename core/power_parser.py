@@ -386,7 +386,8 @@ def load_module_methods():
         ex = angle.extensionMap[_type]
         for method in dir(ex):
             the.token_map[method] = english_parser.method_call
-
+            the.method_names.append(method)
+            the.methods[method]=getattr(ex,method)
 
 
 
