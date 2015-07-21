@@ -223,7 +223,7 @@ event_kinds = ['in', 'at', 'every', 'from', 'between', 'after', 'before', 'until
 
 bla_words = ['tell me', 'hey', 'could you', 'give me', \
              'i would like to', 'can you', 'please', 'let us', "let's", 'can i', \
-             'can you', 'would you', 'i would', 'i ask you to', "i'd", \
+             'would you', 'i would', 'i ask you to', "i'd", \
              'love to', 'like to', 'i asked you to', 'could i', \
              'i tell you to', 'i told you to', 'come on', \
              'i wanna', 'i want to', 'i want', 'i need to', \

@@ -6,7 +6,6 @@ from __future__ import print_function  # for stderr
 # from english_parser import result, comment, condition, root
 import sys
 import tokenize
-import english_parser
 import english_tokens
 import re
 import token as _token
@@ -247,7 +246,7 @@ def caller():
 
 
 def verbose(info):
-    if the._verbose:
+    if angle._verbose:
         print(info)
 
 
@@ -353,11 +352,14 @@ def parse_tokens(s):
 
 def method_allowed(meth):
     if len(meth)<2: return False
+    if meth in ["evaluate","eval"]:return False
     if meth in english_tokens.keywords: return False
     return True
 
-
 def load_module_methods():
+    import warnings
+    warnings.filterwarnings("ignore", category=UnicodeWarning)
+
     try:
         import cPickle as pickle
     except:
@@ -742,7 +744,7 @@ def block(multiple=False):  # type):
     statements = [statement()]
     # content = pointer() - start
     end_of_block = maybe(end_block)  # ___ done_words
-    if multiple or not end_of_block:
+    if multiple or not end_of_block and not checkEndOfFile():
         end_of_statement()  # danger might act as block end!
         if multiple: maybe_newline()
         # star(end_of_statement)
@@ -1094,7 +1096,7 @@ def comment_block():
         next_token()
 
 
-@Starttokens(['//', '#', '\'', '--', '/', '\''])
+@Starttokens(['//', '#', '\'', '--', '/'])
 def check_comment():
     if the.current_word == None: return
     l = len(the.current_word)

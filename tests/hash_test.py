@@ -14,15 +14,15 @@ class HashTest(ParserBaseTest):
 
     def test_json_data(self):
         init('{a{b:"b";c:"c"}}')
-        self.parser.json_hash()
+        self.parser.hash_dict()
 
     def test_simple(self):
         assert_equals(parse('{:a => "b"}'), {'a': 'b', })
 
-    def test_invariances(self):
+    def test_invariance(self):
         assert_result_is('{a:"b"}', {'a': 'b' })
 
-    def test_invariances2(self):
+    def test_invariance2(self):
         assert_equals(parse('{a{b:"b",c:"c"}}'), {'a': {'c': 'c', 'b': 'b', }, })
         assert_equals(parse('{a{b:"b";c:"c"}}'), {'a': {'b': 'b', 'c': 'c', }, })
         assert_equals(parse('{a:"b"}'), parse('{"a":"b"}'))
@@ -31,5 +31,7 @@ class HashTest(ParserBaseTest):
 
     def test_immediate_hash(self):
         assert_equals(parse('a{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })
-        skip('test_immediate_hash NO, because of blocks!')
+
+    def test_immediate_hash2(self):
+        # skip('test_immediate_hash NO, because of blocks!')
         assert_equals(parse('a:{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })

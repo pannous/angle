@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import _ast
+# import yappi
 import ast
 from ast import NodeVisitor
 import traceback
@@ -42,6 +43,7 @@ def self_modify(v, mod, arg):
     # if mod == '<<': the.result = val.append(arg)
     if mod == '<<': the.result = val << (arg)
     if mod == '>>': the.result = val >> arg
+    v.value=the.result
     return the.result
 
 # ## global the.string
@@ -56,22 +58,18 @@ class Starttokens(object):
         decorator_self = self
         for t in self.starttokens:
             if t in the.token_map:
-                print("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
+                verbose("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
             the.token_map[t] = original_func
         return original_func
-
 
 class Todo:
     pass
 
-
 # def maybe(block):
 #     return maybe(block)
 
-
 def _(x):
     return power_parser.token(x)
-
 
 # class Nil(object):
 #     pass
@@ -81,7 +79,6 @@ def _(x):
 
 def nill():
     return tokens(nill_words)
-
 
 def boolean():
     b = tokens(['True', 'False', 'true', 'false'])
@@ -577,10 +574,10 @@ def close_bracket():  # for nice GivingUp):
     return _(')')
 
 
-def json_hash():
-    must_contain_before(args=[":", "=>"], before=[")"])
+def hash_dict():
+    must_contain_before(args=[":", "=>"], before=["}"])
     # z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
-    z = maybe(regular_json_hash) or immediate_json_hash()
+    z = maybe(regular_hash) or immediate_hash()
     return z
 
     # colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
@@ -588,11 +585,10 @@ def json_hash():
 
 # careful with blocks/closures ! map{puts it} VS data{a:"b")
 @Starttokens('{')
-def regular_json_hash():
+def regular_hash():
     _('{')
-    maybe_token(':')  and no_rollback()
+    maybe_token(':')  and no_rollback() #symbol
     h = {}
-
     def lamb():
         if len(h) > 0: maybe_tokens([';', ','])
         quoted = maybe_tokens(['"', "'"])
@@ -617,14 +613,17 @@ def starts_with_(param):
     return maybe(lambda: starts_with(param))
 
 
-def immediate_json_hash():  # a:{b) OR a{b():c)):
-    # must_contain_before ":{", ":"
-    w = word()  # expensive
+def immediate_hash():  # a:b a:{b} OR a{b:c}):
+    must_contain_before([":","=>"], "}")
+    w = maybe(quote) or word()  # expensive
+    if maybe_token(":") or maybe_token("=>"): #disastrous :  BLOCK START!
+        r=expression()
+    elif starts_with_("{") or _('=>'):
     # maybe(lambda:starts_with("={")) and maybe_token('=') or:c)
-    starts_with_("{") or _('=>')  # or _(':') disastrous :  BLOCK START!
-    no_rollback()
-    r = regular_json_hash()
-    return {str(the.result): r}  # AH! USEFUL FOR NON-symbols !!!
+        no_rollback()
+        r = regular_hash()
+    else: raise_not_matching("no immediate_hash")
+    return {str(w): r}  # AH! USEFUL FOR NON-symbols !!!
 
 
 # todo PYTHONBUG ^^
@@ -656,7 +655,9 @@ def contains(token):
 def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
-    if the.current_word == '{' and contains("=>"):return json_hash()
+    if the.current_line.endswith("times"): return action_n_times()
+    if the.current_word == '{' and (contains("=>") or contains(":")):
+        return hash_dict()
     the.result = False
     if the.current_word.startswith("'"):
         the.result=quote()
@@ -707,7 +708,7 @@ def expression(fallback=None,resolve=True):
     the.result = ex = maybe(quick_expression) or \
                       maybe(listselector) or \
                       maybe(algebra) or \
-                      maybe(json_hash) or \
+                      maybe(hash_dict) or \
                       maybe(evaluate_index) or \
                       maybe(liste) or \
                       maybe(evaluate_property) or \
@@ -1012,37 +1013,6 @@ def spo():
 
 def print_variables():
     return ''.join(['%s=%s' % (v, k) for v, k in variables.iteritems()])
-
-
-@Starttokens(invoke_keywords)
-def extern_method_call():
-    call = tokens(invoke_keywords)
-    if call: no_rollback()
-    ruby_method = maybe_tokens(builtin_methods + core_methods)
-    if not ruby_method: raise UndefinedRubyMethod(word())
-    args = rest_of_line
-    # args=substitute_variables rest_of_line
-    if interpreting():
-        try:
-            the_call = ruby_method + ' ' + str(the.result)
-            # print_variables=variableValues.inject("") ? (lambda x: x==False )={v[1].is_a(the.string) ? '"'+v[1]+'"' : v[1]);"+s )
-            the.result = eval(print_variables() + the_call) or ''
-            verbose(the_call + '  called successfully with result ' + str(the.result))
-            return the.result
-        except SyntaxError as e:
-            print("\n!!!!!!!!!!!!\n ERROR calling #{the_call)\n!!!!!!!!!!!! #{e)\n ")
-            # except Exception as e:
-            #     print("\n!!!!!!!!!!!!\n ERROR calling #{the_call)\n!!!!!!!!!!!! #{e)\n ")
-            #     import traceback
-            #     error(traceback.extract_stack())
-            #     print('!!!! ERROR calling ' + the_call)
-
-    checkNewline()
-    # raiseEnd
-    current_value = ruby_method
-    return current_value
-    # return Object.method ruby_method.to_sym
-    # return Method_call(ruby_method,args,:ruby)
 
 
 def is_object_method(m):
@@ -3236,7 +3206,7 @@ def while_loop():
     return r  # or OK
 
 
-@Starttokens(['until', 'as long as'])
+@Starttokens(['until'])#, 'as long as'])
 def until_loop():
     maybe_tokens(['repeat'])
     tokens(['until', 'as long as'])
@@ -3395,49 +3365,52 @@ def ruby_action():
 
 
 def start_shell():
+    import readline
     angle._verbose = False
-    print('usage:')
-    print("\t./angle 6 plus six")
-    print("\t.r'angle examples'test.e")
-    print("\t./angle (no args for shell)")
-    # parser=EnglishParser()
-    # import readline
-    # maybe(lambda:load_history_why('~/.english_history'))
-    # http:r''www.unicode.orgr'charts'PDF/U2980.pdf
-    # Readline.readline('⦠ ', True)
-    input0 = input()
+    the._verbose = False
+    from os.path import expanduser
+    home = expanduser("~") #WTF
+    readline.read_history_file(home+'/.english_history')
+    input0 = raw_input('⦠ ')
     while input0:
         # while input = Readline.readline('angle-script⦠ ', True)
-        # Readline.write_history_file("~/.english_history")
+        readline.write_history_file(home+"/.english_history")
         # while True
         #   print("> ")
         #   input = STDIN.gets.strip()
         try:
             # interpretation= parser.parse input
-            interpretation = parse(input)
+            interpretation = parse(input0)
             if not interpretation: next
-            if angle.use_tree: print(interpretation.tree)
+            # if angle.use_tree: print(interpretation.tree)
             print(interpretation.result)
         except IgnoreException as e:
             pass
-
-        # except NotMatching as e:
-        #   print('Syntax Error')
-        # except GivingUp as e:
-        #   print('Syntax Error')
+        except NotMatching as e:
+          print('Syntax Error')
+        except GivingUp as e:
+          print('Syntax Error')
+        except SyntaxError as e:
+          print('Syntax Error')
         # except Exception as e:
         #     print(e)
-        input0 = input()
-    print("")
+        input0 = raw_input("⦠ ")
     exit()
 
 
-def startup():
+def main():
     ARGV = sys.argv
     # ARGF=sys.argv
-    if len(ARGV) == 0: return start_shell()  # and not ARGF:
-    all = ARGV.join(' ')
-    a = ARGV[0].to_s
+    if len(ARGV) == 1:
+        print('usage:')
+        print("\t./angle 6 plus six")
+        print("\t./angle samples/test.e")
+        print("\t./angle (no args for shell)")
+        return start_shell()
+    if ARGV[1].endswith("shell"):
+        return start_shell()
+    all = (' ').join(ARGV[1:])
+    a = str(ARGV[1])
     # read from commandline argument or pipe!!
     # all=ARGF.read or File.read(a) except a
     # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
@@ -3457,8 +3430,9 @@ def startup():
             print('Syntax Error')
         except GivingUp as e:
             print('Syntax Error')
-        except e:
-            print(e)
-            print(e.backtrace.join("\n"))
-
+        # except Exception as e:
+        #     print(e)
     print("")
+
+if __name__ == '__main__':
+    main()
