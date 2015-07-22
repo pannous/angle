@@ -464,9 +464,9 @@ inside_list = False
 
 
 @Starttokens(['[', '(', '{'])
-def liste(check=True):
+def liste(check=True,first=None):
     global inside_list
-    if the.current_word == ',': raise NotMatching()
+    if not first and the.current_word == ',': raise NotMatching()
     if angle.in_hash: must_not_contain(":")#,before=',')
     if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
     # +[' '] ???
@@ -476,10 +476,11 @@ def liste(check=True):
     # all<<expression(start_brace)
     # angel.verbose=True #debug
     inside_list = True
-    first = maybe(endNode)
+    first = first or maybe(endNode)
     if not first: inside_list = False
     if not first: raise_not_matching()
-    all = [first]
+    if isinstance(first,list):all=first
+    else: all = [first]
 
     def lamb():
         tokens([',', 'and'])
@@ -648,36 +649,6 @@ def maybe_algebra(context):
     return do_send(context, op, z)
 
 
-def postoperations(context):  # see quick_expression !!
-    if not angle.in_condition and the.current_word in be_words :
-        if isinstance(context, Variable):
-            return setter(context)
-        else:
-            raise_not_matching("better try setter")
-    if the.current_word == '|': return piped_actions(context or the.last_result)
-    if the.current_word in operators:
-        return algebra(context)
-    if the.current_word == '[':
-        return evaluate_index(context)
-    if context and the.current_word == 'to': return ranger(context)
-    if context and the.current_word == 'if': return action_if(context)
-    if the.current_word == '': return context
-    if the.current_word == ';': return context
-    if the.current_word == '.': return method_call(context)
-    if the.current_word in operators:
-        return algebra(context)
-    if the.current_word in operators + special_chars + ["element", "item"]:
-        return False
-        # raise_not_matching("quick_expression too simplistic")
-    if the.current_line.endswith("times"): return action_n_times(context)
-    if the.current_word in be_words: return setter(context)
-    if the.current_word == "if":  # YAY!
-        return context if _("if") and condition() else maybe("else") and expression() or None
-    if the.current_word == "as":return maybe_cast(context)
-    return False
-                                       # or maybe_algebra(context) or context
-
-
 def contains(token):
     return token in the.current_line
 
@@ -718,6 +689,39 @@ def quick_expression():  # bad idea!
         if not z or z==result: break
         result=z
     return result
+
+
+
+def postoperations(context):  # see quick_expression !!
+    if not angle.in_condition and the.current_word in be_words :
+        if isinstance(context, Variable):
+            return setter(context)
+        else:
+            raise_not_matching("better try setter")
+    if the.current_word == '|': return piped_actions(context or the.last_result)
+    if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
+        return liste(check=False,first=context)
+    if the.current_word in operators:
+        return algebra(context)
+    if the.current_word == '[':
+        return evaluate_index(context)
+    if context and the.current_word == 'to': return ranger(context)
+    if context and the.current_word == 'if': return action_if(context)
+    if the.current_word == '': return context
+    if the.current_word == ';': return context
+    if the.current_word == '.': return method_call(context)
+    if the.current_word in operators:
+        return algebra(context)
+    if the.current_word in operators + special_chars + ["element", "item"]:
+        return False
+        # raise_not_matching("quick_expression too simplistic")
+    if the.current_line.endswith("times"): return action_n_times(context)
+    if the.current_word in be_words: return setter(context)
+    if the.current_word == "if":  # YAY!
+        return context if _("if") and condition() else maybe("else") and expression() or None
+    if the.current_word == "as":return maybe_cast(context)
+    return False
+                                       # or maybe_algebra(context) or context
 
 
 @Starttokens(["pass"])#, ";"
@@ -2538,8 +2542,10 @@ def do_math(a, op, b):
     if op == '==': return a == b
     if op == '=': return a == b
     if op == 'is': return a == b  # NOT the same as a is b:
+    if op == 'be': return a == b
+    if op == 'equal to': return a == b
     if op == '===': return a is b
-    if op == 'is identical': return a is b
+    if op == 'is identical': return a is b # python ===
     if op == 'is exactly': return a is b
     if op == 'same as': return a == b
     if op == 'the same as': return a == b
@@ -2563,7 +2569,7 @@ def instance(bounded_method):
     return bounded_method.im_self
 
 
-def findMethod(obj0, method0, args0=None):
+def findMethod(obj0, method0, args0=None,bind=True):
     method = method0
     if callable(method): return method
     if isinstance(method, Function): return method
@@ -2576,7 +2582,8 @@ def findMethod(obj0, method0, args0=None):
         ex = angle.extensionMap[_type]
         if method in dir(ex):
             method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
-            method = method.__get__(obj0, ex)  # bind!
+            if bind:
+                method = method.__get__(obj0, ex)  # bind!
             return method
     # if method in angle.extensionMap and not obj0:
     #     return the.extensionMap[method]
@@ -2590,7 +2597,8 @@ def findMethod(obj0, method0, args0=None):
         return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
     if isinstance(obj0, type) and method in obj0.__dict__:
         method = obj0.__dict__[method]  # class
-        method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
+        if bind:
+            method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
         return method
     # elif "im_class" in
     #     method = method.__get__(args[0],method.im_class)
@@ -2599,6 +2607,13 @@ def findMethod(obj0, method0, args0=None):
     #     raise_not_matching("NO such METHOD %s" % method)
     # if not isinstance(method, str):
     #     raise_not_matching("NO such METHOD %s" % method)
+    # if not callable(method) and isinstance(args0,list): # TRY TO WORK ARGUMENT WISE!
+    #     function = findMethod(obj0 or args0[0], method0, None,bind=False)
+    #     def map_list(xs,*xss):
+    #         if xs and xss: xs=[xs]+list(xss)
+    #         if not xs:xs=xss
+    #         return map(function,xs)
+    #     return map_list
     return method
     # if callable(method):method(args)
 
@@ -2685,6 +2700,14 @@ def do_send(obj0, method0, args0=[]):
     # try direct first!
     method = findMethod(obj0, method0, args0)
     method_name = callable(method) and str(method) or method0  # what for??
+
+    if not callable(method) and isinstance(args0,list): # TRY TO WORK ARGUMENT WISE!
+        def map_list(x):
+            function = findMethod(x, method0, None)
+            return function()
+        the.result=map(map_list,args0)
+        return the.result
+
 
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
