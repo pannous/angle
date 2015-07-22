@@ -232,7 +232,7 @@ def error(e, force=False):
 
 
 def warn(e):
-    print(e.message)
+    print(e)
 
 
 def caller():
@@ -936,18 +936,6 @@ def token(t):  # _new
         raise NotMatching(t + "\n" + pointer_string())
 
 
-def flatten(l):
-    if isinstance(l, list) or isinstance(l, tuple):
-        for k in l:
-            if isinstance(k, list):
-                l.remove(k)
-                l.append(*k)
-    else:return [l]
-    # verbose("NOT flattenable: %s"%s)
-    return l
-
-
-
 def tokens(tokenz):
     raiseEnd()
     ok = maybe_tokens(tokenz)
@@ -1191,11 +1179,11 @@ def load_module_methods():
     constructors = the.classes.keys() + english_tokens.type_names
     the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
     the.method_names = [meth for meth in the.method_names if method_allowed(meth)]
-    # for _type in angle.extensionMap:
-    #     ex = angle.extensionMap[_type]
-    #     for method in dir(ex):
-    #         the.token_map[method] = english_parser.method_call
-    #         the.method_names.append(method)
+    for _type in angle.extensionMap:
+        ex = angle.extensionMap[_type]
+        for method in dir(ex):
+            the.method_names.append(method)
+            # the.token_map[method] = english_parser.method_call
     #         the.methods[method]=getattr(ex,method)
             # try:
             #     the.methods[method]=getattr(ex,method).im_func #wow, as function!

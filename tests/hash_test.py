@@ -14,7 +14,7 @@ class HashTest(ParserBaseTest):
 
     def test_json_data(self):
         init('{a{b:"b";c:"c"}}')
-        self.parser.hash_dict()
+        self.parser.hash_map()
 
     def test_simple(self):
         assert_equals(parse('{:a => "b"}'), {'a': 'b', })
@@ -35,3 +35,9 @@ class HashTest(ParserBaseTest):
     def test_immediate_hash2(self):
         # skip('test_immediate_hash NO, because of blocks!')
         assert_equals(parse('a:{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })
+
+    def test_immediate_hash3(self):
+        x=parse('x=a:{b:"b",c:"c"}')
+        assert_equals(x, {'a': {'b': 'b', 'c': 'c'}})
+        assert_equals(parse("x['a']"),{'b': 'b', 'c': 'c'})
+        assert_equals(parse("x['a']['b']"),'b')

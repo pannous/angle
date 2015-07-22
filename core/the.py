@@ -109,3 +109,5 @@ adjectives=['funny', 'big', 'small', 'good', 'bad']
 verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply', 'make', 'get', 'eat', 'drink',
                'go', 'know', 'take', 'see', 'come', 'think', 'look', 'give', 'use', 'find', 'tell', 'ask', 'work', 'seem', 'feel',
                'leave', 'call', 'integrate', 'print', 'eat', 'test','say']
+
+in_hash=False

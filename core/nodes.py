@@ -150,6 +150,7 @@ class Argument(kast.arg):
         if not other:
             print >> sys.stderr, "missing argument %s"%self
             return False
+        if not isinstance(other,Argument):return False
         ok = True
         has_type=self.type and other.type
         ok= ok and  self.name == other.name
@@ -210,12 +211,12 @@ class Variable(kast.Name):
         if not isinstance(x,Variable):
             ok= self.value == x or self.name==x
             return ok
-        super == x
-        # self.name == x.name &&
-        #     self.preposition== x.preposition &&
-        #     self.type == x.type &&
-        #     self.position == x.position &&
-        #     self.default == x.default &&
+        return self.value == x.value
+        # return self.name == x.name and\
+        #     self.preposition== x.preposition and\
+        #     self.type == x.type and\
+        #     self.position == x.position and\
+        #     self.default == x.default and\
         #     self.value == x.value
 
     # HACK!
