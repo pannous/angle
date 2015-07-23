@@ -9,9 +9,9 @@ from parser_test_helper import variables
 class ConditionTest(ParserBaseTest):
 
     def setUp(self):
+        super(ConditionTest, self).setUp()
         self.parser.do_interpret()
         angle.use_tree=False
-        angle.in_args=False
 
     def test_eq(self):
         variables['counter'] = 3
@@ -78,8 +78,10 @@ class ConditionTest(ParserBaseTest):
         assert_equals(check, False)
 
     def test_list_quantifiers2(self):
-        check = parse('x=5;if one of 0,1,2 is smaller 3 then x++')
+        check = parse('x=5;if one of 0,1,2 is smaller 3 then x++') # bug: algebra 0,1,2 is smaller 3
         assert_equals(check, 6)
+
+    def test_list_quantifiers3(self):
         check = parse('x=5;if all of 0,1,2 are smaller 3 then x++')
         assert_equals(check, 6)
 
@@ -172,6 +174,9 @@ class ConditionTest(ParserBaseTest):
     def test_else(self):
         assert_equals(parse('if 1 then false else 2'), False)
         assert_equals(parse('if 1 then false else 2'), False)
+
+    def test_incr(self):
+        assert_result_is('x=2;x++',3)
 
     def test_if_smaller(self):
         parse('x=2;if x is smaller 3 then x++')

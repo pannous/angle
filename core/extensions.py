@@ -12,6 +12,20 @@ import exceptions
 import __builtin__
 import shutil
 
+def flatten(l):
+    if isinstance(l, list) or isinstance(l, tuple):
+        for k in l:
+            if isinstance(k, list):
+                l.remove(k)
+                l.append(*k)
+    else:return [l]
+    # verbose("NOT flattenable: %s"%s)
+    return l
+
+
+def square(x):
+    if isinstance(x,list): return map(square,x)
+    return x*x
 
 # class Extension:
 #     def __init__(self, base,b=None,c=None):
@@ -240,6 +254,18 @@ class Class:
 
 @extension
 class xlist(list):
+    def row(self,n):
+        return self[n-1]
+
+    def column(self,n):
+        if isinstance(self[0],str):
+            return map(lambda row:xstr(row).word(n+1),self)
+        if isinstance(self[0],list):
+            return map(lambda row:row[n],self)
+        raise Exception("column of %s undefined"%type(self[0]))
+        # c=self[n]
+
+
     def length(self):
         return len(self)
     def clone(self):
@@ -345,8 +371,8 @@ class xlist(list):
     def get(self, x):
         return self[self.index(x)]
 
-    def row(self, n):
-        return self.at(n)
+    # def row(self, n):
+    #     return self.at(n)
 
     def has(self, x):
         return self.index(x)
@@ -381,6 +407,11 @@ class FalseClass:
 @extension
 class xstr(str):
 
+    # @staticmethod
+    # def invert(self):
+    #     r=reversed(self) #iterator!
+    #     return "".join(r)
+
     def invert(self):
         r=reversed(self) #iterator!
         return "".join(r)
@@ -395,27 +426,26 @@ class xstr(str):
     def quoted(self):
         return "%s" % self
 
-    def c(self):
-        return self.quoted()
+    # def c(self):
+    #     return self.quoted()
 
-    def id(self):
-        return "id(%s)" % self
+    # def id(self):
+    #     return "id(%s)" % self
+    #
+    # def wrap(self):
+    #     return "s(%s)" % self
 
-
-    def wrap(self):
-        return "s(%s)" % self
-
-    def value(self):
-        return self  # variable
+    # def value(self):
+    #     return self  # variable
         # quoted
 
-    def name(self):
-        return self
+    # def name(self):
+    #     return self
 
     def number(self):
         return int(self)
 
-    def _in(self, ary):
+    def is_in(self, ary):
         return ary.has(self)
 
     def matches(self, regex):
@@ -427,8 +457,8 @@ class xstr(str):
             return re.match(regex)
         return False
 
-    def stripNewline(self):
-        return self.strip().sub(r';$', '')
+    def strip_newline(self):
+        return self.strip()#.sub(r';$', '')
 
     def join(self, x):
         return self + x
@@ -443,23 +473,23 @@ class xstr(str):
     def starts_with(self, x):
         # puts "WARNING: start_with? missspelled as starts_with?"
         if isinstance(x, list):
-            for y in list:
+            for y in x:
                 if self.startswith(y): return y
         return self.startswith(x)
 
-    def show(self, x=None):
-        print(x or self)
-        return x or self
+    # def show(self, x=None):
+    #     print(x or self)
+    #     return x or self
 
     def contains(self, *things):
-        for t in things.flatten:
+        for t in flatten(things):
             if self.index(t): return True
         return False
 
     def fix_int(self, i):
         if str(i) == "middle": i = self.count / 2
-        if isinstance(i, Numeric): return i - 1
-        i = str(i).replace_numerals.to_i  #if i.is_a? String:
+        if isinstance(i, int): return i - 1
+        i = xstr(i).parse_integer()
         return i - 1
 
     def sentence(self, i):
@@ -472,7 +502,10 @@ class xstr(str):
 
     def word(self, i):
         i = self.fix_int(i)
-        return self.split(" ")[i]
+        replaced = self.replace("\t", " ").replace("  ", " ").replace("\t", " ").replace("  ", " ") #WTF
+        words = replaced.split(" ")
+        if i>=len(words):return self # be gentle
+        return words[i]
 
     def item(self, i):
         return self.word(i)

@@ -6,6 +6,11 @@ from parser_test_helper import *
 
 class StringTest(ParserBaseTest):
 
+    def setUp(self):
+        the.variables.clear()
+        the.variableTypes.clear()
+        the.variableValues.clear()
+
     def test_string_methods(self):
         parse("invert 'hi'")
         self.assert_equals(the.result, 'ih')
@@ -142,12 +147,12 @@ class StringTest(ParserBaseTest):
         self.assert_that('type of x is string')
         self.assert_that('class of x is string')
         self.assert_that('kind of x is string')
-        parse('y= class of x')
-        self.assert_equals(str, the.variables['y'].value)
+        parse('yy= class of x')
+        self.assert_equals(str, the.variables['yy'].value)
         # self.assert_equals(Quote, the.variables['y'])
-        self.assert_that('y is string')
-        parse('y is type of x')
-        self.assert_that('y is string')
+        self.assert_that('yy is string')
+        parse('yy is type of x')
+        self.assert_that('yy is string')
 
     def test_type1(self):
         init("class of 'hi'")
@@ -172,5 +177,5 @@ class StringTest(ParserBaseTest):
         parse("x be 'hello world';show x;x; class of x")
         self.assert_that('type of x is string')
         self.assert_that('class of x is string')
-        parse('y is type of x')
-        self.assert_that('y is string')
+        parse('yy is type of x')
+        self.assert_that('yy is string')

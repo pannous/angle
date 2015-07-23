@@ -9,4 +9,7 @@ class BashTest(ParserBaseTest):
         pass
 
     def test_pipe(self):
-        parse("def column n:n;bash 'ls -al' | column 1")
+        parse("bash 'ls -al' | column 1| row 2")
+
+    def test_pipe2(self):
+        parse("def column n:n;bash 'ls -al' | column 1| row 2")

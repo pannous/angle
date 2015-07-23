@@ -13,9 +13,14 @@ very_verbose = _verbose
 current_expression=None
 use_tree=False
 use_wordnet=False
+
+# state!
 in_pipe=False
 in_condition=False
 in_args = False
+in_hash=False
+in_list=False
+
 interpret=True #False
 did_interpret = False
 javascript = ''
@@ -109,3 +114,4 @@ adjectives=['funny', 'big', 'small', 'good', 'bad']
 verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply', 'make', 'get', 'eat', 'drink',
                'go', 'know', 'take', 'see', 'come', 'think', 'look', 'give', 'use', 'find', 'tell', 'ask', 'work', 'seem', 'feel',
                'leave', 'call', 'integrate', 'print', 'eat', 'test','say']
+

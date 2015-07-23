@@ -232,7 +232,7 @@ def error(e, force=False):
 
 
 def warn(e):
-    print(e.message)
+    print(e)
 
 
 def caller():
@@ -517,6 +517,7 @@ def must_contain_before_old(before, *args):  # ,before():None
 
 # NOT == starts_with !!!
 def look_ahead(expect_next, doraise=False):
+    if the.current_word=='':return False
     token = the.tokenstream[the.token_number + 1]
     if expect_next == token[1]:
         return True
@@ -936,18 +937,6 @@ def token(t):  # _new
         raise NotMatching(t + "\n" + pointer_string())
 
 
-def flatten(l):
-    if isinstance(l, list) or isinstance(l, tuple):
-        for k in l:
-            if isinstance(k, list):
-                l.remove(k)
-                l.append(*k)
-    else:return [l]
-    # verbose("NOT flattenable: %s"%s)
-    return l
-
-
-
 def tokens(tokenz):
     raiseEnd()
     ok = maybe_tokens(tokenz)
@@ -1155,7 +1144,7 @@ def maybe_indent():
 
 def method_allowed(meth):
     if len(meth)<2: return False
-    if meth in ["evaluate","eval","int","True","False","true","false","the"]:return False
+    if meth in ["evaluate","eval","int","True","False","true","false","the","Invert"]:return False
     if meth in english_tokens.keywords: return False
     return True
 
@@ -1189,14 +1178,23 @@ def load_module_methods():
 
     # if not the.method_names: # todo pickle
     constructors = the.classes.keys() + english_tokens.type_names
-    the.method_names = the.methods.keys() + constructors + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+    the.method_names = the.methods.keys()  + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+    # for c in constructors:
+    #     if not c in the.method_names: the.method_names.append(c)
+    for x in dir(extensions):
+        the.method_names.append(x)
+    for _type in angle.extensionMap:
+        ex = angle.extensionMap[_type]
+        for method in dir(ex):
+            # if not method in the.method_names: #the.methods:
+            #     the.methods[method]=getattr(ex,method)
+            # else:
+            #     pass # TODOOO!
+            the.method_names.append(method)
+
     the.method_names = [meth for meth in the.method_names if method_allowed(meth)]
-    # for _type in angle.extensionMap:
-    #     ex = angle.extensionMap[_type]
-    #     for method in dir(ex):
-    #         the.token_map[method] = english_parser.method_call
-    #         the.method_names.append(method)
-    #         the.methods[method]=getattr(ex,method)
+            # if method_allowed(method):
+            #     the.token_map[method] = english_parser.method_call
             # try:
             #     the.methods[method]=getattr(ex,method).im_func #wow, as function!
             # except:

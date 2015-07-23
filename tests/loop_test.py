@@ -1,4 +1,6 @@
 import angle
+import english_parser
+
 angle.use_tree = False
 from parser_test_helper import *
 
@@ -8,7 +10,7 @@ class LoopTest(ParserBaseTest):
 
     def _test_forever(self):
         init('beep forever')
-        loops()
+        english_parser.loops()
         parse('beep forever')
 
     def test_while_return(self):
@@ -21,19 +23,19 @@ class LoopTest(ParserBaseTest):
 
     def test_expressions(self):
         parse('counter=1')
-        assert(equals(1, self.variableValues['counter']))
+        assert(equals(1, the.variableValues['counter']))
         parse('counter++')
-        assert(equals(2, self.variableValues['counter']))
+        assert(equals(2, the.variableValues['counter']))
         parse('counter+=1')
-        assert(equals(3, self.variableValues['counter']))
+        assert(equals(3, the.variableValues['counter']))
         parse('counter=counter+counter')
-        counter = self.variableValues['counter']
+        counter = the.variableValues['counter']
         assert(counter.equals(6))
 
     def test_repeat(self):
         parse('counter =0; repeat three times: increase the counter; okay')
         assert('counter=3')
-        assert_equals(self.variableValues['counter'], 3)
+        assert_equals(the.variableValues['counter'], 3)
 
     def test_repeat3(self):
         assert_result_is('counter =0; repeat three times: counter=counter+1; okay', 3)
@@ -43,7 +45,7 @@ class LoopTest(ParserBaseTest):
         parse('counter =0; repeat three times: counter+=1; okay')
         assert('counter =3')
         parse('counter =0; repeat three times: counter++; okay')
-        counter = self.variableValues['counter']
+        counter = the.variableValues['counter']
         assert('counter =3')
         assert(counter.equals(3))
 

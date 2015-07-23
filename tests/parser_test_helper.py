@@ -146,12 +146,14 @@ def clear_test():
     variableValues={}
 
 def parse(s):
+    print("PARSING %s"%s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
     variables.update(the.variables)
     variableValues.update(the.variableValues)
     functions.update(the.methods)
     methods.update(the.methods)
+    print("DONE PARSING %s"%s)
     return r
 
 
@@ -219,6 +221,16 @@ class ParserBaseTest(unittest.TestCase):
         the.variables={}
         the.variableValues={}
         the.variableTypes={}
+        the.variables.clear()
+        the.variableTypes.clear()
+        the.variableValues.clear()
+        angle.in_args=False
+        angle.in_condition=False
+        angle.in_hash=False
+        angle.in_list=False
+        global base_test
+        base_test=self
+
         if not angle.use_tree:
             power_parser.do_interpret()
             # self.parser.do_interpret()
@@ -247,8 +259,12 @@ class ParserBaseTest(unittest.TestCase):
 
     # return lambda value: self.all().filter(field, value)
 
-    def parse(self, str):
-        return parser.parse(str).result
+    def parse(self, s):
+        print("PARSING %s"%s)
+        x= parser.parse(s).result
+        print("DONE PARSING %s"%s)
+        return x
+
 
 
     def initialize(self, args):

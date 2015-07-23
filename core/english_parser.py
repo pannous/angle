@@ -338,7 +338,7 @@ def fold_algebra(stack):
 def algebra(val=None):
     # if angle.in_algebra: return False
     # global result
-    must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
+    if not val: must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
     val = val or maybe(value) or bracelet()
     stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
@@ -348,8 +348,9 @@ def algebra(val=None):
         op = maybe(comparation) or operator()
         # if not op == 'and': allow_rollback()
         n = maybe_token('not')
-        y = maybe(value) or bracelet()
         # y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
+        y = maybe(value) or bracelet()
+        # y = postoperations(y) or y NOO but need LIST!
         if y == ZERO: y = 0
         stack.append(op)  # after success of maybe(value)
         stack.append(n) if n else 0
@@ -426,7 +427,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     maybe_tokens(['.', 'rd', 'st', 'nd'])
     type = maybe_tokens(['item', 'element', 'object', 'word', 'char', 'character'] + type_names)  # noun
     maybe_tokens(['in', 'of'])
-    l = resolve(maybe(known_variable)) or maybe(liste) or quote()  # or (expression) with parenthesis!!
+    l = do_evaluate(maybe(known_variable)) or maybe(liste) or quote()  # or (expression) with parenthesis!!
     if re.search(r'^char', type):
         the.result = "".join(l).__getitem__(n)
         return the.result
@@ -464,9 +465,10 @@ inside_list = False
 
 
 @Starttokens(['[', '(', '{'])
-def liste(check=True):
+def liste(check=True,first=None):
     global inside_list
-    if the.current_word == ',': raise NotMatching()
+    if not first and the.current_word == ',': raise NotMatching()
+    if angle.in_hash: must_not_contain(":")#,before=',')
     if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
     # +[' '] ???
     start_brace = maybe_tokens(['[', '{', '('])  # only one!
@@ -475,10 +477,11 @@ def liste(check=True):
     # all<<expression(start_brace)
     # angel.verbose=True #debug
     inside_list = True
-    first = maybe(endNode)
+    first = first or maybe(endNode)
     if not first: inside_list = False
     if not first: raise_not_matching()
-    all = [first]
+    if isinstance(first,list):all=first
+    else: all = [first]
 
     def lamb():
         tokens([',', 'and'])
@@ -579,7 +582,8 @@ def close_bracket():  # for nice GivingUp):
 def hash_map():
     must_contain_before(args=[":", "=>"], before=["}"])
     # z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
-    z = maybe(regular_hash) or immediate_hash()
+
+    z = regular_hash() if starts_with("{") else immediate_hash()
     return z
 
     # colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
@@ -589,10 +593,11 @@ def hash_map():
 @Starttokens('{')
 def regular_hash():
     _('{')
+    angle.in_hash=True
     maybe_token(':')  and no_rollback() #symbol
     h = {}
     def lamb():
-        if len(h) > 0: maybe_tokens([';', ','])
+        if len(h) > 0: tokens([';', ','])
         quoted = maybe_tokens(['"', "'"])
         key = word()
         if quoted: tokens(['"', "'"])
@@ -606,6 +611,8 @@ def regular_hash():
 
     star(lamb)
     _('}')
+    angle.in_hash=False
+
     # angle.inside_list = False
     return h
     # careful with blocks/closures ! map{puts it} VS data{a:"b")
@@ -643,13 +650,6 @@ def maybe_algebra(context):
     return do_send(context, op, z)
 
 
-def postoperations(context):  # see quick_expression !!
-    if the.current_word in be_words: return false  # handled differently
-    if the.current_word == "if":  # YAY!
-        return the.result if _("if") and condition() else maybe("else") and expression() or None
-    return maybe_cast(context) or maybe_algebra(context) or context
-
-
 def contains(token):
     return token in the.current_line
 
@@ -657,48 +657,76 @@ def contains(token):
 def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
+    if not angle.in_params and look_ahead(':'):
+        warn("look_ahead(':'): # AND ...")
+        return immediate_hash()
     if the.current_word == '{' and (contains("=>") or contains(":")):
         return hash_map()
-    the.result = False
-    if the.current_word.startswith("'"):
-        the.result=quote()
-    elif the.current_word in english_tokens.type_names:
-        return maybe(setter) or method_definition()
-    elif the.current_word in the.token_map:
+    result = False
+
+    if look_ahead('='):
+        if not angle.in_condition:return setter()
+        # if angle.in_condition: return condition()
+    if the.current_type == _token.STRING or the.current_word.startswith("'"):
+        result=quote()
+    elif the.current_word in the.token_map: # safe, ok!
         fun = the.token_map[the.current_word]
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
-        the.result = fun()  # already wrapped maybe(fun)
+        result = fun()  # already wrapped maybe(fun)
     elif the.current_word in the.params.keys():
-        the.result = true_param()
+        result = true_param()
     elif the.current_word in the.variables.keys():
-        the.result = known_variable()
-    elif the.current_word in the.method_names + the.methods.keys():
-        the.result = method_call()  # already wrapped maybe(method_call)
+        result = known_variable()
+    elif the.current_word in the.method_names:
+        if method_allowed(the.current_word):
+            result = method_call()  # already wrapped maybe(method_call)
+    if look_ahead('of'):
+        result=evaluate_property(result)
+    elif the.current_word in english_tokens.type_names:
+        return maybe(setter) or method_definition() # or ... !!!!!
     if the.current_word=='+' and look_ahead('+'):
-            the.result=plusPlus(the.result)
+            result=plusPlus(result)
     if the.current_word=='-' and look_ahead('-'):
-            the.result=minusMinus(the.result)
-    if not angle.in_condition and the.current_word in be_words :
-        if isinstance(the.result, Variable):
-            return setter(the.result)
-        else:
-            raise_not_matching("better try setter")
-    if the.current_word == '|': return piped_actions(the.result or the.last_result)
+            result=minusMinus(result)
+    if not result: return False
+    while True:
+        z=postoperations(result)
+        if not z or z==result: break
+        result=z
+    return result
+
+
+
+def postoperations(context):  # see quick_expression !!
+    if the.current_word == '': return context
+    if the.current_word == ';': return context
+    if the.current_word == '.': return method_call(context)
+    if the.current_word in be_words :
+        if not angle.in_condition:
+            if isinstance(context, Variable):
+                return setter(context)
+            else:
+                raise_not_matching("better try setter")
+        elif the.current_word=='are':  return False #DONT DO algebra here HACK
+    if the.current_word == '|': return piped_actions(context or the.last_result)
+    if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
+        return liste(check=False,first=context)
     if the.current_word in operators:
-        return algebra(the.result)
-    if the.current_word == '[':
-        return evaluate_index(the.result)
-    if the.result and the.current_word == 'to': return ranger(the.result)
-    if the.result and the.current_word == 'if': return action_if(the.result)
-    if the.current_word == '': return the.result
-    if the.current_word == ';': return the.result
-    if the.current_word == '.': return method_call(the.result)
-    if the.current_word in operators:
-        return algebra(the.result)
+        return algebra(context)
     if the.current_word in operators + special_chars + ["element", "item"]:
-        raise_not_matching("quick_expression too simplistic")
-    if the.current_line.endswith("times"): return action_n_times(the.result)
-    return the.result
+        return False
+    if the.current_word == '[':
+        return evaluate_index(context)
+    if context and the.current_word == 'to': return ranger(context)
+    if context and the.current_word == 'if': return action_if(context)
+        # raise_not_matching("quick_expression too simplistic")
+    if the.current_line.endswith("times"): return action_n_times(context)
+    if the.current_word in be_words: return setter(context)
+    if the.current_word == "if":  # YAY!
+        return context if _("if") and condition() else maybe("else") and expression() or None
+    if the.current_word == "as":return maybe_cast(context)
+    return False
+                                       # or maybe_algebra(context) or context
 
 
 @Starttokens(["pass"])#, ";"
@@ -724,6 +752,7 @@ def expression(fallback=None,resolve=True):
     # maybe(swift_hash) or \
 
     ex = postoperations(ex) or ex
+    # ex = postoperations(ex) or ex
     check_comment()
 
     if not interpreting():
@@ -756,12 +785,12 @@ def piped_actions(a=False):
     a = a or statement()
     token('|')
     no_rollback()
-    c = true_method() or bash_action()
+    xmodule, obj, name = true_method() or bash_action()
     args = star(call_arg)
     angle.in_pipe = False
-    if callable(c): args = [args, Argument(value=a)]  # with owner
+    if callable(name): args = [args, Argument(value=a)]  # with owner
     if interpreting():
-        the.result = do_send(a, c, args)
+        the.result = do_send(a, name, args)
         print(the.result)
         return the.result
     else:
@@ -1019,11 +1048,9 @@ def print_variables():
     return ''.join(['%s=%s' % (v, k) for v, k in variables.iteritems()])
 
 
-def is_object_method(m):
-    if not str(m) in globals(): return False
-    if callable(m) and str(m) in globals():
-        return m  # 'True'
-    object_method = globals()[m]  # .method(m)
+def is_object_method(method_name):
+    if not str(method_name) in globals(): return False
+    object_method = globals()[str(method_name)]  # .method(m)
     return object_method  # 'True' ;)
     # Object.constants  :IO, :STDIN, :STDOUT, :STDERR :.:Complex, :RUBY_VERSION :.
 
@@ -1045,7 +1072,7 @@ def get_module(module):
 # In Python 2.7, built-in function objects such as print()
 # simply do not have enough information for you to discover what arguments they support!!
 def has_args(method, clazz=object, assume=0):
-    if method in ['increase', 'invert', '++', '--']:  # increase by 8: todo all intransitive verbs with objects!
+    if method in ['increase', '++', '--']:  # increase by 8: todo all intransitive verbs with objects! IF OBJECT  'invert' x
         return 0
     if isinstance(method, Function):
         return len(method.arguments)
@@ -1154,23 +1181,23 @@ def true_method(obj=None):
 def method_call(obj=None):
     # verb_node
     module, obj, method_name = true_method(obj)
-    method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
+    # method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
     # no_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
     # todo  ?merge with maybe(liste)
     if start_brace: no_rollback()
-    if module or obj or is_object_method(method):  # todo  not has_object(method) is_class_method:
+    if module or obj or is_object_method(method_name):  # todo  not has_object(method) is_class_method:
         obj = obj or None  # globals
     else:
         maybe_token('of')
         obj = maybe(the.classes.keys()) or maybe(the.moduleNames) #exclude vars
         if not angle.in_args:
             obj = obj or maybe(liste)  # danger: liste vs args below
-        method = findMethod(obj, method)  # Now we know the object
         maybe_token(',')
         # print(sorted files)
         # if not in_args: obj=maybe( maybe(nod)  or  maybe(list)  or  expression )
 
+    method = findMethod(obj, method_name)  # Now we know the object
     assume_args = True  # not starts_with("of")  # True    #<< Redundant with property eventilation!
     args = None
     if has_args(method, module or obj, assume_args):
@@ -1195,9 +1222,9 @@ def method_call(obj=None):
     if start_brace == '{': _('}')
     if not interpreting():
         if method_name == "puts" or method_name == "print":
-            return kast.Print(dest=None, values=map(values,args), nl=True)
+            return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
         return FunctionCall(func=method, arguments=args, object=obj)
-    the.result = do_send(obj, method, args)
+    the.result = do_send(obj or None, method, args)
     return the.result
 
 
@@ -1378,7 +1405,7 @@ def close_tag(type):
 # Similar to align_args DIFFERENCE?
 def prepare_named_args(args):
     import copy
-
+    # eval_args(args)
     context_variables = copy.copy(the.variables)
     if not isinstance(args, dict): return args  # = {'arg': args}
     for arg, val in args.iteritems():
@@ -1682,10 +1709,10 @@ def word(include=None):
     # NOT SAME AS should_not_start_with!!!
 
 
-def must_not_contain(words):
+def must_not_contain(words,before=";"):
     old = the.current_token
     words = flatten(words)
-    while not checkEndOfLine() and the.current_word != ';':
+    while not checkEndOfLine() and the.current_word != ';' and the.current_word != before:
         for w in words:
             if w == the.current_word:
                 raise MustNotMatchKeyword(w)
@@ -2323,11 +2350,6 @@ def do_evaluate_property(attr, node):
     if not attr: return False
     verbose("do_evaluate_property '" + str(attr) + "' in " + str(node))
     the.result = None  # delete old!
-    try:
-        the.result = do_send(node, attr)
-        return the.result
-    except:
-        verbose("do_send(node,attr) failed")
     if attr in dir(node):  # y.__att
         return node.__getattribute__(attr)
     if attr in ['type', 'class', 'kind']:
@@ -2336,6 +2358,11 @@ def do_evaluate_property(attr, node):
         return map(lambda x: do_evaluate_property(attr, x), node)
     if isinstance(attr, _ast.AST):
         return todo("do_evaluate_property")
+    try:
+        the.result = do_send(node, attr)
+        return the.result
+    except:
+        verbose("do_send(node,attr) failed")
 
 class Reflector(object):
     def __getitem__(self, name):
@@ -2422,63 +2449,50 @@ def eval_ast(my_ast, args={}):
         ast.dump(my_ast)
         raise e, None, sys.exc_info()[2]
 
-# see eval_string() !!!
-def do_evaluate(x, _type=None):
-    try:
-        if isinstance(x, ast.Num): return x.n
-        if isinstance(x, ast.Str): return x.s
-        if isinstance(x, type): return x
-        if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
-        if isinstance(x, list) and len(x) != 1: return x
-        if x == True or x == False: return x
-        if x == ZERO: return 0
-        if x == TRUE: return True
-        if x == FALSE: return FALSE
-        if x == NILL: return None
-        if isinstance(x, Variable):
-            val = x.value or the.variableValues[x.name]
-            return val
-            # if not interpreting():
-            #     return val
-            # else:
-            #     return emitters.kast_emitter.wrap_value(val) # LATER!!
 
-        if isinstance(x, str):
-            if _type and isinstance(_type, extensions.Numeric): return float(x)
-            if x in the.variableValues: return the.variableValues[x]
-            if match_path(x): return resolve(x)
-            if _type and _type == float: return float(x)
-            if _type and _type == int: return int(x)
-            return x
-        # if isinstance(x, str) and type and is_a(type,float): return float(x)
-        # if isinstance(x, TreeNode): return x.eval_node(variableValues)
-        # :. todo METHOD / Function!
-        # if isinstance(x, extensions.Method): return x.call  #Whoot
-        # if callable(x): return x()  # Whoot
-        if not interpreting(): return x
-        if isinstance(x, kast.AST): return eval_ast([x])
-        if isinstance(x, list) and isinstance(x[0], kast.AST): return eval_ast(x)
-        return x  # DEFAULT!
-    except (TypeError, SyntaxError)as e:
-        print("ERROR #{e) in do_evaluate #{x)")
-        raise e, None, sys.exc_info()[2]
-        # return x
+# resolve
+def do_evaluate(x,_type=None):
+    if not x: return None
 
-
-# see do_evaluate ! merge
-def resolve(x):
-    if not x: return x
-    if is_dir(x): return extensions.Directory(x)
-    if is_file(x): return extensions.File(x)
-    if isinstance(x, Variable): return x.value  # or ast.Name?
-    if interpreting() and variableValues.has_key(x): return variableValues[x.strip]
-    return x
+    #  if not interpreting():   return emitters.kast_emitter.wrap_value(val) # LATER!!
+    if x == ZERO or x==0: return 0
+    if x == TRUE: return True
+    if x == FALSE: return FALSE # False NOT HERE! WHERE?
+    if x == NILL: return None
+    if callable(x): return x #x()  Whoot
+    if isinstance(x, type): return x
+    if isinstance(x, ast.Num): return x.n
+    if isinstance(x, ast.Str): return x.s
+    if isinstance(x, Argument): return do_evaluate(x.value) #args.value
+    if isinstance(x, Variable): return do_evaluate(x.value)
+    if isinstance(x, extensions.File): return x.to_path
+    # if isinstance(x, str): return x
+    # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
+    if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
+    if isinstance(x, list): return map(do_evaluate,x)
+    # if maybe(x.is_a) Array: return x.to_s
+    if isinstance(x, str):
+        if _type and isinstance(_type, extensions.Numeric): return float(x)
+        if x in the.variableValues: return the.variableValues[x]
+        if match_path(x): return do_evaluate(x)
+        if _type and _type == float: return float(x)
+        if _type and _type == int: return int(x)
+        return x
+    # if isinstance(x, extensions.Method): return x.call  #Whoot
+    if not interpreting(): return x
+    if isinstance(x, kast.AST): return eval_ast([x])
+    if isinstance(x, list) and isinstance(x[0], kast.AST): return eval_ast(x)
+    # if x == True or x == False: return x
+    return x  # DEFAULT!
+    # except (TypeError, SyntaxError)as e:
+    #     print("ERROR #{e) in do_evaluate #{x)")
+    #     raise e, None, sys.exc_info()[2]
+    #     # return x
 
 
 def self_modifying(method):
     method = method.__name__
     return method == 'increase' or method == 'decrease' or method.endswith("!")
-
 
 #
 # def self_modifying(method):
@@ -2531,8 +2545,10 @@ def do_math(a, op, b):
     if op == '==': return a == b
     if op == '=': return a == b
     if op == 'is': return a == b  # NOT the same as a is b:
+    if op == 'be': return a == b
+    if op == 'equal to': return a == b
     if op == '===': return a is b
-    if op == 'is identical': return a is b
+    if op == 'is identical': return a is b # python ===
     if op == 'is exactly': return a is b
     if op == 'same as': return a == b
     if op == 'the same as': return a == b
@@ -2556,23 +2572,16 @@ def instance(bounded_method):
     return bounded_method.im_self
 
 
-def findMethod(obj0, method0, args0=None):
+def findMethod(obj0, method0, args0=None,bind=True):
     method = method0
     if callable(method): return method
     if isinstance(method, Function): return method
+    if not obj0 and args0:
+        obj0=args0[0]
     _type = type(obj0)
     if (isinstance(obj0, Variable)):
         _type = obj0.type
         obj0 = obj0.value
-    if isinstance(method, list) and len(method) == 1: method = method[0]
-    if _type in angle.extensionMap:
-        ex = angle.extensionMap[_type]
-        if method in dir(ex):
-            method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
-            method = method.__get__(obj0, ex)  # bind!
-            return method
-    # if method in angle.extensionMap and not obj0:
-    #     return the.extensionMap[method]
     if method in the.methods:
         return the.methods[method]
     if method in locals():
@@ -2581,9 +2590,19 @@ def findMethod(obj0, method0, args0=None):
         return globals()[method];
     if method in dir(obj0):
         return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
+    if _type in angle.extensionMap:
+        ex = angle.extensionMap[_type]
+        if method in dir(ex):
+            method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
+            if bind:
+                method = method.__get__(obj0, ex)  # bind!
+            return method
+    # if method in angle.extensionMap and not obj0:
+    #     return the.extensionMap[method]
     if isinstance(obj0, type) and method in obj0.__dict__:
         method = obj0.__dict__[method]  # class
-        method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
+        if bind:
+            method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
         return method
     # elif "im_class" in
     #     method = method.__get__(args[0],method.im_class)
@@ -2592,6 +2611,13 @@ def findMethod(obj0, method0, args0=None):
     #     raise_not_matching("NO such METHOD %s" % method)
     # if not isinstance(method, str):
     #     raise_not_matching("NO such METHOD %s" % method)
+    # if not callable(method) and isinstance(args0,list): # TRY TO WORK ARGUMENT WISE!
+    #     function = findMethod(obj0 or args0[0], method0, None,bind=False)
+    #     def map_list(xs,*xss):
+    #         if xs and xss: xs=[xs]+list(xss)
+    #         if not xs:xs=xss
+    #         return map(function,xs)
+    #     return map_list
     return method
     # if callable(method):method(args)
 
@@ -2621,34 +2647,19 @@ def align_function_args(args, clazz, method):
     # return method.arguments
 
 
-
-# Strange method, see resolve, do_evaluate
-def eval_string(x):
-    if not x: return None
-    if isinstance(x, Variable): return x.value
-    if isinstance(x, ast.Num): return x.n
-    if isinstance(x, ast.Str): return x.s
-    if isinstance(x, extensions.File): return x.to_path
-    if isinstance(x, Argument): return x.name_or_value() #args.value
-    # if isinstance(x, str): return x
-    # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
-    # if maybe(x.is_a) Array: x=x.join(" ")
-    if isinstance(x, list) and len(x) == 1: return x[0]
-    if isinstance(x, list): return x
-    # if maybe(x.is_a) Array: return x.to_s
-    return do_evaluate(x)
-
-def values(x):
-    return eval_string(x)
+def eval_args(args):
+    if not args:return []#None
+    # if args and isinstance(args, str): args = xstr(args).replace_numerals()
+    if isinstance(args, (list,tuple)):
+        args = map(do_evaluate , args)
+    elif isinstance(args, dict):
+        pass #OK
+    else:args=[do_evaluate(args)]
+    # else:args=do_evaluate(args)
+    return args
 
 # Similar to prepare_named_args for block ast eval!
 def align_args(args, clazz, method):
-    # if args and isinstance(args, str): args = xstr(args).replace_numerals()
-    # if not isinstance(args,list):
-    #     if isinstance(args,dict):
-    if isinstance(method,Function):
-        return align_function_args(args, clazz, method)
-    if (isinstance(args, (list,tuple))): args = map(values, args)
     # selfmodifying = self_modifying(method)
     # if selfmodifying: return args  # todo
     is_bound = 'im_self' in dir(method) and method.im_self
@@ -2692,9 +2703,10 @@ def do_send(obj0, method0, args0=[]):
     if method0 in be_words and obj0 == args0: return True  # stupid unnecessary shortcut
 
     # try direct first!
-    method = findMethod(obj0, method0, args0)
+    # args0=map(do_evaluate,args0)
+    args=eval_args(args0)
+    method = findMethod(obj0, method0, args)
     method_name = callable(method) and str(method) or method0  # what for??
-
     # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
     if (method == 'of'): return evaluate_property(args0, obj0)
@@ -2704,7 +2716,7 @@ def do_send(obj0, method0, args0=[]):
 
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
     obj = do_evaluate(obj0)
-    args = align_args(args0, obj, method)
+    args = align_args(args, obj, method)
     number_of_arguments = has_args(method, obj, not not args)
 
     if isinstance(method, Function):
@@ -2719,6 +2731,14 @@ def do_send(obj0, method0, args0=[]):
 
     if not args and not callable(method) and method in dir(obj):
         return obj.__getattribute__(method)
+
+    if not callable(method) and isinstance(args,list): # TRY TO WORK ARGUMENT WISE!
+        def map_list(x):
+            function = findMethod(x, method0, None)
+            if not callable(function): raise Exception("DONT KNOW how to apply %s to %s"%(method0,args0))
+            return function()
+        the.result=map(map_list,args)
+        return the.result
 
     if not callable(method):
         raise MethodMissingError(type(obj), method, args)
@@ -2763,8 +2783,8 @@ def do_send(obj0, method0, args0=[]):
 
 
 def do_compare(a, comp, b):
-    a = eval_string(a)  # NOT: "a=3; 'a' is 3" !!!!!!!!!!!!!!!!!!!!   Todo ooooooo!!
-    b = eval_string(b)
+    a = do_evaluate(a)  # NOT: "a=3; 'a' is 3" !!!!!!!!!!!!!!!!!!!!   Todo ooooooo!!
+    b = do_evaluate(b)
     if isinstance(b, float) and re.search(r'^\+?\-?\.?\d', str(a)): a = float(a)
     if isinstance(a, float) and re.search(r'^\+?\-?\.?\d', str(b)): b = float(b)
     if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a)  # EEK PHP STYLE !? REALLY??
@@ -2825,7 +2845,7 @@ def selectable():
 def filter(liste, criterion):
     global rhs, lhs, comp
     if not criterion: return liste
-    mylist = eval_string(liste)
+    mylist = do_evaluate(liste)
     # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
     if angle.use_tree:
         method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
@@ -2946,7 +2966,7 @@ def evaluate_index(obj=None):
     # if interpreting(): the.result=v.send :index,i
     # if interpreting(): the.result=do_send v,:[], i
     # if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
-    va = resolve(obj)
+    va = do_evaluate(obj)
     if interpreting(): the.result = va[i]  # va.__index__(i)  # old value
     if set != None:  # and interpreting():
         the.result = va[i] = set  # va.__index__(i, set)
@@ -2956,11 +2976,11 @@ def evaluate_index(obj=None):
     return the.result
 
 
-def evaluate_property():
+def evaluate_property(x=None):
     maybe_token('all')  # list properties (all files in x)
     must_contain_before(['of', 'in', '.'], '(')
     # raiseNewline()
-    x = endNoun(included=type_keywords)
+    x = x or endNoun(included=type_keywords)
     tokens(['of', 'in'])
     y = expression()
     if not interpreting(): return parent_node()

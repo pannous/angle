@@ -6,12 +6,9 @@ from parser_test_helper import *
 
 class ListTest(ParserBaseTest):
     
-
     def setUp(self):
         self.parser.do_interpret()
-        angle.use_tree=False
-        global base_test
-        base_test=self
+        super(ListTest, self).setUp()
 
     def test_type0(self):
         init('1 , 2 , 3')
@@ -138,6 +135,7 @@ class ListTest(ParserBaseTest):
         assert_equals(result(), list)
 
     def test_type(self):
+        self.setUp()
         parse('x=1,2,3;')
         assert('type of x is Array')
 
@@ -185,7 +183,11 @@ class ListTest(ParserBaseTest):
         # parse("def square(xs:list)->list:square all in xs")
         assert_result_is('square 1,2 and 3', [1, 4, 9])
         self.assert_that('square of [1,2 and 3] equals 1,4,9')
+
+    def test_map23(self):
         parse('assert square of [1,2 and 3] equals 1,4,9')
+
+    def test_map24(self):
         skip()
         self.assert_that('square 1,2 and 3 == 1,4,9')
 
