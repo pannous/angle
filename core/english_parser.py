@@ -706,8 +706,8 @@ def post_operations(context):  # see quick_expression !!
         if not angle.in_condition:
             if isinstance(context, Variable):
                 return setter(context)
-        else:
-            raise_not_matching("better try setter")
+        # else:
+        #     raise_not_matching("better try setter")
         elif the.current_word=='are':  return False #DONT DO algebra here HACK
     if the.current_word == '|': return piped_actions(context or the.last_result)
     if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
