@@ -172,22 +172,25 @@ class ListTest(ParserBaseTest):
         assert_equals(parse('square [2,3,4]'), [4, 9,16])
         assert_equals(parse('square [1,2 and 3]'), [1, 4, 9])
 
-    def test_map2(self):
+    def test_and(self):
+        skip()
         self.assert_that('square of 1,2 and 3 == 1,4,9')
         assert_equals(parse('square 1,2,3'), [1, 4, 9])
         assert_equals(parse('square 1,2 and 3'), [1, 4, 9])
 
-    def test_map22(self):
+    def test_and2(self):
+        skip()
         # parse("def square x:x*x")
         # parse("def square(x:int)->int:x*x")
         # parse("def square(xs:list)->list:square all in xs")
         assert_result_is('square 1,2 and 3', [1, 4, 9])
         self.assert_that('square of [1,2 and 3] equals 1,4,9')
 
-    def test_map23(self):
+    def test_and3(self):
+        skip()
         parse('assert square of [1,2 and 3] equals 1,4,9')
 
-    def test_map24(self):
+    def test_and4(self):
         skip()
         self.assert_that('square 1,2 and 3 == 1,4,9')
 

@@ -27,7 +27,7 @@ def parent_node():
     pass
 
 
-def self_modify(v, mod, arg):
+def do_self_modify(v, mod, arg):
     val = v.value
     if mod == '|=': the.result = val | arg
     if mod == '||=': the.result = val or arg
@@ -346,7 +346,7 @@ def algebra(val=None):
         if the.current_word in be_words and angle.in_args:
             return False # f x is 0 == f(x) is 0 NOT f(x is 0) !!
         op = maybe(comparation) or operator()
-        # if not op == 'and': allow_rollback()
+        if op == 'and' and in_list: return False
         n = maybe_token('not')
         # y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
         y = maybe(value) or bracelet()
@@ -531,17 +531,17 @@ def minusMinus(v=None):
 
 
 def selfModify():
-    return maybe(plusEqual) or maybe(plusPlus) or minusMinus()
+    return maybe(self_modify) or maybe(plusPlus) or minusMinus()
 
 
 #
 # @Interpret
-@Starttokens(self_modifying_operators)
-def plusEqual():
+# @Starttokens(self_modifying_operators)
+def self_modify(exp=None):
     must_contain(self_modifying_operators)
     v = variable()
     mod = tokens(self_modifying_operators)
-    exp = expression()  # value
+    exp = exp or expression()  # value
     arg = do_evaluate(exp, v.type)
     if not interpreting():
         op = tree.operator_equals(mod)
@@ -684,23 +684,24 @@ def quick_expression():  # bad idea!
         result=evaluate_property(result)
     elif the.current_word in english_tokens.type_names:
         return maybe(setter) or method_definition() # or ... !!!!!
-    if the.current_word=='+' and look_ahead('+'):
-            result=plusPlus(result)
-    if the.current_word=='-' and look_ahead('-'):
-            result=minusMinus(result)
     if not result: return False
     while True:
-        z=postoperations(result)
+        z=post_operations(result)
         if not z or z==result: break
         result=z
     return result
 
 
-
-def postoperations(context):  # see quick_expression !!
+def post_operations(context):  # see quick_expression !!
     if the.current_word == '': return context
     if the.current_word == ';': return context
     if the.current_word == '.': return method_call(context)
+    if the.current_word in operators and look_ahead('='):
+        return self_modify(context)
+    if the.current_word=='+' and look_ahead('+'):
+            return plusPlus(context)
+    if the.current_word=='-' and look_ahead('-'):
+            return minusMinus(context)
     if the.current_word in be_words :
         if not angle.in_condition:
             if isinstance(context, Variable):
@@ -751,7 +752,7 @@ def expression(fallback=None,resolve=True):
     # maybe(method_call) or \
     # maybe(swift_hash) or \
 
-    ex = postoperations(ex) or ex
+    ex = post_operations(ex) or ex
     # ex = postoperations(ex) or ex
     check_comment()
 

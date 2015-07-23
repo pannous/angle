@@ -144,6 +144,19 @@ def clear_test():
     global variables,variableValues
     variables={}
     variableValues={}
+        # the._verbose=True # False
+    angle.testing=True
+    the.variables.clear()
+    the.variableTypes.clear()
+    the.variableValues.clear()
+    angle.in_hash=False
+    angle.in_list=False
+    angle.in_condition=False
+    angle.in_args=False
+    angle.in_params=False
+    angle.in_pipe=False
+    if not angle.use_tree:
+        power_parser.do_interpret()
 
 def parse(s):
     print("PARSING %s"%s)
@@ -194,9 +207,9 @@ def copy_variables(variables=variables):
 class ParserBaseTest(unittest.TestCase):
 
     def setUp(self):
-        the.variables.clear()
-        the.variableTypes.clear()
-        the.variableValues.clear()
+        global base_test
+        base_test=self
+        clear_test()
 
     def context(self):
         pass
@@ -212,28 +225,6 @@ class ParserBaseTest(unittest.TestCase):
         # self.p=Parser()#  fresh  instance!
 
     parser=property(lambda :p,0)
-
-    def setUp(self):
-        global base_test
-        base_test=self
-        the._verbose=True # False
-        clear_test()
-        the.variables={}
-        the.variableValues={}
-        the.variableTypes={}
-        the.variables.clear()
-        the.variableTypes.clear()
-        the.variableValues.clear()
-        angle.in_args=False
-        angle.in_condition=False
-        angle.in_hash=False
-        angle.in_list=False
-        global base_test
-        base_test=self
-
-        if not angle.use_tree:
-            power_parser.do_interpret()
-            # self.parser.do_interpret()
 
     @classmethod
     def setUpClass(cls):

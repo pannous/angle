@@ -20,9 +20,11 @@ in_condition=False
 in_args = False
 in_hash=False
 in_list=False
+in_params=False
 
 interpret=True #False
 did_interpret = False
+
 javascript = ''
 context = ''
 variables = {}
@@ -67,7 +69,6 @@ no_rollback_depth = -1
 rollback_depths = []
 max_depth = 160  # world this method here to resolve the string
 negated=False
-in_params=0
 depth=0
 current_node=None
 current_value=None

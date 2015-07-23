@@ -9,6 +9,7 @@ class AlgebraTest(ParserBaseTest):
     def setUp(self):
         self.parser.do_interpret()
         angle.use_tree=False
+        super(AlgebraTest, self).setUp()
 
     def test_algebra1(self):
         assert_result_is('two minus 1', 1)
