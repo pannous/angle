@@ -1194,7 +1194,7 @@ def load_module_methods():
 
     the.method_names = [meth for meth in the.method_names if method_allowed(meth)]
             # if method_allowed(method):
-            #     the.token_map[method] = english_parser.method_call
+            # the.token_map[method] = english_parser.method_call
             # try:
             #     the.methods[method]=getattr(ex,method).im_func #wow, as function!
             # except:
