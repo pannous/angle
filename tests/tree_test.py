@@ -62,7 +62,7 @@ class TreeTest(ParserBaseTest):
     def test_algebra(self):
         init('2*(3+10)')
         ok = self.parser.algebra()
-        print((('Parsed input as ' + ok) + '!'))
+        print('Parsed input as %s !'%ok)
         assert_equals(ok, 26)
         if angle.use_tree==False:
             skip()
