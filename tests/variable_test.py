@@ -4,6 +4,8 @@ from power_parser import WrongType, ImmutableVaribale
 
 
 class VariableTest(ParserBaseTest):
+
+
     def setUp(self):
         angle.use_tree=False
         the.variables.clear()
@@ -11,7 +13,9 @@ class VariableTest(ParserBaseTest):
         the.variableValues.clear()
         # super(ParserBaseTest).setUp()
 
-    def dont_test_a_setter_article_vs_variable(self):
+    def test_a_setter_article_vs_variable(self):
+        skip()
+        # dont_
         parse('a=green')
         assert_equals(variables['a'], 'green')
         parse('a dog=green')
@@ -57,6 +61,8 @@ class VariableTest(ParserBaseTest):
         assert_has_error('string i=3', WrongType)
         assert_has_error("int i='hi'", WrongType)
         assert_has_error("integer i='hi'", WrongType)
+
+    def test_variable_type_safety1(self):
         assert_has_error("an integer i;i='hi'", WrongType)
         assert_has_error("typed i='hi';i=3", WrongType)
 

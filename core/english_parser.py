@@ -1572,6 +1572,7 @@ def declaration():
         var.type = type
     var.final = mod in const_words
     var.modifier = mod
+    the.variableTypes[var.name]=var.type
     return var
 
 
@@ -1682,13 +1683,17 @@ def variable(a=None, ctx=kast.Load()):
             raise raise_not_matching("Unknown variable " + name)
     # typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
-    if isinstance(ctx, kast.Store):
-        if name in the.variableValues:
-            oldVal = the.variableValues[name]  # default or overwrite -> WARN? return OLD?
-        else:
-            oldVal = None
-        the.result = Variable(name=name, type=typ or None, scope=current_node(), module=current_context(), value=oldVal,
-                              ctx=ctx)
+    if isinstance(ctx, kast.Store): #  why not return existing variable?
+        if name in the.variables:
+            return the.variables[name]
+        # if name in the.variableTypes:
+        #     typ=typ or the.variableTypes[name]
+        oldVal = None
+        # if name in the.variableValues:
+        #     oldVal = the.variableValues[name]  # default or overwrite -> WARN? return OLD?
+        # else:
+        #oldVal = None
+        the.result = Variable(name=name, type=typ or None, scope=None, module=current_context(), value=oldVal,ctx=ctx)
         the.variables[name] = the.result
         return the.result
     raise Exception("Unknown variable context " + ctx)

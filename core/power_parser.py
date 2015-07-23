@@ -1144,7 +1144,7 @@ def maybe_indent():
 
 def method_allowed(meth):
     if len(meth)<2: return False
-    if meth in ["evaluate","eval","int","True","False","true","false","the","Invert"]:return False
+    if meth in ["evaluate","eval","int","True","False","true","false","the","Invert","char"]:return False
     if meth in english_tokens.keywords: return False
     return True
 

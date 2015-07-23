@@ -9,9 +9,9 @@ class NumberTest(ParserBaseTest):
 
     def test_type1(self):
         print(parse('class of 1'))
-        assert_equals(self.result, int)
+        assert_equals(self.result(), int)
         parse('class of 3.3')
-        assert(self.result.equals(float))
+        assert(the.result==float)
 
     def test_type2(self):
         assert('3.2 is a Numeric')
@@ -46,7 +46,3 @@ class NumberTest(ParserBaseTest):
         x = self.parser.real()
         parse('20/5.0')
         assert_equals(result(), 4)
-
-    def current(self):
-        test_type1()
-        test_type1()
