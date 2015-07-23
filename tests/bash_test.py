@@ -10,7 +10,9 @@ class BashTest(ParserBaseTest):
         parse("bash 'ls -al' | column 1| row 2")
 
     def test_ls(self):
-        parse("ls | row 2")
+        f=parse("ls | row 4")
+        f=parse("ls | item 4")
+        assert_equal(f, 'algebra_test.py')
 
     # def test_pipe2(self):
     #     parse("def column n:n;bash 'ls -al' | column 1| row 2")

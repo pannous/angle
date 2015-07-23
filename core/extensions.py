@@ -255,7 +255,7 @@ class Class:
 @extension
 class xlist(list):
     def row(self,n):
-        return self[n-1]
+        return self[int(n)-1]
 
     def column(self,n):
         if isinstance(self[0],str):
@@ -351,17 +351,17 @@ class xlist(list):
     def fix_int(self, i):
         if str(i) == "middle": i = self.count() / 2
         if isinstance(i, Numeric): return i - 1
-        i = str(i).replace_numerals.to_i
+        i = xstr(i).parse_integer()
         return i - 1
 
     def character(self, nr):
         return self.item(nr)
 
     def item(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!
-        return self[self.fix_int(nr)]
+        return self[xlist(self).fix_int(nr)]
 
     def word(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!):
-        return self[self.fix_int(nr)]
+        return self[xlist(self).fix_int(nr)]
 
     def invert(self):
         self.reverse()
