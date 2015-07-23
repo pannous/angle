@@ -714,10 +714,10 @@ def post_operations(context):  # see quick_expression !!
         return liste(check=False,first=context)
     if the.current_word in operators:
         return algebra(context)
-    if the.current_word in operators + special_chars + ["element", "item"]:
-        return False
     if the.current_word == '[':
         return evaluate_index(context)
+    if the.current_word in operators + special_chars + ["element", "item"]:
+        return False
     if context and the.current_word == 'to': return ranger(context)
     if context and the.current_word == 'if': return action_if(context)
         # raise_not_matching("quick_expression too simplistic")

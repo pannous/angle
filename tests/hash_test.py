@@ -36,8 +36,10 @@ class HashTest(ParserBaseTest):
         # skip('test_immediate_hash NO, because of blocks!')
         assert_equals(parse('a:{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })
 
-    def test_immediate_hash3(self):
-        x=parse('x=a:{b:"b",c:"c"}')
+    def test_hash_index(self):
+        x={'a': {'b': 'b', 'c': 'c'}}
+        # x=parse('x=a:{b:"b",c:"c"}')
+        the.variables['x']=x
         assert_equals(x, {'a': {'b': 'b', 'c': 'c'}})
         assert_equals(parse("x['a']"),{'b': 'b', 'c': 'c'})
         assert_equals(parse("x['a']['b']"),'b')
