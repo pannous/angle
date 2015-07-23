@@ -662,6 +662,8 @@ def quick_expression():  # bad idea!
         return immediate_hash()
     if the.current_word == '{' and (contains("=>") or contains(":")):
         return hash_map()
+    if the.current_word in operators + special_chars + ["element", "item"]:
+        return False # todo: --x
     result = False
 
     if look_ahead('='):

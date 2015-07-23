@@ -53,7 +53,7 @@ def increase(x):
 def grep(xs, x):
     xs.select(lambda y: str(y).match(x))
 
-def ls(path):
+def ls(path="."):
     return os.listdir(path)
 
 def length(self):
