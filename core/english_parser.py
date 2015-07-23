@@ -1167,6 +1167,8 @@ def true_method(obj=None):
         longName = name + " " + obj
         if longName in the.method_names:
             name = longName
+        if obj in the.variables:
+            obj=the.variables[obj]
             # if the.current_word.endswith("ed"):
             # sorted files -> sort files ?
     return xmodule, obj, name  # .to_s
@@ -1211,7 +1213,9 @@ def method_call(obj=None):
             return args
 
         args = star(call_args)
-        if not args: args = obj;obj = None
+        if not args:
+            args = do_evaluate(obj)
+            obj = None
     else:
         more = maybe_token(',')
         if more: obj = [obj] + liste(False)
@@ -1493,6 +1497,10 @@ def assure_same_type(var, type):
         oldType = var.type
     else:
         oldType = None
+
+    if isinstance(type,ast.AST):
+        warn("TYPE AST")
+        return
     # try:
     if oldType and type and not issubclass(oldType,type):  # FAIL:::type <= oldType:
         raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(type))
@@ -3365,7 +3373,8 @@ def repeat_n_times():
     adjust_interpret()
     if interpreting():
         xint(n).times_do(lambda: do_execute_block(b))
-    return b
+    # else: return ast.For(
+    return the.result
     # if angel.use_tree: parent_node()
 
 

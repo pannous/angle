@@ -64,7 +64,7 @@ def say(x):
     exec ("say '#{x}'")  #mac only!
 
 
-def beep():
+def beep(bug=True):
     print("\aBEEP ")
     import angle
     if not angle.testing:

@@ -1,4 +1,5 @@
 import ast
+import emitters.kast_emitter
 from kast import kast
 from the import *
 import sys #
@@ -124,9 +125,10 @@ class FunctionCall(ast.Assign):
         # AST CONTENT:
         if isinstance(func,str): func=kast.name(func)
         if not isinstance(func,kast.Name): raise Exception("NO NAME %s"%func)
-        arguments=[] #todo!!
         self.targets=[ast.Name(id="__result__",ctx=ast.Store())]
-        self.value=kast.call(func,arguments)# ast.Call(func=name,
+        if not isinstance(self.arguments,list):self.arguments=[self.arguments]
+        self.arguments=map(emitters.kast_emitter.wrap_value,self.arguments)
+        self.value=kast.call(func,self.arguments)# ast.Call(func=name,
 
     # def invoke(self):
     #     do_send

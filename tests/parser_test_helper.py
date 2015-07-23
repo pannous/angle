@@ -315,7 +315,7 @@ class ParserBaseTest(unittest.TestCase):
             ok = self.parser.condition()
             if emit:
                 ok = parser.emit(None, ok),
-            if ok==False:
+            if ok==False or ok=='False':
                 assert False, 'NOT PASSING: ' + str( msg)
         print 'TEST PASSED!  ' + str( msg) + ' \t VALUE '+str(ok)
 
