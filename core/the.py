@@ -8,6 +8,7 @@ global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
 global in_condition,in_pipe,in_args,extensions,line_number
 _verbose =  True # False angel.verbose() and not angel.raking()  # false
+_debug = False
 testing = False
 very_verbose = _verbose
 current_expression=None
@@ -48,7 +49,6 @@ original_string = ""  # for string_pointer ONLY!!
 string = ""
 line_number = 0
 last_pattern = None
-emit=False
 moduleNames=[]
 moduleClasses={} # reuse module->Classes  class->modules !
 moduleMethods={}
@@ -76,7 +76,6 @@ parser=globals()
 context=None
 def is_number(s):            #isint isnum
     return isinstance(s,int) or isinstance(s,float) or isinstance(s,str) and s.isdigit() # is number isnumeric
-debug=False # True
 
 svg = []
 

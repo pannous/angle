@@ -11,6 +11,7 @@ import stem.util.system
 import emitters.kast_emitter
 # import interpretation
 import inspect
+import emitters.pyc_emitter
 from english_tokens import *
 from kast import kast
 from power_parser import *
@@ -58,7 +59,7 @@ class Starttokens(object):
         decorator_self = self
         for t in self.starttokens:
             if t in the.token_map:
-                verbose("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
+                debug("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
             the.token_map[t] = original_func
         return original_func
 
@@ -1434,8 +1435,8 @@ def do_execute_block(b, args={}):
     if callable(b): return do_send(None, b, args)
     if isinstance(b, FunctionCall): return do_send(b.object, b.name, args or b.arguments)
     args = prepare_named_args(args)
-    if isinstance(b, kast.AST): return eval_ast(b, args)
-    if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
+    if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
+    if isinstance(b, list) and isinstance(b[0], kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -2380,91 +2381,6 @@ def do_evaluate_property(attr, node):
     except:
         verbose("do_send(node,attr) failed")
 
-class Reflector(object):
-    def __getitem__(self, name):
-        if name=="__tracebackhide__":
-            return False # for py.test
-        print("Reflector __getitem__ %s" % str(name))
-        if name in the.params:
-            the.result=do_evaluate(the.params[name])
-        elif name in the.variables:
-            the.result=do_evaluate(the.variables[name].value)
-        elif name in the.methods:
-            return the.methods[name]
-        else: raise Exception("UNKNOWN ITEM %s" % name)
-        return the.result
-
-    def __setitem__(self, key, value):
-        print("Reflector __setitem__ %s %s" % (key, value))
-        if key in the.variables:
-            the.variables[key].value = value
-        else:
-            the.variables[key] = Variable(name=key, value=value)
-        the.variableValues[key] = value
-        the.result = value
-
-
-class PrepareTreeVisitor(ast.NodeTransformer):
-        # emitters.kast_emitter.wrap_value(val)
-    def visit_list(self, x):
-        return kast.List(x,ast.Load())
-        # return kast.List(map(wrap_value,val),ast.Load())
-
-    def visit_float(self, x):
-        return ast.Num(x)
-    def visit_str(self, x):
-        return ast.Str(x)
-    def visit_int(self, x):
-        return ast.Num(x)
-    def visit_Variable(self, x):
-        return ast.Name(x.id,ast.Load())
-        # x.ctx=ast.Load()
-        # return x
-        # def generic_visit(self, node):
-
-
-def eval_ast(my_ast, args={}):
-    import codegen
-    import ast
-
-    try:  # todo args =-> SETTERS!
-        # context_variables=variableValues.copy()+globals()+locals()
-        the.params = variableValues.copy()
-        the.params.update(args)
-        # context_variables.update(globals())
-        # context_variables.update(locals())
-
-        variable_inits = []
-        # for k in args:
-        #     s = kast.setter(k, do_evaluate(args[k]))
-        #     variable_inits.append(s)
-        if not type(my_ast) == ast.Module:
-            my_ast = flatten(my_ast)
-            my_ast = _ast.Module(body=variable_inits + my_ast)
-        # elif args:my_ast.body=variable_inits+my_ast.body
-        PrepareTreeVisitor().visit(my_ast)
-        print(my_ast.body)
-        source = codegen.to_source(my_ast)
-        print(source)  # => CODE
-        print ast.dump(my_ast)
-        my_ast = ast.fix_missing_locations(my_ast)
-        code = compile(my_ast, 'file', 'exec')
-        # code=compile(my_ast, 'file', 'exec')
-        # eval can't handle arbitrary python code (eval("import math") ), and
-        # exec() doesn't return the results.
-        ret = eval(code, the.params, Reflector())
-        ret = ret or the.result
-        print("GOT RESULT %s" % ret)
-        # err= sys.stdout.getvalue()
-        # if err: raise err
-        # z=exec (code)
-        the.params.clear()
-        return ret
-    except Exception as e:
-        print(my_ast)
-        ast.dump(my_ast)
-        raise e, None, sys.exc_info()[2]
-
 
 # resolve
 def do_evaluate(x,_type=None):
@@ -2496,8 +2412,8 @@ def do_evaluate(x,_type=None):
         return x
     # if isinstance(x, extensions.Method): return x.call  #Whoot
     if not interpreting(): return x
-    if isinstance(x, kast.AST): return eval_ast([x])
-    if isinstance(x, list) and isinstance(x[0], kast.AST): return eval_ast(x)
+    if isinstance(x, kast.AST): return emitters.pyc_emitter.eval_ast([x]) # shouldn't happen here?
+    if isinstance(x, list) and isinstance(x[0], kast.AST): return emitters.pyc_emitter.eval_ast(x)
     # if x == True or x == False: return x
     return x  # DEFAULT!
     # except (TypeError, SyntaxError)as e:
@@ -2851,7 +2767,7 @@ def simpleProperty():
 def selectable():
     must_contain(['that', 'whose', 'which'])
     maybe_tokens(['every', 'all', 'those'])
-    xs = resolve(known_variable()) or endNoun()
+    xs = do_evaluate(known_variable()) or endNoun()
     s = maybe(selector)  # rhs=xs, lhs implicit! (BAD!)
     if interpreting(): xs = filter(xs, s)  # except xs
     return xs
@@ -3414,6 +3330,7 @@ def start_shell():
     import readline
     angle._verbose = False
     the._verbose = False
+    angle._debug=os.environ['ANGLE_HOME']
     from os.path import expanduser
     home = expanduser("~") #WTF
     readline.read_history_file(home+'/.english_history')
@@ -3482,3 +3399,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

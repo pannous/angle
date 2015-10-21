@@ -249,6 +249,9 @@ def verbose(info):
     if angle._verbose:
         print(info)
 
+def debug(info):
+    if angle._debug:
+        print(info)
 
 def info(info):
     if the._verbose:
@@ -750,7 +753,7 @@ def maybe(expression):
     try:
         result = expression()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         adjust_rollback()
-        if angle.debug and (callable(result)):
+        if angle._debug and (callable(result)):
             raise Exception("returned CALLABLE " + str(result))
         if result or result == 0:
             verbose("GOT result from " + str(expression) + " : " + str(result))
@@ -870,20 +873,21 @@ class IgnoreException(Exception):
     pass
 
 
-def parse(s, the_file=None):
+def parse(s, target_file=None):
     global last_result, result
     if not s: return
+    source_file='file' # python speak for in-line code
     # string
     verbose("PARSING")
     try:
         import english_parser
-
         if isinstance(s, file):
-            the_file = s
+            source_file = str(s)
+            target_file = source_file+".pyc"
             s = s.readlines()
         if not isinstance(s, str) and not isinstance(s, list):
             the.result = s
-            return english_parser.interpretation()  # # result
+            return english_parser.interpretation()  # result, hack
         allow_rollback()
         init(s)
         the.result = english_parser.rooty()
@@ -892,11 +896,15 @@ def parse(s, the_file=None):
         if the.result in ['True', 'true']: the.result = True
         if the.result in ['False', 'false']: the.result = False
         import ast
-        if isinstance(the.result,ast.Num): the.result =  the.result.n
-        if isinstance(the.result,ast.Str): the.result =  the.result.s
+        if angle.use_tree:
+            import emitters
+            emitters.pyc_emitter.eval_ast(the.result,{},source_file,target_file)
+        else:
+            if isinstance(the.result,ast.Num): the.result =  the.result.n
+            if isinstance(the.result,ast.Str): the.result =  the.result.s
         the.last_result = the.result
     except Exception as e:
-        error(the_file)
+        error(target_file)
         print_pointer(True)
         raise e, None, sys.exc_info()[2]
     # except NotMatching as e:

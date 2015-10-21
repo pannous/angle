@@ -74,8 +74,15 @@ def puts(x):
 
 
 def assert_result_emitted(a, b, bla=None):
-    pass
-    # emit(
+    angle.use_tree=True
+    x=parse(a)
+    if isinstance(x,ast.Module):x=x.body
+    y=b
+    if not isinstance(y,list):y=[y]
+    if not isinstance(y[-1],ast.Expr):
+         y[-1]=kast.Expr(y[-1])
+    # assert_equals(x,y,bla)
+    assert_equals(y,x,bla)
 
 
 def assert_result_is(a, b, bla=None):
@@ -310,11 +317,7 @@ class ParserBaseTest(unittest.TestCase):
         if isinstance(x,str):
             print(('Testing ' + x))
             init(x)
-            if emit:
-                self.parser.dont_interpret()
             ok = self.parser.condition()
-            if emit:
-                ok = parser.emit(None, ok),
             if ok==False or ok=='False':
                 assert False, 'NOT PASSING: ' + str( msg)
         print 'TEST PASSED!  ' + str( msg) + ' \t VALUE '+str(ok)

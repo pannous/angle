@@ -94,7 +94,7 @@ INSTALL
 
 `./install.sh`
 
-ALPHA, DON'T USE YET!
+ALPHA 𐤀, DON'T USE YET!
 
 Start the shell : `./bin/angle` 
 
