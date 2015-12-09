@@ -124,5 +124,5 @@ A compiler is so much nicer (==faster) than an interpreter.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
 
-For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/natural-english/tree/master/DOSSIER.md)
+For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/english-script/tree/master/DOSSIER.md)
 
