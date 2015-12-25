@@ -9,9 +9,10 @@ from parser_test_helper import variables
 class ConditionTest(ParserBaseTest):
 
     def setUp(self):
-        self.parser.do_interpret()
+        # self.parser=parser(self)
         angle.use_tree=False
         super(ConditionTest, self).setUp()
+        self.parser.do_interpret()
 
 
     def test_eq(self):

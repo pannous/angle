@@ -115,3 +115,6 @@ verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply',
                'go', 'know', 'take', 'see', 'come', 'think', 'look', 'give', 'use', 'find', 'tell', 'ask', 'work', 'seem', 'feel',
                'leave', 'call', 'integrate', 'print', 'eat', 'test','say']
 
+
+emit=False
+

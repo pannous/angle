@@ -3365,6 +3365,7 @@ def main():
     ARGV = sys.argv
     # ARGF=sys.argv
     if len(ARGV) == 1:
+        print('Angle english programming language v1.2')
         print('usage:')
         print("\t./angle 6 plus six")
         print("\t./angle samples/test.e")

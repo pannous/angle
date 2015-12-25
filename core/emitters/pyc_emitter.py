@@ -108,7 +108,7 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         code = compile(my_ast, source_file, 'exec')
         # TypeError: required field "lineno" missing from expr NONO,
         # this as a documentation bug,
-        # this arrow can mean >>anything<< except missing line number
+        # this error can mean >>anything<< except missing line number!!! :) :( :( :(
 
         # code=compile(my_ast, 'file', 'exec')
         # eval can't handle arbitrary python code (eval("import math") ), and

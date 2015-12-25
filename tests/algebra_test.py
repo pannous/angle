@@ -7,6 +7,7 @@ from parser_test_helper import *
 class AlgebraTest(ParserBaseTest):
 
     def setUp(self):
+        self.parser=parser(self) #HYH>?
         self.parser.do_interpret()
         angle.use_tree=False
         super(AlgebraTest, self).setUp()

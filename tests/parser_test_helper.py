@@ -215,6 +215,7 @@ class ParserBaseTest(unittest.TestCase):
 
     def setUp(self):
         global base_test
+        self.parser=parser(self)
         base_test=self
         clear_test()
 
@@ -232,6 +233,8 @@ class ParserBaseTest(unittest.TestCase):
         # self.p=Parser()#  fresh  instance!
 
     parser=property(lambda :p,0)
+    def parser(self):
+        return p
 
     @classmethod
     def setUpClass(cls):
@@ -242,18 +245,18 @@ class ParserBaseTest(unittest.TestCase):
     # def test_globals(self):
     #     self.assertIsInstance(p,Parser)
 
-    def __getattr__(self, name):
-        if name=='parser':
-            return p
-        # ruby method_missing !!!
-        if name in dir(parser):
-            method = getattr(parser, name)  # NOT __getattribute__(name)!!!!
-            if callable(method):
-                return method()
-            else:
-                return parser.__getattribute__(name)
-        else:
-            raise Exception( "NO SUCH ATTRIBUTE " + name)
+    # def __getattr__(self, name):
+    #     if name=='parser':
+    #         return p
+    #     # ruby method_missing !!!
+    #     if name in dir(parser):
+    #         method = getattr(parser, name)  # NOT __getattribute__(name)!!!!
+    #         if callable(method):
+    #             return method()
+    #         else:
+    #             return parser.__getattribute__(name)
+    #     else:
+    #         raise Exception( "NO SUCH ATTRIBUTE " + name)
 
     # return lambda value: self.all().filter(field, value)
 
