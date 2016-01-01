@@ -733,6 +733,8 @@ def block(multiple=False):  # type):
 
     the.last_result = the.result
     if interpreting(): return statements[-1]
+    if angle.use_tree:
+        the.result=statements #
     # if angle.debug:print_pointer(True)
     return statements  # content
     # if angel.use_tree:
@@ -755,7 +757,7 @@ def maybe(expression):
         adjust_rollback()
         if angle._debug and (callable(result)):
             raise Exception("returned CALLABLE " + str(result))
-        if result or result == 0:
+        if result and result!='False' or result == 0:
             verbose("GOT result from " + str(expression) + " : " + str(result))
         else:
             verbose("No result from " + str(expression))

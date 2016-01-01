@@ -690,7 +690,7 @@ def quick_expression():  # bad idea!
     if not result: return False
     while True:
         z=post_operations(result)
-        if not z or z==result: break
+        if not z or z==result: break #or z=='False'
         result=z
     return result
 
@@ -715,7 +715,7 @@ def post_operations(context):  # see quick_expression !!
     if the.current_word == '|': return piped_actions(context or the.last_result)
     if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
         return liste(check=False,first=context)
-    if the.current_word in operators:
+    if the.current_word in operators: #not quantifier
         return algebra(context)
     if the.current_word == '[':
         return evaluate_index(context)
@@ -1345,15 +1345,18 @@ def action():  # NOT THE SAME AS EXPRESSION!?
     # maybe( verb )
     # if not interpreting():
     #     if not angle.use_tree: return (start, pointer())
+    # if the.result=='False': the.result=False #SURE??
     return the.result  # value or AST
 
 
 def action_or_expression(fallback=None):  # if a/e then a/b
-    return maybe(action) or expression(fallback)
+    ok= maybe(action)
+    if ok and ok!='False': return ok
+    return expression(fallback)
 
 
 def expression_or_block():  # action_or_block):
-    action_or_block()
+    return action_or_block()
 
 
 def action_or_block(started=False):  # expression_or_block
@@ -1621,7 +1624,7 @@ def setter(var=None):
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
     # end_expression via statement!
     the.token_map[var.name] = known_variable
-    if not interpreting(): return kast.Assign(kast.Name(var.name, kast.Store()), val)
+    if not interpreting(): return kast.Assign([kast.Name(var.name, kast.Store())], val)
     if interpreting() and val != 0: return val
     return var
     # 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
@@ -2131,7 +2134,7 @@ def condition():
     # a=endNode:(
     quantifier = maybe_tokens(quantifiers)  # vs selector()!
     filter = None
-    if quantifier: filter = maybe(element_in)  # all words in
+    if quantifier: filter = maybe(element_in) or maybe_tokens(["of","in"])  # all words in
     angle.in_condition = True
     lhs = action_or_expression(quantifier) #OK: algebra!
     if starts_with("then"): return lhs

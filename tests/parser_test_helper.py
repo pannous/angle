@@ -1,8 +1,10 @@
+#!/usr/bin/env python
 import compiler.ast
 import unittest
 import ast
 import sys
 import angle
+import emitters.pyc_emitter
 import kast
 # import kast.cast
 import english_parser
@@ -76,6 +78,11 @@ def puts(x):
 def assert_result_emitted(a, b, bla=None):
     angle.use_tree=True
     x=parse(a)
+    try:
+        res=emitters.pyc_emitter.run_ast(x)
+        return res
+    except Exception as e:
+        print("ERROR in eval ast: %s"%e)
     if isinstance(x,ast.Module):x=x.body
     y=b
     if not isinstance(y,list):y=[y]

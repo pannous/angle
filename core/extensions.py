@@ -1,31 +1,46 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
+
+from extension_functions import *
+
 import os
 import re
 import exceptions
 
-# def print(x # debug!):
-# print x
-#   print "\n"
-#   x
 # import builtins
 import __builtin__
 import shutil
 
-def flatten(l):
-    if isinstance(l, list) or isinstance(l, tuple):
-        for k in l:
-            if isinstance(k, list):
-                l.remove(k)
-                l.append(*k)
-    else:return [l]
-    # verbose("NOT flattenable: %s"%s)
-    return l
+def x(y):
+  if isinstance(y,list):  return xlist(y)
+  if isinstance(y,str):   return xstr(y)
+  if isinstance(y,dict):  return xdict(y)
+  if isinstance(y,float): return xfloat(y)
+  if isinstance(y,int):   return xint(y)
+  if isinstance(y,file):   return xfile(y)
+  if isinstance(y,xrange): return xlist(y)
+  if isinstance(y,range): return xlist(y)
+  # if isinstance(y,char):  return xchar(y)
+  # if isinstance(y,byte):  return xchar(y)
+  print("No extension for type %s"%type(y))
+  return y
+  
+import platform
+if platform.python_version_tuple()[0]=='3':
+  class xrange(range):
+    pass
+# else: https://stackoverflow.com/questions/22098099/reason-why-xrange-is-not-inheritable-in-python
+#   class range(xrange):
+#     pass
 
+def extension(clazz):
+  try:
+    import angle
+    for base in clazz.__bases__:
+        angle.extensionMap[base]=clazz
+  except:pass
+  return clazz
 
-def square(x):
-    if isinstance(x,list): return map(square,x)
-    return x*x
 
 # class Extension:
 #     def __init__(self, base,b=None,c=None):
@@ -38,40 +53,6 @@ def square(x):
 #         print(angle.extensionMap)
 
 
-def puts(x):
-    print(x)
-    return x
-
-def increase(x):
-    import nodes
-    # if isinstance(x, dict)
-    if isinstance(x, nodes.Variable):
-        x.value=x.value+1
-        return x.value
-    return x+1
-
-def grep(xs, x):
-    xs.select(lambda y: str(y).match(x))
-
-def ls(path="."):
-    return os.listdir(path)
-
-def length(self):
-    return len(self)
-
-def say(x):
-    print(x)
-    exec ("say '#{x}'")  #mac only!
-
-
-def beep(bug=True):
-    print("\aBEEP ")
-    import angle
-    if not angle.testing:
-        import os
-        os.system("say 'beep'")
-    return 'beeped'
-
 
 class Class:
     pass
@@ -83,14 +64,8 @@ class Class:
 #     pass
 
 
-def extension(clazz):
-    import angle
-    for base in clazz.__bases__:
-        angle.extensionMap[base]=clazz
-    return clazz
-
 @extension
-class File(file):
+class xfile(file):
     # import fileutils
 
     # str(def)(self):
@@ -141,7 +116,9 @@ class File(file):
     def ls(mypath):
         return os.listdir(mypath)
 
-
+@extension
+class File(xfile):
+    pass
 
 @extension
 class Directory(file):  #
@@ -193,6 +170,8 @@ class Directory(file):  #
 class Dir(Directory):
     pass
 
+class xdir(Directory):
+    pass
 
 # class Number < Numeric
 # 
@@ -251,9 +230,23 @@ class Class:
 # WOW YAY WORKS!!!!!
 # ONLY VIA EXPLICIT CONSTRUCTOR!
 # NOOOO!! BAAAD! isinstance(my_xlist,list) FALSE !!
-
 @extension
 class xlist(list):
+    def select(xs,func):
+      # return [x for x in xs if func(x)]
+      return filter(func,xs)
+      
+    def last(xs):
+      return xs[-1]
+      
+    def first(xs):
+      return xs[0]
+      
+    def fold(self,x,fun):
+      if not callable(fun): 
+        fun,x=x,fun
+      return reduce(fun, self, x)
+      
     def row(self,n):
         return self[int(n)-1]
 
@@ -404,15 +397,19 @@ class FalseClass:
     def c(self):
         return self
 
+
 @extension
 class xstr(str):
-
     # @staticmethod
     # def invert(self):
     #     r=reversed(self) #iterator!
     #     return "".join(r)
 
     def invert(self):
+        r=reversed(self) #iterator!
+        self="".join(r)
+        
+    def inverse(self):
         r=reversed(self) #iterator!
         return "".join(r)
 
@@ -932,7 +929,7 @@ class xfloat(float):
 # class Enumerator
 
 @extension #DANGER?
-class Object(object):
+class xobject(object):
     def value(self):
         return self
 
@@ -982,30 +979,8 @@ class Object(object):
 
 
 
-def match_path(p):
-    if(not isinstance(p,str)):return False
-    m = re.search(r'^(\/[\w\'\.]+)',p)
-    if not m: return False
-    return m
-
-
-def is_file(p, must_exist=True):
-    if(not isinstance(p,str)):return False
-    if re.search(r'^\d*\.\d+',p): return False
-    if re.match(r'^\d*\.\d+',str(p)): return False
-    m = re.search(r'^(\/[\w\'\.]+)',p)
-    m = m or re.search(r'^([\w\/\.]*\.\w+)',p)
-    if not m: return False
-    return must_exist and m and os.path.isfile(m) or m
-
-
-def is_dir(x, must_exist=True):
-    #(the.string+" ").match(r'^(\')?([^\/\\0]+(\')?)+ ')
-    m = match_path(x)
-    return must_exist and m and os.path.isdirectory(m[0]) or m
-
-class Encoding:
-    pass
+# class Encoding:
+#     pass
 
 
 # @extension
@@ -1021,4 +996,4 @@ import math as Math
     #         if name==attr: return obj
     #     return False
 
-
+print("extensions loaded")

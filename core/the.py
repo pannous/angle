@@ -1,12 +1,13 @@
 #GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
+import extensions
 
 extensionMap ={} # str->xstr
-import extensions
+# import extensions
 
 global string, last_node, current_value, nodes, depth,rollback_depths,OK
 global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
-global in_condition,in_pipe,in_args,extensions,line_number
+global in_condition,in_pipe,in_args,line_number
 _verbose =  True # False angel.verbose() and not angel.raking()  # false
 _debug = False
 testing = False

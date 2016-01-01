@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # def _ß(): #NOPE :(
 #     print('h')

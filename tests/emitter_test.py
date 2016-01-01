@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import angle
 angle.use_tree = True
 angle._verbose = False
@@ -44,6 +45,22 @@ class EmitterTest(ParserBaseTest):
         assert_result_emitted("printf 'hello world'", 'hello world')
         assert_result_emitted("printf 'hello world'", 'hello world')
 
+
+    def test_setter(self):
+        assert_result_emitted('i=7',7)
+    # Module(body=[Assign(targets=[Name(id='x', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=1, lineno=1, col_offset=2), lineno=1, col_offset=0)])
+# Module([Assign([Name('x', Store())], Num(1))])
+
+    def test_setter2(self):
+        angle.use_tree = True
+        self.parser.dont_interpret()
+        parse("x='ho';puts x")
+        # interpretation = (self.parser.interpretation() or Interpretation())
+        # self.parser.show_tree()
+        # emit(interpretation, {'run': True, }, NativeCEmitter())
+
+
+
     def test_function_call(self):
         assert_result_emitted('i=7;i minus one', 6)
 
@@ -56,11 +73,3 @@ class EmitterTest(ParserBaseTest):
 
     def test_array(self):
         assert_result_emitted('xs=[1,4,7];invert xs', [7, 4, 1])
-
-    def test_setter(self):
-        angle.use_tree = True
-        self.parser.dont_interpret()
-        parse("x='ho';puts x")
-        # interpretation = (self.parser.interpretation() or Interpretation())
-        # self.parser.show_tree()
-        # emit(interpretation, {'run': True, }, NativeCEmitter())

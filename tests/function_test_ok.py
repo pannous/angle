@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from parser_test_helper import *
 import angle
 angle.use_tree = False

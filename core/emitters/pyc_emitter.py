@@ -62,6 +62,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         # return kast.List(map(wrap_value,val),ast.Load())
     def visit_float(self, x):
         return ast.Num(x)
+    def visit_Name(self, x):
+        return x # and done!
     def visit_str(self, x):
         return ast.Str(x)
     def visit_int(self, x):
@@ -72,6 +74,22 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         # return x
         # def generic_visit(self, node):
 
+def print_ast(my_ast):
+    x=ast.dump(my_ast, annotate_fields=True, include_attributes=True)
+    print(x)
+    x=ast.dump(my_ast, annotate_fields=False, include_attributes=False)
+    print(x)
+
+def run_ast(my_ast,source_file="(String)"):
+        code = compile(my_ast, source_file, 'exec')
+        # TypeError: required field "lineno" missing from expr NONO,
+        # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
+        # eval can't handle arbitrary python code (eval("import math") ), and
+        # exec() doesn't return the results.
+        ret = eval(code, the.params, Reflector())
+        ret = ret or the.result
+        print("GOT RESULT %s" % ret)
+        return ret
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
 # Module([Expr(Num(1))])
@@ -87,18 +105,13 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         # context_variables.update(globals())
         # context_variables.update(locals())
 
-        variable_inits = []
-        # for k in args:
-        #     s = kast.setter(k, do_evaluate(args[k]))
-        #     variable_inits.append(s)
-        # elif args:my_ast.body=variable_inits+my_ast.body
-
         # gotta wrap: 1 => Module(body=[Expr(value=[Num(n=1)])])
         if not type(my_ast) == ast.Module:
             # my_ast = flatten(my_ast)
-            if not isinstance(my_ast,ast.Expr):
-                my_ast = [ast.Expr(my_ast)]
-            my_ast = ast.Module(body=variable_inits + my_ast)
+            if not isinstance(my_ast,list):
+                if not isinstance(my_ast,ast.Expr) and not isinstance(my_ast,ast.stmt) :
+                    my_ast = [ast.Expr(my_ast)]
+            my_ast = ast.Module(body=my_ast)
         PrepareTreeVisitor().visit(my_ast)
         print(my_ast.body)
         source = codegen.to_source(my_ast)
@@ -130,5 +143,5 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         return ret
     except Exception as e:
         print(my_ast)
-        # ast.dump(my_ast)
+        print_ast(my_ast)
         raise e, None, sys.exc_info()[2]

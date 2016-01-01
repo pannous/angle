@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import angle
 angle.use_tree = True
 # angle.use_tree = False
