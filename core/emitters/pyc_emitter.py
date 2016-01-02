@@ -50,9 +50,11 @@ class PrepareTreeVisitor(ast.NodeTransformer):
                 setattr(node, field, old_value)
             else:
                 new_node = self.visit(old_value)
-                if new_node is None:
-                    delattr(node, field)
-                else:
+                # if new_node is None: new_node is Delete  no, keep starargs=None etc!
+                # if new_node is Delete
+                #     delattr(node, field)
+                # else:
+                if new_node is not None:
                     setattr(node, field, new_node)
         return node
 
@@ -70,6 +72,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         return ast.Num(x)
     def visit_Variable(self, x):
         return ast.Name(x.id,ast.Load())
+
+    def visit_Argument(self, x):
+        return x.value
         # x.ctx=ast.Load()
         # return x
         # def generic_visit(self, node):
@@ -143,5 +148,9 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         return ret
     except Exception as e:
         print(my_ast)
-        print_ast(my_ast)
-        raise e, None, sys.exc_info()[2]
+        info_ = sys.exc_info()[2]
+        try:
+            print_ast(my_ast)
+        except:
+            pass
+        raise e, None, info_

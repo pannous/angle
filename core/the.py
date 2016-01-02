@@ -93,6 +93,7 @@ methods = {
     'count': len,
     'beep': extensions.beep,
     'puts':extensions.puts,
+    'printf':extensions.puts, #todo
     'p':extensions.puts,
     'print':extensions.puts,
     'show':extensions.puts,
