@@ -4,6 +4,7 @@ import angle
 import english_parser
 import nodes
 import the
+
 class Reflector(object):
     def __getitem__(self, name):
         if name=="__tracebackhide__":
@@ -32,6 +33,7 @@ class Reflector(object):
 
 class PrepareTreeVisitor(ast.NodeTransformer):
     def generic_visit(self, node):
+        self.parent=node
         if not isinstance(node,ast.AST):
             return node
         for field, old_value in ast.iter_fields(node):
@@ -66,15 +68,23 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         return ast.Num(x)
     def visit_Name(self, x):
         return x # and done!
+    def visit_Str(self, x):
+        return x # against:
+    def visit_BinOp(self, node):
+        if not isinstance(self.parent,ast.Expr):
+            return ast.Expr(value=self.generic_visit(node)) #
+        else: return node
     def visit_str(self, x):
         return ast.Str(x)
     def visit_int(self, x):
         return ast.Num(x)
     def visit_Variable(self, x):
-        return ast.Name(x.id,ast.Load())
+        return ast.Name(x.name,ast.Load())
 
     def visit_Argument(self, x):
-        return x.value
+        if isinstance(x.value, nodes.Variable):
+            return self.visit_Variable(x)
+        return self.generic_visit(x.value)
         # x.ctx=ast.Load()
         # return x
         # def generic_visit(self, node):
@@ -152,5 +162,6 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         try:
             print_ast(my_ast)
         except:
+            print("CAN'T DUMP ast %s",my_ast)
             pass
         raise e, None, info_

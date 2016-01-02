@@ -1230,7 +1230,8 @@ def method_call(obj=None):
     if start_brace == '{': _('}')
     if not interpreting():
         if method_name == "puts" or method_name == "print":
-            return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
+            return kast.Print(dest=None, values=args, nl=True) # call symbolically!
+            # return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
         return FunctionCall(func=method, arguments=args, object=obj)
     the.result = do_send(obj or None, method, args)
     return the.result

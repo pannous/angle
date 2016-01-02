@@ -54,12 +54,10 @@ class EmitterTest(ParserBaseTest):
     def test_setter2(self):
         angle.use_tree = True
         self.parser.dont_interpret()
-        parse("x='ho';puts x")
+        assert_result_emitted("x='ho';puts x",'ho')
         # interpretation = (self.parser.interpretation() or Interpretation())
         # self.parser.show_tree()
         # emit(interpretation, {'run': True, }, NativeCEmitter())
-
-
 
     def test_function_call(self):
         assert_result_emitted('i=7;i minus one', 6)
