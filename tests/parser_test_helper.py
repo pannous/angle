@@ -23,8 +23,8 @@ functions = {}
 variables = {}
 variableValues = {}
 emit=False
-base_test=None
 global base_test
+base_test=None
 
 def contains(a,b):
     return a in b or b in a

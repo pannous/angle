@@ -62,8 +62,29 @@ class EmitterTest(ParserBaseTest):
     def test_function_call(self):
         assert_result_emitted('i=7;i minus one', 6)
 
+
+    def test_function_defs(self):
+        parse("def test{pass}")
+        parse("def test{pass};test")
+        parse("def test{puts 'yay'}")
+        parse("def test{puts 'yay'};test")
+
+    def test_function_def(self):
+        parse("def test{puts 'yay'}")
+        # parse("def test{puts 'yay'};test")
+        # Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], [])])
+        # Module(body=[FunctionDef(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Print(dest=None, values=[Str(s='yay', lineno=1, col_offset=17)], nl=True, lineno=1, col_offset=11)], decorator_list=[], lineno=1, col_offset=0)])
+
+
     def test_function(self):
+        parse("def test():puts 'yay'\ntest()")
         assert_result_emitted("def test{puts 'yay'};test", 'yay')
+# Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], []), Expr(Call(Name('test', Load()), [], [], None, None))])
+
+    # Module(body=[FunctionDef(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Print(dest=None, values=[Str(s='yay', lineno=1, col_offset=17)], nl=True, lineno=1, col_offset=11)], decorator_list=[], lineno=1, col_offset=0), Expr(value=Call(func=Name(id='test', ctx=Load(), lineno=2, col_offset=0), args=[], keywords=[], starargs=None, kwargs=None, lineno=2, col_offset=0), lineno=2, col_offset=0)])
+
+
+# Module(body=[Function(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Assign(targets=[Name(id='result', ctx=Store())], value=Print(dest=None, values=[Str(s='yay')], nl=True))], decorator_list=[]), Call(func=Name(id='test', ctx=Load()), args=[], keywords=[], starargs=None, kwargs=None)])
 
     def test_function2(self):
         parse_file('examples/factorial.e')

@@ -735,7 +735,8 @@ def post_operations(context):  # see quick_expression !!
 
 @Starttokens(["pass"])#, ";"
 def passing():
-    return tokens(["pass", ";"])
+    ok=tokens(["pass", ";"])
+    return ok if interpreting() else ast.Pass()
 
 
 def expression(fallback=None,resolve=True):
@@ -891,8 +892,8 @@ def method_definition():
     # # with args! only in tree mode!!
     b = action_or_block()  # define z as 7 allowed !!!
     if not isinstance(b,list):b=[b]
-    # if not isinstance(b[-1],(ast.AST)):
-    b[-1]=kast.setter("result",b[-1])
+    if not isinstance(b[-1],ast.Print):
+        b[-1]=kast.setter("result",b[-1])
     #     b[-1]=(ast.Expr(b[-1]))
     f.body = b
     f2.body = b #ürx

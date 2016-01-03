@@ -45,7 +45,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
                     if value is None:
                         continue
                     elif not isinstance(value, ast.AST):
-                        new_values.extend(value)
+                        # new_values.extend(value)
+                        new_values.append(value)
                         continue
                     new_values.append(value)
                 old_value[:] = new_values
@@ -68,19 +69,32 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         return ast.Num(x)
     def visit_Name(self, x):
         return x # and done!
-    def visit_Str(self, x):
-        return x # against:
+    # def visit_Print(self, x):
+    #     return ast.Expr(x)
     def visit_BinOp(self, node):
         if not isinstance(self.parent,ast.Expr):
             return ast.Expr(value=self.generic_visit(node)) #
         else: return node
+    def visit_Str(self, x):
+        return x # against:
     def visit_str(self, x):
+        if isinstance(self.parent,ast.Str):
+            return x
+        if isinstance(self.parent,ast.FunctionDef):
+            return x
         return ast.Str(x)
     def visit_int(self, x):
         return ast.Num(x)
+    def visit_Pass(self, x):
+        return ast.Expr(x)
     def visit_Variable(self, x):
         return ast.Name(x.name,ast.Load())
-
+    def visit_Function(self,x):
+        x.args=ast.arguments(args=[], vararg=None, kwarg=None, defaults=[])
+        x.decorator_list=x.decorators or [] # for now!!
+        # x.name=ast.Name(id=x.name)
+        return self.generic_visit(x)
+        # return x
     def visit_Argument(self, x):
         if isinstance(x.value, nodes.Variable):
             return self.visit_Variable(x)
@@ -88,6 +102,12 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         # x.ctx=ast.Load()
         # return x
         # def generic_visit(self, node):
+    # def visit_FunctionCall(self, node):
+    #     skip_assign=True
+    #     if skip_assign:
+    #         return node.value #skip_assign
+    #     else: return node
+
 
 def print_ast(my_ast):
     x=ast.dump(my_ast, annotate_fields=True, include_attributes=True)

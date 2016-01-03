@@ -33,7 +33,7 @@ class Quote(str,ast.Str):
     def value(self):
         return self.quoted()
 
-class Function:
+class Function(kast.FunctionDef):
     #attr_accessor :name, :arguments, :return_type, :scope, :module, :clazz, :object, :body
 
     def __init__(self,*margs, **args):
@@ -103,7 +103,9 @@ class Function:
 
 # NEEDS TO BE WRAPPED! Expr(Call(Name('beep', Load()), [], [], None, None))
 # class FunctionCall(ast.Expr):
-class FunctionCall(ast.Assign):
+# class AssignmentFunctionCall(ast.Assign):
+class FunctionCall(ast.Assign): # todo: bad name
+# class FunctionCall: # todo: bad name
     def __init__(self, func=None, arguments=None,object=None, **args):
         # super(FunctionCall, self).__init__(*margs, **args)
         # self.args = []
@@ -125,10 +127,14 @@ class FunctionCall(ast.Assign):
         # AST CONTENT:
         if isinstance(func,str): func=kast.name(func)
         if not isinstance(func,kast.Name): raise Exception("NO NAME %s"%func)
-        self.targets=[ast.Name(id="__result__",ctx=ast.Store())]
-        if not isinstance(self.arguments,list):self.arguments=[self.arguments]
+        self.targets=[kast.Name(id="__result__",ctx=ast.Store())]
+        if self.arguments==None:self.arguments=[]
+        elif not isinstance(self.arguments,list):self.arguments=[self.arguments]
         self.arguments=map(emitters.kast_emitter.wrap_value,self.arguments)
         self.value=kast.call(func,self.arguments)# ast.Call(func=name,
+
+    def __repr__(self):
+        return str(self.name)+" "+str(self.arguments) #  for more beautiful debugging
 
     # def invoke(self):
     #     do_send
