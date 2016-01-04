@@ -1,11 +1,16 @@
 import ast
 import sys
+
+import __builtin__
+
 import angle
 import english_parser
+from kast.kast import Print,setter
+from kast import kast
 import nodes
 import the
 
-class Reflector(object):
+class Reflector(object): # Implements list interface is
     def __getitem__(self, name):
         if name=="__tracebackhide__":
             return False # for py.test
@@ -16,7 +21,16 @@ class Reflector(object):
             the.result= english_parser.do_evaluate(the.variables[name].value)
         elif name in the.methods:
             return the.methods[name]
-        else: raise Exception("UNKNOWN ITEM %s" % name)
+        elif name in locals():
+            return locals()[name]
+        elif name in globals():
+            return globals()[name]
+        elif __builtin__.hasattr(__builtin__,name): # name in __builtin__:
+            return __builtin__.getattr(__builtin__,name)
+        else:
+            print("UNKNOWN ITEM %s" % name)
+            return name# kast.name(name)
+            # raise Exception("UNKNOWN ITEM %s" % name)
         return the.result
 
     def __setitem__(self, key, value):
@@ -102,18 +116,24 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         # x.ctx=ast.Load()
         # return x
         # def generic_visit(self, node):
-    # def visit_FunctionCall(self, node):
-    #     skip_assign=True
-    #     if skip_assign:
-    #         return node.value #skip_assign
-    #     else: return node
+    def visit_FunctionCall(self, node):
+        skip_assign=True
+        if skip_assign:
+            return node.value #skip_assign
+        else: return node
 
 
 def print_ast(my_ast):
-    x=ast.dump(my_ast, annotate_fields=True, include_attributes=True)
-    print(x)
-    x=ast.dump(my_ast, annotate_fields=False, include_attributes=False)
-    print(x)
+    try:
+        x=ast.dump(my_ast, annotate_fields=True, include_attributes=True)
+        print(x)
+        print("")
+    except: pass
+    try:
+        x=ast.dump(my_ast, annotate_fields=False, include_attributes=False)
+        print(x)
+        print("")
+    except: pass
 
 def run_ast(my_ast,source_file="(String)"):
         code = compile(my_ast, source_file, 'exec')
@@ -122,6 +142,7 @@ def run_ast(my_ast,source_file="(String)"):
         # eval can't handle arbitrary python code (eval("import math") ), and
         # exec() doesn't return the results.
         ret = eval(code, the.params, Reflector())
+        # ret = eval(code, the.params)
         ret = ret or the.result
         print("GOT RESULT %s" % ret)
         return ret
@@ -144,15 +165,22 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
         if not type(my_ast) == ast.Module:
             # my_ast = flatten(my_ast)
             if not isinstance(my_ast,list):
-                if not isinstance(my_ast,ast.Expr) and not isinstance(my_ast,ast.stmt) :
-                    my_ast = [ast.Expr(my_ast)]
+                my_ast=[my_ast]
+            def wrap_stmt(s):
+                if not isinstance(s,ast.stmt) and not isinstance(s,ast.Expr):
+                    return ast.Expr(s)
+                else: return s
+            # my_ast = map(wrap_stmt,my_ast)
             my_ast = ast.Module(body=my_ast)
         PrepareTreeVisitor().visit(my_ast)
+        my_ast.body[-1]= setter("__result__",my_ast.body[-1])
+        # my_ast.body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
+
         print(my_ast.body)
         source = codegen.to_source(my_ast)
         print(source)  # => CODE
-        print ast.dump(my_ast)
         my_ast = ast.fix_missing_locations(my_ast)
+        print_ast(my_ast)
         code = compile(my_ast, source_file, 'exec')
         # TypeError: required field "lineno" missing from expr NONO,
         # this as a documentation bug,

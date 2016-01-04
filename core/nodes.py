@@ -114,9 +114,9 @@ class FunctionCall(ast.Assign): # todo: bad name
         if callable(func):func=func.__name__#lulwoot  keep self.method=func?
         if isinstance(func,Function): func=func.name #eek name->func!
 
-        #or args['name']
-        # self.func = name
-        self.name = func or args['func'] or args['name']
+        func = args['func'] if 'func' in args else func
+        func = args['name'] if 'name' in args else func
+        self.name = func
         self.arguments = args['arguments'] if 'arguments' in args else arguments
         if object:self.object =object
         # self. = args['object'] if 'object' in args else object NOOO, MESSES
@@ -126,7 +126,8 @@ class FunctionCall(ast.Assign): # todo: bad name
         if 'module' in args: self.clazz = self.clazz or args['module']
         # AST CONTENT:
         if isinstance(func,str): func=kast.name(func)
-        if not isinstance(func,kast.Name): raise Exception("NO NAME %s"%func)
+        if not isinstance(func,kast.Name):
+            raise Exception("NO NAME %s"%func)
         self.targets=[kast.Name(id="__result__",ctx=ast.Store())]
         if self.arguments==None:self.arguments=[]
         elif not isinstance(self.arguments,list):self.arguments=[self.arguments]

@@ -29,8 +29,18 @@ class EmitterTest(ParserBaseTest):
         assert_result_emitted('x=5;puts x', 5)
 
     def test_type_cast(self):
-        assert_result_is('2.3', None)
-        parse('int z=2.3 as int')
+        # Module(body=[Print(dest=None, values=[Num(n=1, lineno=1, col_offset=6)], nl=True, lineno=1, col_offset=0)])
+        # Module([Print(None, [Num(1)], True)])
+        assert_result_is('2.3', 2.3)
+        # assert_result_is('return 2.3', 2.3)
+
+    def test_type_cast23(self):
+        assert_result_is('2.3 as int', 2)
+        # Module([Assign([Name('__result__', Store())], Call(Name('int', Load()), [Num(2.4)], [], None, None))])
+      # Module(body=[Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=0)], value=Call(func=Name(id='int', ctx=Load(), lineno=1, col_offset=11), args=[Num(n=2.4, lineno=1, col_offset=15)], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=0)])
+
+    def test_type_cast2(self):
+        parse('int z is 2.3 as int')
         assert_equals(result(), 2)
 
     def test_printf(self):

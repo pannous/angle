@@ -763,7 +763,7 @@ def expression(fallback=None,resolve=True):
     if not interpreting():
         # if not angle.use_tree:
         #     return (start, pointer())
-        return the.result  # AST NODE, Hopefully
+        return ex #the.result  # AST NODE, Hopefully
 
     if resolve and ex and interpreting():
         the.last_result = the.result = do_evaluate(ex)
@@ -1768,7 +1768,9 @@ def do_cast(x, typ):
 
 def call_cast(x, typ):
     if interpreting(): return do_cast(x, typ)
-    return x  # FunctionCall(name('cast'
+    if isinstance(typ,type):
+        typ=typ.__name__
+    return FunctionCall(name=typ,arguments=x)# 'cast'
 
 
 def nod():  # options{generateAmbigWarnings=false)):
