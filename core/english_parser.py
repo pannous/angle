@@ -90,7 +90,8 @@ def boolean():
 def should_not_start_with(words):
     bad = starts_with(words)
     if not bad: return OK
-    if bad: info("should_not_match DID match %s"%bad)
+    if bad:
+        info("should_not_match DID match %s"%bad)
     if bad: raise NotMatching(MustNotMatchKeyword(bad))
 
 
@@ -498,6 +499,9 @@ def liste(check=True,first=None):
     if start_brace == '{': _('}')
     if start_brace == '(': _(')')
     inside_list = False
+    if angle.use_tree:
+        # return kast.List(all,ast.Load()) # ast.Load() ??
+        return xlist(all)# Important in order to distinguish from list
     return all
 
 
@@ -658,6 +662,8 @@ def contains(token):
 def quick_expression():  # bad idea!
     if the.current_word == '': raise EndOfLine()
     if the.current_word == ';': raise EndOfStatement()
+    if the.current_word == ',':
+        return liste(first=the.result)
     if not angle.in_params and look_ahead(':'):
         warn("look_ahead(':'): # AND ...")
         return immediate_hash()
@@ -699,6 +705,8 @@ def post_operations(context):  # see quick_expression !!
     if the.current_word == '': return context
     if the.current_word == ';': return context
     if the.current_word == '.': return method_call(context)
+    if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
+        return liste(check=False,first=context)
     if the.current_word in operators and look_ahead('='):
         return self_modify(context)
     if the.current_word=='+' and look_ahead('+'):
@@ -713,8 +721,6 @@ def post_operations(context):  # see quick_expression !!
         #     raise_not_matching("better try setter")
         elif the.current_word=='are':  return False #DONT DO algebra here HACK
     if the.current_word == '|': return piped_actions(context or the.last_result)
-    if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
-        return liste(check=False,first=context)
     if the.current_word in operators: #not quantifier
         return algebra(context)
     if the.current_word == '[':
@@ -1217,9 +1223,12 @@ def method_call(obj=None):
             return args
 
         args = star(call_args)
-        if not args:
-            args = do_evaluate(obj)
-            obj = None
+        if not args and not angle.use_tree: # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
+            if angle.use_tree:
+                args = obj
+            else:
+                args = do_evaluate(obj)
+            obj = None # self mechanism!! x.do() = x::do(self)
     else:
         more = maybe_token(',')
         if more: obj = [obj] + liste(False)
@@ -1506,6 +1515,8 @@ def assure_same_type(var, type):
     else:
         oldType = None
 
+    if type=="Unknown": return
+
     if isinstance(type,ast.AST):
         warn("TYPE AST")
         return
@@ -1522,7 +1533,10 @@ def assure_same_type(var, type):
 def assure_same_type_overwrite(var, val):
     oldType = var.type
     oldValue = var.value
-    if oldType and not isinstance(val, oldType) and not issubclass(oldType,type(val)):
+    if(isinstance(val,FunctionCall)):
+        if val.return_type!="Unknown" and val.return_type!=oldType : # None:
+            raise WrongType("OLD: %s %s VS %s return_type: %s " % (oldType, oldValue,val, val.return_type))
+    elif oldType and not isinstance(val, oldType) and not issubclass(oldType,type(val)):
         raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
     if var.final and var.value and not val == var.value:
         raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
@@ -1610,8 +1624,11 @@ def setter(var=None):
     if setta in ['are', 'consist of', 'consists of']: val = flatten(val)
     var.typed = _type or var.typed or 'typed' == mod  # in [mod]
 
-    assure_same_type(var, _type or type(val))
-    assure_same_type_overwrite(var, val)
+    if isinstance(val,FunctionCall):
+        assure_same_type(var, val.returns)
+    else:
+        assure_same_type(var, _type or type(val))
+        assure_same_type_overwrite(var, val)
     # if var.typed:
     #     var.type = _type #ok: set
 
@@ -2515,7 +2532,7 @@ def findMethod(obj0, method0, args0=None,bind=True):
     method = method0
     if callable(method): return method
     if isinstance(method, Function): return method
-    if not obj0 and args0:
+    if not obj0 and isinstance(args0,list) and len(args0)==1:
         obj0=args0[0]
     _type = type(obj0)
     if (isinstance(obj0, Variable)):

@@ -964,9 +964,11 @@ def starts_with(tokenz):
     if checkEndOfLine(): return False
     if isinstance(tokenz,str):
         return tokenz == the.current_word
-    for t in tokenz:
-        if t == the.current_word:
-            return t
+    if the.current_word in tokenz:
+        return  the.current_word
+    # for t in tokenz:
+    #     if t == the.current_word:
+    #         return t
     return False
 
 

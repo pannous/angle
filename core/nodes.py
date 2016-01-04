@@ -1,5 +1,6 @@
 import ast
 import emitters.kast_emitter
+import kast.kast
 from kast import kast
 from the import *
 import sys #
@@ -105,7 +106,7 @@ class Function(kast.FunctionDef):
 # class FunctionCall(ast.Expr):
 # class AssignmentFunctionCall(ast.Assign):
 class FunctionCall(ast.Assign): # todo: bad name
-# class FunctionCall: # todo: bad name
+
     def __init__(self, func=None, arguments=None,object=None, **args):
         # super(FunctionCall, self).__init__(*margs, **args)
         # self.args = []
@@ -118,10 +119,11 @@ class FunctionCall(ast.Assign): # todo: bad name
         func = args['name'] if 'name' in args else func
         self.name = func
         self.arguments = args['arguments'] if 'arguments' in args else arguments
-        if object:self.object =object
+        self.object =object
         # self. = args['object'] if 'object' in args else object NOOO, MESSES
         # if 'object' in args and args['object']: self.object = args['object']
         if 'scope' in args: self.scope = args['scope']
+        # if 'return_type' in args: self.returns = args['return_type']
         if 'class' in args: self.clazz = args['class']
         if 'module' in args: self.clazz = self.clazz or args['module']
         # AST CONTENT:
@@ -132,10 +134,21 @@ class FunctionCall(ast.Assign): # todo: bad name
         if self.arguments==None:self.arguments=[]
         elif not isinstance(self.arguments,list):self.arguments=[self.arguments]
         self.arguments=map(emitters.kast_emitter.wrap_value,self.arguments)
-        self.value=kast.call(func,self.arguments)# ast.Call(func=name,
+        if 'returns' in args: self.returns = self.return_type = args['returns'] # = self.return_typeS plural?
+        else: self.returns = self.return_type = self.resolve_return_type()
+        if(self.object): # x.y(z)
+            self.value=kast.call_attribute(kast.name(self.object), func.id, self.arguments)# ast.Call(func=name,
+        else: # y(z)
+            self.value=kast.call(func,self.arguments)# ast.Call(func=name,
 
     def __repr__(self):
         return str(self.name)+" "+str(self.arguments) #  for more beautiful debugging
+
+    def resolve_return_type(self):
+        if self.name=="int": return int
+        if self.name=="str": return str
+        if self.name=="string": return str
+        return "Unknown" # None # Unknown
 
     # def invoke(self):
     #     do_send

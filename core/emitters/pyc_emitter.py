@@ -27,6 +27,8 @@ class Reflector(object): # Implements list interface is
             return globals()[name]
         elif __builtin__.hasattr(__builtin__,name): # name in __builtin__:
             return __builtin__.getattr(__builtin__,name)
+        elif name=='reverse':
+            return list.reverse
         else:
             print("UNKNOWN ITEM %s" % name)
             return name# kast.name(name)
@@ -46,55 +48,65 @@ class Reflector(object): # Implements list interface is
 
 
 class PrepareTreeVisitor(ast.NodeTransformer):
+    parents=[]
     def generic_visit(self, node):
-        self.parent=node
+        self.parents.append(node)
+        self.current=node
         if not isinstance(node,ast.AST):
             return node
         for field, old_value in ast.iter_fields(node):
             old_value = getattr(node, field, None)
-            if isinstance(old_value, list):
-                new_values = []
-                for value in old_value:
-                    value = self.visit(value)
-                    if value is None:
-                        continue
-                    elif not isinstance(value, ast.AST):
-                        # new_values.extend(value)
-                        new_values.append(value)
-                        continue
-                    new_values.append(value)
-                old_value[:] = new_values
-                setattr(node, field, old_value)
-            else:
-                new_node = self.visit(old_value)
+            new_node = self.visit(old_value)
                 # if new_node is None: new_node is Delete  no, keep starargs=None etc!
                 # if new_node is Delete
                 #     delattr(node, field)
                 # else:
-                if new_node is not None:
-                    setattr(node, field, new_node)
+            if new_node is not None:
+                setattr(node, field, new_node)
+        self.parents.pop()
         return node
 
+    def parent(self):
+        return self.parents[-1]
+
         # emitters.kast_emitter.wrap_value(val)
-    def visit_list(self, x): # conflict: if isinstance(old_value, list): wrap before!
-        return ast.List(x,ast.Load())
-        # return kast.List(map(wrap_value,val),ast.Load())
+    def visit_list(self, xs): # conflict: if isinstance(old_value, list): wrap before!
+        new_values = []
+        for value in xs:
+            value = self.visit(value)
+            if value is None:
+                continue
+            elif not isinstance(value, ast.AST):
+                # new_values.extend(value)
+                new_values.append(value)
+                continue
+            new_values.append(value)
+        xs[:] = new_values
+        return xs
+        # parent = self.parent()
+        # if isinstance(parent, ast.Module):
+        #     return xs
+        # else:
+        #     return ast.List(xs, ast.Load())
+    def visit_xlist(self,x):
+        # return kast.List(x,ast.Load())
+        return kast.List(self.visit_list(x), ast.Load())
     def visit_float(self, x):
         return ast.Num(x)
+    def visit_Num(self, x):
+        return x # and done!
     def visit_Name(self, x):
         return x # and done!
     # def visit_Print(self, x):
     #     return ast.Expr(x)
-    def visit_BinOp(self, node):
-        if not isinstance(self.parent,ast.Expr):
-            return ast.Expr(value=self.generic_visit(node)) #
-        else: return node
+    # def visit_BinOp(self, node):
+    #     if not isinstance(self.parent,(ast.Expr,ast.Assign)):
+    #         return ast.Expr(value=self.generic_visit(node)) #
+    #     else: return self.generic_visit(node)
     def visit_Str(self, x):
         return x # against:
     def visit_str(self, x):
-        if isinstance(self.parent,ast.Str):
-            return x
-        if isinstance(self.parent,ast.FunctionDef):
+        if isinstance(self.current,(ast.Str,ast.Name,ast.FunctionDef,ast.Attribute)):
             return x
         return ast.Str(x)
     def visit_int(self, x):
@@ -119,8 +131,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
     def visit_FunctionCall(self, node):
         skip_assign=True
         if skip_assign:
-            return node.value #skip_assign
-        else: return node
+            return self.generic_visit(node.value) #skip_assign
+        else: return  self.generic_visit(node)
 
 
 def print_ast(my_ast):
@@ -173,7 +185,9 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
             # my_ast = map(wrap_stmt,my_ast)
             my_ast = ast.Module(body=my_ast)
         PrepareTreeVisitor().visit(my_ast)
-        my_ast.body[-1]= setter("__result__",my_ast.body[-1])
+        last_statement=my_ast.body[-1]
+        if not isinstance(last_statement, (ast.Assign, nodes.Function)):
+            my_ast.body[-1]= setter("__result__",last_statement)
         # my_ast.body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
 
         print(my_ast.body)

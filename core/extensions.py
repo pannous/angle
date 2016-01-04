@@ -356,7 +356,7 @@ class xlist(list):
     def word(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!):
         return self[xlist(self).fix_int(nr)]
 
-    def invert(self):
+    def invert(self): # ! Self modifying !
         self.reverse()
         return self
 
