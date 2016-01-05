@@ -109,7 +109,9 @@ class EmitterTest(ParserBaseTest):
 
 
   def test_function_args(self):
-        add1=parse("def add1(x):return x+1")
+        # add1=parse("def add1(x):return x+1")
+        # add1=parse("to add1 to x do x+1")
+        add1=parse("to add1 to x return x+1")
         assert_result_is('add1(5)',6)
 
   def test_identity(self):
