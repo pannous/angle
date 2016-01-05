@@ -207,8 +207,9 @@ def pointer_string():
     else:
         offset = the.current_offset
         l = the.current_token[3][1] - offset
+    lineNo = the.current_token[0] # the.current_token[2][0]
     return the.current_line[offset:] + "\n" + the.current_line + "\n" + " " * (offset) + "^" * l + "\n" + \
-        '  File "'+the.current_file+'", line '+str(the.current_token[2][0])+"\n"
+        '  File "'+the.current_file+'", line '+str(lineNo) + "\n"
 
 
 
@@ -1123,6 +1124,7 @@ def integer():
         # "E20": kast.Pow(10,20),
         import ast
         # if not interpreting(): return ast.Num(current_value)
+        if angle.use_tree:return ast.Num(current_value)
         if current_value == 0:
             current_value = ZERO
         return current_value

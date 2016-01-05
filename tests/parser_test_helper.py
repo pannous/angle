@@ -94,7 +94,7 @@ def assert_result_emitted(a, b, bla=None):
 
 def assert_result_is(a, b, bla=None):
     x=parse(a)
-    if(isinstance(x,ast.Module)):
+    if(isinstance(x,ast.AST)):
         x=emitters.pyc_emitter.run_ast(x)
     # y=parse(b)
     y=b
@@ -181,6 +181,7 @@ def parse(s):
     print("PARSING %s"%s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
+    if isinstance(r,ast.Module): r=r.body[-1] #YA?
     variables.update(the.variables)
     variableValues.update(the.variableValues)
     functions.update(the.methods)

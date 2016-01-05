@@ -1,6 +1,8 @@
+import _ast
 import ast
-import emitters.kast_emitter
+
 import kast.kast
+import the
 from kast import kast
 from the import *
 import sys #
@@ -8,7 +10,8 @@ import sys #
 # if angle.use_tree:
 #         c=ast.Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[
 class Condition(ast.Compare):#todo: BinOp ?
-    def __init__(self, **kwargs): #ruby : initialize
+    def __init__(self, *args, **kwargs): #ruby : initialize
+        super(Condition, self).__init__(*args, **kwargs)
         self.left = kwargs['left']
         self.comp= kwargs['comp']
         self.right = kwargs['right']
@@ -42,6 +45,8 @@ class Quote(str,ast.Str):
 class Function(kast.FunctionDef):
     #attr_accessor :name, :arguments, :return_type, :scope, :module, :clazz, :object, :body
 
+    # def args(self):return self.arguments
+
     def __init__(self,*margs, **args):
         if not args:
             args=margs[0] # ruby style hash args
@@ -57,12 +62,22 @@ class Function(kast.FunctionDef):
         self.object    =args['object']  if 'object' in args  else None
         self.clazz   =args['clazz']     if 'clazz' in args   else None #1st param: self
         self.modifier=args['modifier']  if 'modifier' in args   else None# public etc
-        self.decorators =args['decorators'] if 'decorators' in args   else None # @annotation functions
+        self.decorators =args['decorators'] if 'decorators' in args   else [] # @annotation functions
         self.arguments  =args['arguments']  if 'arguments'  in args   else None # as [Argument]
+        self.arguments  =args['args']  if 'args'  in args   else self.arguments # as [Argument]
         self.return_type=args['return_type']if 'return_type' in args   else None # as [Argument]
+        # self.args       =self.arguments
+        super(kast.FunctionDef,self).__init__(name=self.name,args=self.arguments,body=self.body,decorator_list=self.decorators)
+
 
         # self.scope    =args['scope'] # == class??
 
+    def __repr__(self):
+
+        if self.clazz:
+            return "<Function %s %s>"%(self.clazz,self.name)
+        return "<Function %s>"%(self.name)
+        # return str(self.name) # (...)
         # integrate a function between x and y => object = a function (class)
         # if(self.arguments.count>0 and not self.object)
         #   if(arguments[0].preposition.empty?)
@@ -98,10 +113,19 @@ class Function(kast.FunctionDef):
             return self.name==other.name and \
                 self.arguments==other.args
         return False
+    def __name__(self):
+        return self.name
+    #
+    # def __call__(self, *args, **kwargs):
+    #     return emitters.pyc_emitter.eval_ast(FunctionCall(self.name, args))
 
     def call(self,args):
         import english_parser
-        english_parser.eval_ast(FunctionCall(self,args))
+        import emitters.pyc_emitter
+        args= english_parser.align_args( args, self.object or self.scope,self)
+        # return english_parser.do_call(self.name, args)
+        return emitters.pyc_emitter.eval_ast([self,FunctionCall(self.name, args)], args)
+        # return emitters.pyc_emitter.eval_ast(FunctionCall(self, args))
 
         # def call(*args):
         # self.parser. self.context.
@@ -112,8 +136,8 @@ class Function(kast.FunctionDef):
 # class AssignmentFunctionCall(ast.Assign):
 class FunctionCall(ast.Assign): # todo: bad name
 
-    def __init__(self, func=None, arguments=None,object=None, **args):
-        # super(FunctionCall, self).__init__(*margs, **args)
+    def __init__(self, func=None, arguments=None, object=None, *margs, **args):
+        super(FunctionCall, self).__init__(*margs, **args)
         # self.args = []
         # self.keywords = []
         # self.kwargs = self.starargs = None
@@ -137,8 +161,9 @@ class FunctionCall(ast.Assign): # todo: bad name
             raise Exception("NO NAME %s"%func)
         self.targets=[kast.Name(id="__result__",ctx=ast.Store())]
         if self.arguments==None:self.arguments=[]
-        elif not isinstance(self.arguments,list):self.arguments=[self.arguments]
-        self.arguments=map(emitters.kast_emitter.wrap_value,self.arguments)
+        elif not isinstance(self.arguments,(list,dict)):self.arguments=[self.arguments]
+        # if not isinstance(self.arguments,dict):
+        # self.arguments=map(emitters.kast_emitter.wrap_value,self.arguments)
         if 'returns' in args: self.returns = self.return_type = args['returns'] # = self.return_typeS plural?
         else: self.returns = self.return_type = self.resolve_return_type()
         if(self.object): # x.y(z)
@@ -161,17 +186,28 @@ class FunctionCall(ast.Assign): # todo: bad name
 
 class Argument(kast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
-    def __init__(self,*margs, **args):
-        if not args:
-            args=margs[0] # ruby style hash args
+    def __init__(self, *margs, **args):
+        if not args:args=margs[0] # ruby style hash args
+        super(Argument, self).__init__(*margs, **args)
+        # self.ctx= _ast.Param()
+        # self.id=self.name
         self.name       =args['name']       if 'name'    in args else None
         self.preposition=args['preposition']if'preposition'in args else None
         #  big python headache: starting from 0 or 1 ?? (self,x,y) etc
-        self.position   =args['position']   if'position'in args else 0
+        self.position   =args['position']   if 'position'in args else 0
         self.type       =args['type']       if 'type'    in args else None
         self.default    =args['default']    if 'default' in args else None
         self.value      =args['value']      if 'value'   in args else None
+
+
         # scope.variables[name]=self
+
+    def __repr__(self):
+        if(self.value):
+            if not (self.name):
+                return str(self.value)
+            return str(self.name)+str(self.value)
+        return str(self.name)
 
     def __eq__(self,other):
         if not other:

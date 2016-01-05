@@ -5,10 +5,13 @@ angle.use_tree = False
 from parser_test_helper import *
 from extensions import *
 
+def p(x):
+    print (x)
+
 class FunctionTest(ParserBaseTest):
 
     def test_fibonacci(self):
-        dir = 'programs/'
+        dir = 'samples/'
         code = File.read(dir+('fibonacci.e'))
         code = self.fix_encoding(code)
         p(code)
@@ -38,21 +41,35 @@ class FunctionTest(ParserBaseTest):
         print(parse('assert fibonacci of 10 is 55'))
 
     def test_identity(self):
-        dir = 'programs/'
+        identity0=parse("def identity(x):return x")
+        assert_equals(identity0.call(5),5)
+        # assert_result_is('identity(5)',5)
+        # assert('identity(5) is 5')
+
+    def test_identity1(self):
+        dir = 'samples/'
         code = File.read(dir+('identity.e'))
         code = fix_encoding(code)
         p(code)
         print(parse(code))
         identity = functions['identity']
-        assert(equals('x', name(args[0], )))
+        assert(equals('x', identity.args[0].name))
         print(identity)
         print(identity.call(5))
         assert(equals(5, identity.call(5)))
         print(parse('identity(5)'))
         assert('identity(5) is 5')
 
-    def test_programs(self):
-        dir = 'programs/'
+    def test_factorial(self):
+        parse("""define the factorial of an integer i as
+                    if i is 0 then return 1
+                    i * factorial(i-1)
+                    # i times factorial of i minus one
+                end
+                assert factorial of 5 is 120""")
+
+    def test_samples(self):
+        dir = 'samples/'
         for file in File.ls(dir):
             code = read(File.open(dir+(file), 'rb', {'binary': True, 'encoding': 'UTF-8', }))
             code = fix_encoding(code)

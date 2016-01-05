@@ -107,6 +107,17 @@ class EmitterTest(ParserBaseTest):
     parse("def test():puts 'yay'\ntest()")
     assert_result_emitted("def test{puts 'yay'};test", 'yay')
 
+
+  def test_function_args(self):
+        add1=parse("def add1(x):return x+1")
+        assert_result_is('add1(5)',6)
+
+  def test_identity(self):
+        identity0=parse("def identity(x):return x")
+        assert_result_is('identity(5)',5)
+        # assert_equals(identity0.call(5),5)
+        # assert('identity(5) is 5')
+
   # Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], []), Expr(Call(Name('test', Load()), [], [], None, None))])
 
   # Module(body=[FunctionDef(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Print(dest=None, values=[Str(s='yay', lineno=1, col_offset=17)], nl=True, lineno=1, col_offset=11)], decorator_list=[], lineno=1, col_offset=0), Expr(value=Call(func=Name(id='test', ctx=Load(), lineno=2, col_offset=0), args=[], keywords=[], starargs=None, kwargs=None, lineno=2, col_offset=0), lineno=2, col_offset=0)])

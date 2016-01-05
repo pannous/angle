@@ -8,7 +8,6 @@ import traceback
 import types
 import sys
 import stem.util.system
-import emitters.kast_emitter
 # import interpretation
 import inspect
 import emitters.pyc_emitter
@@ -333,7 +332,7 @@ def fold_algebra(stack):
                     apply_op(stack, i, op)
                 i += 1
     # if not interpreting():
-    #     return kast.setter("result",stack[0])
+    #     return kast.setter("__result__",stack[0])
     return stack[0]
 
 
@@ -654,7 +653,7 @@ def maybe_algebra(context):
     op = maybe_tokens(operators)
     if not op: return False
     z = expression()
-    return do_send(context, op, z)
+    return do_call(context, op, z)
 
 
 def contains(token):
@@ -804,7 +803,7 @@ def piped_actions(a=False):
     angle.in_pipe = False
     if callable(name): args = [args, Argument(value=a)]  # with owner
     if interpreting():
-        the.result = do_send(a, name, args)
+        the.result = do_call(a, name, args)
         print(the.result)
         return the.result
     else:
@@ -902,7 +901,7 @@ def method_definition():
     b = action_or_block()  # define z as 7 allowed !!!
     if not isinstance(b,list):b=[b]
     if not isinstance(b[-1],ast.Print):
-        b[-1]=kast.setter("result",b[-1])
+        b[-1]=kast.setter("__result__",b[-1])
     #     b[-1]=(ast.Expr(b[-1]))
     f.body = b
     f2.body = b #ürx
@@ -1069,7 +1068,7 @@ def spo():
     s = endNoun
     p = verb
     o = nod
-    if interpreting(): return do_send(s, p, o)
+    if interpreting(): return do_call(s, p, o)
 
 
 def print_variables():
@@ -1260,7 +1259,7 @@ def method_call(obj=None):
             return kast.Print(dest=None, values=args, nl=True) # call symbolically!
             # return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
         return FunctionCall(func=method, arguments=args, object=obj)
-    the.result = do_send(obj or None, method, args)
+    the.result = do_call(obj or None, method, args)
     return the.result
 
 
@@ -1334,7 +1333,7 @@ def new():
     _('new')
     # clazz=word #allow data
     clazz = class_constant()
-    return do_send(clazz, "__init__", arguments())
+    return do_call(clazz, "__init__", arguments())
     # clazz=Class.new
     # variables[clazz]=
     # clazz(arguments)
@@ -1463,8 +1462,8 @@ def do_execute_block(b, args={}):
     global variableValues
     if not b: return False
     if b == True: return True
-    if callable(b): return do_send(None, b, args)
-    if isinstance(b, FunctionCall): return do_send(b.object, b.name, args or b.arguments)
+    if callable(b): return do_call(None, b, args)
+    if isinstance(b, FunctionCall): return do_call(b.object, b.name, args or b.arguments)
     args = prepare_named_args(args)
     if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
     if isinstance(b, list) and isinstance(b[0], kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
@@ -1688,7 +1687,7 @@ def current_context():
     pass
 
 
-def variable(a=None, ctx=kast.Load()):
+def variable(a=None, ctx=kast.Load(),isParam=False):
     a = a or maybe_tokens(articles)
     if a != 'a': a = None  # hack for a variable
     must_not_start_with(keywords)
@@ -1709,7 +1708,7 @@ def variable(a=None, ctx=kast.Load()):
     if not typ and len(all) > 1 and isType(all[0]): name = all[1:-1].join(' ')  # (p ? 0 : 1)
     if p: name = p + ' ' + name
     name = name.strip()
-    if isinstance(ctx, kast.Param):  # STORE IN CONTEXT (i.e. def x(int y)): y+3
+    if isParam or isinstance(ctx, kast.Param):  # STORE IN CONTEXT (i.e. def x(int y)): y+3
         # todo split name!  width w, etc!!
         param = Variable(name=name, type=typ or None, ctx=ctx)
         the.params[name] = param
@@ -1829,7 +1828,8 @@ def number_or_word():
 # method definition args != call args
 def param(position=1):
     pre = maybe_tokens(prepositions) or None  # might be superfluous if calling"BY":
-    a = variable(a=None, ctx=kast.Param())
+    a = variable(a=None,isParam=True) # set later:, ctx=kast.Param())
+    # a = variable(a=None, ctx=kast.Param())
     return Argument(preposition=pre, name=a.name, type=a.type, position=position)
 
 
@@ -2062,7 +2062,7 @@ def check_list_condition(quantifier, left, comp, right):
         comp = comp.strip()
         for item in left:
             if is_comparator(comp): the.result = do_compare(item, comp, right)
-            if not is_comparator(comp): the.result = do_send(item, comp, right)
+            if not is_comparator(comp): the.result = do_call(item, comp, right)
             # if not the.result and xlist(['all', 'each', 'every', 'everything', 'the whole']).matches(quantifier): break
             if not the.result and quantifier in ['all', 'each', 'every', 'everything', 'the whole']: break
             if the.result and quantifier in ['either', 'one', 'some', 'few', 'any']: break
@@ -2106,7 +2106,7 @@ def check_condition(cond=None, negate=False):
         if is_comparator(comp):
             the.result = do_compare(left, comp, right)
         else:
-            the.result = do_send(left, comp, right)
+            the.result = do_call(left, comp, right)
 
         # if  not the.result and cond:
         #   #if c: a,comp,b= extract_condition c
@@ -2420,7 +2420,7 @@ def do_evaluate_property(attr, node):
     if isinstance(attr, _ast.AST):
         return todo("do_evaluate_property")
     try:
-        the.result = do_send(node, attr)
+        the.result = do_call(node, attr)
         return the.result
     except:
         verbose("do_send(node,attr) failed")
@@ -2551,7 +2551,7 @@ def instance(bounded_method):
 def findMethod(obj0, method0, args0=None,bind=True):
     method = method0
     if callable(method): return method
-    if isinstance(method, Function): return method
+    if isinstance(method, Function): return method #.body is AST!
     if not obj0 and isinstance(args0,list) and len(args0)==1:
         obj0=args0[0]
     _type = type(obj0)
@@ -2643,15 +2643,34 @@ def align_args(args, clazz, method):
         if method.im_self == args: args = None
         if (args and isinstance(args, list) and len(args) > 0):
             if method.im_self == args[0]: args.remove(args[0])
-    return args
-    if isinstance(method, Function):
-        method = findMethod(clazz, method)
+        return args
     try:
-        margs, varargs, varkw, defaults = inspect.getargspec(method)
-        expect = len(margs) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
+        if isinstance(method, Function):
+            expect=len(method.args)
+    #     method = findMethod(clazz, method)
+        else:
+            margs, varargs, varkw, defaults = inspect.getargspec(method)
+            expect = len(margs) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
+        if not isinstance(args,(list,dict)):
+            args=[args]
         if isinstance(args, list):
             if (len(args) > expect):
                 args = [args]
+        if isinstance(method, Function):
+            for i in range(expect):
+                aa = method.args[i]
+                if isinstance(aa,Argument):
+                    if aa.name in args:
+                        the.params[aa]=args[aa.name]
+                        the.params[aa.name]=args[aa.name]
+                    else:
+                      the.params[aa]=args[i]
+                      the.params[aa.name]=args[i]
+                elif aa in args:
+                    the.params[aa]=args[aa]
+                else:
+                    the.params[aa]=args[i]
+            args=the.params
         return args
     except:
         return args
@@ -2673,7 +2692,7 @@ def call_unbound(method,args,number_of_arguments):
        the.result = method(args) or NILL
 
 # INTERPRET only,  todo cleanup method + argument matching + concept
-def do_send(obj0, method0, args0=[]):
+def do_call(obj0, method0, args0=[]):
     if not method0: raise Exception("NO METHOD GIVEN %s %s"%(obj0,args0)) # return False
     if not interpreting(): return FunctionCall(func=method0, arguments=args0, object=obj0)
     if method0 in be_words and obj0 == args0: return True  # stupid unnecessary shortcut
@@ -2862,7 +2881,7 @@ def endNode():
         maybe_token('a') or \
         raise_not_matching("Not an endNode")  # "+pointer_string())
     po = maybe(postjective)  # inverted
-    if po and interpreting(): x = do_send(x, po, None)
+    if po and interpreting(): x = do_call(x, po, None)
     return x
 
 
