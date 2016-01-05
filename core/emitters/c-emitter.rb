@@ -33,9 +33,9 @@ class NativeCEmitter < Emitter
     command="define_method(#{function.clazz},#{function.name.quoted},#{function.name},#{function.argc});"
     return m,command
 
-  def emit_algebra(lhs,op,rhs):
-    return "result=i(#{lhs.c}#{op}#{rhs.c});"
-    # return "result=#{lhs}#{op}#{rhs.wrap};"
+  def emit_algebra(left,op,rhs):
+    return "result=i(#{left.c}#{op}#{rhs.c});"
+    # return "result=#{left}#{op}#{rhs.wrap};"
 
   def emit_method_call(obj,meth,params,native=false):
     set=EnglishParser.self_modifying(meth) ? obj.name+"=result=" :"result="

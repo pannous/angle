@@ -170,6 +170,7 @@ def star(lamb,giveUp=False):
             if not match: break
             old = current_token
             good.append(match)
+            if (the.current_word==')'):break
             max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
             if len(good) > max: raise " too many occurrences of " + to_source(lamb)
     except GivingUp as e:
@@ -206,7 +207,9 @@ def pointer_string():
     else:
         offset = the.current_offset
         l = the.current_token[3][1] - offset
-    return the.current_line[offset:] + "\n" + the.current_line + "\n" + " " * (offset) + "^" * l + "\n"
+    return the.current_line[offset:] + "\n" + the.current_line + "\n" + " " * (offset) + "^" * l + "\n" + \
+        '  File "'+the.current_file+'", line '+str(the.current_token[2][0])+"\n"
+
 
 
 def print_pointer(force=False):
@@ -354,7 +357,7 @@ def parse_tokens(s):
 
 def init(strings):
     # global is ok within one file but do not use it across different files
-    global no_rollback_depth, rollback_depths, line_number, original_string, root, lines,  depth, lhs, rhs, comp
+    global no_rollback_depth, rollback_depths, line_number, original_string, root, lines,  depth, left, right, comp
     if not the.moduleMethods:
         load_module_methods()
     the.no_rollback_depth = -1
@@ -373,7 +376,7 @@ def init(strings):
     the.root = None
     the.nodes = []
     the.depth = 0
-    lhs = rhs = comp = None
+    left = right = comp = None
     for nr in english_tokens.numbers:
         the.token_map[nr] = number
 
@@ -708,7 +711,8 @@ def block(multiple=False):  # type):
     # content = pointer() - start
     end_of_block = maybe(end_block)  # ___ done_words
     if multiple or not end_of_block and not checkEndOfFile():
-        end_of_statement()  # danger might act as block end!
+        end_of_statement()  # danger, might act as block end!
+        no_rollback()
         if multiple: maybe_newline()
         # star(end_of_statement)
 
@@ -719,7 +723,7 @@ def block(multiple=False):  # type):
                 s = statement()
                 statements.append(s)
             except NotMatching as e:
-                if starts_with(english_tokens.done_words):
+                if starts_with(english_tokens.done_words) or checkNewline():
                     return False # ALL GOOD
                 print("Giving up block")
                 print_pointer(True)
@@ -934,7 +938,7 @@ def parse(s, target_file=None):
     #   parse lines[0]
 
 
-def token(t):  # _new
+def token(t,expected=''):  # _new
     if isinstance(t, list):
         return tokens(t)
     raiseEnd()
@@ -944,7 +948,7 @@ def token(t):  # _new
     else:
         # verbose('expected ' + str(result))  #
         # print_pointer()
-        raise NotMatching(t + "\n" + pointer_string())
+        raise NotMatching(expected+" "+t + "\n" + pointer_string())
 
 
 def tokens(tokenz):
@@ -985,6 +989,7 @@ def checkNewline():
 def checkEndOfLine():
     return current_type == _token.NEWLINE or \
            current_type == _token.ENDMARKER or \
+            the.current_word=='\n' or \
            the.current_word=='' or \
            the.token_number >= len(the.tokenstream)
     # if the.string.blank? # no:try,try,try  see raiseEnd: raise EndOfDocument.new

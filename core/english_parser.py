@@ -338,7 +338,7 @@ def fold_algebra(stack):
 
 
 def algebra(val=None):
-    # if angle.in_algebra: return False
+    # if angle.in_algebra: return False TODOO?? x * f(x-1)
     # global result
     if not val: must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
@@ -350,8 +350,9 @@ def algebra(val=None):
         op = maybe(comparation) or operator()
         if op == 'and' and in_list: return False
         n = maybe_token('not')
-        # y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
-        y = maybe(value) or bracelet()
+        angle.in_algebra=True
+        y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
+        # y = maybe(value) or bracelet()
         # y = postoperations(y) or y NOO but need LIST!
         if y == ZERO: y = 0
         stack.append(op)  # after success of maybe(value)
@@ -360,6 +361,7 @@ def algebra(val=None):
         return y or True
 
     star(lamb)
+    angle.in_algebra=False
     the.result = fold_algebra(stack)
     if the.result == False: the.result = FALSE
     return the.result
@@ -680,6 +682,7 @@ def quick_expression():  # bad idea!
         result=quote()
     elif the.current_word in the.token_map: # safe, ok!
         fun = the.token_map[the.current_word]
+        debug("token_map: %s -> %s"%(the.current_word,fun))
         if look_ahead(['rd', 'st', 'nd']): fun = nth_item
         result = fun()  # already wrapped maybe(fun)
     elif the.current_word in the.params.keys():
@@ -809,8 +812,8 @@ def piped_actions(a=False):
 
 
 def statement():
-    if starts_with(done_words):  # allow empty blocks
-        raise_not_matching("end of block")
+    if starts_with(done_words) or checkNewline():  # allow empty blocks
+        raise_not_matching("end of block ok")
     # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     maybe_indent()
@@ -945,6 +948,12 @@ def if_then_else():
     # if ok == False:
     #     ok = FALSE
     o = maybe(otherwise) or FALSE
+    if angle.use_tree:
+        if isinstance(ok,ast.IfExp):
+            ok.orelse=o
+        else:
+            ok.orelse=[ast.Expr(o)]
+        return ok
     if ok != "OK" and ok != False:  # and ok !=FALSE ^^:
         the.result = ok
     else:
@@ -967,6 +976,10 @@ def action_if(a):
     return a
 
 
+def isStatementOrExpression(b):
+    return isinstance(b,(ast.stmt,ast.Expr))
+
+
 def if_then():
     tokens(if_words)
     no_rollback()
@@ -982,6 +995,10 @@ def if_then():
     maybe_newline()  # for else
     adjust_interpret()
     if c == False or c == FALSE: return False
+    if angle.use_tree:
+        # if not isStatementOrExpression(b):b=ast.Expr(b)
+        # return ast.If(test=c,body=[b])
+        return ast.IfExp(test=c,body=b)# todo body cant be block here !
     if interpreting() and c != True:  # c==True done above!
         if check_condition(c):
             return do_execute_block(b)
@@ -1726,6 +1743,7 @@ word_regex = r'^\s*[a-zA-Z]+[\w_]*'
 def word(include=None):
     ## global the.string
     # danger:greedy!!!
+    maybe_tokens(articles)
     if not include:
         include = []
     no_keyword_except(include)
@@ -1850,8 +1868,8 @@ def compareNode():
     c = comparison()
     if not c: raise NotMatching("NO comparison")
     if c == '=': raise NotMatching('compareNode = not allowed')  # todo Why not / when
-    rhs = endNode()  # expression
-    return rhs
+    right = endNode()  # expression
+    return right
 
 
 # @Starttokens('whose')
@@ -2035,16 +2053,16 @@ def is_comparator(c):
     return ok
 
 
-def check_list_condition(quantifier, lhs, comp, rhs):
+def check_list_condition(quantifier, left, comp, right):
     global negated
     # if not a.isa(Array): return True
     # see quantifiers
     try:
         count = 0
         comp = comp.strip()
-        for item in lhs:
-            if is_comparator(comp): the.result = do_compare(item, comp, rhs)
-            if not is_comparator(comp): the.result = do_send(item, comp, rhs)
+        for item in left:
+            if is_comparator(comp): the.result = do_compare(item, comp, right)
+            if not is_comparator(comp): the.result = do_send(item, comp, right)
             # if not the.result and xlist(['all', 'each', 'every', 'everything', 'the whole']).matches(quantifier): break
             if not the.result and quantifier in ['all', 'each', 'every', 'everything', 'the whole']: break
             if the.result and quantifier in ['either', 'one', 'some', 'few', 'any']: break
@@ -2054,13 +2072,13 @@ def check_list_condition(quantifier, lhs, comp, rhs):
 
             if the.result: count = count + 1
 
-        min = len(lhs) / 2
+        min = len(left) / 2
         if quantifier == 'most' or quantifier == 'many': the.result = count > min
         if quantifier == 'at least one': the.result = count >= 1
         # todo "at least two","at most two","more than 3","less than 8","all but 8"
         if negated: the.result= not the.result
         if not the.result:
-            verbose("List condition not met %s %s %s" % (lhs, comp, rhs))
+            verbose("List condition not met %s %s %s" % (left, comp, right))
 
         return the.result
     except IgnoreException as e:
@@ -2072,23 +2090,23 @@ def check_list_condition(quantifier, lhs, comp, rhs):
 def check_condition(cond=None, negate=False):
     if cond == True or cond == 'True': return True
     if cond == False or cond == 'False': return False
-    if isinstance(cond, ast.BinOp): cond = Condition(lhs=cond.left, comp=cond.op, rhs=cond.right)
+    if isinstance(cond, ast.BinOp): cond = Condition(left=cond.left, comp=cond.op, right=cond.right)
     if cond == None or not isinstance(cond, Condition):
         raise InternalError("NO Condition given! %s" % cond)
 
         # return cond
     try:
-        lhs = cond.lhs
-        rhs = cond.rhs
+        left = cond.left
+        right = cond.right
         comp = cond.comp
         if not comp: return False
-        if lhs and isinstance(lhs, str): lhs = lhs.strip()  # None==None ok
-        if rhs and isinstance(rhs, str): rhs = rhs.strip()  # " a "=="a" !?!?!? NOOO! maybe(why)
+        if left and isinstance(left, str): left = left.strip()  # None==None ok
+        if right and isinstance(right, str): right = right.strip()  # " a "=="a" !?!?!? NOOO! maybe(why)
         if isinstance(comp, str): comp = comp.strip()
         if is_comparator(comp):
-            the.result = do_compare(lhs, comp, rhs)
+            the.result = do_compare(left, comp, right)
         else:
-            the.result = do_send(lhs, comp, rhs)
+            the.result = do_send(left, comp, right)
 
         # if  not the.result and cond:
         #   #if c: a,comp,b= extract_condition c
@@ -2099,8 +2117,8 @@ def check_condition(cond=None, negate=False):
         # if _not: the.result = not the.result
         if negate: the.result = not the.result
         if not the.result:
-            verbose("condition not met %s %s %s" % (lhs, comp, rhs))
-        verbose("condition met %s %s %s" % (lhs, comp, rhs))
+            verbose("condition not met %s %s %s" % (left, comp, right))
+        verbose("condition met %s %s %s" % (left, comp, right))
         return the.result
     except IgnoreException as e:
         # debug x #soft message
@@ -2126,8 +2144,8 @@ def get_type(object1):
     # return object
 
 
-def method_dir(lhs):
-    object1 = do_evaluate(lhs)
+def method_dir(left):
+    object1 = do_evaluate(left)
     if interpreting():
         return dir(object1)
     return get_type(object1).__dict__
@@ -2157,36 +2175,38 @@ def condition():
     filter = None
     if quantifier: filter = maybe(element_in) or maybe_tokens(["of","in"])  # all words in
     angle.in_condition = True
-    lhs = action_or_expression(quantifier) #OK: algebra!
-    if starts_with("then"): return lhs
+    left = action_or_expression(quantifier) #OK: algebra!
+    if isinstance(left,ast.BinOp):
+        left=Condition(left=left.left, comp=left.op, right=left.right)
+    if starts_with("then"): return left
     _not = False
     comp = use_verb = maybe(verb_comparison)  # run like , contains
     if not use_verb: comp = maybe(comparation)
     # allow_rollback # upto maybe(where)?
-    if comp: rhs = action_or_expression(None)
+    if comp: right = action_or_expression(None)
     if brace: _(')')
     angle.in_condition = False
-    if not comp: return lhs
+    if not comp: return left
     negate = (negated or _not) and not (negated and _not)
     # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
     # 1,2,3 are smaller 4  VS 1,2,4 in 3
-    if isinstance(lhs, list) and not isinstance(rhs, list):  # and not maybe(lambda: comp in method_dir(lhs))
+    if isinstance(left, list) and not isinstance(right, list):  # and not maybe(lambda: comp in method_dir(left))
         quantifier = quantifier or "all"
     # if not comp: return  negate ?  not a : a
-    cond = Condition(lhs=lhs, comp=comp, rhs=rhs)
+    cond = Condition(left=left, comp=comp, right=right)
     if interpreting():
         if quantifier:
             if negate:
-                return (not check_list_condition(quantifier, lhs, comp, rhs))
+                return (not check_list_condition(quantifier, left, comp, right))
             else:
-                return check_list_condition(quantifier, lhs, comp, rhs)
+                return check_list_condition(quantifier, left, comp, right)
         if negate:
             return (not check_condition(cond))
         else:
             return check_condition(cond)  # None
     else:
         return cond
-        # return Condition.new lhs:a,cmp:comp,rhs:b
+        # return Condition.new left:a,cmp:comp,right:b
         # if not angel.use_tree: return start - pointer()
         # if angel.use_tree: return parent_node()
 
@@ -2792,14 +2812,14 @@ def selectable():
     must_contain(['that', 'whose', 'which'])
     maybe_tokens(['every', 'all', 'those'])
     xs = do_evaluate(known_variable()) or endNoun()
-    s = maybe(selector)  # rhs=xs, lhs implicit! (BAD!)
+    s = maybe(selector)  # right=xs, left implicit! (BAD!)
     if interpreting(): xs = filter(xs, s)  # except xs
     return xs
 
 
 # see selectable
 def filter(liste, criterion):
-    global rhs, lhs, comp
+    global right, left, comp
     if not criterion: return liste
     mylist = do_evaluate(liste)
     # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
@@ -2808,7 +2828,7 @@ def filter(liste, criterion):
         args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
     else:
         method = comp or criterion()
-        args = rhs
+        args = right
     mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
 
@@ -2882,7 +2902,8 @@ def check_end_of_statement():
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
-    return beginning_of_line() or maybe_newline() or starts_with(done_words) or the.previous_word == ';' or token(';')
+    return beginning_of_line() or maybe_newline() or starts_with(done_words)\
+           or the.previous_word == ';' or the.previous_word == '\n' or token(';','end_of_statement')
     # consume ";", but DON'T consume done_words here!
 
 

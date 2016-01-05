@@ -23,6 +23,7 @@ in_args = False
 in_hash=False
 in_list=False
 in_params=False
+in_algebra=False
 
 interpret=True #False
 did_interpret = False
@@ -44,6 +45,7 @@ current_word=''
 previous_word=''
 current_line=''
 current_token=None
+current_file='(String)'
 
 lines = []
 original_string = ""  # for string_pointer ONLY!!

@@ -115,8 +115,23 @@ class EmitterTest(ParserBaseTest):
   # Module(body=[Function(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Assign(targets=[Name(id='result', ctx=Store())], value=Print(dest=None, values=[Str(s='yay')], nl=True))], decorator_list=[]), Call(func=Name(id='test', ctx=Load()), args=[], keywords=[], starargs=None, kwargs=None)])
 
   def test_function2(self):
-    parse_file('examples/factorial.e')
+    parse_file('samples/factorial.e')
     assert_result_emitted('factorial 6', 5040)
+
+  def test_if_then(self):
+    # assert_result_emitted('if (3 > 0):1\nelse:0', 1)
+    assert_result_emitted('if 3 > 0 then 1 else 0', 1)
+    # IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))
+# Module([Assign([Name('result', Store())], IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))])
+# IfExp(test=Compare(left=Num(n=3, lineno=1, col_offset=12), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=14)], lineno=1, col_offset=12), body=Num(n=1, lineno=1, col_offset=7), orelse=Num(n=0, lineno=1, col_offset=21), lineno=1, col_offset=7), lineno=1, col_offset=0)])
+#
+# Module(body=[If(test=Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=5)], lineno=1, col_offset=3), body=[Expr(value=Num(n=1, lineno=1, col_offset=7), lineno=1, col_offset=7)], orelse=[Expr(value=Num(n=0, lineno=2, col_offset=5), lineno=2, col_offset=5)], lineno=1, col_offset=0)])
+# Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
+
+
+# Module(body=[Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
+#
+# Module([Assign([Name('__result__', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
 
   def test_array(self):
     # assert_result_emitted('xs=[1,4,7];xs.reverse()', [7, 4, 1])

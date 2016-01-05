@@ -34,9 +34,9 @@ p ruby2ruby.process(sexp)
 
 s(:block,
   s(:defn,
-    :lhs,
+    :left,
     s(:args),
     s(:scope, s(:block, s(:call, None, :puts, s(:arglist, s(:str, "A")))))),
-  s(:defn, :rhs, s(:args), s(:scope, s(:block, s(:call, None, :lhs, s(:arglist))))))
+  s(:defn, :rhs, s(:args), s(:scope, s(:block, s(:call, None, :left, s(:arglist))))))
 "def a\n  puts(\"A\")\nend\ndef b\n  a\nend\n":
 

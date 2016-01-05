@@ -105,7 +105,10 @@ def assert_result_is(a, b, bla=None):
 
 
 def parse_file(x):
-    english_parser.parse(open(x).readall())
+    import os
+    # x=os.path.abspath(x)
+    the.current_file=x
+    return english_parser.parse(open(x).readlines())
 
 
 def assert_equals(a, b, bla=None):

@@ -5,11 +5,16 @@ from kast import kast
 from the import *
 import sys #
 
-class Condition(object):#todo: BinOp ?
+# if angle.use_tree:
+#         c=ast.Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[
+class Condition(ast.Compare):#todo: BinOp ?
     def __init__(self, **kwargs): #ruby : initialize
-        self.lhs = kwargs['lhs']
+        self.left = kwargs['left']
         self.comp= kwargs['comp']
-        self.rhs = kwargs['rhs']
+        self.right = kwargs['right']
+        self.left=self.left
+        self.ops=[self.comp]
+        self.comparators=[self.right]
 
 class Quote(str,ast.Str):
     def is_a(className):

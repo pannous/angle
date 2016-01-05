@@ -37,10 +37,10 @@ class Emitter
     emit_method_call obj,meth,params,native
 
   def algebra(context, node):
-    lhs=norm(node[0],context)
+    left=norm(node[0],context)
     op=norm(node[1],context)
     rhs=norm(node[2],context)
-    emit_algebra lhs,op,rhs
+    emit_algebra left,op,rhs
 
   def descend(context, node):
     if not node.is_a? TreeNode: return node

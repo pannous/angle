@@ -1,3 +1,4 @@
+import _ast
 import ast
 import sys
 
@@ -106,6 +107,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
     def visit_Str(self, x):
         return x # against:
     def visit_str(self, x):
+        if x=='0':return _ast.Num(0)
         if isinstance(self.current,(ast.Str,ast.Name,ast.FunctionDef,ast.Attribute)):
             return x
         return ast.Str(x)
@@ -186,7 +188,7 @@ def eval_ast(my_ast, args={}, source_file='file',target_file=None):
             my_ast = ast.Module(body=my_ast)
         PrepareTreeVisitor().visit(my_ast)
         last_statement=my_ast.body[-1]
-        if not isinstance(last_statement, (ast.Assign, nodes.Function)):
+        if not isinstance(last_statement, (ast.Assign,ast.If, nodes.Function)):
             my_ast.body[-1]= setter("__result__",last_statement)
         # my_ast.body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
 
