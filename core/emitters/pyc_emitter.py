@@ -63,6 +63,7 @@ class Reflector(object): # Implements list interface is
 
 def fix_block(body,returns=True):
     last_statement=body[-1]
+    if isinstance(last_statement,list) and len(last_statement)==1: last_statement=last_statement[0] #HOW??
     if not isinstance(last_statement, (ast.Assign,ast.If, nodes.Function,ast.Return)):
         body[-1]=(setter("__result__",last_statement))
     if returns:
