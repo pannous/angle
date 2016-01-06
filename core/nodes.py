@@ -234,10 +234,12 @@ class Argument(kast.arg):
 class Variable(kast.Name):
     # attr_accessor :name, :type,:owner, :value, :final, :modifier     # :scope, :module, << owner
 
-    def __init__(self,*margs,**args):
+    def __init__(self, *margs, **args):
+        super(Variable, self).__init__(*margs, **args)
         if not args: args=margs[0]
         self.name    =args['name']
         self.ctx     =args['ctx'] if 'ctx' in args else ast.Load()
+        # self.id      =ast.Name(self.name,self.ctx) NOO
         self.value   =args['value'] if 'value' in args else None
         self.type    =args['type'] if 'type'  in args else type(self.value)
         self.scope   =args['scope'] if 'scope' in args else None
@@ -248,6 +250,12 @@ class Variable(kast.Name):
         self.typed   = 'typed' in args #or self.type NO
         # self.class  =args[:module]
         # scope.variables[name]=self
+
+    def __repr__(self):
+          return str("xzcv %s"%self.name)
+
+    def __str__(self):
+          return str("xzcv %s"%self.name)
 
     # def __len__(self):
     #     return len(self.value)

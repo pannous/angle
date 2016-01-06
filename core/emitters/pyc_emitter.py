@@ -4,7 +4,12 @@ import sys
 
 import __builtin__
 
-import codegen
+# import codegen
+import astor as codegen
+from astor.codegen import SourceGenerator
+SourceGenerator.visit_Function=SourceGenerator.visit_FunctionDef
+SourceGenerator.visit_Variable=SourceGenerator.visit_Name
+SourceGenerator.visit_Condition=SourceGenerator.visit_Compare
 
 import angle
 import emitters
@@ -141,8 +146,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         return ast.Num(x)
     def visit_Pass(self, x):
         return ast.Expr(x)
-    def visit_Variable(self, x):
-        return ast.Name(x.name,ast.Load())
+    def visit_Variable(self, x): # codegen doesn't like inheritance
+        return ast.Name(x.name,x.ctx)
+        # return ast.Name(x.name,ast.Load())
     def visit_arguments(self, x):
         return x #WHY???
     def visit_Function(self,x): # FunctionDef

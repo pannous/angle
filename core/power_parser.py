@@ -208,8 +208,8 @@ def pointer_string():
         offset = the.current_offset
         l = the.current_token[3][1] - offset
     lineNo = the.current_token[0] # the.current_token[2][0]
-    return the.current_line[offset:] + "\n" + the.current_line + "\n" + " " * (offset) + "^" * l + "\n" + \
-        '  File "'+the.current_file+'", line '+str(lineNo) + "\n"
+    filep = '  File "'+the.current_file+'", line '+str(lineNo) + "\n" if the.current_file!="(String)" else ""
+    return the.current_line[offset:] + "\n" + the.current_line + "\n" + " " * (offset) + "^" * l + "\n" + filep
 
 
 
