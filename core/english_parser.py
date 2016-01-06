@@ -349,8 +349,9 @@ def algebra(val=None):
         op = maybe(comparation) or operator()
         if op == 'and' and in_list: return False
         n = maybe_token('not')
+        y = maybe(value) or maybe(bracelet)
         angle.in_algebra=True
-        y = maybe(expression) or bracelet() # so deep still NOT ok, use angle.in_algebra
+        y = y or expression() # so deep still NOT ok, use angle.in_algebra
         # y = maybe(value) or bracelet()
         # y = postoperations(y) or y NOO but need LIST!
         if y == ZERO: y = 0
