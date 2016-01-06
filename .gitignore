@@ -1,2 +1,4 @@
 *.pyc
 .coverage
+tests/emitted.py
+intellij-angle-plugin
