@@ -146,7 +146,8 @@ fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right"
 
 # Classifiers==#measure word="litre","cups","kernels","ears","bushels",
 
-class_words = ['is an', 'is a', 'has type', 'is of type']  # ...
+class_words = ['is an', 'is a', 'has type', 'is of type','has class', 'is of class','is instance of','is instance','instance of']  # ...
+subtype_words =['inherits','inherits from','extends','is subtype of','is subtype','subtype of','is subclass of','is subclass','subclass of','has base class']
 
 be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
             '=', '==', 'equals', 'equal', \

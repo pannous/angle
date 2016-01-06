@@ -2522,18 +2522,20 @@ def do_math(a, op, b):
     if op == '>=': return a >= b
     if op == '==': return a == b
     if op == '=': return a == b
-    if op == 'is': return a == b  # NOT the same as a is b:
+    if op == 'is': return a == b  # NOT the same as python a is b:
     if op == 'be': return a == b
     if op == 'equal to': return a == b
     if op == '===': return a is b
     if op == 'is identical': return a is b # python ===
     if op == 'is exactly': return a is b
-    if op == 'same as': return a == b
+    if op == 'same as': return a == b # weaker than 'exactly'!
     if op == 'the same as': return a == b
     if op == 'equals': return a == b
     if op == '!=': return a != b
     if op == 'is not': return a != b
     if op == 'isn\'t': return a != b
+    if op in class_words: return isinstance(a,b) or xobject.is_a(a,b)
+    if op in subtype_words: return issubclass(a,b) or xobject.is_(a,b)
     raise Exception("UNKNOWN OPERATOR " + op)
 
 
@@ -2560,6 +2562,12 @@ def findMethod(obj0, method0, args0=None,bind=True):
     if (isinstance(obj0, Variable)):
         _type = obj0.type
         obj0 = obj0.value
+    if (isinstance(obj0, Argument)):
+        _type = obj0.type
+        obj0 = obj0.value
+    if (isinstance(args0, Argument)):
+        # _type = obj0.type
+        args0 = args0.value
     if method in the.methods:
         return the.methods[method]
     if method in locals():
@@ -2589,8 +2597,9 @@ def findMethod(obj0, method0, args0=None,bind=True):
     #     raise_not_matching("NO such METHOD %s" % method)
     # if not isinstance(method, str):
     #     raise_not_matching("NO such METHOD %s" % method)
-    # if not callable(method) and isinstance(args0,list): # TRY TO WORK ARGUMENT WISE!
-    #     function = findMethod(obj0 or args0[0], method0, None,bind=False)
+    if not callable(method) and isinstance(args0,list): # TRY TO WORK ARGUMENT WISE!
+        function = findMethod(obj0 or args0[0], method0, args0[0],bind=False)
+        return function
     #     def map_list(xs,*xss):
     #         if xs and xss: xs=[xs]+list(xss)
     #         if not xs:xs=xss
@@ -2684,14 +2693,26 @@ def call_unbound(method,args,number_of_arguments):
        except:
            the.result = method(*args.values()) or NILL
    if isinstance(args, list) or isinstance(args, tuple):
-       # if is_unbound(method) and len(args) == 1 and number_of_arguments == 1:
-       #  the.result = method.__get__(args[0],method.im_class)()
-       # else:
+       if is_unbound(method) and len(args) == 1 and number_of_arguments == 1:
+        import types
+        arg0 = args[0]
+        obj_type = type(arg0)
+        if(method.im_class in extensionMap.values()):
+            the.result = method(xx(arg0)) or NILL
+        else:
+            # the.result = method(arg0) or NILL
+            bound_method = types.MethodType(method, obj_type,args[0])
+            # bound_method = method.__get__(args[0], obj_type) # rebind
+            # bound_method.im_self=args[0] # read-only
+            the.result = bound_method()
+            #    TypeError: unbound method invert() must be called with xstr instance as first argument (got str instance instead)
+            #    can't solve?
+       else:
         the.result = method(*args) or NILL
        #     the.result = method(args) or NILL
-       # else:
    else:
        the.result = method(args) or NILL
+   return the.result
 
 # INTERPRET only,  todo cleanup method + argument matching + concept
 def do_call(obj0, method0, args0=[]):
@@ -2729,13 +2750,20 @@ def do_call(obj0, method0, args0=[]):
     if not args and not callable(method) and method in dir(obj):
         return obj.__getattribute__(method)
 
-    if not callable(method) and isinstance(args,list): # TRY TO WORK ARGUMENT WISE!
-        def map_list(x):
-            function = findMethod(x, method0, None)
-            if not callable(function): raise Exception("DONT KNOW how to apply %s to %s"%(method0,args0))
-            return function()
-        the.result=map(map_list,args)
-        return the.result
+    try:
+        if not callable(method) and isinstance(args,list): # TRY TO WORK ARGUMENT WISE!
+            def map_list(x):
+                function = findMethod(x, method0, None)
+                if isinstance(function,FunctionCall):
+                    from emitters import pyc_emitter
+                    return pyc_emitter.eval_ast(function,args)
+                if not callable(function):
+                    raise Exception("DONT KNOW how to apply %s to %s"%(method0,args0))
+                return function()
+            the.result=map(map_list,args)
+            return the.result
+    except:
+        verbose("CAN'T CALL ARGUMENT WISE")
 
     if not callable(method):
         raise MethodMissingError(type(obj), method, args)
@@ -2744,7 +2772,7 @@ def do_call(obj0, method0, args0=[]):
         return do_math(obj, method_name, args)
     if not obj:
         if args and number_of_arguments > 0:
-            call_unbound(method,args,number_of_arguments)
+            the.result=call_unbound(method,args,number_of_arguments)
         else:
             the.result=method()
     elif not args or not number_of_arguments:
@@ -2799,6 +2827,8 @@ def do_compare(a, comp, b):
         return a == b
     elif comp in ['in', 'element of'] or isinstance(comp, ast.In):
         return a in b
+    elif comp in subtype_words:
+        return issubclass(a,b)
     elif comp in class_words:
         if a==b or isinstance(a, b): return True
         if isinstance(a,Variable):return issubclass(a.type, b) or isinstance(a.value, b)

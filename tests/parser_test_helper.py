@@ -202,11 +202,12 @@ def copy_variables(variables=variables):
 
 class ParserBaseTest(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self,auto_clear=True):
         global base_test
         self.parser=parser(self)
         base_test=self
-        self.parser.clear()
+        if auto_clear:
+            self.parser.clear()
 
     def context(self):
         pass
@@ -272,14 +273,16 @@ class ParserBaseTest(unittest.TestCase):
     def assert_has_error(self, x, block):
         try:
                 parse(x)
-                raise "SHOULD THROW"
+                raise Exception("SHOULD THROW")
         except Exception as e:
             puts("OK")
 
 
     def assert_result_is(self, x, r):
-        assert_equals(parse(x), parse(r))
-        assert_equals(parse(x), parse(r))
+        if isinstance(x,str):x = parse(x)
+        if isinstance(r,str):r = parse(r)
+        assert_equals(x, r)
+        # assert_equals(parse(x), parse(r))
 
     def assert_equals(self, a, b):
         if ((a==b or str(a)==str(b))):

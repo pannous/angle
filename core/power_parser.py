@@ -1273,6 +1273,7 @@ def load_module_methods():
   #     if not c in the.method_names: the.method_names.append(c)
   for x in dir(extensions):
     the.method_names.append(x)
+  angle.extensionMap=extensions.extensionMap
   for _type in angle.extensionMap:
     ex = angle.extensionMap[_type]
     for method in dir(ex):

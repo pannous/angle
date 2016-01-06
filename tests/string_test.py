@@ -7,10 +7,8 @@ from parser_test_helper import *
 
 class StringTest(ParserBaseTest):
 
-    def setUp(self):
-        the.variables.clear()
-        the.variableTypes.clear()
-        the.variableValues.clear()
+    def setUp(self,auto_clear=True):
+        super(StringTest, self).setUp()
 
     def test_string_methods(self):
         parse("invert 'hi'")

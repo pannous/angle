@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = True
-angle._verbose = True
 from parser_test_helper import *
 
 
 class SamplesTest(ParserBaseTest):
 
+    def setUp(self):
+      super(SamplesTest, self).setUp()
+      angle.use_tree = True
+      angle._verbose = True
+      self.parser.clear()
+
+
+    def test_addition(self):
+      x=parse("samples/addition.e")
+      assert_result_is("add 7 to 3","10")
 
     def test_hello_world(self):
-      angle._verbose = True
-      the._verbose = True
       x=parse("samples/hello-world.e")
       assert_equals(x,"hello world")

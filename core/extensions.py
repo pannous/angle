@@ -33,11 +33,11 @@ if platform.python_version_tuple()[0]=='3':
 #   class range(xrange):
 #     pass
 
+extensionMap={}
 def extension(clazz):
   try:
-    import angle
     for base in clazz.__bases__:
-        angle.extensionMap[base]=clazz
+        extensionMap[base]=clazz
   except:pass
   return clazz
 
@@ -408,7 +408,8 @@ class xstr(str):
     def invert(self):
         r=reversed(self) #iterator!
         self="".join(r)
-        
+        return self
+
     def inverse(self):
         r=reversed(self) #iterator!
         return "".join(r)
@@ -929,7 +930,9 @@ class xfloat(float):
 # class Enumerator
 
 @extension #DANGER?
-class xobject(object):
+class xobject:
+    def __init__(selfy):
+        selfy.self=selfy
     def value(self):
         return self
 
