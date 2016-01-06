@@ -53,7 +53,9 @@ The implicit list filter '**that**' applies a selection criterion to all element
 
 
 Implicit lambda variable '**it**' 
+
 `for all mails by peter: mark it as read if its subject contains 'SPAM'` translates to ruby:
+
 `mails(by: Peter).each{|it| it.mark(:read) if it.subject.match('SPAM')}`
 
 
