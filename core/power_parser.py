@@ -172,7 +172,7 @@ def star(lamb,giveUp=False):
             good.append(match)
             if (the.current_word==')'):break
             max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
-            if len(good) > max: raise " too many occurrences of " + to_source(lamb)
+            if len(good) > max: raise Exception(" too many occurrences of " + to_source(lamb))
     except GivingUp as e:
         if giveUp:  raise e, None, sys.exc_info()[2]
         verbose("GivingUp ok in star")  # ok in star!
@@ -663,17 +663,6 @@ def caller_depth():
     # filter_stack(caller).count #-1
 
 
-def allow_rollback(n=0):
-    if n < 0: the.rollback_depths = []
-    depth = caller_depth() - 1
-    if len(the.rollback_depths) > 0:
-        the.no_rollback_depth = the.rollback_depths[-1]
-        while the.rollback_depths[-1] > depth:
-            the.no_rollback_depth =the.rollback_depths.pop()
-            if len(the.rollback_depths)==0: break
-    else:
-        the.no_rollback_depth = -1
-
 def no_rollback():
     depth = caller_depth() - 1
     the.no_rollback_depth=depth
@@ -683,9 +672,21 @@ def adjust_rollback(depth=-10):
     try:
         if depth == -10: depth = caller_depth()
         if depth <= the.no_rollback_depth:
-            allow_rollback()
+            allow_rollback(1) # 1 extra depth for this method!
     except (Exception, Error) as e:
         error(e)
+
+
+def allow_rollback(n=0):
+    if n < 0: the.rollback_depths = []
+    depth = caller_depth() - 1 - n
+    if len(the.rollback_depths) > 0:
+        the.no_rollback_depth = the.rollback_depths[-1]
+        while the.rollback_depths[-1] >= depth:
+            the.no_rollback_depth =the.rollback_depths.pop()
+            if len(the.rollback_depths)==0: break
+    else:
+        the.no_rollback_depth = -1
 
 
 # todo ? trial and error -> evidence based 'parsing' ?
@@ -762,7 +763,7 @@ def maybe(expression):
         adjust_rollback()
         if angle._debug and (callable(result)):
             raise Exception("returned CALLABLE " + str(result))
-        if result and result!='False' or result == 0:
+        if result or result == 0: # and result!='False'
             verbose("GOT result from " + str(expression) + " : " + str(result))
         else:
             verbose("No result from " + str(expression))

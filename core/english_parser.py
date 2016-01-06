@@ -337,7 +337,7 @@ def fold_algebra(stack):
 
 
 def algebra(val=None):
-    # if angle.in_algebra: return False TODOO?? x * f(x-1)
+    if angle.in_algebra: return False #TODOO?? x * f(x-1)
     # global result
     if not val: must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
     stack = []
@@ -1378,7 +1378,7 @@ def action():  # NOT THE SAME AS EXPRESSION!?
 
 def action_or_expression(fallback=None):  # if a/e then a/b
     ok= maybe(action)
-    if ok and ok!='False': return ok
+    if ok: return ok # and ok!='False' ? all good?
     return expression(fallback)
 
 
@@ -2650,7 +2650,7 @@ def align_args(args, clazz, method):
     #     method = findMethod(clazz, method)
         else:
             margs, varargs, varkw, defaults = inspect.getargspec(method)
-            expect = len(margs) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
+            expect = len(margs) - (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
         if not isinstance(args,(list,dict)):
             args=[args]
         if isinstance(args, list):
