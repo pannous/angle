@@ -78,18 +78,8 @@ def puts(x):
 def assert_result_emitted(a, b, bla=None):
     angle.use_tree=True
     x=parse(a)
-    try:
-        res=emitters.pyc_emitter.run_ast(x)
-        return res
-    except Exception as e:
-        print("ERROR in eval ast: %s"%e)
     if isinstance(x,ast.Module):x=x.body
-    y=b
-    if not isinstance(y,list):y=[y]
-    if not isinstance(y[-1],ast.Expr):
-         y[-1]=kast.Expr(y[-1])
-    # assert_equals(x,y,bla)
-    assert_equals(y,x,bla)
+    assert_equals(b,x,bla)
 
 
 def assert_result_is(a, b, bla=None):
@@ -201,6 +191,10 @@ def copy_variables(variables=variables):
         variables[name]=Variable(name=name,value=v_,type=type(v_))
 
 class ParserBaseTest(unittest.TestCase):
+    def setUp(self):
+        global base_test
+        self.parser=parser(self)
+        base_test=self
 
     def setUp(self,auto_clear=True):
         global base_test

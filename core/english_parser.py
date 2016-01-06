@@ -952,9 +952,10 @@ def if_then_else():
     o = maybe(otherwise) or FALSE
     if angle.use_tree:
         if isinstance(ok,ast.IfExp):
-            ok.orelse=o
+            ok.orelse=o or None
         else:
-            ok.orelse=[ast.Expr(o)]
+            if o: ok.orelse=[ast.Expr(o)]
+            else: ok.orelse=None
         return ok
     if ok != "OK" and ok != False:  # and ok !=FALSE ^^:
         the.result = ok
@@ -999,7 +1000,8 @@ def if_then():
     if c == False or c == FALSE: return False
     if angle.use_tree:
         # if not isStatementOrExpression(b):b=ast.Expr(b)
-        # return ast.If(test=c,body=[b])
+        if isinstance(b,ast.Return):
+            return ast.If(test=c,body=[b])
         return ast.IfExp(test=c,body=b)# todo body cant be block here !
     if interpreting() and c != True:  # c==True done above!
         if check_condition(c):
@@ -1185,7 +1187,10 @@ def true_method(obj=None):
         if not name: name = maybe_tokens(moduleMethods)
     elif xvariable:
         variable = the.variables[xvariable]
-        obj, name = subProperty(variable.value)
+        if callable(variable.value):
+            name= variable.value.func_name
+        else:
+            obj, name = subProperty(variable.value)
     else:
         obj, property = subProperty(obj)
         name = maybe_tokens(the.method_names) or maybe(verb)
@@ -1213,6 +1218,7 @@ def true_method(obj=None):
 def method_call(obj=None):
     # verb_node
     module, obj, method_name = true_method(obj)
+    angle.in_algebra=False # hack?
     # method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
     # no_rollback()  # maybe doch?
     start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
@@ -1349,6 +1355,8 @@ def returns():
     the.result = maybe(expression)
     if interpreting():
         the.params.clear()
+    if angle.use_tree:
+        return ast.Return(value=the.result)
     return the.result
 
 

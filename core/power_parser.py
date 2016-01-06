@@ -173,7 +173,8 @@ def star(lamb, giveUp=False):
       good.append(match)
       if (the.current_word == ')'): break
       max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
-      if len(good) > max: raise Exception(" too many occurrences of " + to_source(lamb))
+      if len(good) > max:
+        raise Exception(" too many occurrences of " + to_source(lamb))
   except GivingUp as e:
     if giveUp:  raise e, None, sys.exc_info()[2]
     verbose("GivingUp ok in star")  # ok in star!
@@ -849,9 +850,12 @@ def maybe(expression):
     set_token(old)
     error(e)
     verbose(e)
+  except Exception as e:
+    error(e)
+    raise e, None, sys.exc_info()[2] # reraise!!! with traceback backtrace !!!!
   except Error as e:
     error(e)
-    raise e
+    raise e, None, sys.exc_info()[2] # reraise!!! with traceback backtrace !!!!
   finally:
     depth = depth - 1
   # except Exception as e:
@@ -924,6 +928,7 @@ class IgnoreException(Exception):
 
 def clear():
   global variables, variableValues
+  verbose("clear all variables, methods, ...")
   variables = {}
   variableValues = {}
   # the._verbose=True # False
@@ -941,7 +946,7 @@ def clear():
     do_interpret()
 
 
-def parse(s, target_file=None, do_clear=True):
+def parse(s, target_file=None, do_clear=False):
   global last_result, result
   if not s: return
   if do_clear: clear

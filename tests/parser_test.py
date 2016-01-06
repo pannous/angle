@@ -14,7 +14,7 @@ def s(param):
     pass
 
 
-class ParserTest(ParserBaseTest): #EnglishParser
+class ParserTest(): # PASS ParserBaseTest): #EnglishParser
     # ,EnglishParser   --> TypeError: Error when calling the metaclass bases
     # metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
 

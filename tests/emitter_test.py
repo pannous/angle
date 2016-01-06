@@ -12,6 +12,7 @@ from parser_test_helper import *
 
 
 class EmitterTest(ParserBaseTest):
+
   def init(self):
     angle.use_tree = True
 
@@ -104,8 +105,9 @@ class EmitterTest(ParserBaseTest):
     # Module(body=[FunctionDef(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Print(dest=None, values=[Str(s='yay', lineno=1, col_offset=17)], nl=True, lineno=1, col_offset=11)], decorator_list=[], lineno=1, col_offset=0)])
 
   def test_function(self):
-    parse("def test():puts 'yay'\ntest()")
-    assert_result_emitted("def test{puts 'yay'};test", 'yay')
+    # parse("def test():puts 'yay'\ntest()")
+    assert_result_emitted("def test{puts 'yay'};test()", 'yay')
+    # assert_result_emitted("def test{puts 'yay'};test", 'yay')
 
   def test_function_body2(self):
         add1=parse("to add1 to x return x+1 if x bigger 4 else x-1") #todo
@@ -134,7 +136,7 @@ class EmitterTest(ParserBaseTest):
   # Module(body=[Function(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Assign(targets=[Name(id='result', ctx=Store())], value=Print(dest=None, values=[Str(s='yay')], nl=True))], decorator_list=[]), Call(func=Name(id='test', ctx=Load()), args=[], keywords=[], starargs=None, kwargs=None)])
 
   def test_function2(self):
-    parse_file('samples/factorial.e')
+    parse('samples/factorial.e')
     assert_result_emitted('factorial 6', 5040)
 
   def test_if_then(self):

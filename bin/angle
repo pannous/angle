@@ -1,0 +1,5 @@
+# cd $ANGLE_HOME
+export PATH=$PATH:$ANGLE_HOME
+export PYTHONPATH=$PYTHONPATH=:$ANGLE_HOME
+# export DEBUG_ANGLE=1
+python $ANGLE_HOME/core/english_parser.py $@

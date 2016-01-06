@@ -13,7 +13,8 @@ class ConditionTest(ParserBaseTest):
         # self.parser=parser(self)
         angle.use_tree=False
         angle._verbose=False
-        super(ConditionTest, self).setUp()
+        # super(ConditionTest, self).setUp()
+        self.parser.clear()
         self.parser.do_interpret()
 
 

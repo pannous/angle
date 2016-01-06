@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = False
 from parser_test_helper import *
 
 
 class SelectorTest(ParserBaseTest):
 
+    def setUp(self,auto_clear=True):
+        angle.use_tree = False
 
     def test_every(self):
         parse('xs= [1,2,3]; increase all xs')
