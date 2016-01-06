@@ -5,11 +5,11 @@ import sys
 import __builtin__
 
 # import codegen
-import astor as codegen
-from astor.codegen import SourceGenerator
-SourceGenerator.visit_Function=SourceGenerator.visit_FunctionDef
-SourceGenerator.visit_Variable=SourceGenerator.visit_Name
-SourceGenerator.visit_Condition=SourceGenerator.visit_Compare
+import astor as codegen # https://pypi.python.org/pypi/astor
+from astor.codegen import SourceGenerator as sourcegen
+sourcegen.visit_Function=sourcegen.visit_FunctionDef # Love Python <3 !!
+sourcegen.visit_Variable=sourcegen.visit_Name
+sourcegen.visit_Condition=sourcegen.visit_Compare
 
 import angle
 import emitters
