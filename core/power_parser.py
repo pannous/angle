@@ -890,6 +890,7 @@ def parse(s, target_file=None):
     source_file='file' # python speak for in-line code
     # string
     verbose("PARSING")
+    if(len(s)<1000):verbose(s)
     try:
         import english_parser
         if isinstance(s, file):

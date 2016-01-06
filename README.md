@@ -80,10 +80,10 @@ Angle is a multi-paradigm programming language with [gradual typing](https://en.
 Read the [DOSSIER](https://github.com/pannous/english-script/blob/master/DOSSIER.md) for a more complete [**language specification**](https://github.com/pannous/english-script/blob/master/DOSSIER.md), vision and some background. 
 
 The grammar is not meant to be linguistically complete, but [functionality complete](https://en.wikipedia.org/wiki/Functional_completeness) and easily extendable. It is currently running in the 
-* [ruby](https://github.com/pannous/english-script) and python environment, but will soon compile to the 
+* [ruby](https://github.com/pannous/english-script) and [python](https://github.com/pannous/angle) environment, but will soon compile to the 
 * JVM thanks to [Mirah](https://github.com/mirah/mirah)
 * [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe Mirah too), 
-* JavaScript (via EMScripten?), and 
+* JavaScript (via EMScripten?) and 
 * As a final aim: run **natively**, maybe similar to [Crystal](https://github.com/manastech/crystal), [Vala](https://en.wikipedia.org/wiki/Vala_%28programming_language%29) or RPython
 
 Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Bootstrapping_%28compilers%29) is an important mid-term goal.
@@ -117,6 +117,8 @@ Run it and see yourself!
 `./bin/angle examples/test.e`
 
 `./bin/angle` (no args to start the shell)
+
+`⦠ 1/4`
 
 `⦠ 6 plus six`
 
