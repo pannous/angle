@@ -668,9 +668,9 @@ def no_rollback():
     the.no_rollback_depth=depth
     the.rollback_depths.append(depth)
 
-def adjust_rollback(depth=-10):
+def adjust_rollback(depth=-1):
     try:
-        if depth == -10: depth = caller_depth()
+        if depth == -1: depth = caller_depth()
         if depth <= the.no_rollback_depth:
             allow_rollback(1) # 1 extra depth for this method!
     except (Exception, Error) as e:
@@ -684,7 +684,10 @@ def allow_rollback(n=0):
         the.no_rollback_depth = the.rollback_depths[-1]
         while the.rollback_depths[-1] >= depth:
             the.no_rollback_depth =the.rollback_depths.pop()
-            if len(the.rollback_depths)==0: break
+            if len(the.rollback_depths)==0:
+                if the.no_rollback_depth >= depth:
+                    the.no_rollback_depth=-1
+                break
     else:
         the.no_rollback_depth = -1
 

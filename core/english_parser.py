@@ -946,6 +946,7 @@ def if_then_else():
     ok = if_then()  # todo :if 1 then False else: 2 => 2 :(: ok      =
     # if ok == False:
     #     ok = FALSE
+    adjust_rollback()
     o = maybe(otherwise) or FALSE
     if angle.use_tree:
         if isinstance(ok,ast.IfExp):

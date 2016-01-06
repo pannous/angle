@@ -263,7 +263,7 @@ class ConditionTest(ParserBaseTest):
         assert(the.result==True)
 
 
-    def test_zbug_and4(self):
+    def test_zbug_and4(self): # OK When tested separately!?
         assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
         assert_result_is('x=2;if x is smaller 3 and x is bigger 3 then 4 else 5', 5)
 

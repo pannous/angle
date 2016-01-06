@@ -200,7 +200,7 @@ otherKeywords = ['and', 'as', 'assert','back', 'beginning', 'but', 'by', 'contai
                  'eighth', 'else', \
                  'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for', 'fourth', 'even',
                  'front', 'get', \
-                 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'last', 'local', 'me', 'middle', 'mod', 'my', \
+                 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that','result', 'last', 'local', 'me', 'middle', 'mod', 'my', \
                  'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout', 'times', \
                  'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'prop', 'property', 'put', 'ref',
                  'reference', \
