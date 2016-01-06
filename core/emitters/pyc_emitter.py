@@ -67,9 +67,11 @@ class Reflector(object):  # Implements list interface is
 
 
 def fix_block(body, returns=True,prints=False):
+  body.insert(0, ast.Global(names=['__result__']))
+      # body.insert(1, kast.setter(name('__result__'),kast.none))
   last_statement = body[-1]
   if isinstance(last_statement, list) and len(last_statement) == 1: last_statement = last_statement[0]  # HOW??
-  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return)):
+  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return,ast.Assert)):
     if (isinstance(last_statement, ast.Print)):
       body[-1] = (setter("__result__", last_statement.values[0]))
       last_statement.values[0] = name("__result__")
@@ -219,19 +221,18 @@ def print_ast(my_ast):
     x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
     print(x)
     print("")
-  except:
-    pass
-  try:
     x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
     print(x)
     print("")
   except:
-    pass
+    print("CAN'T DUMP ast %s", my_ast)
 
 
-def run_ast(my_ast, source_file="(String)"):
-  my_ast = fix_ast_module(my_ast)
-  code = compile(my_ast, source_file, 'exec')
+def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=None):
+  if fix:
+    my_ast = fix_ast_module(my_ast)
+  if not code:
+    code = compile(my_ast, source_file, 'exec')
   try:
     if source_file=="(String)": source_file="emitted.py"
     source = codegen.to_source(my_ast)
@@ -245,8 +246,13 @@ def run_ast(my_ast, source_file="(String)"):
   # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
   # eval can't handle arbitrary python code (eval("import math") ), and
   # exec() doesn't return the results.
-  ret = eval(code, the.params, Reflector())
-  # ret = eval(code, the.params)
+  if context:
+    my_globals=get_globals(args)
+    ret = eval(code,my_globals, Reflector()) # in context
+  else:
+    __result__=None
+    exec(code)      # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
+    ret = __result__# set via Reflector() ? noo
   ret = ret or the.result
   print("GOT RESULT %s" % ret)
   return ret
@@ -271,6 +277,8 @@ def fix_ast_module(my_ast):
     my_ast = ast.Module(body=my_ast)
 
   PrepareTreeVisitor().visit(my_ast)
+  my_ast.body.insert(0, ast.Global(names=['__result__']))
+  my_ast.body.insert(1, kast.setter(name('__result__'),kast.none)) # save here
   for s in to_inject:
     if not s in my_ast.body:
       my_ast.body.insert(0, s)
@@ -281,38 +289,43 @@ def fix_ast_module(my_ast):
   return my_ast
 
 
-def eval_ast(my_ast, args={}, source_file='file', target_file=None):
-  import the
+def get_globals(args):
+  my_globals={} #    # context_variables=variableValues.copy()+globals()+locals()
+  my_globals.update(the.variableValues.copy())
+  my_globals.update(the.params)
+  my_globals.update(the.methods)
+  my_globals.update(globals())
+  if isinstance(args, dict):
+    the.params.update(args)
+  else:
+    print("What the hell do you think you're doing, I need a dictionary as args (not a list)")
+  return my_globals
 
+
+def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False):
+  import the
   try:  # todo args =-> SETTERS!
-    # context_variables=variableValues.copy()+globals()+locals()
-    while len(to_inject) > 0: to_inject.pop()
-    the.params.update(the.variableValues.copy())
-    if isinstance(args, dict):
-      the.params.update(args)
-    else:
-      print("What the hell do you think you're doing, I need a dictionary as args (not a list)")
-    # context_variables.update(globals())
-    # context_variables.update(locals())
+    while len(to_inject) > 0: to_inject.pop() #clear
     my_ast = fix_ast_module(my_ast)
-    code = compile(my_ast, source_file, 'exec')
+
+    # The mode must be 'exec' to compile a module, 'single' to compile a
+    # single (interactive) statement, or 'eval' to compile an expression.
+    # code = compile(my_ast, source_file, 'exec')
+    code = compile(my_ast, source_file, 'eval')
+
     # TypeError: required field "lineno" missing from expr NONO,
     # this as a documentation bug,
     # this error can mean >>anything<< except missing line number!!! :) :( :( :(
 
-    # code=compile(my_ast, 'file', 'exec')
-    # eval can't handle arbitrary python code (eval("import math") ), and
-    # exec() doesn't return the results.
     if target_file:
       import ast_export
       ast_export.emit_pyc(code, target_file)
-    if angle.use_tree:
+    if angle.use_tree and not run:
       the.result = my_ast
-      return my_ast  # code #  Don't evaluate here
+      return my_ast  # code #  Don't evaluate here, run_ast() later!
 
-    ret = eval(code, the.params, Reflector())
-    ret = ret or the.result
-    print("GOT RESULT %s" % ret)
+    # ret = run_ast(my_ast,source_file,args,fix=False,code=code)
+    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
     # err= sys.stdout.getvalue()
     # if err: raise err
     # z=exec (code)
@@ -320,12 +333,8 @@ def eval_ast(my_ast, args={}, source_file='file', target_file=None):
     return ret
   except Exception as e:
     print(my_ast)
+    print_ast(my_ast)
     info_ = sys.exc_info()[2]
-    try:
-      print_ast(my_ast)
-    except:
-      print("CAN'T DUMP ast %s", my_ast)
-      pass
     raise e, None, info_
 
 

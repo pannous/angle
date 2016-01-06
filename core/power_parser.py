@@ -749,10 +749,11 @@ def block(multiple=False):  # type):
     english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
   start = pointer()
   maybe(comment_block)
-  statements = [statement()]
+  statement0 = statement(False)
+  statements = [statement0] if statement0 else []
   # content = pointer() - start
   end_of_block = maybe(end_block)  # ___ done_words
-  if multiple or not end_of_block and not checkEndOfFile():
+  while (multiple or not end_of_block) and not checkEndOfFile():
     end_of_statement()  # danger, might act as block end!
     no_rollback()
     if multiple: maybe_newline()
@@ -776,7 +777,9 @@ def block(multiple=False):  # type):
 
     star(lamb, giveUp=True)
     # maybe(end_of_statement)
-    end_block()
+    end_of_block = end_block()
+    if not multiple: break
+
 
   the.last_result = the.result
   if interpreting(): return statements[-1]
@@ -1080,10 +1083,8 @@ def checkEndOfFile():
 def maybe_newline():
   return newline(doraise=False)
 
-
 def newline(doraise=False):
-  if the.current_word == '': return True
-  if checkNewline() == english_tokens.NEWLINE or the.current_word == ';':
+  if checkNewline() == english_tokens.NEWLINE or the.current_word == ';' or the.current_word == '':
     next_token()
     if (the.current_type == 54):
       next_token()  # ??? \r\n ? or what is this, python?

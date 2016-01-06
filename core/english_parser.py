@@ -811,10 +811,10 @@ def piped_actions(a=False):
         return OK
 
 
-def statement():
+def statement(doraise=True):
     if starts_with(done_words) or checkNewline():  # allow empty blocks
-        return False
-        # raise_not_matching("end of block ok")
+        if doraise:raise_not_matching("end of block ok")
+        else:return False
     # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     maybe_indent()
@@ -1316,6 +1316,8 @@ def assert_that():
     s = condition()
     if interpreting():
         assert check_condition(s),s
+    if angle.use_tree:
+        return ast.Assert(test=s,msg=str(s))
     return s
 
 
@@ -1431,7 +1433,9 @@ def done(_type=None):
     if checkEndOfFile(): return OK
     # if checkEndOfLine(): return OK NOT ENOUGH FOR BLOCK!
     if the.current_line == "\n": return OK
-    if the.current_line == "end\n": return OK #todoooo
+    if the.current_line == "end\n":
+        next_token()
+        return OK #todoooo
     if the.current_type==_token.DEDENT: return OK
     checkNewline()
     ok = maybe_tokens(done_words)
