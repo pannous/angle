@@ -65,7 +65,12 @@ def fix_block(body,returns=True):
     last_statement=body[-1]
     if isinstance(last_statement,list) and len(last_statement)==1: last_statement=last_statement[0] #HOW??
     if not isinstance(last_statement, (ast.Assign,ast.If, nodes.Function,ast.Return)):
-        body[-1]=(setter("__result__",last_statement))
+        if(isinstance(last_statement,ast.Print)):
+            body[-1]=(setter("__result__",last_statement.values[0]))
+            last_statement.values[0]=name("__result__")
+            body.append(last_statement)
+        else:
+            body[-1]=(setter("__result__",last_statement))
     if returns:
         body.append(ast.Return(name("__result__")))
     return body
@@ -239,8 +244,6 @@ def fix_ast_module(my_ast):
 
 
 def eval_ast(my_ast, args={}, source_file='file',target_file=None):
-    import codegen
-    import ast
     import the
 
     try:  # todo args =-> SETTERS!

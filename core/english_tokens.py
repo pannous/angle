@@ -197,12 +197,12 @@ true_words = ['True', 'yes', 'ja', 'positive']
 boolean_words = false_words + true_words
 
 otherKeywords = ['and', 'as', 'assert','back', 'beginning', 'but', 'by', 'contain', 'contains', 'copy', 'def', 'div', 'does',
-                 'eighth', 'else', \
+                 'eighth',  'else', \
                  'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for', 'fourth', 'even',
                  'front', 'get', \
                  'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that','result', 'last', 'local', 'me', 'middle', 'mod', 'my', \
                  'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout', 'times', \
-                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'prop', 'property', 'put', 'ref',
+                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'print', 'prop', 'property', 'put', 'ref',
                  'reference', \
                  'repeat', 'return', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 

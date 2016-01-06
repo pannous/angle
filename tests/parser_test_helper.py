@@ -94,21 +94,12 @@ def assert_result_emitted(a, b, bla=None):
 
 def assert_result_is(a, b, bla=None):
     x=parse(a)
-    if(isinstance(x,ast.AST)):
-        x=emitters.pyc_emitter.run_ast(x)
     # y=parse(b)
     y=b
     if bla:
         assert x==y, "%s %s SOULD EQUAL %s BUT WAS %s"%(bla,a,b,x)
     else:
         assert x==y, "%s SOULD EQUAL %s \nGOT %s != %s"%(a,b,x,y)
-
-
-def parse_file(x):
-    import os
-    # x=os.path.abspath(x)
-    the.current_file=x
-    return english_parser.parse(open(x).readlines())
 
 
 def assert_equals(a, b, bla=None):
@@ -159,29 +150,14 @@ def assert_has_no_error(x):
 def sleep(s):
     pass
 
-def clear_test():
-    global variables,variableValues
-    variables={}
-    variableValues={}
-        # the._verbose=True # False
-    angle.testing=True
-    the.variables.clear()
-    the.variableTypes.clear()
-    the.variableValues.clear()
-    angle.in_hash=False
-    angle.in_list=False
-    angle.in_condition=False
-    angle.in_args=False
-    angle.in_params=False
-    angle.in_pipe=False
-    if not angle.use_tree:
-        power_parser.do_interpret()
 
 def parse(s):
     print("PARSING %s"%s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
-    if isinstance(r,ast.Module): r=r.body[-1] #YA?
+    if(isinstance(r,list) and isinstance(r[0],ast.AST) or isinstance(r,ast.AST)):
+        if isinstance(r,ast.Module): r=r.body[-1] #YA?
+        r=emitters.pyc_emitter.run_ast(r)
     variables.update(the.variables)
     variableValues.update(the.variableValues)
     functions.update(the.methods)
@@ -230,7 +206,7 @@ class ParserBaseTest(unittest.TestCase):
         global base_test
         self.parser=parser(self)
         base_test=self
-        clear_test()
+        self.parser.clear()
 
     def context(self):
         pass
@@ -374,14 +350,11 @@ class ParserBaseTest(unittest.TestCase):
         return the.result
         # self.parser.result
 
-    def parse_file(self, file):
-        parse(IO.read(file))
-
     def parse_tree(self, x):
         if isinstance(x,str):
             return x
         self.parser.dont_interpret()
-        self.interpretation = self.parser.parse(x)
+        interpretation = self.parser.parse(x)
         self.parser.full_tree()
         if angle.emit:
             return parser.emit(interpretation, interpretation.root())

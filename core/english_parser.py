@@ -766,7 +766,7 @@ def expression(fallback=None,resolve=True):
 
     ex = post_operations(ex) or ex
     # ex = postoperations(ex) or ex
-    check_comment()
+    skip_comments()
 
     if not interpreting():
         # if not angle.use_tree:
@@ -812,7 +812,8 @@ def piped_actions(a=False):
 
 def statement():
     if starts_with(done_words) or checkNewline():  # allow empty blocks
-        raise_not_matching("end of block ok")
+        return False
+        # raise_not_matching("end of block ok")
     # raiseNewline()  # maybe(really) maybe(why)
     if checkNewline(): return NEWLINE
     maybe_indent()
@@ -838,7 +839,7 @@ def statement():
     angle.in_condition=False # hack!
     the.result = x
     the.last_result = x
-    check_comment()
+    skip_comments()
     adjust_interpret()
     return the.result
 
@@ -1171,7 +1172,7 @@ def subProperty(context):
 
 
 def true_method(obj=None):
-    no_keyword()
+    no_keyword_except(['print'])
     should_not_start_with(auxiliary_verbs)
     xmodule = maybe_tokens(the.moduleNames)
     xvariable = maybe_tokens(the.variables.keys())
@@ -3410,7 +3411,7 @@ def start_shell(args=[]):
         #   input = STDIN.gets.strip()
         try:
             # interpretation= parser.parse input
-            interpretation = parse(input0)
+            interpretation = parse(input0,None,False)
             if not interpretation: next
             # if angle.use_tree: print(interpretation.tree)
             print(interpretation.result)
@@ -3432,6 +3433,7 @@ def main():
     angle._verbose = False
     the._verbose = False
     ARGV = sys.argv
+    # version=`git rev-list --all --count`
     # ARGF=sys.argv
     if len(ARGV) == 1:
         print('Angle english programming language v1.2')
@@ -3441,36 +3443,29 @@ def main():
         print("\t./angle (no args for shell)")
         return start_shell()
     a = str(ARGV[1])
+    print(">>> %s"%a)
+    if a=="--version" or a=='-version' or a=='-v':
+        print the.version
+        return
+    if a=="--verbose":
+        angle._verbose=True
     # read from commandline argument or pipe!!
     # all=ARGF.read or File.read(a) except a
     target_file=None
-    if is_file(a):
-        target_file=a+".pyc"
-        all= open(a).readall()
-    else:
-        all = (' ').join(ARGV[1:])
-
-    # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
-    # if isinstance(all, str): all = all.split("\n")
-
-    all=[all]
-    # puts "parsing #{all)"
-    for line in all:
-        if not line: continue
-        try:
-            interpretation = parse(line.encode('utf-8'),target_file)
-            if angle.use_tree: print(interpretation.tree)
-            if the.result and not not the.result and not the.result == Nil:
-                print(the.result)
-        except NotMatching as e:
-            print(e)
-            print('Syntax Error')
-        except GivingUp as e:
-            print('Syntax Error')
-        # except Exception as e:
-        #     print(e)
+    try:
+        interpretation = parse(a.encode('utf-8'),target_file)
+        if angle.use_tree: print(interpretation.tree)
+        if the.result and not not the.result and not the.result == Nil:
+            print(the.result)
+        if not target_file: start_shell()
+    except NotMatching as e:
+        print(e)
+        print('Syntax Error')
+    except GivingUp as e:
+        print('Syntax Error')
+    # except Exception as e:
+    #     print(e)
     print("")
-    if not target_file: start_shell()
 
 if __name__ == '__main__':
     main()

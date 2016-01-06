@@ -211,7 +211,7 @@ class Argument(kast.arg):
 
     def __eq__(self,other):
         if not other:
-            print >> sys.stderr, "missing argument %s"%self
+            # print >> sys.stderr, "missing argument %s "%self
             return False
         if not isinstance(other,Argument):return False
         ok = True

@@ -11,7 +11,7 @@ import exceptions
 import __builtin__
 import shutil
 
-def x(y):
+def xx(y):
   if isinstance(y,list):  return xlist(y)
   if isinstance(y,str):   return xstr(y)
   if isinstance(y,dict):  return xdict(y)

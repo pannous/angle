@@ -37,6 +37,7 @@ params = {} # Temporary parameters in calling context, Delete them after return
 
 string=""
 tokenstream=[] # tuple:
+tokens_len=0 # len(tokenstream)
 token_map={} # directly map tokens to their functions
 token_number=0
 current_type=0
@@ -87,9 +88,10 @@ def parent_node():
     return None
 
 # print_function
-core_methods = ['show', 'now', 'yesterday', 'help']  # maybe(difference)
+core_methods = ['show', 'now', 'yesterday', 'help','print']  # maybe(difference)
 # SEE typeNameMapped!
 methods = {
+    'print':extensions.puts,
     'length': len,
     'size': len,
     'count': len,
@@ -97,7 +99,6 @@ methods = {
     'puts':extensions.puts,
     'printf':extensions.puts, #todo
     'p':extensions.puts,
-    'print':extensions.puts,
     'show':extensions.puts,
     'increase':extensions.increase
     # 'reverse':extensions.xstr.reverse
@@ -122,3 +123,4 @@ verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply',
 
 emit=False
 
+version="0.6.4"

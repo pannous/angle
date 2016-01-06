@@ -3,6 +3,7 @@ import angle
 import english_parser
 import interpretation
 import tests.parser_test_helper
+from parser_test_helper import *
 
 angle.use_tree = False
 # from test_helper import *
@@ -13,7 +14,7 @@ def s(param):
     pass
 
 
-class ParserTest(tests.parser_test_helper.ParserBaseTest): #EnglishParser
+class ParserTest(ParserBaseTest): #EnglishParser
     # ,EnglishParser   --> TypeError: Error when calling the metaclass bases
     # metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
 
@@ -33,6 +34,8 @@ class ParserTest(tests.parser_test_helper.ParserBaseTest): #EnglishParser
     def test_comment(self):
         assert_result_is('x=11# ok',11)
         assert_result_is('x=13 //ok',13)
+        assert_result_is('# a b \n # c d\nx=12# ok',12)
+
         # assert_result_is('x=12 -- ok',12)
 
     def test_comment2(self):
@@ -137,7 +140,7 @@ class ParserTest(tests.parser_test_helper.ParserBaseTest): #EnglishParser
 
     def test_comment2(self):
         s('#ok')
-        check_comment()
+        skip_comments()
         # comment()
         # statement()
         s('z3=13 //ok')
