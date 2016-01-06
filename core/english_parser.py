@@ -3391,15 +3391,17 @@ def ruby_action():
     exec (action or quote)
 
 
-def start_shell():
+def start_shell(args=[]):
     import readline
-    angle._verbose = False
-    the._verbose = False
-    angle._debug=os.environ['ANGLE_HOME']
+    angle._debug=angle._debug or 'ANGLE_DEBUG' in os.environ
+    # angle.home=os.environ['ANGLE_HOME']
     from os.path import expanduser
     home = expanduser("~") #WTF
     readline.read_history_file(home+'/.english_history')
-    input0 = raw_input('⦠ ')
+    if len(args)>1:
+        input0 = ' '.join(args)
+    else:
+        input0 = raw_input('⦠ ')
     while input0:
         # while input = Readline.readline('angle-script⦠ ', True)
         readline.write_history_file(home+"/.english_history")
@@ -3427,6 +3429,8 @@ def start_shell():
 
 
 def main():
+    angle._verbose = False
+    the._verbose = False
     ARGV = sys.argv
     # ARGF=sys.argv
     if len(ARGV) == 1:
@@ -3436,24 +3440,28 @@ def main():
         print("\t./angle samples/test.e")
         print("\t./angle (no args for shell)")
         return start_shell()
-    if ARGV[1].endswith("shell"):
-        return start_shell()
-    all = (' ').join(ARGV[1:])
     a = str(ARGV[1])
     # read from commandline argument or pipe!!
     # all=ARGF.read or File.read(a) except a
-    # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
-    if isinstance(all, str): all = all.split("\n")
+    target_file=None
+    if is_file(a):
+        target_file=a+".pyc"
+        all= open(a).readall()
+    else:
+        all = (' ').join(ARGV[1:])
 
+    # if isinstance(all,str) and all.endswith(".e"): all=File.read(`pwd`.strip+"/"+a)
+    # if isinstance(all, str): all = all.split("\n")
+
+    all=[all]
     # puts "parsing #{all)"
     for line in all:
         if not line: continue
         try:
-            interpretation = parse(line.encode('utf-8'))
-            # interpretation=EnglishParser().parse line.encode('utf-8')
-            the.result = interpretation.the.result
+            interpretation = parse(line.encode('utf-8'),target_file)
             if angle.use_tree: print(interpretation.tree)
-            if the.result and not not the.result and not the.result == Nil: print(the.result)
+            if the.result and not not the.result and not the.result == Nil:
+                print(the.result)
         except NotMatching as e:
             print(e)
             print('Syntax Error')
@@ -3462,6 +3470,7 @@ def main():
         # except Exception as e:
         #     print(e)
     print("")
+    if not target_file: start_shell()
 
 if __name__ == '__main__':
     main()
