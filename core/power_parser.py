@@ -397,7 +397,7 @@ def init(strings):
     the.lines = strings.split("\n")
     parse_tokens(strings)
   # drop_comments()  # DONE BY TOKENIZER! (54, '\n', (1, 20), (1, 21), '#!/usr/bin/env angle\n', 0)
-  the.tokens_len=len(the.tokenstream)
+  the.tokens_len = len(the.tokenstream)
   the.token_number = -1
   next_token()
   the.string = the.lines[0].strip()  # Postpone angel.problem
@@ -412,10 +412,10 @@ def init(strings):
     # result           =None NOO, keep old!
 
 
-  # def s(s):
-  #     allow_rollback()
-  #     init(s)
-  # parser.init the.string
+    # def s(s):
+    #     allow_rollback()
+    #     init(s)
+    # parser.init the.string
 
 
 def assert_equals(a, b):
@@ -554,7 +554,7 @@ def must_contain_before_old(before, *args):  # ,before():None
 # NOT == starts_with !!!
 def look_ahead(expect_next, doraise=False):
   if the.current_word == '': return False
-  if the.token_number + 1>=the.tokens_len:
+  if the.token_number + 1 >= the.tokens_len:
     print("BUG: this should not happen")
     return False
   token = the.tokenstream[the.token_number + 1]
@@ -747,7 +747,7 @@ def block(multiple=False):  # type):
   global last_result, original_string
   from english_parser import statement, end_of_statement, end_block
   maybe_newline() or not "=>" in the.current_line and maybe_tokens(
-    english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
+          english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
   start = pointer()
   maybe(comment_block)
   statement0 = statement(False)
@@ -780,7 +780,6 @@ def block(multiple=False):  # type):
     # maybe(end_of_statement)
     end_of_block = end_block()
     if not multiple: break
-
 
   the.last_result = the.result
   if interpreting(): return statements[-1]
@@ -834,7 +833,7 @@ def maybe(expression):
       # if angle.use_tree:
       #     import TreeBuilder
       #     TreeBuilder.show_tree()  # Not reached
-      ex = GivingUp(str(e)+"\n"+to_source(expression) + "\n" + pointer_string())
+      ex = GivingUp(str(e) + "\n" + to_source(expression) + "\n" + pointer_string())
       raise ex, None, sys.exc_info()[2]
       # error e #exit
       # raise SyntaxError(e)
@@ -857,10 +856,10 @@ def maybe(expression):
     verbose(e)
   except Exception as e:
     error(e)
-    raise e, None, sys.exc_info()[2] # reraise!!! with traceback backtrace !!!!
+    raise e, None, sys.exc_info()[2]  # reraise!!! with traceback backtrace !!!!
   except Error as e:
     error(e)
-    raise e, None, sys.exc_info()[2] # reraise!!! with traceback backtrace !!!!
+    raise e, None, sys.exc_info()[2]  # reraise!!! with traceback backtrace !!!!
   finally:
     depth = depth - 1
   # except Exception as e:
@@ -961,7 +960,7 @@ def parse(s, target_file=None):
     target_file = target_file or s + ".pyc"
     source_file = s
     s = open(s).readlines()
-    angle.use_tree=True
+    angle.use_tree = True
   else:
     source_file = 'file'  # python speak for in-line code
   # string
@@ -981,12 +980,13 @@ def parse(s, target_file=None):
       the.result = english_parser.do_execute_block(the.result)
     if the.result in ['True', 'true']: the.result = True
     if the.result in ['False', 'false']: the.result = False
-    if isinstance(the.result, nodes.Variable):the.result=the.result.value
+    if isinstance(the.result, nodes.Variable): the.result = the.result.value
     import ast
-    got_ast=isinstance(the.result, ast.AST) or isinstance(the.result,list) and isinstance(the.result[0],ast.AST)
+    got_ast = isinstance(the.result, ast.AST) or isinstance(the.result, list) and isinstance(the.result[0], ast.AST)
     if angle.use_tree and got_ast:
       import emitters
-      the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file,run=True)
+      the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
+      # the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True,context='eval')
     else:
       if isinstance(the.result, ast.Num): the.result = the.result.n
       if isinstance(the.result, ast.Str): the.result = the.result.s
@@ -1086,6 +1086,7 @@ def checkEndOfFile():
 
 def maybe_newline():
   return checkEndOfFile() or newline(doraise=False)
+
 
 def newline(doraise=False):
   if checkNewline() == english_tokens.NEWLINE or the.current_word == ';' or the.current_word == '':
@@ -1286,7 +1287,7 @@ def load_module_methods():
   #     if not c in the.method_names: the.method_names.append(c)
   for x in dir(extensions):
     the.method_names.append(x)
-  angle.extensionMap=extensions.extensionMap
+  angle.extensionMap = extensions.extensionMap
   for _type in angle.extensionMap:
     ex = angle.extensionMap[_type]
     for method in dir(ex):

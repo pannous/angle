@@ -64,7 +64,6 @@ class Reflector(object):  # Implements list interface is
     the.result = value
 
 
-
 class PrepareTreeVisitor(ast.NodeTransformer):
   parents = []
 
@@ -129,7 +128,6 @@ class PrepareTreeVisitor(ast.NodeTransformer):
   def visit_Call(self, x):
     return x  # and done!
 
-
   # def visit_Print(self, x):
   #     return ast.Expr(x)
   # def visit_BinOp(self, node):
@@ -145,8 +143,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
   def visit_str(self, x):
     if x == '0': return _ast.Num(0)
     if x == 'False': return kast.false
-    if isinstance(self.current, (ast.Str, ast.Name, ast.FunctionDef, ast.Attribute,ast.alias,ast.keyword)):
-      return x # todo: whitelist!!
+    if isinstance(self.current, (ast.Str, ast.Name, ast.FunctionDef, ast.Attribute, ast.alias, ast.keyword)):
+      return x  # todo: whitelist!!
     return ast.Str(x)
 
   def visit_int(self, x):
@@ -213,8 +211,7 @@ def print_ast(my_ast):
     print(my_ast.body)
 
 
-
-def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=None):
+def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
   if fix:
     my_ast = fix_ast_module(my_ast)
   if not code:
@@ -223,14 +220,14 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
   # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
   # eval can't handle arbitrary python code (eval("import math") ), and
   # exec() doesn't return the results.
-  if context=='eval':
-    my_globals=get_globals(args)
-    ret = eval(code,my_globals, Reflector()) # in context
+  if context == 'eval':
+    my_globals = get_globals(args)
+    ret = eval(code, my_globals, Reflector())  # in context
   else:
-    __result__=None
+    it = None
     # globals
-    exec(code)      # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
-    ret = __result__# set via Reflector() ? noo
+    exec (code)  # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
+    ret = it  # set via Reflector() ? noo
   ret = ret or the.result
   print("GOT RESULT %s" % ret)
   return ret
@@ -238,7 +235,7 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
 # Module([Expr(Num(1))])
-def fix_ast_module(my_ast,fix_body=True):
+def fix_ast_module(my_ast, fix_body=True):
   # gotta wrap: 1 => Module(body=[Expr(value=[Num(n=1)])])
   if not type(my_ast) == ast.Module:
     # my_ast = flatten(my_ast)
@@ -257,39 +254,39 @@ def fix_ast_module(my_ast,fix_body=True):
   PrepareTreeVisitor().visit(my_ast)
 
   if fix_body:
-    my_ast.body.insert(0, ast.Global(names=['__result__']))
-    my_ast.body.insert(1, kast.setter(name('__result__'),kast.none)) # save here, unlike in block!
+    my_ast.body.insert(0, ast.Global(names=['it']))
+    my_ast.body.insert(1, kast.setter(name('it'), kast.none))  # save here, unlike in block!
     for s in to_inject:
       if not s in my_ast.body:
         my_ast.body.insert(0, s)
-    fix_block(my_ast.body,returns=False,prints=True)
+    fix_block(my_ast.body, returns=False, prints=True)
   my_ast = ast.fix_missing_locations(my_ast)
   print_ast(my_ast)
   return my_ast
 
 
-def fix_block(body, returns=True,prints=False):
-  if not isinstance(body[0],ast.Global):
-    body.insert(0, ast.Global(names=['__result__']))
-      # body.insert(1, kast.setter(name('__result__'),kast.none))
+def fix_block(body, returns=True, prints=False):
+  if not isinstance(body[0], ast.Global):
+    body.insert(0, ast.Global(names=['it']))
+    # body.insert(1, kast.setter(name('it'),kast.none))
   last_statement = body[-1]
   if isinstance(last_statement, list) and len(last_statement) == 1: last_statement = last_statement[0]  # HOW??
-  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return,ast.Assert)):
+  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return, ast.Assert)):
     if (isinstance(last_statement, ast.Print)):
-      body[-1] = (setter("__result__", last_statement.values[0]))
-      last_statement.values[0] = name("__result__")
+      body[-1] = (setter("it", last_statement.values[0]))
+      last_statement.values[0] = name("it")
       body.append(last_statement)
     else:
-      body[-1] = (setter("__result__", last_statement))
+      body[-1] = (setter("it", last_statement))
   if returns:
-    body.append(ast.Return(name("__result__")))
+    body.append(ast.Return(name("it")))
   if prints:
-    body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
+    body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
   return body
 
 
 def get_globals(args):
-  my_globals={} #    # context_variables=variableValues.copy()+globals()+locals()
+  my_globals = {}  # # context_variables=variableValues.copy()+globals()+locals()
   my_globals.update(the.variableValues.copy())
   my_globals.update(the.params)
   my_globals.update(the.methods)
@@ -300,21 +297,22 @@ def get_globals(args):
     print("What the hell do you think you're doing, I need a dictionary as args (not a list)")
   return my_globals
 
-def get_ast(python,source='file',context='exec'):
-  py_ast=compile(python, source, context,ast.PyCF_ONLY_AST) # 'eval' only for ONE Expr!!
+
+def get_ast(python, source='file', context='exec'):
+  py_ast = compile(python, source, context, ast.PyCF_ONLY_AST)  # 'eval' only for ONE Expr!!
   print_ast(py_ast)
   return py_ast
 
-def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False,fix_body=True,context='exec'):
+
+def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False, fix_body=True, context='exec'):
   import the
   try:  # todo args =-> SETTERS!
-    while len(to_inject) > 0: to_inject.pop() #clear
-    my_ast = fix_ast_module(my_ast,fix_body=fix_body)
+    while len(to_inject) > 0: to_inject.pop()  # clear
+    my_ast = fix_ast_module(my_ast, fix_body=fix_body)
 
     # The mode must be 'exec' to compile a module, 'single' to compile a
-    # single (interactive) statement, or 'eval' to compile an expression.
-    # code = compile(my_ast, source_file, 'eval') # SINGLE : expected Expression node, got Module
-    code = compile(my_ast, source_file, 'exec') # regardless!
+    # single (interactive) statement, or 'eval' to compile a SINGLE expression.
+    code = compile(my_ast, source_file, 'exec')  # regardless!
     # TypeError: required field "lineno" missing from expr NONONO!
     # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
 
@@ -326,16 +324,16 @@ def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False,fi
 
     try:
       source = codegen.to_source(my_ast)
-      if source_file=="(String)":source_file="emitted.py"
-      open(source_file+".py",'wt').write(source)
+      if source_file == "(String)": source_file = "emitted.py"
+      open(source_file + ".py", 'wt').write(source)
       print(source)  # => CODE
     except:
       import traceback
       traceback.print_exc()  # backtrace
-    emit_pyc(code,source_file+"c")
+    emit_pyc(code, source_file + "c")
 
-    # ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context)
-    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
+    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context) #
+    # ret = run_ast(my_ast, source_file, args, fix=False, code=code, context='eval')
     # err= sys.stdout.getvalue()
     # if err: raise err
     # z=exec (code)
@@ -375,15 +373,15 @@ def wrap_value(val):
   raise Exception("UNKNOWN TYPE %s : %s !" % (val, t))
 
 
-def emit_pyc(code,fileName='output.pyc'):
-    import marshal
-    import py_compile
-    import time
-    with open(fileName, 'wb') as fc:
-        fc.write('\0\0\0\0')
-        py_compile.wr_long(fc, long(time.time()))
-        marshal.dump(code, fc)
-        fc.flush()
-        fc.seek(0, 0)
-        fc.write(py_compile.MAGIC)
-        print("WRITTEN TO "+fileName)
+def emit_pyc(code, fileName='output.pyc'):
+  import marshal
+  import py_compile
+  import time
+  with open(fileName, 'wb') as fc:
+    fc.write('\0\0\0\0')
+    py_compile.wr_long(fc, long(time.time()))
+    marshal.dump(code, fc)
+    fc.flush()
+    fc.seek(0, 0)
+    fc.write(py_compile.MAGIC)
+    print("WRITTEN TO " + fileName)

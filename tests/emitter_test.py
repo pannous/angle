@@ -40,8 +40,8 @@ class EmitterTest(ParserBaseTest):
 
   def test_type_cast23(self):
     assert_result_is('2.3 as int', 2)
-    # Module([Assign([Name('__result__', Store())], Call(Name('int', Load()), [Num(2.4)], [], None, None))])
-    # Module(body=[Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=0)], value=Call(func=Name(id='int', ctx=Load(), lineno=1, col_offset=11), args=[Num(n=2.4, lineno=1, col_offset=15)], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=0)])
+    # Module([Assign([Name('it', Store())], Call(Name('int', Load()), [Num(2.4)], [], None, None))])
+    # Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=Call(func=Name(id='int', ctx=Load(), lineno=1, col_offset=11), args=[Num(n=2.4, lineno=1, col_offset=15)], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=0)])
 
   def test_type_cast2(self):
     assert_result_emitted('int z is 2.3 as int', 2)
@@ -85,11 +85,11 @@ class EmitterTest(ParserBaseTest):
 
   def test_function_call(self):
     assert_result_emitted('i=7;i minus one', 6)
-    #   Module(body=[Assign(targets=[Name(id='i', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=7, lineno=1, col_offset=0), lineno=1, col_offset=0), Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=0)], value=Expr(value=BinOp(left=Name(id='i', ctx=Load(), lineno=1, col_offset=0), op=Sub(), right=Num(n=1.0, lineno=1, col_offset=0), lineno=1, col_offset=0), lineno=1, col_offset=0), lineno=1, col_offset=0)])
+    #   Module(body=[Assign(targets=[Name(id='i', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=7, lineno=1, col_offset=0), lineno=1, col_offset=0), Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=Expr(value=BinOp(left=Name(id='i', ctx=Load(), lineno=1, col_offset=0), op=Sub(), right=Num(n=1.0, lineno=1, col_offset=0), lineno=1, col_offset=0), lineno=1, col_offset=0), lineno=1, col_offset=0)])
 
-  # Module([Assign([Name('i', Store())], Num(7)), Assign([Name('__result__', Store())], Expr(BinOp(Name('i', Load()), Sub(), Num(1.0))))])
-  # Module([Assign([Name('i', Store())], Num(7)), Assign([Name('__result__', Store())], BinOp(Name('i', Load()), Sub(), Num(1)))])
-  # Module(body=[Assign(targets=[Name(id='i', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=7, lineno=1, col_offset=2), lineno=1, col_offset=0), Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=4)], value=BinOp(left=Name(id='i', ctx=Load(), lineno=1, col_offset=15), op=Sub(), right=Num(n=1, lineno=1, col_offset=17), lineno=1, col_offset=15), lineno=1, col_offset=4)])
+  # Module([Assign([Name('i', Store())], Num(7)), Assign([Name('it', Store())], Expr(BinOp(Name('i', Load()), Sub(), Num(1.0))))])
+  # Module([Assign([Name('i', Store())], Num(7)), Assign([Name('it', Store())], BinOp(Name('i', Load()), Sub(), Num(1)))])
+  # Module(body=[Assign(targets=[Name(id='i', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=7, lineno=1, col_offset=2), lineno=1, col_offset=0), Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=4)], value=BinOp(left=Name(id='i', ctx=Load(), lineno=1, col_offset=15), op=Sub(), right=Num(n=1, lineno=1, col_offset=17), lineno=1, col_offset=15), lineno=1, col_offset=4)])
 
 
   def test_function_defs(self):
@@ -150,9 +150,9 @@ class EmitterTest(ParserBaseTest):
 # Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
 
 
-# Module(body=[Assign(targets=[Name(id='__result__', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
+# Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
 #
-# Module([Assign([Name('__result__', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
+# Module([Assign([Name('it', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
 
   def test_array(self):
     # assert_result_emitted('xs=[1,4,7];xs.reverse()', [7, 4, 1])

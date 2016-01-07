@@ -86,7 +86,7 @@ class FunctionTest(ParserBaseTest):
         parse('go print "hi"')
     # Module([Import([alias('threading', None)]), Assign([Name('t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [], [keyword('target', Name('a', Load()))], None, None)), Expr(Call(Attribute(Name('t', Load()), 'start', Load()), [], [], None, None))])
 
-    # Module([Import([alias('threading', None)]), Assign([Name('_t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [keyword('target', Name('_tmp', Load()))], [], None, None)), Assign([Name('__result__', Store())], Call(Attribute(Name('_t', Load()), 'start', Load()), [], [], None, None)), Print(None, [Name('__result__', Load())], True)])
+    # Module([Import([alias('threading', None)]), Assign([Name('_t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [keyword('target', Name('_tmp', Load()))], [], None, None)), Assign([Name('it', Store())], Call(Attribute(Name('_t', Load()), 'start', Load()), [], [], None, None)), Print(None, [Name('it', Load())], True)])
 
 
     def test_params(self):

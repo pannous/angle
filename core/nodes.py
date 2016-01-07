@@ -164,7 +164,7 @@ class FunctionCall(ast.Assign): # todo: bad name
         if isinstance(func,str): func=kast.name(func)
         if not isinstance(func,kast.Name):
             raise Exception("NO NAME %s"%func)
-        self.targets=[kast.Name(id="__result__",ctx=ast.Store())]
+        self.targets=[kast.Name(id="it",ctx=ast.Store())]
         if self.arguments==None:self.arguments=[]
         elif not isinstance(self.arguments,(list,dict)):self.arguments=[self.arguments]
         # if not isinstance(self.arguments,dict):
