@@ -22,7 +22,7 @@ import nodes
 import the
 
 to_inject = []
-
+to_provide= {} # 'global' params for exec
 
 class Reflector(object):  # Implements list interface is
   def __getitem__(self, name):
@@ -54,7 +54,6 @@ class Reflector(object):  # Implements list interface is
     return the.result
 
   def __setitem__(self, key, value):
-    import the
     print("Reflector __setitem__ %s %s" % (key, value))
     if key in the.variables:
       the.variables[key].value = value
@@ -185,8 +184,11 @@ class PrepareTreeVisitor(ast.NodeTransformer):
       function_def = the.methods[node.name]
       if isinstance(function_def, ast.FunctionDef):
         to_inject.append(function_def)
+      elif callable(function_def):
+        to_provide[node.name]=function_def
       else:
-        print("NEED TO IMPORT %s ??" % function_def)
+        print("HUH")
+      print("NEED TO IMPORT %s ??" % function_def)
     skip_assign = True
     node.value.args = map_values(node.value.args)
     if skip_assign:
@@ -221,8 +223,8 @@ def fix_ast_module(my_ast, fix_body=True):
   PrepareTreeVisitor().visit(my_ast)
 
   if fix_body:
-    my_ast.body.insert(0, ast.Global(names=['it']))
-    my_ast.body.insert(1, kast.setter(name('it'), kast.none))  # save here, unlike in block!
+    # my_ast.body.insert(0, kast.setter(name('it'), kast.none))  # save here, unlike in block!
+    # my_ast.body.insert(0, ast.Global(names=['it']))
     for s in to_inject:
       if not s in my_ast.body:
         my_ast.body.insert(0, s)
@@ -233,11 +235,13 @@ def fix_ast_module(my_ast, fix_body=True):
 
 
 def fix_block(body, returns=True, prints=False):
-  if not isinstance(body[0], ast.Global):
-    body.insert(0, ast.Global(names=['it']))
+  # if not isinstance(body[0], ast.Global):
+  #   body.insert(0, ast.Global(names=['it']))
     # body.insert(1, kast.setter(name('it'),kast.none))
   last_statement = body[-1]
-  if isinstance(last_statement, list) and len(last_statement) == 1: last_statement = last_statement[0]  # HOW??
+  if isinstance(last_statement, list) and len(last_statement) == 1:
+    last_statement = last_statement[0]
+    print("HOW??")
   if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return, ast.Assert)):
     if (isinstance(last_statement, ast.Print)):
       body[-1] = (setter("it", last_statement.values[0]))
@@ -245,7 +249,7 @@ def fix_block(body, returns=True, prints=False):
       body.append(last_statement)
     else:
       body[-1] = (setter("it", last_statement))
-  if returns:
+  if returns and not isinstance(body[-1],ast.Return):
     body.append(ast.Return(name("it")))
   if prints:
     body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
@@ -265,52 +269,10 @@ def get_globals(args):
   return my_globals
 
 
-def get_ast(python, source='file', context='exec'):
+def get_ast(python, source='inline.py', context='exec'):
   py_ast = compile(python, source, context, ast.PyCF_ONLY_AST)  # 'eval' only for ONE Expr!!
   print_ast(py_ast)
   return py_ast
-
-
-def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False, fix_body=True, context='exec'):
-  import the
-  try:  # todo args =-> SETTERS!
-    while len(to_inject) > 0: to_inject.pop()  # clear
-    my_ast = fix_ast_module(my_ast, fix_body=fix_body)
-
-    # The mode must be 'exec' to compile a module, 'single' to compile a
-    # single (interactive) statement, or 'eval' to compile a SINGLE expression.
-    code = compile(my_ast, source_file, 'exec')  # regardless!
-    # TypeError: required field "lineno" missing from expr NONONO!
-    # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
-
-    if target_file:
-      emit_pyc(code, target_file)
-    if angle.use_tree and not run:
-      the.result = my_ast
-      return my_ast  # code #  Don't evaluate here, run_ast() later!
-
-    try:
-      source = codegen.to_source(my_ast)
-      if source_file == "(String)": source_file = "emitted.py"
-      open(source_file + ".py", 'wt').write(source)
-      print(source)  # => CODE
-    except:
-      import traceback
-      traceback.print_exc()  # backtrace
-    emit_pyc(code, source_file + "c")
-
-    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context) #
-    # ret = run_ast(my_ast, source_file, args, fix=False, code=code, context='eval')
-    # err= sys.stdout.getvalue()
-    # if err: raise err
-    # z=exec (code)
-    the.params.clear()
-    return ret
-  except Exception as e:
-    print(my_ast)
-    print_ast(my_ast)
-    info_ = sys.exc_info()[2]
-    raise e, None, info_
 
 
 def print_ast(my_ast):
@@ -326,6 +288,45 @@ def print_ast(my_ast):
     print(my_ast.body)
 
 
+def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False, fix_body=True, context='exec'):
+  import the
+  try:  # todo args =-> SETTERS!
+    while len(to_inject) > 0: to_inject.pop()  # clear
+    my_ast = fix_ast_module(my_ast, fix_body=fix_body)
+    # The mode must be 'exec' to compile a module, 'single' to compile a
+    # single (interactive) statement, or 'eval' to compile a SINGLE expression.
+    code = compile(my_ast, source_file, 'exec')  # regardless!
+    # TypeError: required field "lineno" missing from expr NONONO!
+    # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
+
+    if angle.use_tree and not run:
+      the.result = my_ast
+      return my_ast  # code #  Don't evaluate here, run_ast() later!
+
+    try:
+      source = codegen.to_source(my_ast)
+      open(source_file + ".py", 'wt').write(source)
+      print(source)  # => CODE
+    except:
+      import traceback
+      traceback.print_exc()  # backtrace
+
+    emit_pyc(code, target_file or source_file+".pyc")
+
+    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context) #
+    # ret = run_ast(my_ast, source_file, args, fix=False, code=code, context='eval')
+    # err= sys.stdout.getvalue()
+    # if err: raise err
+    # z=exec (code)
+    the.params.clear()
+    return ret
+  except Exception as e:
+    print(my_ast)
+    print_ast(my_ast)
+    info_ = sys.exc_info()[2]
+    raise e, None, info_
+
+
 def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
   if fix:
     my_ast = fix_ast_module(my_ast)
@@ -339,13 +340,14 @@ def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, co
     my_globals = get_globals(args)
     ret = eval(code, my_globals, Reflector())  # in context
   else:
-    it = None
-    # globals
-    namespace={}
-    exec(code) in namespace  # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
-    ret = it or namespace['it']  # set via Reflector() ? noo
+    # http://lucumr.pocoo.org/2011/2/1/exec-in-python/
+    args.update(to_provide) # globals
+    namespace=args #{} # << GIVE AND RECEIVE GLOBALS!!
+    namespace['it']=None # better than ast.global
+    exec(code) in namespace  # self contained!
+    ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
   ret = ret or the.result
-  print("GOT RESULT %s" % ret)
+  # verbose("GOT RESULT %s" % ret)
   return ret
 
 
@@ -360,7 +362,8 @@ def wrap_value(val):
   import nodes
   if isinstance(val, nodes.Argument):
     if val.name:
-      return ast.Name(id=val.name, ctx=_ast.Param())
+      return ast.Name(id=val.name, ctx=_ast.Load()) # if FunctionCall
+      # return ast.Name(id=val.name, ctx=_ast.Param()) # if FunctionDef
     else:
       return wrap_value(val.value)
   if isinstance(val, ast.AST): return val

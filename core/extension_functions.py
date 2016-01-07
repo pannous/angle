@@ -3,6 +3,8 @@ import os
 
 import extensions
 
+def reverse(x):
+    return x.reverse()
 
 def h(x):
   help(x)
@@ -62,6 +64,9 @@ def say(x):
     print(x) 
     import os
     os.system("say '%s'"%x)
+
+def beep():
+    print("\aBEEP ")
 
 def beep(bug=True):
     print("\aBEEP ")

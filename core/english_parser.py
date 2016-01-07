@@ -920,7 +920,7 @@ def method_definition(name=None):
   # # with args! only in tree mode!!
   b = action_or_block()  # define z as 7 allowed !!!
   if not isinstance(b, list): b = [b]
-  if not isinstance(b[-1], ast.Print):
+  if not isinstance(b[-1], (ast.Print,ast.Return)):
     b[-1] = kast.setter("it", b[-1])
   # b[-1]=(ast.Expr(b[-1]))
   f.body = b
@@ -1507,7 +1507,8 @@ def do_execute_block(b, args={}):
   args = prepare_named_args(args)
   if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
   if isinstance(b, list) and isinstance(b[0], kast.AST):
-    return emitters.pyc_emitter.eval_ast(b, args, context='eval')
+    # return emitters.pyc_emitter.eval_ast(b, args, context='eval')
+    return emitters.pyc_emitter.eval_ast(b, args)
     # return emitters.pyc_emitter.eval_ast(b, args)
     # return emitters.pyc_emitter.eval_ast(b, args,fix_body=False)
   if isinstance(b, TreeNode): b = b.content

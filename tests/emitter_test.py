@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import angle
 import exceptions
+
+import emitters.pyc_emitter
 import power_parser
 
 angle.use_tree = True
@@ -8,16 +10,8 @@ angle._verbose = False
 from parser_test_helper import *
 
 
-# from c-emitter import *
-
-
 class EmitterTest(ParserBaseTest):
 
-  def init(self):
-    angle.use_tree = True
-
-  def initialize(self):
-    angle.use_tree = True
 
   def assert_result_emitted(self, x, r):
     assert_equals(last_result(parse_tree(x, True)), r)
@@ -110,23 +104,39 @@ class EmitterTest(ParserBaseTest):
     # assert_result_emitted("def test{puts 'yay'};test", 'yay')
 
   def test_function_body2(self):
-        add1=parse("to add1 to x return x+1 if x bigger 4 else x-1") #todo
+    add1 = parse("to add1 to x return x+1 if x bigger 4 else x-1")  # todo
 
   def test_function_body(self):
-        add1=parse("to add1 to x return if x bigger 4 then x+1 else x-1")
-        assert_result_is('add1(3)',2)
-        # assert_result_is('add1(5)',6)
+    # todo: wrap def dummy():if x bigger 4 then x+1 else x-1     return dummy()
+    add1 = parse("to add1 to x return if x bigger 4 then x+1 else x-1")
+    assert_result_is('add1(3)', 2)
+    # assert_result_is('add1(5)',6)
 
   def test_function_args(self):
-        # add1=parse("def add1(x):return x+1")
-        add1=parse("to add1 to x do x+1")
-        assert_result_is('add1(5)',6)
+    # add1=parse("def add1(x):return x+1")
+    add1 = parse("to add1 to x do x+1")
+    assert_result_is('add1(5)', 6)
 
   def test_identity(self):
-        identity0=parse("def identity(x):return x")
-        assert_result_is('identity(5)',5)
-        # assert_equals(identity0.call(5),5)
-        # assert('identity(5) is 5')
+    identity0 = parse("def identity(x):return x")
+    assert_result_is('identity(5)', 5)
+    # assert_equals(identity0.call(5),5)
+    # assert('identity(5) is 5')
+
+  def test_beep_import(self):
+    emitters.pyc_emitter.get_ast("beep()")
+    assert_equals(parse('beep'), 'beeped')
+
+  def test_deep_in_loop(self):
+    exec (compile("c=0\nwhile c<3:\n c+=1\n if c>1:beep()", '', 'exec')) in {'beep': beep}
+    py_ast = emitters.pyc_emitter.get_ast("c=0\nwhile c<3:\n c+=1\n if c>1:beep()")
+    emitters.pyc_emitter.run_ast(py_ast) # WHOOT??  expected some sort of expr, but got <_ast.While object at 0x111a48c10>
+
+    # emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
+    # assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beeped')
+    #   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
+
+    #   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
 
   # Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], []), Expr(Call(Name('test', Load()), [], [], None, None))])
 
@@ -135,30 +145,31 @@ class EmitterTest(ParserBaseTest):
 
   # Module(body=[Function(name='test', args=arguments(args=[], vararg=None, kwarg=None, defaults=[]), body=[Assign(targets=[Name(id='result', ctx=Store())], value=Print(dest=None, values=[Str(s='yay')], nl=True))], decorator_list=[]), Call(func=Name(id='test', ctx=Load()), args=[], keywords=[], starargs=None, kwargs=None)])
 
-  def test_function2(self):
+  def test_learnt_function2(self):
     parse('samples/factorial.e')
-    assert_result_emitted('factorial 6', 5040)
+    assert_result_emitted('factorial 6', 720) # learnt HOW??
 
   def test_if_then(self):
     # assert_result_emitted('if (3 > 0):1\nelse:0', 1)
     assert_result_emitted('if 3 > 0 then 1 else 0', 1)
     # IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))
-# Module([Assign([Name('result', Store())], IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))])
-# IfExp(test=Compare(left=Num(n=3, lineno=1, col_offset=12), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=14)], lineno=1, col_offset=12), body=Num(n=1, lineno=1, col_offset=7), orelse=Num(n=0, lineno=1, col_offset=21), lineno=1, col_offset=7), lineno=1, col_offset=0)])
-#
-# Module(body=[If(test=Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=5)], lineno=1, col_offset=3), body=[Expr(value=Num(n=1, lineno=1, col_offset=7), lineno=1, col_offset=7)], orelse=[Expr(value=Num(n=0, lineno=2, col_offset=5), lineno=2, col_offset=5)], lineno=1, col_offset=0)])
-# Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
+
+  # Module([Assign([Name('result', Store())], IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))])
+  # IfExp(test=Compare(left=Num(n=3, lineno=1, col_offset=12), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=14)], lineno=1, col_offset=12), body=Num(n=1, lineno=1, col_offset=7), orelse=Num(n=0, lineno=1, col_offset=21), lineno=1, col_offset=7), lineno=1, col_offset=0)])
+  #
+  # Module(body=[If(test=Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=5)], lineno=1, col_offset=3), body=[Expr(value=Num(n=1, lineno=1, col_offset=7), lineno=1, col_offset=7)], orelse=[Expr(value=Num(n=0, lineno=2, col_offset=5), lineno=2, col_offset=5)], lineno=1, col_offset=0)])
+  # Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
 
 
-# Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
-#
-# Module([Assign([Name('it', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
+  # Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
+  #
+  # Module([Assign([Name('it', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
 
   def test_array(self):
     # assert_result_emitted('xs=[1,4,7];xs.reverse()', [7, 4, 1])
     assert_result_emitted('xs=[1,4,7];reverse xs', [7, 4, 1])
     # assert_result_emitted('xs=[1,4,7];invert xs', [7, 4, 1])
     # assert_result_emitted('def invert(x):x.reverse;return x;\nxs=[1,4,7];invert xs', [7, 4, 1])
-  # Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
+    # Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
 
 # Module(body=[Assign(targets=[Name(id='xs', ctx=Store(), lineno=1, col_offset=0)], value=List(elts=[Num(n=1, lineno=1, col_offset=4), Num(n=2, lineno=1, col_offset=6), Num(n=3, lineno=1, col_offset=8)], ctx=Load(), lineno=1, col_offset=3), lineno=1, col_offset=0), Expr(value=Call(func=Attribute(value=Name(id='xs', ctx=Load(), lineno=1, col_offset=11), attr='reverse', ctx=Load(), lineno=1, col_offset=11), args=[], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=11), Print(dest=None, values=[Name(id='xs', ctx=Load(), lineno=1, col_offset=30)], nl=True, lineno=1, col_offset=24)])

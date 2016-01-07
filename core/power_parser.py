@@ -962,8 +962,8 @@ def parse(s, target_file=None):
     s = open(s).readlines()
     angle.use_tree = True
   else:
-    source_file = 'file'  # python speak for in-line code
-  # string
+    source_file = 'inline'
+    open(source_file, 'wt').write(s)
   try:
     import english_parser
     if isinstance(s, file):
@@ -986,7 +986,6 @@ def parse(s, target_file=None):
     if angle.use_tree and got_ast:
       import emitters
       the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
-      # the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True,context='eval')
     else:
       if isinstance(the.result, ast.Num): the.result = the.result.n
       if isinstance(the.result, ast.Str): the.result = the.result.s

@@ -82,7 +82,7 @@ class FunctionTest(ParserBaseTest):
         assert_equals(len(self.parser.variables), 2)
         assert_equals(z, 3)
 
-    def test_threads(self):
+    def test_go_threads(self):
         parse('go print "hi"')
     # Module([Import([alias('threading', None)]), Assign([Name('t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [], [keyword('target', Name('a', Load()))], None, None)), Expr(Call(Attribute(Name('t', Load()), 'start', Load()), [], [], None, None))])
 
