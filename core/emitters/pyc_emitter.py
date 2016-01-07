@@ -198,39 +198,6 @@ class PrepareTreeVisitor(ast.NodeTransformer):
       return node
 
 
-def print_ast(my_ast):
-  try:
-    x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
-    print(x)
-    print("")
-    x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
-    print(x)
-    print("")
-  except:
-    print("CAN'T DUMP ast %s", my_ast)
-    print(my_ast.body)
-
-
-def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
-  if fix:
-    my_ast = fix_ast_module(my_ast)
-  if not code:
-    code = compile(my_ast, source_file, 'exec')
-  # TypeError: required field "lineno" missing from expr NONO,
-  # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
-  # eval can't handle arbitrary python code (eval("import math") ), and
-  # exec() doesn't return the results.
-  if context == 'eval':
-    my_globals = get_globals(args)
-    ret = eval(code, my_globals, Reflector())  # in context
-  else:
-    it = None
-    # globals
-    exec (code)  # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
-    ret = it  # set via Reflector() ? noo
-  ret = ret or the.result
-  print("GOT RESULT %s" % ret)
-  return ret
 
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
@@ -346,7 +313,41 @@ def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False, f
     raise e, None, info_
 
 
-__author__ = 'me'
+def print_ast(my_ast):
+  try:
+    x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
+    print(x)
+    print("")
+    x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
+    print(x)
+    print("")
+  except:
+    print("CAN'T DUMP ast %s", my_ast)
+    print(my_ast.body)
+
+
+def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
+  if fix:
+    my_ast = fix_ast_module(my_ast)
+  if not code:
+    code = compile(my_ast, source_file, 'exec')
+  # TypeError: required field "lineno" missing from expr NONO,
+  # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
+  # eval can't handle arbitrary python code (eval("import math") ), and
+  # exec() doesn't return the results.
+  if context == 'eval':
+    my_globals = get_globals(args)
+    ret = eval(code, my_globals, Reflector())  # in context
+  else:
+    it = None
+    # globals
+    namespace={}
+    exec(code) in namespace  # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
+    ret = it or namespace['it']  # set via Reflector() ? noo
+  ret = ret or the.result
+  print("GOT RESULT %s" % ret)
+  return ret
+
 
 
 def map_values(val):
