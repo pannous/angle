@@ -7,7 +7,6 @@ import __builtin__
 # import codegen
 import astor as codegen  # https://pypi.python.org/pypi/astor
 from astor.codegen import SourceGenerator as sourcegen
-from kast.ast_export import emit_pyc
 
 sourcegen.visit_Function = sourcegen.visit_FunctionDef  # Love Python <3 !!
 sourcegen.visit_function = sourcegen.visit_FunctionDef  # ???
@@ -16,7 +15,6 @@ sourcegen.visit_Variable = sourcegen.visit_Name
 sourcegen.visit_Argument = sourcegen.visit_Name
 sourcegen.visit_Condition = sourcegen.visit_Compare
 import angle
-import emitters
 import english_parser
 from kast.kast import Print, setter, name
 from kast import kast
@@ -221,15 +219,6 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
     my_ast = fix_ast_module(my_ast)
   if not code:
     code = compile(my_ast, source_file, 'exec')
-  try:
-    if source_file=="(String)": source_file="emitted.py"
-    source = codegen.to_source(my_ast)
-    print(source)  # => CODE
-    open(source_file,'wt').write(source)
-  except:
-    import traceback;
-    traceback.print_exc()  # backtrace
-  emit_pyc(code,source_file+"c")
   # TypeError: required field "lineno" missing from expr NONO,
   # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
   # eval can't handle arbitrary python code (eval("import math") ), and
@@ -239,7 +228,7 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
     ret = eval(code,my_globals, Reflector()) # in context
   else:
     __result__=None
-    globals
+    # globals
     exec(code)      # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
     ret = __result__# set via Reflector() ? noo
   ret = ret or the.result
@@ -324,22 +313,29 @@ def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False,fi
 
     # The mode must be 'exec' to compile a module, 'single' to compile a
     # single (interactive) statement, or 'eval' to compile an expression.
-    code = compile(my_ast, source_file, 'exec') # regardless!
     # code = compile(my_ast, source_file, 'eval') # SINGLE : expected Expression node, got Module
-
-    # TypeError: required field "lineno" missing from expr NONO,
-    # this as a documentation bug,
-    # this error can mean >>anything<< except missing line number!!! :) :( :( :(
+    code = compile(my_ast, source_file, 'exec') # regardless!
+    # TypeError: required field "lineno" missing from expr NONONO!
+    # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
 
     if target_file:
-      import ast_export
-      ast_export.emit_pyc(code, target_file)
+      emit_pyc(code, target_file)
     if angle.use_tree and not run:
       the.result = my_ast
       return my_ast  # code #  Don't evaluate here, run_ast() later!
 
-    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context)
-    # ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
+    try:
+      source = codegen.to_source(my_ast)
+      if source_file=="(String)":source_file="emitted.py"
+      open(source_file+".py",'wt').write(source)
+      print(source)  # => CODE
+    except:
+      import traceback
+      traceback.print_exc()  # backtrace
+    emit_pyc(code,source_file+"c")
+
+    # ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context)
+    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
     # err= sys.stdout.getvalue()
     # if err: raise err
     # z=exec (code)
@@ -377,3 +373,17 @@ def wrap_value(val):
   if isinstance(val, dict): return kast.Dict(map(wrap_value, val), ast.Load())
   t = type(val)
   raise Exception("UNKNOWN TYPE %s : %s !" % (val, t))
+
+
+def emit_pyc(code,fileName='output.pyc'):
+    import marshal
+    import py_compile
+    import time
+    with open(fileName, 'wb') as fc:
+        fc.write('\0\0\0\0')
+        py_compile.wr_long(fc, long(time.time()))
+        marshal.dump(code, fc)
+        fc.flush()
+        fc.seek(0, 0)
+        fc.write(py_compile.MAGIC)
+        print("WRITTEN TO "+fileName)

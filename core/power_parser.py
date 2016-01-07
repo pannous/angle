@@ -961,6 +961,7 @@ def parse(s, target_file=None):
     target_file = target_file or s + ".pyc"
     source_file = s
     s = open(s).readlines()
+    angle.use_tree=True
   else:
     source_file = 'file'  # python speak for in-line code
   # string
@@ -985,7 +986,7 @@ def parse(s, target_file=None):
     got_ast=isinstance(the.result, ast.AST) or isinstance(the.result,list) and isinstance(the.result[0],ast.AST)
     if angle.use_tree and got_ast:
       import emitters
-      the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file)
+      the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file,run=True)
     else:
       if isinstance(the.result, ast.Num): the.result = the.result.n
       if isinstance(the.result, ast.Str): the.result = the.result.s
@@ -1202,9 +1203,12 @@ def integer():
     current_value = int(match.groups()[0])
     next_token()
     # "E20": kast.Pow(10,20),
-    import ast
     # if not interpreting(): return ast.Num(current_value)
-    if angle.use_tree: return ast.Num(current_value)
+    # import kast.kast
+    from kast import kast
+    # import ast
+    if angle.use_tree: return kast.Num(current_value)
+    # if angle.use_tree: return ast.Num(current_value)
     if current_value == 0:
       current_value = ZERO
     return current_value

@@ -18,6 +18,10 @@ class Condition(ast.Compare):#todo: BinOp ?
         self.left=self.left
         self.ops=[self.comp]
         self.comparators=[self.right]
+    def __repr__(self):
+        return "%s %s %s"%(self.left,self.comp,self.right)
+#             return "%s %s %s"%(extensions.xx(self.left), self.comp, extensions.xx(self.right))
+
 
 class Quote(str,ast.Str):
     def is_a(className):

@@ -1010,7 +1010,7 @@ def if_then():
             return ast.IfExp(test=c,body=b,orelse=[])# todo body cant be block here !
         else:
             if not isinstance(b,list):b=[b]
-            if not isinstance(b[-1],ast.Expr):b[-1]=ast.Expr(b[-1])  # Expr(Call()) WTF
+            if not isinstance(b[-1],(ast.Expr,ast.Return)):b[-1]=ast.Expr(b[-1])  # Expr(Call()) WTF
             return ast.If(test=c,body=b,orelse=[])
 
 def future_event():
