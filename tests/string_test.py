@@ -5,10 +5,11 @@ from parser_test_helper import *
 
 class StringTest(ParserBaseTest):
 
-    def setUp(self,auto_clear=True):
+    def setUp(self):
         angle.use_tree = False
         angle._verbose = False
         super(StringTest, self).setUp()
+        self.parser.clear()
 
     def test_string_methods(self):
         parse("invert 'hi'")

@@ -34,6 +34,7 @@ variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)
 params = {} # Temporary parameters in calling context, Delete them after return
+threads = {} # todo : also compiled
 
 string=""
 tokenstream=[] # tuple:
@@ -91,6 +92,7 @@ def parent_node():
 core_methods = ['show', 'now', 'yesterday', 'help','print']  # maybe(difference)
 # SEE typeNameMapped!
 methods = {
+    'p':extensions.puts,
     'print':extensions.puts,
     'length': len,
     'size': len,
@@ -98,7 +100,6 @@ methods = {
     'beep': extensions.beep,
     'puts':extensions.puts,
     'printf':extensions.puts, #todo
-    'p':extensions.puts,
     'show':extensions.puts,
     'increase':extensions.increase
     # 'reverse':extensions.xstr.reverse

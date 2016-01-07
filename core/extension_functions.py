@@ -1,6 +1,9 @@
 import re # for 'is_file'
 import os
 
+import extensions
+
+
 def h(x):
   help(x)
   
@@ -44,7 +47,10 @@ def increase(x):
     return x+1
 
 def grep(xs, x):
-    xs.select(lambda y: str(y).match(x))
+    # filter(lambda y: re.match(x,y),xs)
+    if isinstance(x,list):
+        return filter(lambda y: x[0] in str(y),xs)
+    return filter(lambda y: x in str(y),xs)
 
 def ls(path="."):
     return os.listdir(path)

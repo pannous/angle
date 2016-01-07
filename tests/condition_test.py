@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import angle
 # angle.use_tree = angle.emit
+import emitters.pyc_emitter
+
 angle.use_tree = False
 angle.testing = True
 from parser_test_helper import *
@@ -10,13 +12,9 @@ from parser_test_helper import variables
 class ConditionTest(ParserBaseTest):
 
     def setUp(self):
-        # self.parser=parser(self)
         angle.use_tree=False
         angle._verbose=False
-        # super(ConditionTest, self).setUp()
-        self.parser.clear()
         self.parser.do_interpret()
-
 
     def test_eq(self):
         variables['counter'] = 3
@@ -134,6 +132,8 @@ class ConditionTest(ParserBaseTest):
     def test_return_result(self):
         assert_result_is('x=3', 3)
         assert_result_is('x=3;4', 4)
+
+    def test_return_result_var(self):
         assert_result_is('x=3;x', 3)
 
     def test_it(self):
@@ -218,7 +218,10 @@ class ConditionTest(ParserBaseTest):
         assert_equals(the.variables['c'], 3)
 
     def test_if_in_loop(self):
+        emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
         assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beeped')
+    #   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
+
 
     def test_comparisons(self):
         init('two is bigger than zero')

@@ -66,6 +66,7 @@ class Function(kast.FunctionDef):
         self.arguments  =args['arguments']  if 'arguments'  in args   else None # as [Argument]
         self.arguments  =args['args']  if 'args'  in args   else self.arguments # as [Argument]
         self.return_type=args['return_type']if 'return_type' in args   else None # as [Argument]
+        if not self.arguments :self.arguments=[]
         # self.args       =self.arguments
         super(kast.FunctionDef,self).__init__(name=self.name,args=self.arguments,body=self.body,decorator_list=self.decorators)
 

@@ -66,24 +66,6 @@ class Reflector(object):  # Implements list interface is
     the.result = value
 
 
-def fix_block(body, returns=True,prints=False):
-  body.insert(0, ast.Global(names=['__result__']))
-      # body.insert(1, kast.setter(name('__result__'),kast.none))
-  last_statement = body[-1]
-  if isinstance(last_statement, list) and len(last_statement) == 1: last_statement = last_statement[0]  # HOW??
-  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return,ast.Assert)):
-    if (isinstance(last_statement, ast.Print)):
-      body[-1] = (setter("__result__", last_statement.values[0]))
-      last_statement.values[0] = name("__result__")
-      body.append(last_statement)
-    else:
-      body[-1] = (setter("__result__", last_statement))
-  if returns:
-    body.append(ast.Return(name("__result__")))
-  if prints:
-    body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
-  return body
-
 
 class PrepareTreeVisitor(ast.NodeTransformer):
   parents = []
@@ -146,6 +128,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
   def visit_Name(self, x):
     return x  # and done!
 
+  def visit_Call(self, x):
+    return x  # and done!
+
+
   # def visit_Print(self, x):
   #     return ast.Expr(x)
   # def visit_BinOp(self, node):
@@ -161,8 +147,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
   def visit_str(self, x):
     if x == '0': return _ast.Num(0)
     if x == 'False': return kast.false
-    if isinstance(self.current, (ast.Str, ast.Name, ast.FunctionDef, ast.Attribute)):
-      return x
+    if isinstance(self.current, (ast.Str, ast.Name, ast.FunctionDef, ast.Attribute,ast.alias,ast.keyword)):
+      return x # todo: whitelist!!
     return ast.Str(x)
 
   def visit_int(self, x):
@@ -226,6 +212,8 @@ def print_ast(my_ast):
     print("")
   except:
     print("CAN'T DUMP ast %s", my_ast)
+    print(my_ast.body)
+
 
 
 def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=None):
@@ -246,11 +234,12 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
   # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
   # eval can't handle arbitrary python code (eval("import math") ), and
   # exec() doesn't return the results.
-  if context:
+  if context=='eval':
     my_globals=get_globals(args)
     ret = eval(code,my_globals, Reflector()) # in context
   else:
     __result__=None
+    globals
     exec(code)      # self contained! WOW, MESSES WITH SYSTEM!! DANGER!!!
     ret = __result__# set via Reflector() ? noo
   ret = ret or the.result
@@ -260,7 +249,7 @@ def run_ast(my_ast, source_file="(String)",args={},fix=True,context=False,code=N
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
 # Module([Expr(Num(1))])
-def fix_ast_module(my_ast):
+def fix_ast_module(my_ast,fix_body=True):
   # gotta wrap: 1 => Module(body=[Expr(value=[Num(n=1)])])
   if not type(my_ast) == ast.Module:
     # my_ast = flatten(my_ast)
@@ -277,16 +266,37 @@ def fix_ast_module(my_ast):
     my_ast = ast.Module(body=my_ast)
 
   PrepareTreeVisitor().visit(my_ast)
-  my_ast.body.insert(0, ast.Global(names=['__result__']))
-  my_ast.body.insert(1, kast.setter(name('__result__'),kast.none)) # save here
-  for s in to_inject:
-    if not s in my_ast.body:
-      my_ast.body.insert(0, s)
-  fix_block(my_ast.body,returns=False,prints=True)
-  print(my_ast.body)
+
+  if fix_body:
+    my_ast.body.insert(0, ast.Global(names=['__result__']))
+    my_ast.body.insert(1, kast.setter(name('__result__'),kast.none)) # save here, unlike in block!
+    for s in to_inject:
+      if not s in my_ast.body:
+        my_ast.body.insert(0, s)
+    fix_block(my_ast.body,returns=False,prints=True)
   my_ast = ast.fix_missing_locations(my_ast)
   print_ast(my_ast)
   return my_ast
+
+
+def fix_block(body, returns=True,prints=False):
+  if not isinstance(body[0],ast.Global):
+    body.insert(0, ast.Global(names=['__result__']))
+      # body.insert(1, kast.setter(name('__result__'),kast.none))
+  last_statement = body[-1]
+  if isinstance(last_statement, list) and len(last_statement) == 1: last_statement = last_statement[0]  # HOW??
+  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return,ast.Assert)):
+    if (isinstance(last_statement, ast.Print)):
+      body[-1] = (setter("__result__", last_statement.values[0]))
+      last_statement.values[0] = name("__result__")
+      body.append(last_statement)
+    else:
+      body[-1] = (setter("__result__", last_statement))
+  if returns:
+    body.append(ast.Return(name("__result__")))
+  if prints:
+    body.append(Print(dest=None, values=[name("__result__")], nl=True)) # call symbolically!
+  return body
 
 
 def get_globals(args):
@@ -301,17 +311,21 @@ def get_globals(args):
     print("What the hell do you think you're doing, I need a dictionary as args (not a list)")
   return my_globals
 
+def get_ast(python,source='file',context='exec'):
+  py_ast=compile(python, source, context,ast.PyCF_ONLY_AST) # 'eval' only for ONE Expr!!
+  print_ast(py_ast)
+  return py_ast
 
-def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False):
+def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False,fix_body=True,context='exec'):
   import the
   try:  # todo args =-> SETTERS!
     while len(to_inject) > 0: to_inject.pop() #clear
-    my_ast = fix_ast_module(my_ast)
+    my_ast = fix_ast_module(my_ast,fix_body=fix_body)
 
     # The mode must be 'exec' to compile a module, 'single' to compile a
     # single (interactive) statement, or 'eval' to compile an expression.
-    # code = compile(my_ast, source_file, 'exec')
-    code = compile(my_ast, source_file, 'eval')
+    code = compile(my_ast, source_file, 'exec') # regardless!
+    # code = compile(my_ast, source_file, 'eval') # SINGLE : expected Expression node, got Module
 
     # TypeError: required field "lineno" missing from expr NONO,
     # this as a documentation bug,
@@ -324,8 +338,8 @@ def eval_ast(my_ast, args={}, source_file='file', target_file=None, run=False):
       the.result = my_ast
       return my_ast  # code #  Don't evaluate here, run_ast() later!
 
-    # ret = run_ast(my_ast,source_file,args,fix=False,code=code)
-    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
+    ret = run_ast(my_ast,source_file,args,fix=False,code=code,context=context)
+    # ret = run_ast(my_ast,source_file,args,fix=False,code=code,context='eval')
     # err= sys.stdout.getvalue()
     # if err: raise err
     # z=exec (code)

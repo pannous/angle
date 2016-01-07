@@ -216,7 +216,7 @@ def pointer_string():
 
 
 def print_pointer(force=False):
-  if (force or the._verbose):
+  if the.current_token and (force or the._verbose):
     print(the.current_token, file=sys.stderr)
     print(pointer_string(), file=sys.stderr)
   return OK
@@ -504,7 +504,8 @@ def must_contain(args, do_raise=True):  # before ;\n
       break
   set_token(old)
   the.previous_word = pre
-  if do_raise: raise NotMatching("must_contain " + str(args))
+  if do_raise:
+    raise NotMatching("must_contain " + str(args))
   return False
 
 
@@ -833,14 +834,15 @@ def maybe(expression):
       # if angle.use_tree:
       #     import TreeBuilder
       #     TreeBuilder.show_tree()  # Not reached
-      ex = GivingUp(to_source(expression) + "\n" + pointer_string())
+      ex = GivingUp(str(e)+"\n"+to_source(expression) + "\n" + pointer_string())
       raise ex, None, sys.exc_info()[2]
       # error e #exit
       # raise SyntaxError(e)
   except EndOfDocument as e:
     set_token(old)
     verbose("EndOfDocument")
-    # raise e
+    # error(e)
+    # raise e,None, sys.exc_info()[2]
     return False
     # return True
     # except GivingUp as e:
@@ -949,10 +951,9 @@ def clear():
     do_interpret()
 
 
-def parse(s, target_file=None, do_clear=False):
+def parse(s, target_file=None):
   global last_result, result
   if not s: return
-  if do_clear: clear
   verbose("PARSING")
   if (len(s) < 1000): verbose(s)
   if (s.endswith(".e")):
@@ -979,8 +980,10 @@ def parse(s, target_file=None, do_clear=False):
       the.result = english_parser.do_execute_block(the.result)
     if the.result in ['True', 'true']: the.result = True
     if the.result in ['False', 'false']: the.result = False
+    if isinstance(the.result, nodes.Variable):the.result=the.result.value
     import ast
-    if angle.use_tree and isinstance(the.result, ast.AST):
+    got_ast=isinstance(the.result, ast.AST) or isinstance(the.result,list) and isinstance(the.result[0],ast.AST)
+    if angle.use_tree and got_ast:
       import emitters
       the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file)
     else:
@@ -1081,7 +1084,7 @@ def checkEndOfFile():
 
 
 def maybe_newline():
-  return newline(doraise=False)
+  return checkEndOfFile() or newline(doraise=False)
 
 def newline(doraise=False):
   if checkNewline() == english_tokens.NEWLINE or the.current_word == ';' or the.current_word == '':

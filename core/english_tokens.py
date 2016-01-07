@@ -56,7 +56,7 @@ quantifiers = ["any", "all", "every", "one", "each", "some", "most", "many", "no
                "everything", "the whole"]  # +number
 # articles+):
 
-result_words = ['it', 'they', 'result', 'its', 'that','the result']
+result_words = ['it', 'they', 'result', 'its', 'that','the result','_']
 
 type_keywords = ["class", "interface", "module", "type", "kind"]
 
@@ -216,7 +216,7 @@ modifiers = const_words + ['protected', 'private', 'public', 'static', 'void', '
 adverbs = ['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely',
            'by any means', 'without a doubt']
 
-let_words = ['let', 'set']
+let_words = ['let', 'set','alias']
 
 time_words = ['seconds', 'second', 'minutes', 'minute', 'a.m.', 'p.m.', 'pm', "o'clock", 'hours', 'hour']  # etc... !
 

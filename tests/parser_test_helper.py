@@ -1,20 +1,16 @@
 #!/usr/bin/env python
-import compiler.ast
 import unittest
-import ast
-import sys
+from unittest import TestCase
+from unittest import BaseTestSuite
+
 import angle
 import emitters.pyc_emitter
-import kast
-# import kast.cast
+
 import english_parser
 import power_parser
-import the
-
-global parser
 from nodes import *
 from extensions import *
-
+global parser
 parser = english_parser#.EnglishParser()
 
 ENV = {'APPLE': True}
@@ -191,74 +187,30 @@ def copy_variables(variables=variables):
         variables[name]=Variable(name=name,value=v_,type=type(v_))
 
 class ParserBaseTest(unittest.TestCase):
-    def setUp(self):
-        global base_test
-        self.parser=parser(self)
-        base_test=self
-
-    def setUp(self,auto_clear=True):
-        global base_test
-        self.parser=parser(self)
-        base_test=self
-        if auto_clear:
-            self.parser.clear()
-
-    def context(self):
-        pass
-    global p,_p,parser,_parser
-    parser=p= english_parser#.EnglishParser() # Module, lol hack
-    _parser=_p= english_parser#.EnglishParser
-        # p=Parser() # CANT BE ASSIGNED without double global
-        # global p
-        # p=Parser() # CAN BE ASSIGNED!!!
-        # self._p=_p # generator
-        # self.p=p   # instance!
-        # self._p=Parser # generator
-        # self.p=Parser()#  fresh  instance!
-
-    parser=property(lambda :p,0)
-    def parser(self):
-        return p
+    global _parser
+    # def __init__(self, *args, **kwargs): #ruby : initialize
+    #     super(ParserBaseTest, self).__init__()
+    #     if ENV['TEST_SUITE'] or ENV['DEBUG_ANGLE']or ENV['ANGLE_DEBUG']or ENV['DEBUG']:
+    #         angle._verbose = False
+    #     self.parser = _parser = english_parser#.EnglishParser()
 
     @classmethod
     def setUpClass(cls):
+        cls.parser = _parser = english_parser#.EnglishParser()
         pass # reserved for expensive environment one time set up
 
-    # def test_true(self):
-    #     assert True
-    # def test_globals(self):
-    #     self.assertIsInstance(p,Parser)
+    def setUp(self):
+        global base_test
+        base_test=self
+        self.parser.clear() # OK Between test, just not between parses!
 
-    # def __getattr__(self, name):
-    #     if name=='parser':
-    #         return p
-    #     # ruby method_missing !!!
-    #     if name in dir(parser):
-    #         method = getattr(parser, name)  # NOT __getattribute__(name)!!!!
-    #         if callable(method):
-    #             return method()
-    #         else:
-    #             return parser.__getattribute__(name)
-    #     else:
-    #         raise Exception( "NO SUCH ATTRIBUTE " + name)
-
-    # return lambda value: self.all().filter(field, value)
 
     def parse(self, s):
         print("PARSING %s"%s)
-        x= parser.parse(s).result
+        x= _parser.parse(s).result
         print("DONE PARSING %s"%s)
         return x
 
-
-
-    def initialize(self, args):
-        if ENV['TEST_SUITE']:
-            angle._verbose = False
-        if angle.raking:
-            angle.emit = False
-        self.parser = english_parser.EnglishParser()
-        super(args)
 
     def assert_has_no_error(self, x):
         parse(x)

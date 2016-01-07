@@ -5,7 +5,8 @@ from parser_test_helper import *
 
 class SelectorTest(ParserBaseTest):
 
-    def setUp(self,auto_clear=True):
+    def setUp(self):
+        super(SelectorTest, self).setUp()
         angle.use_tree = False
 
     def test_every(self):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from parser_test_helper import *
 import angle
-angle.use_tree = False
+angle.use_tree = True
 from parser_test_helper import *
 from extensions import *
 
@@ -61,7 +61,8 @@ class FunctionTest(ParserBaseTest):
         assert('identity(5) is 5')
 
     def test_factorial(self):
-        parse("""define the factorial of an integer i as
+        parse("""\n
+                define the factorial of an integer i as
                     if i is 0 then return 1
                     i * factorial(i-1)
                     # i times factorial of i minus one

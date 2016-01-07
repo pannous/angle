@@ -82,6 +82,13 @@ class FunctionTest(ParserBaseTest):
         assert_equals(len(self.parser.variables), 2)
         assert_equals(z, 3)
 
+    def test_threads(self):
+        parse('go print "hi"')
+    # Module([Import([alias('threading', None)]), Assign([Name('t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [], [keyword('target', Name('a', Load()))], None, None)), Expr(Call(Attribute(Name('t', Load()), 'start', Load()), [], [], None, None))])
+
+    # Module([Import([alias('threading', None)]), Assign([Name('_t', Store())], Call(Attribute(Name('threading', Load()), 'Thread', Load()), [keyword('target', Name('_tmp', Load()))], [], None, None)), Assign([Name('__result__', Store())], Call(Attribute(Name('_t', Load()), 'start', Load()), [], [], None, None)), Print(None, [Name('__result__', Load())], True)])
+
+
     def test_params(self):
         parse('how to increase x by y: x+y;')
         g = the.methods['increase']

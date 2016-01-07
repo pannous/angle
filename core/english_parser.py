@@ -868,12 +868,13 @@ def addMethodNames(f):
 
 
 @Starttokens(method_tokens)
-def method_definition():
+def method_definition(name=None):
     # annotations=maybe(annotations)
     # modifiers=maybe(modifiers)
-    tokens(method_tokens)  # how to
-    no_rollback()
-    name = word(include=english_operators)# maybe(noun) or verb()  # integrate or word
+    if not name:
+        tokens(method_tokens)  # how to
+        no_rollback()
+        name = word(include=english_operators)# maybe(noun) or verb()  # integrate or word
     # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
     brace = maybe_token('(')
     args = []
@@ -952,10 +953,10 @@ def if_then_else():
     o = maybe(otherwise) or FALSE
     if angle.use_tree:
         if isinstance(ok,ast.IfExp):
-            ok.orelse=o or None
+            ok.orelse=o or []
         else:
             if o: ok.orelse=[ast.Expr(o)]
-            else: ok.orelse=None
+            else: ok.orelse=[]
         return ok
     if ok != "OK" and ok != False:  # and ok !=FALSE ^^:
         the.result = ok
@@ -991,25 +992,26 @@ def if_then():
     # c = algebra()
     if c == None: raise InternalError("no condition_tree")
     started = maybe_token('then')
-    if c != True:
-        dont_interpret()
+    if c != True: dont_interpret()
     adjust_rollback()
     b = action_or_block(started)
     maybe_newline()  # for else
     adjust_interpret()
     if c == False or c == FALSE: return False
-    if angle.use_tree:
-        # if not isStatementOrExpression(b):b=ast.Expr(b)
-        if isinstance(b,ast.Return):
-            return ast.If(test=c,body=[b])
-        return ast.IfExp(test=c,body=b)# todo body cant be block here !
+    if c == True: return b
     if interpreting() and c != True:  # c==True done above!
         if check_condition(c):
             return do_execute_block(b)
         else:
             return OK  # o or  false but block ok!
-    return b
-
+    else: # AST
+        # if not isStatementOrExpression(b):b=ast.Expr(b)
+        if isinstance(b,(ast.Num,ast.Str)): # ... simple cases
+            return ast.IfExp(test=c,body=b,orelse=[])# todo body cant be block here !
+        else:
+            if not isinstance(b,list):b=[b]
+            if not isinstance(b[-1],ast.Expr):b[-1]=ast.Expr(b[-1])  # Expr(Call()) WTF
+            return ast.If(test=c,body=b,orelse=[])
 
 def future_event():
     if the.current_word.endswith("ed"):  # beeped etc
@@ -1481,7 +1483,10 @@ def do_execute_block(b, args={}):
     if isinstance(b, FunctionCall): return do_call(b.object, b.name, args or b.arguments)
     args = prepare_named_args(args)
     if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
-    if isinstance(b, list) and isinstance(b[0], kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
+    if isinstance(b, list) and isinstance(b[0], kast.AST):
+        return emitters.pyc_emitter.eval_ast(b, args,context='eval')
+        # return emitters.pyc_emitter.eval_ast(b, args)
+        # return emitters.pyc_emitter.eval_ast(b, args,fix_body=False)
     if isinstance(b, TreeNode): b = b.content
     if not isinstance(b, str): return b  # OR :. !!!
     block_parser = the  # EnglishParser()
@@ -1626,7 +1631,6 @@ def declaration():
     the.variableTypes[var.name]=var.type
     return var
 
-
 @Starttokens(let_words)
 def setter(var=None):
     # if not var:
@@ -1643,6 +1647,7 @@ def setter(var=None):
     #     mod=var.modifier
     var = var or maybe(property) or variable(a, ctx=kast.Store())
     setta = maybe_tokens(['to']) or be()  # or not_to_be 	contain -> add or create
+    if(setta==':=' or _let=='alias'):return alias(var);
     # val = maybe(adjective) or expressions()
     val = expression()
     _cast = maybe_tokens(["as", "kast", "kast to", "kast into", "kast as"]) and typeNameMapped()
@@ -1652,9 +1657,41 @@ def setter(var=None):
         else:
             _type = _cast  # todo
     allow_rollback()
-    if setta in ['are', 'consist of', 'consists of']: val = flatten(val)
-    var.typed = _type or var.typed or 'typed' == mod  # in [mod]
+    if setta in ['are', 'consist of', 'consists of']:
+        val = flatten(val)
 
+    add_variable(var,val,mod,_type)
+
+    # end_expression via statement!
+    if not interpreting():
+        return kast.Assign([kast.Name(var.name, kast.Store())], val)
+    if interpreting() and val != 0: return val
+    return var
+    # 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
+
+# alias l=ls x:=y*y x(y):=y*y
+@Starttokens(['alias'])
+def alias(var=None):
+    if not var:
+      must_contain(['alias',':='])
+      ali=_('alias')
+      var = variable(False, ctx=kast.Store())
+      if look_ahead('('):
+          return method_definition(var.name)
+      ali or be()
+    dont_interpret()
+    a=rest_of_line() # can't parse yet (i.e. x:= y*y )
+    # a=maybe(action_or_block) or rest_of_line()
+    add_variable(var,a)
+    if angle.use_tree:
+        f=Function(name=var.name,body=a)
+        addMethodNames(f)
+        return f
+    return var
+
+
+def add_variable(var, val,mod=None,_type=None):
+    var.typed = _type or var.typed or 'typed' == mod  # in [mod]
     if isinstance(val,FunctionCall):
         assure_same_type(var, val.returns)
     else:
@@ -1667,17 +1704,38 @@ def setter(var=None):
         the.variableValues[var.name] = val
         the.variables[var.name] = var
         var.value = val
+    the.token_map[var.name] = known_variable
 
     var.final = mod in const_words
     var.modifier = mod
     the.variableTypes[var.name] = var.type
     if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
-    # end_expression via statement!
-    the.token_map[var.name] = known_variable
-    if not interpreting(): return kast.Assign([kast.Name(var.name, kast.Store())], val)
-    if interpreting() and val != 0: return val
-    return var
-    # 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
+
+
+# todo : allow other methods: go to berlin ...
+@Starttokens(['go','start','thread','run'])
+def go_thread():
+    tokens(['go','start','thread'])
+    must_not_start_with(prepositions) #go to berlin
+    dont_interpret()
+    a=action_or_block()
+    if interpreting():
+        import threading
+        thread=threading.Thread(target=do_execute_block, args=[a])
+        the.threads.append(thread)
+        thread.start()
+    else:
+        body=[]
+        if not isinstance(a,list):a=[a]
+        body.append(ast.Import([ast.alias(name='threading',asname=None)])) #alias('threading'
+        body.append(Function(name='_tmp',body=a))
+        # ast_lambda = ast.Lambda(args=[], body=a) Lambda Doesn't like Print statement!!
+        body.append(kast.setter('_t', kast.call_attribute('threading', 'Thread',target=kast.name('_tmp'))))
+        body.append(kast.call_attribute('_t','start'))
+        return body
+    return OK
+
+
 
 
 # a=7
@@ -3454,7 +3512,7 @@ def start_shell(args=[]):
         #   input = STDIN.gets.strip()
         try:
             # interpretation= parser.parse input
-            interpretation = parse(input0,None,False)
+            interpretation = parse(input0,None)
             if not interpretation: next
             # if angle.use_tree: print(interpretation.tree)
             print(interpretation.result)
@@ -3466,8 +3524,8 @@ def start_shell(args=[]):
           print('Syntax Error')
         except SyntaxError as e:
           print('Syntax Error')
-        # except Exception as e:
-        #     print(e)
+        except Exception as e:
+            print(e)
         input0 = raw_input("⦠ ")
     exit()
 
