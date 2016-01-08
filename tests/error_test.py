@@ -14,10 +14,12 @@ class ErrorTest(ParserBaseTest):
         assert_has_no_error("char i='c'")
         assert_has_no_error("char i;i='c'")
 
-    def test_variable_type_safety_errors(self):
+    def test_variable_type_safety_no_errors(self):
         assert_has_no_error('an integer i;i=3')
         assert_has_no_error('int i=3')
         assert_has_no_error('int i;i=3')
+
+    def test_variable_type_safety_errors(self):
         assert_has_error('const i=1;i=2')
         assert_has_error('string i=3')
         assert_has_error("int i='hi'")
@@ -62,7 +64,4 @@ class ErrorTest(ParserBaseTest):
         variables['x'] = ['hi', ]
         variables['y'] = ['world', ]
         assert_has_error("z=x ' ' w")
-        skip()
-        assert("z=x ' ' y")
-        assert_has_error("z=x ' ' y")
-        assert_has_no_error("z=x ' ' y")
+

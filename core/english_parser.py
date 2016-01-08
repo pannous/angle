@@ -915,7 +915,7 @@ def method_definition(name=None):
   f = Function(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
   # ,modifiers:modifiers, annotations:annotations
   the.methods[name] = f
-  the.method_names.append(name)
+  the.method_names.insert(0,name)
   f2 = addMethodNames(f)
   # # with args! only in tree mode!!
   b = action_or_block()  # define z as 7 allowed !!!
@@ -1199,7 +1199,7 @@ def subProperty(context):
 
 
 def true_method(obj=None):
-  no_keyword_except(['print'])
+  no_keyword_except(english_operators)# ['print','add','subtract'])
   should_not_start_with(auxiliary_verbs)
   xmodule = maybe_tokens(the.moduleNames)
   xvariable = maybe_tokens(the.variables.keys())
@@ -1490,7 +1490,8 @@ def prepare_named_args(args):
     if arg in context_variables:
       v = context_variables[arg]
       # v = v.clone
-      v.value = val
+      if isinstance(v,Variable):
+        v.value = val
       context_variables[str(arg)] = val  # v  # to_sym todo NORM in hash!!!
     else:
       context_variables[str(arg)] = val  # Variable(name=arg, value=val)

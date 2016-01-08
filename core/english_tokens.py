@@ -168,7 +168,7 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor"]
 english_operators = ["power", "to the", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
-                     "modulo", ]
+                     "modulo","print" ]
 operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators + comparison_words + logic_operators
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
