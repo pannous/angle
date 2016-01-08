@@ -7,7 +7,7 @@ ALPHA, partly usable
 
 Examples
 --------
-Here are some of our favorite working examples from the [tests](test):
+Here are some of our favorite working examples from the [tests](tests):
 
 `assert two minus 1½ equals 0.5`
 
@@ -102,7 +102,8 @@ INSTALL
 
 `./install.sh`
 
-ALPHA, partly usable
+ALPHA, partly usable, some [tests](tests) not yet passing: 
+[![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
 
 Start the shell : `./bin/angle` 
 
