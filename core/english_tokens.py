@@ -209,7 +209,7 @@ otherKeywords = ['and', 'as', 'assert','back', 'beginning', 'but', 'by', 'contai
 
 const_words = ['constant', 'const', 'final', 'immutable', 'unchangeable']  # not: static
 
-modifiers = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'mut', 'mutable',
+modifier_words = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'mut', 'mutable',
                            'variable', 'typed']
 # ,'readable','read only','read-only','readonly','writable','write only','writeonly','changeable']
 
@@ -233,7 +233,7 @@ bla_words = ['tell me', 'hey', 'could you', 'give me', \
 
 attributes = ['sucks', 'default']
 
-keywords = prepositions + modifiers + be_words + comparison_words + fillers + nill_words + done_words + auxiliary_verbs + conjunctions + type_keywords + otherKeywords + numbers + operators
+keywords = prepositions + modifier_words + be_words + comparison_words + fillers + nill_words + done_words + auxiliary_verbs + conjunctions + type_keywords + otherKeywords + numbers + operators
 
 true = True
 false = False

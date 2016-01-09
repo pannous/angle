@@ -886,9 +886,10 @@ def addMethodNames(f):
 
 @Starttokens(method_tokens)
 def method_definition(name=None):
-  # annotations=maybe(annotations)
-  # modifiers=maybe(modifiers)
   if not name:
+    # annotations=maybe(annotations)
+    modifiers=maybe_tokens(modifier_words)
+    return_type = maybe(typeName)
     tokens(method_tokens)  # how to
     no_rollback()
     name = word(include=english_operators)  # maybe(noun) or verb()  # integrate or word
@@ -904,7 +905,7 @@ def method_definition(name=None):
   # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
-  return_type = maybe_tokens(['as']) and maybe(typeNameMapped) or None
+  return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
   return_type = maybe_tokens([ 'returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
   maybe_tokens([ 'return', '=']) # as block starters, NOT as return_type indicators!
 
@@ -1642,10 +1643,10 @@ def declaration():
   must_not_contain(be_words)
   # must_contain_before  be_words+['set'],';'
   a = the_()
-  mod = maybe_tokens(modifiers)
+  mod = maybe_tokens(modifier_words)
   type = typeNameMapped()
   maybe_tokens(['var', 'val', 'let'])
-  mod = mod or maybe_tokens(modifiers)  # public static :.
+  mod = mod or maybe_tokens(modifier_words)  # public static :.
   var = maybe(known_variable) or variable(a, ctx=kast.Store())
   if var.type:
     assure_same_type(var, type)
@@ -1664,7 +1665,7 @@ def setter(var=None):
   _let = maybe_tokens(let_words)
   if _let: no_rollback()
   a = maybe(_the)
-  mod = maybe_tokens(modifiers)
+  mod = maybe_tokens(modifier_words)
   _type = maybe(typeNameMapped)
   maybe_tokens(['var', 'val', 'value of'])  # same as let? don't overwrite?
   mod = mod or maybe(modifier)  # public static :.
@@ -3182,7 +3183,7 @@ def svg(x):
 def be(): tokens(be_words)
 
 
-def modifier(): tokens(modifiers)
+def modifier(): tokens(modifier_words)
 
 
 def attribute(): tokens(attributes)
