@@ -892,21 +892,21 @@ def method_definition(name=None):
     tokens(method_tokens)  # how to
     no_rollback()
     name = word(include=english_operators)  # maybe(noun) or verb()  # integrate or word
-  # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   brace = maybe_token('(')
-  args = []
 
+  args = []
   def arguments():
     angle.in_params = True
     a = param(len(args))
     maybe_token(',')
     args.append(a)
     return a
-
+  # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
   return_type = maybe_tokens(['as']) and maybe(typeNameMapped) or None
-  return_type = maybe_tokens(['return', 'returns', 'returning', '=', '->']) and maybe(typeNameMapped) or return_type
+  return_type = maybe_tokens([ 'returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
+  maybe_tokens([ 'return', '=']) # as block starters, NOT as return_type indicators!
 
   angle.in_params = False
   if brace: token(')')

@@ -4,4 +4,6 @@ tests/emitted.py
 intellij-angle-plugin
 emitted.py
 *.inline*.
-**/*.inline*.
+.*/*.inline*.
+.*/inline.*
+.*/.*pyc
