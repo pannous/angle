@@ -885,7 +885,7 @@ def addMethodNames(f):
 
 
 @Starttokens(method_tokens)
-def method_definition(name=None):
+def method_definition(name=None,return_type=None):
   if not name:
     # annotations=maybe(annotations)
     modifiers=maybe_tokens(modifier_words)
