@@ -905,12 +905,13 @@ def method_definition(name=None,return_type=None):
   # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
+  angle.in_params = False
+  if brace: token(')')
+  
   return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
   return_type = maybe_tokens([ 'returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
   maybe_tokens([ 'return', '=']) # as block starters, NOT as return_type indicators!
 
-  angle.in_params = False
-  if brace: token(')')
   dont_interpret()
 
   f = Function(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
