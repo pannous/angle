@@ -954,9 +954,11 @@ def parse(s, target_file=None):
   global last_result, result
   if not s: return
   verbose("PARSING")
-  if (len(s) < 1000): verbose(s)
-  if (s.endswith(".e")):
-    print("  File \"%s\", line 1 ... running " % s)
+  if (isinstance(s,file)):
+    source_file=s.name
+    s = s.readlines()
+    angle.use_tree = True
+  elif s.endswith(".e"):
     target_file = target_file or s + ".pyc"
     source_file = s
     s = open(s).readlines()
@@ -964,6 +966,8 @@ def parse(s, target_file=None):
   else:
     source_file = 'inline'
     open(source_file, 'wt').write(s)
+  print("  File \"%s\", line 1 ... running " % source_file)
+  if (len(s) < 1000): verbose(s)
   try:
     import english_parser
     if isinstance(s, file):

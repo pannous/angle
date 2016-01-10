@@ -65,6 +65,8 @@ class Reflector(object):  # Implements list interface is
 
 class PrepareTreeVisitor(ast.NodeTransformer):
   parents = []
+  def __repr__(self):
+    return "<PrepareTreeVisitor>"
 
   def generic_visit(self, node, wrap=False):
     self.parents.append(node)
@@ -249,6 +251,9 @@ def fix_block(body, returns=True, prints=False):
       body.append(last_statement)
     else:
       body[-1] = (setter("it", last_statement))
+  if isinstance(last_statement, (ast.Assign)):
+    if not "it" in [x.id for x in last_statement.targets]:
+      last_statement.targets.append(name("it"))
   if returns and not isinstance(body[-1],ast.Return):
     body.append(ast.Return(name("it")))
   if prints:
@@ -288,6 +293,16 @@ def print_ast(my_ast):
     print(my_ast.body)
 
 
+def print_source(my_ast,source_file='inline'):
+    try:
+      source = codegen.to_source(my_ast)
+      open(source_file + ".py", 'wt').write(source)
+      print(source)  # => CODE
+    except:
+      import traceback
+      traceback.print_exc()  # backtrace
+
+
 def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False, fix_body=True, context='exec'):
   import the
   try:  # todo args =-> SETTERS!
@@ -303,13 +318,7 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
       the.result = my_ast
       return my_ast  # code #  Don't evaluate here, run_ast() later!
 
-    try:
-      source = codegen.to_source(my_ast)
-      open(source_file + ".py", 'wt').write(source)
-      print(source)  # => CODE
-    except:
-      import traceback
-      traceback.print_exc()  # backtrace
+    print_source(my_ast,source_file)
 
     emit_pyc(code, target_file or source_file+".pyc")
 
@@ -323,6 +332,7 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
   except Exception as e:
     print(my_ast)
     print_ast(my_ast)
+    print_source(my_ast,source_file)
     info_ = sys.exc_info()[2]
     raise e, None, info_
 

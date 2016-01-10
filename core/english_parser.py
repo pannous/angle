@@ -873,6 +873,7 @@ def statement(doraise=True):
 def addMethodNames(f):
   if len(f.arguments) > 0:
     obj = f.arguments[0]
+    if len(obj.name)==1: return f  # hack against "fibonacci n"
     if not obj.preposition:
       name = f.name + " " + obj.name
       args = f.arguments[1:]
@@ -3604,6 +3605,8 @@ def main():
     print('Syntax Error')
   except GivingUp as e:
     print('Syntax Error')
+  except KeyboardInterrupt as e:
+    pass
   # except Exception as e:
   #     print(e)
   print("")

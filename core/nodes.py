@@ -1,6 +1,7 @@
 import _ast
 import ast
 
+import emitters.pyc_emitter
 import kast.kast
 import the
 from kast import kast
@@ -72,7 +73,9 @@ class Function(kast.FunctionDef):
         self.return_type=args['return_type']if 'return_type' in args   else None # as [Argument]
         if not self.arguments :self.arguments=[]
         # self.args       =self.arguments
-        super(kast.FunctionDef,self).__init__(name=self.name,args=self.arguments,body=self.body,decorator_list=self.decorators)
+        # todo: later
+        args = ast.arguments(args=emitters.pyc_emitter.map_values(self.arguments), vararg=None, kwarg=None, defaults=[])
+        super(kast.FunctionDef,self).__init__(name=self.name,args=args,body=self.body,decorator_list=self.decorators)
 
 
         # self.scope    =args['scope'] # == class??
