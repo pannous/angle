@@ -893,11 +893,11 @@ def method_definition(name=None,return_type=None):
     tokens(method_tokens)  # how to
     no_rollback()
     name = word(include=english_operators)  # maybe(noun) or verb()  # integrate or word
-  brace = maybe_token('(')
 
+  brace = maybe_token('(')
+  angle.in_params = True
   args = []
   def arguments():
-    angle.in_params = True
     a = param(len(args))
     maybe_token(',')
     args.append(a)
@@ -907,7 +907,7 @@ def method_definition(name=None,return_type=None):
 
   angle.in_params = False
   if brace: token(')')
-  
+
   return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
   return_type = maybe_tokens([ 'returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
   maybe_tokens([ 'return', '=']) # as block starters, NOT as return_type indicators!
