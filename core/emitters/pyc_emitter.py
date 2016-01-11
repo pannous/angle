@@ -2,6 +2,9 @@ import _ast
 import ast
 import sys
 
+# truffle on graal JVM has faster runs, but sloooooow startup
+# https://stackoverflow.com/questions/31901940/why-is-ruby-irb-iteration-so-slow/31906922#31906922
+
 import __builtin__
 
 # import codegen
