@@ -1,6 +1,6 @@
 #GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
 import extensions
-
+home="."
 extensionMap ={} # str->xstr
 # import extensions
 

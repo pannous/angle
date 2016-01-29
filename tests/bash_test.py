@@ -13,8 +13,8 @@ class BashTest(ParserBaseTest):
     def test_ls(self):
         f=parse("ls | row 4")
         f=parse("ls | item 4")
-        assert_equal(f, '.gitmodules')
-        # assert_equal(f, 'algebra_test.py')
+        # assert_equal(f, '.gitmodules')
+        assert_equal(f, 'algebra_test.py')
 
 
     # def test_pipe2(self):

@@ -5,11 +5,16 @@ from extension_functions import *
 
 import os
 import re
-import exceptions
+# import exceptions
 
 # import builtins
-import __builtin__
+# import __builtin__
 import shutil
+
+def e(file):
+  os.system('open -a /Applications/TextMate.app '+file)
+  
+  # /Users/me/dev/script/python/extensions/complex.py
 
 def xx(y):
   if isinstance(y,list):  return xlist(y)
@@ -27,8 +32,11 @@ def xx(y):
   
 import platform
 if platform.python_version_tuple()[0]=='3':
-  class xrange(range):
-    pass
+  class file:
+    pass #WTF python3 !?!?!?!?!??
+    
+#   class xrange(range):
+#     pass
 # else: https://stackoverflow.com/questions/22098099/reason-why-xrange-is-not-inheritable-in-python
 #   class range(xrange):
 #     pass
@@ -63,6 +71,8 @@ class Class:
 # class Method(__builtin__.function):
 #     pass
 
+# file() is no supported in python3
+# use open() instead
 
 @extension
 class xfile(file):

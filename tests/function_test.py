@@ -9,6 +9,9 @@ from parser_test_helper import *
 
 class FunctionTest(ParserBaseTest):
 
+    def setUp(self):
+        angle.use_tree = True
+
     def test_opencv(self):
         i=parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
         fbody=[]
@@ -35,8 +38,10 @@ class FunctionTest(ParserBaseTest):
         # parse("define fibonacci number n\nn+1\nend\nassert fibonacci(1) is 2")
 
     def test_fibonacci_0(self):
-        parse("define fibonacci number n\nif n<2 then 1 else fibonacci(n-1)+ fibonacci(n-2)\nend\n assert fibonacci(2) is 2")
+        parse("define fibonacci number n\nif n<2 then 1 else fibonacci(n-1)+ fibonacci(n-2)\nend\n assert fibonacci(5) is 8")
         # parse("define fibonacci number n\nif n<2 then 1 else fibonacci n-1 + fibonacci n-2\nend")
+
+
 
     def test_fibonacci(self):
         dir = 'samples/'

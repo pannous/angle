@@ -3565,8 +3565,8 @@ def start_shell(args=[]):
       print('Syntax Error')
     except SyntaxError as e:
       print('Syntax Error')
-    except Exception as e:
-      print(e)
+    # except Exception as e:
+    #   print(e)
     input0 = raw_input("⦠ ")
   exit()
 
@@ -3575,6 +3575,7 @@ def main():
   angle._verbose = False
   the._verbose = False
   ARGV = sys.argv
+  angle.home=os.environ['ANGLE_HOME']
   # version=`git rev-list --all --count`
   # ARGF=sys.argv
   if len(ARGV) == 1:

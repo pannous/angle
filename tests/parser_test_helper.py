@@ -138,6 +138,7 @@ def sleep(s):
 
 
 def parse(s):
+    if not isinstance(s,str) or isinstance(s,file): return s
     print("PARSING %s"%s)
     interpretation= english_parser.parse(s)
     r=interpretation.result

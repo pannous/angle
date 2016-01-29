@@ -966,7 +966,8 @@ def parse(s, target_file=None):
   else:
     source_file = 'inline'
     open(source_file, 'wt').write(s)
-  print("  File \"%s\", line 1 ... running " % source_file)
+  if angle._debug:
+    print("  File \"%s\", line 1 ... running " % source_file)
   if (len(s) < 1000): verbose(s)
   try:
     import english_parser
@@ -1266,10 +1267,10 @@ def load_module_methods():
   except:
     import pickle
   # static, load only once, create with module_method_map.py
-  the.methodToModulesMap = pickle.load(open("data/method_modules.bin"))
-  the.moduleMethods = pickle.load(open("data/module_methods.bin"))
-  the.moduleNames = pickle.load(open("data/module_names.bin"))
-  the.moduleClasses = pickle.load(open("data/module_classes.bin"))
+  the.methodToModulesMap = pickle.load(open(angle.home+"/data/method_modules.bin"))
+  the.moduleMethods = pickle.load(open(angle.home+"/data/module_methods.bin"))
+  the.moduleNames = pickle.load(open(angle.home+"/data/module_names.bin"))
+  the.moduleClasses = pickle.load(open(angle.home+"/data/module_classes.bin"))
   import english_parser
 
   for mo, mes in the.moduleMethods.items():
