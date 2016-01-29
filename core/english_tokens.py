@@ -376,6 +376,7 @@ kast_operator_map_min = {
     "||": ast.Or(),
     "or": ast.Or(),
     "!=": ast.NotEq(),
+    "is": ast.Eq(),
     "=": ast.Eq(),
     "==": ast.Eq(),
     "===": ast.Eq(),
@@ -389,7 +390,6 @@ kast_operator_map_min = {
     "in": ast.In(),
     "contains": ast.In(),#^-1
     "element of": ast.In(),
-
 }
 # safe_reductions={
 # 'is bigger', 'is greater','is less','is smaller','is equal','are smaller','are bigger',

@@ -12,15 +12,6 @@ class FunctionTest(ParserBaseTest):
     def setUp(self):
         angle.use_tree = True
 
-    def test_opencv(self):
-        i=parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
-        fbody=[]
-        f=Function(name="create fullscreen window",arguments=[Argument(name="n")],body=fbody)
-        assert_equals(the.result,f)
-        parse("create a fullscreen window with name \"test\"")
-
-    def test_dedent(self):
-        parse("define identity number n\n\tn\nassert identity(1) is 1")
 
     def test_identity2(self):
         parse("define identity number n\n\tn\nassert identity(1) is 1")
@@ -33,7 +24,18 @@ class FunctionTest(ParserBaseTest):
         # parse("define add number n to number m\nn+m\nend\nassert add(1,2) is 3")
 
     def test_add3(self):
-        parse("define add number n to number m\nn+m\nend\nassert add 1 to 2 is 3")
+        parse("define add number n to number m\nn+m\nend\nassert add 2 to 4 is 6")
+
+
+    def test_opencv(self):
+        i=parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
+        fbody=[]
+        f=Function(name="create fullscreen window",arguments=[Argument(name="n")],body=fbody)
+        assert_equals(the.result,f)
+        parse("create a fullscreen window with name \"test\"")
+
+    def test_dedent(self):
+        parse("define identity number n\n\tn\nassert identity(1) is 1")
 
         # parse("define fibonacci number n\nn+1\nend\nassert fibonacci(1) is 2")
 

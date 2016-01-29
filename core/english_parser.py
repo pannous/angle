@@ -1271,10 +1271,14 @@ def method_call(obj=None):
 
     def call_args():
       if len(args) > 0: maybe_tokens([',', 'and'])
-      args.append(call_arg())
+      arg = call_arg()
+      if isinstance(arg,list):
+        args.extend(arg)
+      else:
+        args.append(arg)
       return args
 
-    args = star(call_args)
+    star(call_args) # args = set above!
     if not args and not angle.use_tree:  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
       if angle.use_tree:
         args = obj
@@ -2132,7 +2136,10 @@ def comparation():
   # comp = comp and pointer() - start or eq
   # if Jens.smaller then ok:
   maybe_token('than')  # , 'then' #_22'then' ;) danger:
-  return comp or eq
+  comp = comp or eq
+  if angle.use_tree:
+    comp=kast_operator_map_min[comp] # todo: hacky
+  return comp
 
 
 def either_or():
@@ -2996,12 +3003,15 @@ def filter(liste, criterion):
 
 
 def ranger(a=None):
-  if in_params: return False
+  if angle.in_params or angle.in_args:
+    return False # add 1 to 3 != add [1,2,3]
   must_contain('to')
   maybe_token('from')
   a = a or number()
   _('to')
   b = number()
+  if angle.use_tree:
+    return kast.call('range',[a,ast.Num(b+1)])
   return range(a, b + 1)  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 
