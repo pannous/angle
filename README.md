@@ -131,7 +131,7 @@ Why the python implementation
 -----------------------------
 We can **compile** English script / Angle directly to python byte-code:
 As opposed to Ruby, Python comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
-A compiler is so much nicer (==faster) than an interpreter.
+Compiling is so much nicer & faster than interpreted code.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
 
