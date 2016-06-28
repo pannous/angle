@@ -71,7 +71,8 @@ type_names = ["auto", "string", "int", "integer", "bool", "boolean", "list", "ar
 ##danger(self): object,class ,class  ):
 # from math import pi
 import math
-constantMap = {"True":TRUE, "false":FALSE, "yes":TRUE, "no":FALSE, "1":1, "0":ZERO, "pi":math.pi,"tau":2*math.pi,"e":math.e,"euler":math.e} # tau=twou*pi=2*pi
+constantMap = {"True":TRUE, "false":FALSE, "yes":TRUE, "no":FALSE, "1":1, "0":ZERO,
+               "pi":math.pi,"π":math.pi,"†":2*math.pi,"τ":2*math.pi, "tau":2*math.pi,"e":math.e,"euler":math.e} # tau=twou*pi=2*pi
 
 constants = constantMap.keys()# ["True", "false", "yes", "no", "1", "0", "pi","tau","e","euler"] # tau=twou*pi=2*pi
 

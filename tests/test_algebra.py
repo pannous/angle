@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import angle
 angle.use_tree = True
 # angle.use_tree = False
@@ -34,8 +36,10 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
     def test_tau_pi(self):
         angle.use_tree = True
         import math
-        assert_result_is('tau / 2 ', math.pi)
-        # assert_result_is('tau / 2 = pi', True)
+        assert_that('tau / 2 = pi')
+        # assert_result_is('tau / 2 ', math.pi)
+        # assert_result_is('†/2', math.pi)# alt+t on mac
+        # assert_result_is('τ / 2 = π', True)
 
     def test_algebra_NOW2(self):
         skip('test_algebra_NOW, DONT SKIP!')
