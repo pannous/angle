@@ -148,7 +148,7 @@ class EmitterTest(ParserBaseTest):
 
   def test_learnt_function2(self):
     parse('samples/factorial.e')
-    assert_result_emitted('factorial 6', 720) # learnt HOW??
+    assert_result_emitted('factorial 6', 720)
 
   def test_if_then(self):
     # assert_result_emitted('if (3 > 0):1\nelse:0', 1)
@@ -170,7 +170,11 @@ class EmitterTest(ParserBaseTest):
     # assert_result_emitted('xs=[1,4,7];xs.reverse()', [7, 4, 1])
     assert_result_emitted('xs=[1,4,7];reverse xs', [7, 4, 1])
     # assert_result_emitted('xs=[1,4,7];invert xs', [7, 4, 1])
+
+  def test_array2(self):
     # assert_result_emitted('def invert(x):x.reverse;return x;\nxs=[1,4,7];invert xs', [7, 4, 1])
+    assert_result_emitted('def invert(x){x.reverse;return x;}\nxs=[1,4,7];invert xs', [7, 4, 1])
+    assert_result_emitted('def invert(x){x.reverse;\nreturn x;}\nxs=[1,4,7];invert xs', [7, 4, 1])
     # Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
 
 # Module(body=[Assign(targets=[Name(id='xs', ctx=Store(), lineno=1, col_offset=0)], value=List(elts=[Num(n=1, lineno=1, col_offset=4), Num(n=2, lineno=1, col_offset=6), Num(n=3, lineno=1, col_offset=8)], ctx=Load(), lineno=1, col_offset=3), lineno=1, col_offset=0), Expr(value=Call(func=Attribute(value=Name(id='xs', ctx=Load(), lineno=1, col_offset=11), attr='reverse', ctx=Load(), lineno=1, col_offset=11), args=[], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=11), Print(dest=None, values=[Name(id='xs', ctx=Load(), lineno=1, col_offset=30)], nl=True, lineno=1, col_offset=24)])

@@ -4,7 +4,8 @@ import os
 import extensions
 
 def reverse(x):
-    return x.reverse()
+    y=x.reverse()
+    return y or x
 
 def h(x):
   help(x)

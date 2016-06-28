@@ -254,6 +254,12 @@ def fix_ast_module(my_ast, fix_body=True):
   if fix_body:
     # my_ast.body.insert(0, kast.setter(name('it'), kast.none))  # save here, unlike in block!
     # my_ast.body.insert(0, ast.Global(names=['it']))
+    # my_ast.body.insert(0, ast.Import([name('extensions')]))
+    # my_ast.body.insert(0, ast.Import([name('extensions')]))
+    # my_ast.body.insert(0, ast.Import(['extensions']))
+    my_ast.body.insert(0, ast.ImportFrom('extension_functions', [ast.alias(str('*'), None)], 0))
+    # my_ast.body.insert(0, ast.ImportFrom('extension_functions', [str('*')], 0))
+    # my_ast.body.insert(0, ast.ImportFrom(name('extension_functions'), [ast.alias('*', None)], 0))
     for s in to_inject:
       if not s in my_ast.body:
         my_ast.body.insert(0, s)
@@ -315,9 +321,11 @@ def print_ast(my_ast):
     x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
     print(x)
     print("")
-  except:
-    print("CAN'T DUMP ast %s", my_ast)
-    print(my_ast.body)
+  except Exception as e:
+    print(e)
+    print("CAN'T DUMP ast %s"% my_ast)
+    if not isinstance(my_ast,list):
+      print(my_ast.body)
 
 
 def print_source(my_ast,source_file='inline'):
@@ -356,7 +364,9 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
     # z=exec (code)
     the.params.clear()
     return ret
+  # except NameError as e:
   except Exception as e:
+    print(e)
     print(my_ast)
     print_ast(my_ast)
     print_source(my_ast,source_file)

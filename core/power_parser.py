@@ -552,7 +552,7 @@ def must_contain_before_old(before, *args):  # ,before():None
 
 
 # NOT == starts_with !!!
-def look_ahead(expect_next, doraise=False):
+def look_ahead(expect_next, doraise=False,must_not_be=False):
   if the.current_word == '': return False
   if the.token_number + 1 >= the.tokens_len:
     print("BUG: this should not happen")
@@ -563,8 +563,10 @@ def look_ahead(expect_next, doraise=False):
   elif isinstance(expect_next, list) and token[1] in expect_next:
     return True
   else:
+    if must_not_be:
+      return OK # NOT FOUND
     if doraise:
-      raise (NotMatching(expect_next))
+      raise (NotMatching(expect_next+": "+doraise))
     return False
 
 
@@ -958,7 +960,7 @@ def parse(s, target_file=None):
     source_file=s.name
     s = s.readlines()
     angle.use_tree = True
-  elif s.endswith(".e"):
+  elif s.endswith(".e") or s.endswith(".a"):
     target_file = target_file or s + ".pyc"
     source_file = s
     s = open(s).readlines()

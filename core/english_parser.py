@@ -82,7 +82,7 @@ def _(x):
 #     pass
 
 def nill():
-  return tokens(nill_words)
+  if tokens(nill_words): return NILL
 
 
 def boolean():
@@ -120,7 +120,7 @@ def no_keyword():
 
 @Starttokens(constants)
 def constant():
-  return tokens(constants)
+  return constantMap.get(tokens(constants))
 
 
 @Starttokens(result_words)
@@ -318,7 +318,7 @@ def ast_operator(op):
 def apply_op(stack, i, op):
   if interpreting():  # and not angel.use_tree:
     if op == "!" or op == "not":
-      stack[i:i + 2] = [not stack[i + 1]]
+      stack[i:i + 2] = [not evaluate(stack[i + 1])]
     else:
       result = do_math(stack[i - 1], op, stack[i + 1])
       stack[i - 1:i + 2] = [result]
@@ -922,6 +922,7 @@ def method_definition(name=None,return_type=None):
   f2 = addMethodNames(f)
   # # with args! only in tree mode!!
   b = action_or_block()  # define z as 7 allowed !!!
+  look_ahead("return","Return statement out of method {block}, are you missing curlies?",must_not_be=True)
   if not isinstance(b, list): b = [b]
   if not isinstance(b[-1], (ast.Print,ast.Return)):
     b[-1] = kast.setter("it", b[-1])
@@ -1588,6 +1589,16 @@ def assure_same_type(var, type):
   if isinstance(type, ast.AST):
     warn("TYPE AST")
     return
+
+  # if isinstance(oldType,str):
+  #   oldType=eval(oldType)
+    # oldType =getattr(sys.modules[__name__], oldType)
+
+  if oldType and issubclass(oldType,str):
+    if issubclass(type,extensions.xchar):
+    # var.type = type  # ok: upgrade
+      return # OK
+
   # try:
   if oldType and type and not issubclass(oldType, type):  # FAIL:::type <= oldType:
     raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(type))
@@ -1684,16 +1695,28 @@ def setter(var=None):
   # val = maybe(adjective) or expressions()
   val = expression()
   _cast = maybe_tokens(["as", "kast", "kast to", "kast into", "kast as"]) and typeNameMapped()
+  guard = maybe_token("else") and value()
+  # guard = maybe_token("else") and action_or_block()
+
   if _cast:
     if interpreting():
       val = do_cast(val, _cast)
     else:
       _type = _cast  # todo
+  val = do_evaluate(val ) or do_evaluate(guard)
   allow_rollback()
   if setta in ['are', 'consist of', 'consists of']:
     val = flatten(val)
 
-  add_variable(var, val, mod, _type)
+  try:
+    add_variable(var, val, mod, _type)
+  except Exception as e:
+    if guard:
+      val=guard
+      add_variable(var, guard, mod, _type)
+    else:
+      # raise e from e  # 'from e': py3 way
+      raise e #, None, sys.exc_info()[2]
 
   # end_expression via statement!
   if not interpreting():
@@ -1903,7 +1926,7 @@ def do_cast(x, typ):
   if typ == xstr: return str(x)
   if typ == "str": return str(x)
   if typ == "string": return str(x)
-  todo("do_cast")
+  todo("to_do:do_cast")
   return x
 
 
@@ -2137,8 +2160,8 @@ def comparation():
   # if Jens.smaller then ok:
   maybe_token('than')  # , 'then' #_22'then' ;) danger:
   comp = comp or eq
-  if angle.use_tree:
-    comp=kast_operator_map_min[comp] # todo: hacky
+  # if angle.use_tree:
+  #   comp=kast_operator_map[comp] # todo: hacky _min LATER
   return comp
 
 
@@ -2546,6 +2569,8 @@ def do_evaluate(x, _type=None):
   if x == TRUE: return True
   if x == FALSE: return FALSE  # False NOT HERE! WHERE?
   if x == NILL: return None
+  # if x == 'pi': return math.pi
+  # if x == 'tau': return 2*math.pi
   if callable(x): return x  # x()  Whoot
   if isinstance(x, type): return x
   if isinstance(x, ast.Num): return x.n
@@ -2592,8 +2617,12 @@ def is_math(method):
 
 
 def do_math(a, op, b):
-  if isinstance(a, Variable): a = a.value
-  if isinstance(b, Variable): b = b.value
+  a = do_evaluate(a)
+  b = do_evaluate(b)
+  if isinstance(a, Variable):
+    a = a.value
+  if isinstance(b, Variable):
+    b = b.value
   # a = float(a)
   # b = float(b)
   if op == '+': return a + b
@@ -2610,17 +2639,32 @@ def do_math(a, op, b):
   if op == '*': return a * b
   if op == 'times': return a * b
   if op == 'multiplied by': return a * b
+
   if op == '**': return a ** b
+  if op == 'to the power of': return a ** b
+  if op == 'to the power': return a ** b
   if op == 'to the': return a ** b
   if op == 'power': return a ** b
+  if op == 'pow': return a ** b
+  if op == '^^': return a ** b
+  if op == '^': return a ** b
+  # if op == '^': return a ^ b
+  if op == 'xor': return a ^ b
   if op == 'and': return a and b
   if op == '&&': return a and b
+  if op == 'but not':
+      return a and not b
+  if op == 'nor':
+      return not a and not b
+  if op == 'neither':
+    return not a and not b
   if op == 'but':
-    if isinstance(a, list): return a.remove(b)
-    return a and b
+    if isinstance(a, list):
+      return a.remove(b)
+    else:
+      return a and b
   # if op == '&': return a and b
   if op == '&': return a & b
-  if op == '^': return a ^ b
   if op == '|': return a | b
   if op == '||': return a | b
   if op == 'or': return a or b
@@ -2708,7 +2752,7 @@ def findMethod(obj0, method0, args0=None, bind=True):
   #     raise_not_matching("NO such METHOD %s" % method)
   # if not isinstance(method, str):
   #     raise_not_matching("NO such METHOD %s" % method)
-  if not callable(method) and isinstance(args0, list):  # TRY TO WORK ARGUMENT WISE!
+  if not callable(method) and isinstance(args0, list) and len(args0)>0:  # TRY TO WORK ARGUMENT WISE!
     function = findMethod(obj0 or args0[0], method0, args0[0], bind=False)
     return function
   # def map_list(xs,*xss):

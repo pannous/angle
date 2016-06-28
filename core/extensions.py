@@ -11,8 +11,6 @@ import re
 # import __builtin__
 import shutil
 
-def e(file):
-  os.system('open -a /Applications/TextMate.app '+file)
   
   # /Users/me/dev/script/python/extensions/complex.py
 

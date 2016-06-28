@@ -3,16 +3,9 @@ import ast
 from tokenize import tokenize, untokenize, NUMBER, STRING, NAME, OP
 from io import BytesIO
 import os
-# import TreeBuilder
 import angle
 from exceptions import *
 import extensions
-# encoding: utf-8
-# include TreeBuilder
-#   include Exceptions
-# module EnglishParserTokens:
-# class EnglishParserTokens:
-# < MethodInterception
 
 ##################/
 # Lexemes = simple words
@@ -21,6 +14,15 @@ import extensions
 import kast.kast
 from nodes import Quote
 from power_parser import *  # app_path, verbose
+
+true = True
+false = False
+TRUE = "True"
+FALSE = "False"
+NILL = "None"
+Nil = "None"
+# Nill="None"
+ZERO = '0'
 
 bash_commands = ['ls', 'cd']
 
@@ -67,8 +69,11 @@ type_names = ["auto", "string", "int", "integer", "bool", "boolean", "list", "ar
                                        "char", "character", "word", "class", "type", "name", "label", "length", "size"
               ]
 ##danger(self): object,class ,class  ):
+# from math import pi
+import math
+constantMap = {"True":TRUE, "false":FALSE, "yes":TRUE, "no":FALSE, "1":1, "0":ZERO, "pi":math.pi,"tau":2*math.pi,"e":math.e,"euler":math.e} # tau=twou*pi=2*pi
 
-constants = ["True", "false", "yes", "no", "1", "0", "pi"]
+constants = constantMap.keys()# ["True", "false", "yes", "no", "1", "0", "pi","tau","e","euler"] # tau=twou*pi=2*pi
 
 question_words = ["when", "why", "where", "what", "who", "which", "whose", "whom",
                   "how"]  # ,"what's","how's","why's", "when's","who's",
@@ -166,9 +171,9 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                                                                           'comes before', 'exact', 'exactly', '~>',
                     'at least', 'at most']
 
-logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor"]
-english_operators = ["power", "to the", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
-                     "modulo","print" ]
+logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor","neither"]
+english_operators = ["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
+                     "modulo","print", ]
 operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators + comparison_words + logic_operators
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
@@ -182,7 +187,7 @@ if_words = ['if'] #, 'in case that', 'provided that', 'assuming that', 'concedin
 # 'on the assumption that', 'supposing that', 'with the condition that']
 
 #  NOT: '0','0.0','0,nix','zero',
-nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nill', 'nul', 'nothing', 'not a thing', 'null', 'undefined', \
+nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null', 'undefined', \
               'zilch', 'nada', 'nuttin', 'nutting', 'zip', 'nix', 'cypher', 'cipher', 'leer', 'empty', 'nirvana',
               'void']  # 'love',
 
@@ -235,14 +240,6 @@ attributes = ['sucks', 'default']
 
 keywords = prepositions + modifier_words + be_words + comparison_words + fillers + nill_words + done_words + auxiliary_verbs + conjunctions + type_keywords + otherKeywords + numbers + operators
 
-true = True
-false = False
-TRUE = "True"
-FALSE = "False"
-NILL = "None"
-Nil = "None"
-# Nill="None"
-ZERO = '0'
 
 start_block_words = [';', ':', 'do', '{', 'begin', 'start', 'first you ', 'second you', 'then you', 'finally you']
 #  with , then
@@ -285,7 +282,7 @@ kast_operator_map = {
     "divide by": ast.Div(),
     "xor": ast.BitXor(),
     # "^": ast.BitXor(),
-    # "^": ast.Pow(),
+    "^": ast.Pow(),
     "^^": ast.Pow(),
     "**": ast.Pow(),
     "pow": ast.Pow(),
@@ -356,7 +353,7 @@ kast_operator_map_min = {
     "/": ast.Div(),
     "xor": ast.BitXor(),
     # "^": ast.BitXor(),
-    # "^": ast.Pow(),
+    "^": ast.Pow(),
     "^^": ast.Pow(),
     "**": ast.Pow(),
     "pow": ast.Pow(),
