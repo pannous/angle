@@ -3,8 +3,6 @@
 **Angle** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
 
-ALPHA, partly usable
-
 Examples
 --------
 Here are some of our favorite working examples from the [tests](tests):
