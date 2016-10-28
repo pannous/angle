@@ -80,7 +80,7 @@ current_value=None
 parser=globals()
 context=None
 def is_number(s):            #isint isnum
-    return isinstance(s,int) or isinstance(s,float) or isinstance(s,str) and s.isdigit() # is number isnumeric
+    return isinstance(s,int) or isinstance(s,float) or is_string(s) and s.isdigit() # is number isnumeric
 
 svg = []
 

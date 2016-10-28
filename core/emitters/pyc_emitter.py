@@ -2,6 +2,8 @@ import _ast
 import ast
 import sys
 
+py3 = sys.version < '3'
+
 # https://github.com/flier/pyv8
 
 # truffle on graal JVM has faster runs, but sloooooow startup 6SECONDS for HELLOWTF
@@ -29,7 +31,7 @@ import sys
 
 
 
-import __builtin__
+# import __builtin__
 
 # import codegen
 import astor as codegen  # https://pypi.python.org/pypi/astor
@@ -371,8 +373,9 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
     print_ast(my_ast)
     print_source(my_ast,source_file)
     info_ = sys.exc_info()[2]
-    raise e, None, info_
-
+    # if py3: raise e from e # py3 WTF WTF , how to do both??
+    # else:
+    raise e, None, info_ #py2
 
 def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
   if fix:

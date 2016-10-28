@@ -22,6 +22,7 @@ import token as _token
 import the
 from tree import TreeNode
 
+py3=sys.version < '3'
 
 def parent_node():
   pass
@@ -98,12 +99,19 @@ def should_not_start_with(words):
     info("should_not_match DID match %s" % bad)
   if bad: raise NotMatching(MustNotMatchKeyword(bad))
 
-
+remove_hash={}
+remove_from_list_count=0
 def remove_from_list(keywords0, excepty):
-  good = list(keywords0)
+  # if (keywords0,excepty) in remove_hash:
+  #   return remove_hash[(keywords0,excepty)]
+  info("remove_from_list called "+str(remove_from_list_count)+" times")
+  global remove_from_list_count
+  remove_from_list_count+=1
+  good = list(keywords0) # clone
   for x in excepty:
-    if x in good:
+    while x in good:
       good.remove(x)
+  # remove_hash[(keywords0, excepty)]=good
   return good
 
 
@@ -160,7 +168,7 @@ def value():
   # import Betty # convert a.wav to mp3
   # import ExternalLibraries
 
-  # attr_accessor :methods, :result, :last_result, :interpretation, :variables, :variableValues,:variableType #remove the later!
+  # property methods, :result, :last_result, :interpretation, :variables, :variableValues,:variableType #remove the later!
 
 
 class Interpretation:
@@ -426,7 +434,7 @@ def special_blocks():
 
 def is_a(x, type0):
   _type = mapType(type0)
-  if isinstance(_type, str): raise Exception("BAD TYPE %s" % type0)
+  if is_string(_type): raise Exception("BAD TYPE %s" % type0)
   if isinstance(x, _type): return True
   return False
 
@@ -444,7 +452,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
   if re.search(r'^char', type):
     the.result = "".join(l).__getitem__(n)
     return the.result
-  elif isinstance(l, str):
+  elif is_string(l):
     l = l.split(" ")
   if isinstance(l, list) and type in type_names:
     l = [x for x in l if is_a(x, type)]
@@ -1203,7 +1211,9 @@ def subProperty(context):
 
 
 def true_method(obj=None):
-  no_keyword_except(english_operators)# ['print','add','subtract'])
+  ex=english_operators #- ['print','add','subtract']
+  if 'print' in ex:
+    no_keyword_except(ex)
   should_not_start_with(auxiliary_verbs)
   xmodule = maybe_tokens(the.moduleNames)
   xvariable = maybe_tokens(the.variables.keys())
@@ -1300,7 +1310,7 @@ def method_call(obj=None):
       return kast.Print(dest=None, values=args, nl=True)  # call symbolically!
       # return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
     return FunctionCall(func=method, arguments=args, object=obj)
-  the.result = do_call(obj or None, method, args)
+  the.result = do_call(obj or None, method, args or None)
   return the.result
 
 
@@ -1521,7 +1531,7 @@ def do_execute_block(b, args={}):
     # return emitters.pyc_emitter.eval_ast(b, args)
     # return emitters.pyc_emitter.eval_ast(b, args,fix_body=False)
   if isinstance(b, TreeNode): b = b.content
-  if not isinstance(b, str): return b  # OR :. !!!
+  if not is_string(b): return b  # OR :. !!!
   block_parser = the  # EnglishParser()
   block_parser.variables = variables
   block_parser.variableValues = variableValues
@@ -1715,8 +1725,8 @@ def setter(var=None):
       val=guard
       add_variable(var, guard, mod, _type)
     else:
-      # raise e from e  # 'from e': py3 way
-      raise e #, None, sys.exc_info()[2]
+      # if py3: raise e from e
+      raise e, None, sys.exc_info()[2]
 
   # end_expression via statement!
   if not interpreting():
@@ -2233,9 +2243,9 @@ def check_condition(cond=None, negate=False):
     right = cond.right
     comp = cond.comp
     if not comp: return False
-    if left and isinstance(left, str): left = left.strip()  # None==None ok
-    if right and isinstance(right, str): right = right.strip()  # " a "=="a" !?!?!? NOOO! maybe(why)
-    if isinstance(comp, str): comp = comp.strip()
+    if left and is_string(left): left = left.strip()  # None==None ok
+    if right and is_string(right): right = right.strip()  # " a "=="a" !?!?!? NOOO! maybe(why)
+    if is_string(comp): comp = comp.strip()
     if is_comparator(comp):
       the.result = do_compare(left, comp, right)
     else:
@@ -2575,15 +2585,16 @@ def do_evaluate(x, _type=None):
   if isinstance(x, type): return x
   if isinstance(x, ast.Num): return x.n
   if isinstance(x, ast.Str): return x.s
+  # if isinstance(x, ast.Unifuck): return x.s
   if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
   if isinstance(x, Variable): return do_evaluate(x.value)
   if isinstance(x, extensions.File): return x.to_path
-  # if isinstance(x, str): return x
+  # if is_string(x): return x
   # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
   if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
   if isinstance(x, list): return map(do_evaluate, x)
   # if maybe(x.is_a) Array: return x.to_s
-  if isinstance(x, str):
+  if is_string(x):
     if _type and isinstance(_type, extensions.Numeric): return float(x)
     if x in the.variableValues: return the.variableValues[x]
     if match_path(x): return do_evaluate(x)
@@ -2748,9 +2759,9 @@ def findMethod(obj0, method0, args0=None, bind=True):
     # elif "im_class" in
     #     method = method.__get__(args[0],method.im_class)
     # that returns the wrapped function as function and not as a method
-  # if isinstance(method, str):
+  # if is_string(method):
   #     raise_not_matching("NO such METHOD %s" % method)
-  # if not isinstance(method, str):
+  # if not is_string(method):
   #     raise_not_matching("NO such METHOD %s" % method)
   if not callable(method) and isinstance(args0, list) and len(args0)>0:  # TRY TO WORK ARGUMENT WISE!
     function = findMethod(obj0 or args0[0], method0, args0[0], bind=False)
@@ -2793,7 +2804,7 @@ def align_function_args(args, clazz, method):
 
 def eval_args(args):
   if not args: return []  # None
-  # if args and isinstance(args, str): args = xstr(args).replace_numerals()
+  # if args and is_string(args): args = xstr(args).replace_numerals()
   if isinstance(args, (list, tuple)):
     args = map(do_evaluate, args)
   elif isinstance(args, dict):
@@ -2861,7 +2872,7 @@ def call_unbound(method, args, number_of_arguments):
         the.result = method(xx(arg0)) or NILL
       else:
         # the.result = method(arg0) or NILL
-        bound_method = types.MethodType(method, obj_type, args[0])
+        bound_method = types.MethodType(method, obj_type, xx(args[0]))
         # bound_method = method.__get__(args[0], obj_type) # rebind
         # bound_method.im_self=args[0] # read-only
         the.result = bound_method()
@@ -2924,7 +2935,8 @@ def do_call(obj0, method0, args0=[]):
 
       the.result = map(map_list, args)
       return the.result
-  except:
+  except Exception as e:
+    print(e)
     verbose("CAN'T CALL ARGUMENT WISE")
 
   if not callable(method):
@@ -2976,7 +2988,7 @@ def do_compare(a, comp, b):
   if isinstance(a, float) and re.search(r'^\+?\-?\.?\d', str(b)): b = float(b)
   if isinstance(b, int) and re.search(r'^\+?\-?\.?\d', str(a)): a = int(a)  # EEK PHP STYLE !? REALLY??
   if isinstance(a, int) and re.search(r'^\+?\-?\.?\d', str(b)): b = int(b)  # EEK PHP STYLE !? REALLY??
-  if isinstance(comp, str): comp = comp.strip()
+  if is_string(comp): comp = comp.strip()
   if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp, ast.Lt):
     return a < b
   elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(
@@ -3619,8 +3631,8 @@ def start_shell(args=[]):
       print('Syntax Error')
     except SyntaxError as e:
       print('Syntax Error')
-    # except Exception as e:
-    #   print(e)
+    except Exception as e:
+      print(e)
     input0 = raw_input("⦠ ")
   exit()
 
@@ -3642,7 +3654,7 @@ def main():
   a = str(ARGV[1])
   print(">>> %s" % a)
   if a == "--version" or a == '-version' or a == '-v':
-    print the.version
+    print(the.version)
     return
   if a == "--verbose":
     angle._verbose = True

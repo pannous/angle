@@ -39,6 +39,10 @@ class AlgebraTest(ParserBaseTest):
     # assert_result_is('2 to the power 10', 1024)
     # assert_result_is('2 to the power of 10', 1024)
 
+  def test_algebra_POW2(self):
+    assert_result_is(u'⦠pow 3, 4', 81) # how, lol
+    # assert_result_is(u'⦠pow 3, 4', 1024)
+
   def test_algebra_NOW(self):
     # skip('test_algebra_NOW, DONT SKIP!')
     assert_result_is('1+3/4', 7/4.)
@@ -77,12 +81,33 @@ class AlgebraTest(ParserBaseTest):
         assert_equals(self.parser.algebra(), 7)
         assert_result_is('4.0+3.0', 7.0)
 
-    def test_algebra_NOW(self):
-        angle.use_tree = True
-        # skip('test_algebra_NOW, DONT SKIP!')
-        assert_result_is('1.0+3/4.0', 7/4.)
-        assert_result_is('1.0+(3/4.0)', 7/4.)
-        assert_result_is('1+3/4.0', 7 / 4.)
+        def test_algebra_NOW(self):
+          angle.use_tree = True
+          # skip('test_algebra_NOW, DONT SKIP!')
+          assert_result_is('1.0+3/4.0', 7 / 4.)
+          assert_result_is('1.0+(3/4.0)', 7 / 4.)
+          assert_result_is('1+3/4.0', 7 / 4.)
+
+        def test_logic(self):
+          angle.use_tree = True
+          # skip('test_algebra_NOW, DONT SKIP!')
+          assert_result_is('¬1', False) # alt l on mac
+          assert_result_is('!0', True)
+          assert_result_is('not 0', True)
+          assert_result_is('not False', True)
+          assert_result_is('¬ 0', True)
+          assert_result_is('¬ False', True)
+          assert_result_is('! False', True)
+          assert_result_is('¬0', True)
+          assert_result_is('¬False', True)
+          assert_result_is('!False', True)
+          assert_result_is('!1', False)
+          assert_result_is('not 1', False)
+          assert_result_is('not True', False)
+          assert_result_is('¬ True', False)
+          assert_result_is('! True', False)
+          assert_result_is('¬True', False)
+          assert_result_is('!True', False)
 
     def test_tau_pi(self):
         angle.use_tree = True

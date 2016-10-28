@@ -120,6 +120,9 @@ def assert_has_error(x,ex=None):
         if ex:
             if not isinstance(e,ex):
                 print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
+                #ifdef FUCKING PY3:
+                # raise e from e
+                #else:
                 raise e, None, sys.exc_info()[2]
             print("OK, got expected ERROR %s : %s"%(ex,e))
         else:
@@ -138,7 +141,7 @@ def sleep(s):
 
 
 def parse(s):
-    if not isinstance(s,str) or isinstance(s,file): return s
+    if not (isinstance(s,str) or isinstance(s,unicode) or isinstance(s,file)): return s
     print("PARSING %s"%s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
@@ -262,7 +265,7 @@ class ParserBaseTest(unittest.TestCase):
             ok = self.parser.condition()
             if ok==False or ok=='False':
                 assert False, 'NOT PASSING: ' + str( msg)
-        print 'TEST PASSED!  ' + str( msg) + ' \t VALUE '+str(ok)
+        print('TEST PASSED!  ' + str( msg) + ' \t VALUE '+str(ok))
 
     # def NOmethod_missing(self, sym, args, block):
     #     syms = sym.to_s()

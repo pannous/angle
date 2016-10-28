@@ -14,7 +14,7 @@ import extensions
 import kast.kast
 from nodes import Quote
 from power_parser import *  # app_path, verbose
-
+from extensions import xlist
 true = True
 false = False
 TRUE = "True"
@@ -173,8 +173,8 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                     'at least', 'at most']
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor","neither"]
-english_operators = ["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
-                     "modulo","print", ]
+english_operators = xlist(["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
+                     "modulo","print", ])
 operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators + comparison_words + logic_operators
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol

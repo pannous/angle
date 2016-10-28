@@ -12,6 +12,7 @@ import token as _token
 import angle
 import extensions
 from exceptions import *
+from extension_functions import is_string
 import nodes
 from the import *
 import the
@@ -225,7 +226,7 @@ def print_pointer(force=False):
 def error(e, force=False):
   if isinstance(e, GivingUp): raise e  # hand through!
   if isinstance(e, NotMatching): raise e
-  if isinstance(e, str): print(e)
+  if is_string(e): print(e)
   if isinstance(e, Exception):
     # print(e.str(clazz )+" "+e.str(message))
     # print(clean_backtrace e.backtrace)
@@ -356,7 +357,7 @@ def parse_tokens(s):
   def tokeneater(token_type, tokenn, start_row_col, end_row_col, line):
     if token_type != tokenize.COMMENT and not line.startswith("#") and not line.startswith("//"):
       the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
-
+  s=s.replace("⦠","")
   tokenize.tokenize(BytesIO(s.encode('utf-8')).readline, tokeneater)  # tokenize the string
   return the.tokenstream
 
@@ -393,7 +394,7 @@ def init(strings):
       parse_tokens("".join(strings))
     else:
       parse_tokens("\n".join(strings))
-  if isinstance(strings, str):
+  if is_string(strings):
     the.lines = strings.split("\n")
     parse_tokens(strings)
   # drop_comments()  # DONE BY TOKENIZER! (54, '\n', (1, 20), (1, 21), '#!/usr/bin/env angle\n', 0)
@@ -427,7 +428,7 @@ def doassert(x=None, block=None):
   # if not x: raise Exception.new (to_source(block))
   if block and not x: raise NotPassing(to_source(block))
   if not x: raise NotPassing()
-  if isinstance(x, str):
+  if is_string(x):
     try:
       # if the.string: root
       s(x)
@@ -491,7 +492,7 @@ def remove_tokens(*tokenz):
 def must_contain(args, do_raise=True):  # before ;\n
   if isinstance(args[-1], dict):
     return must_contain_before(args[0:-2], args[-1]['before'])
-  if isinstance(args, str): args = [args]
+  if is_string(args): args = [args]
   old = current_token
   pre = the.previous_word
   while not (checkEndOfLine()):
@@ -525,7 +526,7 @@ def must_contain_before(args, before):  # ,before():None
 def must_contain_before_old(before, *args):  # ,before():None
   raiseEnd()
   good = False
-  if before and isinstance(before, str): before = [before]
+  if before and is_string(before): before = [before]
   if before: before = flatten(before) + [';']
   args = flatten(args)
   for x in flatten(args):
@@ -977,7 +978,7 @@ def parse(s, target_file=None):
       source_file = str(s)
       target_file = source_file + ".pyc"
       s = s.readlines()
-    if not isinstance(s, str) and not isinstance(s, list):
+    if not is_string(s) and not isinstance(s, list):
       the.result = s
       return english_parser.interpretation()  # result, hack
     allow_rollback()
@@ -1053,7 +1054,7 @@ def escape_token(t):
 
 def starts_with(tokenz):
   if checkEndOfLine(): return False
-  if isinstance(tokenz, str):
+  if is_string(tokenz):
     return tokenz == the.current_word
   if the.current_word in tokenz:
     return the.current_word

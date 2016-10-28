@@ -80,3 +80,21 @@ class TypeTest(ParserBaseTest):
     def test_no_type_cast(self):
         assert_equals(type(parse('2.3 as int'), ), int)
         assert_equals(type(parse('2.3'), ), float)
+
+    # def test_type_hinting_python3_5(self):
+    #     from typing import List  # , TYPE_CHECKING
+    #     def sum_and_stringify(nums: List[int]) -> str:
+    #         return str(sum(nums))
+    #     print(sum_and_stringify([1, 'b']))
+    #
+    # def test_type_hinting_python3_5b():
+    #     def sum_and_stringify(nums: list) -> str:
+    #         return str(sum(nums))
+    #     print(sum_and_stringify([1,'b']))
+
+    def test_type_hinting_python2():
+        def sum_and_stringify(nums):
+            # type (list) -> str
+            return str(sum(nums))
+        print(sum_and_stringify([1, 'b']))
+

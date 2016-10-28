@@ -11,13 +11,11 @@ class MacTest(ParserBaseTest):
         pass
 
     def test_applescript(self):
-        if (ENV['APPLE'], ):
-            skip()
+        if (ENV['APPLE']): skip()
         parse('Tell application "Finder" to open home')
 
     def test_files(self):
-        if (ENV['APPLE'], ):
-            skip()
+        if (ENV['APPLE']): skip()
         variables['x'] = ['/Users/me', ]
         variables['my home folder'] = ['/Users/me', ]
         assert('/Users/me == x')

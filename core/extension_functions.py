@@ -1,7 +1,6 @@
 import re # for 'is_file'
 import os
 
-import extensions
 
 def reverse(x):
     y=x.reverse()
@@ -21,6 +20,13 @@ def fold(self,x,fun):
 def last(xs):
   return xs[-1]
   
+def Pow(x,y):
+    return x**y
+
+def is_string(s):
+    # import extensions
+    class xstr(str):pass
+    return isinstance(s,str) or isinstance(s,xstr) or isinstance(s,unicode) #or issubclass(s,str) or issubclass(s,unicode)
 
 def flatten(l):
     if isinstance(l, list) or isinstance(l, tuple):
@@ -105,5 +111,11 @@ def is_dir(x, must_exist=True):
 # print x
 #   print "\n"
 #   x
+
+def ls(mypath):
+    return xlist(os.listdir(mypath))
+
+def grep(xs,pattern):
+    return filter(pattern, xs)
 
 print("extension functions loaded")

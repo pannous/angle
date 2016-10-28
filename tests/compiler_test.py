@@ -4,14 +4,17 @@ from kast import ast_export
 from parser_test_helper import *
 
 
-class CompilerPythonEquivalenceTest(ParserBaseTest):
+class CompilerPythonEquivalenceTest():#ParserBaseTest):
     def test_compiler_output_equivalence(self):
         source='../kast/tests/hi.py'
+        # source='../core/english_parser.py'
         contents=open(source).readlines()# all()
         contents="\n".join(contents)
+
         contents="print('hi')"
         inline="(string)" # compile from inline string source:
         source=inline
+        parse(contents)
         file_ast=compile(contents, source, 'exec',ast.PyCF_ONLY_AST)
         # x=ast.dump(file_ast, annotate_fields=True, include_attributes=True)
         angle_ast=parse_tree(contents)
@@ -25,3 +28,4 @@ class CompilerPythonEquivalenceTest(ParserBaseTest):
             ast_export.emit_pyc(code,source+".pyc")
         exec(code)
 
+CompilerPythonEquivalenceTest().test_compiler_output_equivalence()

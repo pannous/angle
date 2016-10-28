@@ -1,18 +1,16 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
 
-from extension_functions import *
-
 import os
 import re
-# import exceptions
-
-# import builtins
-# import __builtin__
 import shutil
 
-  
-  # /Users/me/dev/script/python/extensions/complex.py
+from extension_functions import *
+
+# import exceptions
+# import builtins
+# import __builtin__
+
 
 def xx(y):
   if isinstance(y,list):  return xlist(y)
@@ -23,8 +21,8 @@ def xx(y):
   if isinstance(y,file):   return xfile(y)
   if isinstance(y,xrange): return xlist(y)
   if isinstance(y,range): return xlist(y)
-  # if isinstance(y,char):  return xchar(y)
-  # if isinstance(y,byte):  return xchar(y)
+  if isinstance(y,char):  return xchar(y)
+  if isinstance(y,byte):  return xchar(y)
   print("No extension for type %s"%type(y))
   return y
   
@@ -122,7 +120,7 @@ class xfile(file):
     def read(x):return open(x)
     @staticmethod
     def ls(mypath):
-        return os.listdir(mypath)
+        return xlist(os.listdir(mypath))
 
 @extension
 class File(xfile):
@@ -238,156 +236,175 @@ class Class:
 # WOW YAY WORKS!!!!!
 # ONLY VIA EXPLICIT CONSTRUCTOR!
 # NOOOO!! BAAAD! isinstance(my_xlist,list) FALSE !!
+
+from functools import partial # for method_missing
 @extension
 class xlist(list):
-    def select(xs,func):
-      # return [x for x in xs if func(x)]
-      return filter(func,xs)
-      
-    def last(xs):
-      return xs[-1]
-      
-    def first(xs):
-      return xs[0]
-      
-    def fold(self,x,fun):
-      if not callable(fun): 
-        fun,x=x,fun
-      return reduce(fun, self, x)
-      
-    def row(self,n):
-        return self[int(n)-1]
+  def unique(xs):
+    return xlist(set(xs))
+  def uniq(xs):
+    return xlist(set(xs))
 
-    def column(self,n):
-        if isinstance(self[0],str):
-            return map(lambda row:xstr(row).word(n+1),self)
-        if isinstance(self[0],list):
-            return map(lambda row:row[n],self)
-        raise Exception("column of %s undefined"%type(self[0]))
-        # c=self[n]
+  def method_missing(xs, name, *args, **kwargs):
+    method = getattr(xs.first(), name)
+    return map(lambda x:method(args,kwargs),xs) # method bound to x
 
+  def __getattr__(self, name):
+    return partial(self.method_missing, name)
 
-    def length(self):
-        return len(self)
-    def clone(self):
-        import copy
-        return copy.copy(self)
-        # return copy.deepcopy(self)
+  def select(xs,func): # VS MAP!!
+    # return [x for x in xs if func(x)]
+    return filter(func,xs)
+    
+  def map(xs,func):      
+    return map(func,xs)
+    
+  def last(xs):
+    return xs[-1]
+    
+  def first(xs):
+    return xs[0]
+    
+  def fold(self,x,fun):
+    if not callable(fun): 
+      fun,x=x,fun
+    return reduce(fun, self, x)
+    
+  def row(self,n):
+      return self[int(n)-1]
 
-    def flatten(self):
-        from itertools import chain
-        return list(chain.from_iterable(self))
-
-    def __sub__(self, other): # xlist-[1]-[2]
-        return xlist(i for i in self if i not in other)
-
-    def __rsub__(self, other): #[1]-xlist-[2] ok!
-        return xlist(i for i in other if i not in self)
-
-    def c(self):
-        return map(str.c, self).join(", ")  # leave [] which is not compatible with C
-
-    def wrap(self):
-        # map(wrap).join(", ") # leave [] which is not compatible with C
-        return "rb_ary_new3(#{size}/*size*', #{wraps})"  #values
-
-    def wraps(self):
-        return map(lambda x: x.wrap, self).join(", ")  # leave [] which is not compatible with C
-
-    def values(self):
-        return map(lambda x: x.value, self).join(", ")  # leave [] which is not compatible with C
-
-    def contains_a(self, type):
-        for a in self:
-            if isinstance(a, type): return True
-        return False
-
-    def drop(self, x):
-        return self.reject(x)
-
-    def to_s(self):
-        return self.join(", ")
-
-        # ifdef $auto_map:
-        # def method_missing(method, *args, block):
-        #   if args.count==0: return self.map (lambda x: x.send(method ))
-        #   if args.count>0: return self.map (lambda x: x.send(method, args) )
-        # super method, *args, block
-
-    # def matches(item):
-    #   contains item
-    #
-    # remove: confusing!!
-    def matches(self, regex):
-        for i in self.flatten():
-            m = regex.match(i.gsub(r'([^\w])', "\\\\\\1"))  #escape_token(i))
-            if m:
-                return m
-        return False
-
-    def And(self, x):
-        if not isinstance(x, list): self + [x]
-        return self + x
-
-    def plus(self, x):
-        if not isinstance(x, list): self + [x]
-        return self + x
-
-    #EVIL!!
-    # not def(self):
-    #   None? not or
-
-    #def = x  unexpected '=':
-    #  is x
-    #
-    #def grep(x):
-    #  select{|y|y.to_s.match(x)}
-    #
-    def names(self):
-        return map(str, self)
-
-    def rest(self,index=1):
-        return self[index:]
-
-    def fix_int(self, i):
-        if str(i) == "middle": i = self.count() / 2
-        if isinstance(i, Numeric): return i - 1
-        i = xstr(i).parse_integer()
-        return i - 1
-
-    def character(self, nr):
-        return self.item(nr)
-
-    def item(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!
-        return self[xlist(self).fix_int(nr)]
-
-    def word(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!):
-        return self[xlist(self).fix_int(nr)]
-
-    def invert(self): # ! Self modifying !
-        self.reverse()
-        return self
+  def column(self,n):
+      if isinstance(self[0],str):
+          return map(lambda row:xstr(row).word(n+1),self)
+      if isinstance(self[0],list):
+          return map(lambda row:row[n],self)
+      raise Exception("column of %s undefined"%type(self[0]))
+      # c=self[n]
 
 
-    def get(self, x):
-        return self[self.index(x)]
+  def length(self):
+      return len(self)
 
-    # def row(self, n):
-    #     return self.at(n)
+  def clone(self):
+      import copy
+      return copy.copy(self)
+      # return copy.deepcopy(self)
 
-    def has(self, x):
-        return self.index(x)
+  def flatten(self):
+      from itertools import chain
+      return list(chain.from_iterable(self))
 
-    def contains(self, x):
-        ok = self.index(x)
-        if ok:
-            return self.at(self.index(x))
-        else:
-            return False
+  def __sub__(self, other): # xlist-[1]-[2] minus
+      if not hasattr(other, '__iter__'): other=[other]
+      return xlist(i for i in self if i not in other)
 
-        #def to_s:
-        #  "["+join(", ")+"]"
-        #
+  def __rsub__(self, other): #[1]-xlist-[2] ok!
+      return xlist(i for i in other if i not in self)
+
+  def c(self):
+      return map(str.c, self).join(", ")  # leave [] which is not compatible with C
+
+  def wrap(self):
+      # map(wrap).join(", ") # leave [] which is not compatible with C
+      return "rb_ary_new3(#{size}/*size*', #{wraps})"  #values
+
+  def wraps(self):
+      return map(lambda x: x.wrap, self).join(", ")  # leave [] which is not compatible with C
+
+  def values(self):
+      return map(lambda x: x.value, self).join(", ")  # leave [] which is not compatible with C
+
+  def contains_a(self, type):
+      for a in self:
+          if isinstance(a, type): return True
+      return False
+
+  def drop(self, x):
+      return self.reject(x)
+
+  def to_s(self):
+      return self.join(", ")
+
+      # ifdef $auto_map:
+      # def method_missing(method, *args, block):
+      #   if args.count==0: return self.map (lambda x: x.send(method ))
+      #   if args.count>0: return self.map (lambda x: x.send(method, args) )
+      # super method, *args, block
+
+  # def matches(item):
+  #   contains item
+  #
+  # remove: confusing!!
+  def matches(self, regex):
+      for i in self.flatten():
+          m = regex.match(i.gsub(r'([^\w])', "\\\\\\1"))  #escape_token(i))
+          if m:
+              return m
+      return False
+
+  def And(self, x):
+      if not isinstance(x, list): self + [x]
+      return self + x
+
+  def plus(self, x):
+      if not isinstance(x, list): self + [x]
+      return self + x
+
+  #EVIL!!
+  # not def(self):
+  #   None? not or
+
+  #def = x  unexpected '=':
+  #  is x
+  #
+  #def grep(x):
+  #  select{|y|y.to_s.match(x)}
+  #
+  def names(self):
+      return map(str, self)
+
+  def rest(self,index=1):
+      return self[index:]
+
+  def fix_int(self, i):
+      if str(i) == "middle": i = self.count() / 2
+      if isinstance(i, Numeric): return i - 1
+      i = xstr(i).parse_integer()
+      return i - 1
+
+  def character(self, nr):
+      return self.item(nr)
+
+  def item(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!
+      return self[xlist(self).fix_int(nr)]
+
+  def word(self, nr):  # -1 AppleScript style !!! BUT list[0] !!!):
+      return self[xlist(self).fix_int(nr)]
+
+  def invert(self): # ! Self modifying !
+      self.reverse()
+      return self
+
+
+  def get(self, x):
+      return self[self.index(x)]
+
+  # def row(self, n):
+  #     return self.at(n)
+
+  def has(self, x):
+      return self.index(x)
+
+  def contains(self, x):
+      ok = self.index(x)
+      if ok:
+          return self.at(self.index(x))
+      else:
+          return False
+
+      #def to_s:
+      #  "["+join(", ")+"]"
+      #
 
 
 # class TrueClass:
@@ -453,6 +470,9 @@ class xstr(str):
 
     def is_in(self, ary):
         return ary.has(self)
+        
+    def cut_to(self,pattern):
+      return self.sub(0,self.indexOf(pattern))
 
     def matches(self, regex):
         if isinstance(regex, list):
@@ -575,8 +595,11 @@ class xstr(str):
     # def replace(self,param, param1):
     #   pass
 
+    def replaceAll(self,pattern,string):
+      return re.sub(pattern,string,self)
+      
     def shift(self, n=1):
-        n.times(self=self.replace(r'^.', ""))
+        n.times(self=self.replaceAll(r'^.', ""))
         # self[n:-1]
 
     def replace_numerals(self):
@@ -824,6 +847,7 @@ class xint(int):
         return self * self
 
 
+
 class Numeric(xint):
     pass
 
@@ -997,7 +1021,7 @@ class xobject:
 # @extension
 # class Math:
 # WOOOT? just
-import math as Math
+# import math as Math
     # def __getattr__(self, attr):
     #     import sys
     #     import math
