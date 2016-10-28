@@ -1,5 +1,12 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
+# encoding=utf8  
+import sys  
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
+# >>> sys.getdefaultencoding()
+# 'utf8'
 
 import os
 import re
@@ -119,7 +126,7 @@ class xfile(file):
     @staticmethod
     def read(x):return open(x)
     @staticmethod
-    def ls(mypath):
+    def ls(mypath="."):
         return xlist(os.listdir(mypath))
 
 @extension
@@ -139,7 +146,7 @@ class Directory(file):  #
         os.listdir(str(self))  #?
 
     @classmethod
-    def ls(path):
+    def ls(path="."):
         os.listdir(path)
 
     @classmethod
@@ -845,7 +852,6 @@ class xint(int):
     # todo: use ^^
     def squared(self):
         return self * self
-
 
 
 class Numeric(xint):

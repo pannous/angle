@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
+# encoding=utf8  
+import sys  
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
+
+# from exceptions import GivingUp
 import _ast
 # import yappi
 import ast
@@ -11,6 +18,10 @@ import stem.util.system
 # import interpretation
 import inspect
 import emitters.pyc_emitter
+# from exceptions.exceptions import GivingUp
+from exceptionz import *
+from exceptionz import MethodMissingError,EndOfStatement
+#
 from english_tokens import *
 from kast import kast
 from power_parser import *
@@ -97,16 +108,16 @@ def should_not_start_with(words):
   if not bad: return OK
   if bad:
     info("should_not_match DID match %s" % bad)
-  if bad: raise NotMatching(MustNotMatchKeyword(bad))
+  if bad: raise NotMatching("should_not_match DID match %s" % bad) #MustNotMatchKeyword(bad))
 
 remove_hash={}
-remove_from_list_count=0
+# remove_from_list_count=0
 def remove_from_list(keywords0, excepty):
   # if (keywords0,excepty) in remove_hash:
   #   return remove_hash[(keywords0,excepty)]
-  info("remove_from_list called "+str(remove_from_list_count)+" times")
-  global remove_from_list_count
-  remove_from_list_count+=1
+  # global remove_from_list_count
+  # remove_from_list_count+=1
+  # info("remove_from_list called "+str(remove_from_list_count)+" times")
   good = list(keywords0) # clone
   for x in excepty:
     while x in good:
@@ -364,6 +375,7 @@ def algebra(val=None):
     if the.current_word in be_words and angle.in_args:
       return False  # f x is 0 == f(x) is 0 NOT f(x is 0) !!
     op = maybe(comparation) or operator()
+    if op == '=': return False # see setter!
     if op == 'and' and in_list: return False
     n = maybe_token('not')
     y = maybe(value) or maybe(bracelet)
@@ -947,13 +959,15 @@ def execute(command):
   # NOT: exec(command) !! == eval
 
 
-@Starttokens('bash')
+@Starttokens(['bash','`','exec'])
 def bash_action():
   # import bindingsr'shell'bash-commands
-  ok = starts_with(['bash'] + bash_commands)
+  if starts_with("`") and beginning_of_line():
+    raise DidYouMean("shell <bash command ...>")
+  ok = starts_with(['bash','exec','`'] + bash_commands)
   if not ok: raise_not_matching("no bash commands")
   no_rollback()
-  remove_tokens('execute', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
+  remove_tokens('execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
   command = maybe(quote)  # danger bash "hi">echo
   command = command or rest_of_line()
   # any{ maybe(  ) or   statements )
@@ -2832,10 +2846,10 @@ def align_args(args, clazz, method):
     else:
       margs, varargs, varkw, defaults = inspect.getargspec(method)
       expect = len(margs) - (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
-    if not isinstance(args, (list, dict)):
+    if not isinstance(args, (xlist, list, dict)):
       args = [args]
     if isinstance(args, list):
-      if (len(args) > expect):
+      if (len(args) > expect and len(args)>1 ):
         args = [args]
     if isinstance(method, Function):
       for i in range(expect):

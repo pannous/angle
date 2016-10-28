@@ -11,7 +11,7 @@ import re
 import token as _token
 import angle
 import extensions
-from exceptions import *
+from exceptionz import *
 from extension_functions import is_string
 import nodes
 from the import *
@@ -47,90 +47,90 @@ class Starttokens(object):
 #
 # class NotMatching(StandardError):
 #     pass
-
-class StandardError(Exception):
-  pass
-
-
-class Error(Exception):
-  pass
-
-
-class MethodMissingError(StandardError):
-  pass
-
-
-class InternalError(StandardError):
-  pass
-
-
-class NotMatching(StandardError):
-  pass
-
-
-class UnknownCommandError(StandardError):
-  pass
-
-
-class SecurityError(StandardError):
-  pass
-
-
-# NotPassing = Class.new StandardError
-class NotPassing(StandardError):
-  pass
-
-
-class NoResult(NotMatching):
-  pass
-
-
-class EndOfDocument(StandardError):
-  pass
-
-
-class EndOfLine(NotMatching):
-  pass
-
-
-class EndOfStatement(EndOfLine):
-  pass
-
-
-class MaxRecursionReached(StandardError):
-  pass
-
-
-class EndOfBlock(NotMatching):
-  pass
-
-
-class GivingUp(StandardError):
-  pass
-
-
-class MustNotMatchKeyword(NotMatching):
-  pass
-
-
-class KeywordNotExpected(NotMatching):
-  pass
-
-
-class UndefinedRubyMethod(NotMatching):
-  pass
-
-
-class WrongType(StandardError):
-  pass
-
-
-class ImmutableVaribale(StandardError):
-  pass
-
-
-class SystemStackError(StandardError):
-  pass
+#
+# class StandardError(Exception):
+#   pass
+#
+#
+# class Error(Exception):
+#   pass
+#
+#
+# class MethodMissingError(StandardError):
+#   pass
+#
+#
+# class InternalError(StandardError):
+#   pass
+#
+#
+# class NotMatching(StandardError):
+#   pass
+#
+#
+# class UnknownCommandError(StandardError):
+#   pass
+#
+#
+# class SecurityError(StandardError):
+#   pass
+#
+#
+# # NotPassing = Class.new StandardError
+# class NotPassing(StandardError):
+#   pass
+#
+#
+# class NoResult(NotMatching):
+#   pass
+#
+#
+# class EndOfDocument(StandardError):
+#   pass
+#
+#
+# class EndOfLine(NotMatching):
+#   pass
+#
+#
+# class EndOfStatement(EndOfLine):
+#   pass
+#
+#
+# class MaxRecursionReached(StandardError):
+#   pass
+#
+#
+# class EndOfBlock(NotMatching):
+#   pass
+#
+#
+# class GivingUp(StandardError):
+#   pass
+#
+#
+# class MustNotMatchKeyword(NotMatching):
+#   pass
+#
+#
+# class KeywordNotExpected(NotMatching):
+#   pass
+#
+#
+# class UndefinedRubyMethod(NotMatching):
+#   pass
+#
+#
+# class WrongType(StandardError):
+#   pass
+#
+#
+# class ImmutableVaribale(StandardError):
+#   pass
+#
+#
+# class SystemStackError(StandardError):
+#   pass
 
 
 def app_path():
@@ -929,10 +929,6 @@ def app_path():
   # File.expand_path(File.dirname(__FILE__)).to_s
 
 
-class IgnoreException(Exception):
-  pass
-
-
 def clear():
   global variables, variableValues
   verbose("clear all variables, methods, ...")
@@ -1189,6 +1185,8 @@ def number_word():
 def fraction():
   f = maybe(integer) or 0
   m = starts_with(["¼", "½", "¾", "⅓", "⅔", "⅕", "⅖", "⅗", "⅘", "⅙", "⅚", "⅛", "⅜", "⅝", "⅞"])
+  # m = m or starts_with(["\xc2\xbc", "\xc2\xbd", "\xc2\xbe", "\xe2\x85\x93", "\xe2\x85\x94", "\xe2\x85\x95", "\xe2\x85\x96", "\xe2\x85\x97", "\xe2\x85\x98", "\xe2\x85\x99", "\xe2\x85\x9a", "\xe2\x85\x9b", "\xe2\x85\x9c", "\xe2\x85\x9d", "\xe2\x85\x9e"])
+  # m = m or starts_with(['\xc2'])
   if not m:
     # if f==ZERO: return 0 NOT YET!
     if f != 0:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# encoding: utf-8
+
 import angle
 angle.use_tree = False
 from parser_test_helper import *
@@ -9,6 +11,22 @@ class MacTest(ParserBaseTest):
 
     def test_mail(self):
         pass
+
+
+    def test_bash2(self):
+        parse('exec ls')
+        parse('bash ls')
+        parse('ls "."')
+        parse('ls')
+        parse('x=ls')
+
+    def test_bash(self):
+        assert_result_is("½*2",1)
+
+    # parse('x=ls\na=x[1]')
+        # parse('x=ls;a=x[1]')#// fucked up a=
+        # parse('`ls`')
+
 
     def test_applescript(self):
         if (ENV['APPLE']): skip()

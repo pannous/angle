@@ -61,8 +61,9 @@ def grep(xs, x):
         return filter(lambda y: x[0] in str(y),xs)
     return filter(lambda y: x in str(y),xs)
 
-def ls(path="."):
-    return os.listdir(path)
+def ls(mypath="."):
+    from extensions import xlist
+    return xlist(os.listdir(mypath))
 
 def length(self):
     return len(self)
@@ -111,9 +112,6 @@ def is_dir(x, must_exist=True):
 # print x
 #   print "\n"
 #   x
-
-def ls(mypath):
-    return xlist(os.listdir(mypath))
 
 def grep(xs,pattern):
     return filter(pattern, xs)

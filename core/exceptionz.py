@@ -1,13 +1,21 @@
 # encoding: utf-8
+
+# ImportError: cannot import name a_class
+# AttributeError: 'module' object has no attribute
+# I have also seen this error when inadvertently naming a module with the same name as one of the standard Python modules.
+# YEP: exceptionz works!!!
+
 # import minitest
   # DONT ROLLBACK StandardError
   # DO ROLLBACK all NotMatching
 global NotMatching
+global DidYouMean
+# global GivingUp
 # class StandardError(Exception):
 #     pass
 
-# class Error(Exception):
-#     pass
+
+
 class InternalError(StandardError):
     pass
 
@@ -18,6 +26,9 @@ class InternalError(StandardError):
     pass
 
 class NotMatching(StandardError):
+    pass
+
+class DidYouMean(StandardError):
     pass
 
 class UnknownCommandError(StandardError):
@@ -57,6 +68,16 @@ class KeywordNotExpected(NotMatching):
 class UndefinedRubyMethod(NotMatching):
     pass
 
+class EndOfStatement(NotMatching):
+    pass
+
+class MustNotMatchKeyword(NotMatching):
+    pass
+
+
+class MethodMissingError(StandardError):
+    pass
+
 class WrongType(StandardError):
     pass
 
@@ -66,5 +87,14 @@ class ImmutableVaribale(StandardError):
 class SystemStackError(StandardError):
     pass
 
+
+class IgnoreException(Exception):
+  pass
+
+try:
+    class Error(Exception):
+        pass
+except:
+    pass
 
 

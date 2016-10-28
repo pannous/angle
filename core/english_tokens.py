@@ -4,7 +4,6 @@ from tokenize import tokenize, untokenize, NUMBER, STRING, NAME, OP
 from io import BytesIO
 import os
 import angle
-from exceptions import *
 import extensions
 
 ##################/
