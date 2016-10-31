@@ -3676,7 +3676,8 @@ def main():
   # all=ARGF.read or File.read(a) except a
   target_file = None
   try:
-    interpretation = parse(a.encode('utf-8'), target_file)
+    interpretation = parse(a.decode('utf-8'), target_file)
+    # interpretation = parse(a.encode('utf-8'), target_file)
     if angle.use_tree: print(interpretation.tree)
     if the.result and not not the.result and not the.result == Nil:
       print(the.result)

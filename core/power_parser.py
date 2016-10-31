@@ -358,6 +358,17 @@ def parse_tokens(s):
     if token_type != tokenize.COMMENT and not line.startswith("#") and not line.startswith("//"):
       the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
   s=s.replace("⦠","")
+  # tokenize.tokenize(BytesIO(s.decode('utf-8').encode('utf-8')).readline, tokeneater)  # tokenize the string
+  # tokenize.tokenize(s.decode('utf-8'), tokeneater)  # tokenize the string
+  done=0
+  global done
+  def lines():
+    global done
+    if done: return ''
+    done=1
+    return s.decode('utf-8')#.split('\n') # next
+
+  tokenize.tokenize(lines, tokeneater)  # tokenize the string
   tokenize.tokenize(BytesIO(s.encode('utf-8')).readline, tokeneater)  # tokenize the string
   return the.tokenstream
 
@@ -1194,7 +1205,9 @@ def fraction():
     raise NotMatching()
   else:
     next_token()
-    m = m.parse_number()
+    # AttributeError: 'unicode' object has no attribute 'parse_number'
+    from extensions import xstr
+    m = xstr(m).parse_number()
   the.result = float(f) + m
   return the.result
 

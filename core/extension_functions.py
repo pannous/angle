@@ -1,6 +1,15 @@
 import re # for 'is_file'
 import os
 
+from random import randint
+from random import random as _random
+def rand(n=1):return _random()*n
+def random(n=1):return _random()*n
+def random_array(l):return np.random.rand(l) # (0,1) x,y don't work ->
+def random_matrix(x,y):return np.random.rand(x,y) # (0,1) !
+
+def pick(xs):
+    return xs[randint(len(xs))]
 
 def reverse(x):
     y=x.reverse()
