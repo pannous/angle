@@ -164,12 +164,11 @@ be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have 
 # OR class_words
 comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                     'element of', 'subset of', 'in', 'are', 'were', \
-                    '>=', '==', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', 'gt', 'lt', 'eq', \
+                    '>=', '==','!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', 'gt', 'lt', 'eq', \
                     'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
                     'bigger', 'greater', 'equals', 'smaller', 'less', 'more', 'the same as', \
                     'same as', 'similar', 'comes after', 'inherits from', 'implements' \
-                                                                          'comes before', 'exact', 'exactly', '~>',
-                    'at least', 'at most']
+                    'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor","neither"]
 english_operators = xlist(["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
@@ -301,13 +300,14 @@ kast_operator_map = {
     "|": ast.BitOr(),
     "||": ast.Or(),
     "or": ast.Or(),
-    "!=": ast.NotEq(),
     "does not equal": ast.NotEq(),
     "doesn't equal": ast.NotEq(),
     "not equal": ast.NotEq(),
     "is not": ast.NotEq(),
     "isn't": ast.NotEq(),
     "isnt": ast.NotEq(),
+    "!=": ast.NotEq(),
+    "≠": ast.NotEq(),
     "=": ast.Eq(),
     "==": ast.Eq(),
     "===": ast.Eq(),

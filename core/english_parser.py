@@ -375,8 +375,8 @@ def algebra(val=None):
     if the.current_word in be_words and angle.in_args:
       return False  # f x is 0 == f(x) is 0 NOT f(x is 0) !!
     op = maybe(comparation) or operator()
-    if op == '=': return False # see setter!
-    if op == 'and' and in_list: return False
+    # if in_setter and op == '=': return False # see setter!
+    if op == '=': raise NotMatching#return False # see setter!
     n = maybe_token('not')
     y = maybe(value) or maybe(bracelet)
     angle.in_algebra = True
@@ -782,10 +782,17 @@ def passing():
   ok = tokens(["pass", ";"])
   return ok if interpreting() else ast.Pass()
 
+def space():
+  if (token(' ') or token('')) != None:
+    return OK
+  else:
+    return False
+
 
 def expression(fallback=None, resolve=True):
   if the.current_word == '': raise EndOfLine()
   if the.current_word == ';': raise EndOfStatement()
+  maybe(space) # why? bug!
   the.result = ex = maybe(quick_expression) or \
                     maybe(listselector) or \
                     maybe(algebra) or \
@@ -2711,6 +2718,7 @@ def do_math(a, op, b):
   if op == 'the same as': return a == b
   if op == 'equals': return a == b
   if op == '!=': return a != b
+  if op == '≠': return a != b
   if op == 'is not': return a != b
   if op == 'isn\'t': return a != b
   if op in class_words: return isinstance(a, b) or xobject.is_a(a, b)

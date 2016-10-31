@@ -808,29 +808,29 @@ def block(multiple=False):  # type):
   #
 
 
-def maybe(expression):
+def maybe(expr):
   global original_string, last_node, current_value, depth, current_node, last_token
-  if not callable(expression):  # duck!
-    return maybe_tokens(expression)
-  the.current_expression = expression
+  if not callable(expr):  # duck!
+    return maybe_tokens(expr)
+  the.current_expression = expr
   depth = depth + 1
   if (depth > angle.max_depth): raise SystemStackError("len(nodes)>max_depth)")
   old = current_token
   try:
-    result = expression()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    result = expr()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
     adjust_rollback()
     if angle._debug and (callable(result)):
       raise Exception("BUG!? returned CALLABLE " + str(result))
     if result or result == 0:  # and result!='False'
-      verbose("GOT result from " + str(expression) + " : " + str(result))
+      verbose("GOT result from " + str(expr) + " : " + str(result))
     else:
-      verbose("No result from " + str(expression))
+      verbose("No result from " + str(expr))
       set_token(old)
       # the.string = old
     last_node = current_node
     return result
   except (NotMatching, EndOfLine) as e:
-    if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.current_word, expression,e))
+    if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.current_word, expr, e))
     adjust_interpret()  # remove the border, if above border
     # if verbose: verbose(e)
     # if verbose: string_pointer()
@@ -847,7 +847,7 @@ def maybe(expression):
       # if angle.use_tree:
       #     import TreeBuilder
       #     TreeBuilder.show_tree()  # Not reached
-      ex = GivingUp(str(e) + "\n" + to_source(expression) + "\n" + pointer_string())
+      ex = GivingUp(str(e) + "\n" + to_source(expr) + "\n" + pointer_string())
       raise ex, None, sys.exc_info()[2]
       # error e #exit
       # raise SyntaxError(e)
