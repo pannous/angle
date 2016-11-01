@@ -9,7 +9,7 @@ angle.use_tree = False
 angle.testing = True
 from parser_test_helper import *
 from parser_test_helper import variables
-
+from exceptionz import UndeclaredVariable
 
 class ConditionTest(ParserBaseTest):
 
@@ -36,6 +36,30 @@ class ConditionTest(ParserBaseTest):
 		assert self.parse('counter is 3')
 		assert self.parse('counter equals 3')
 		assert self.parse('counter is the same as 3')
+
+
+	def test_root_comparisons_eq(self):
+		assert_has_error('x==2')
+		# assert_has_error('x==2',UndeclaredVariable)
+		assert_result_is('x=2;x==2', True)
+		assert_result_is('x=2;x==3', False)
+		assert_result_is('x==2', True) # keep state ^^ !
+		assert_result_is('x==3', False)
+		assert_result_is('2==2', True)
+		assert_result_is('1==2', False)
+
+	def test_UndeclaredVariable(self):
+		assert_has_error('x=y',UndeclaredVariable)
+
+
+	def test_root_comparisons(self):
+		assert_result_is('1<2', True)
+		assert_result_is('1≠2', True)
+		assert_result_is('2==2', True)
+		assert_result_is('1==2', False)
+		assert_result_is('3<2', False)
+		assert_result_is('3>2', True)
+		# assert_result_is('1=2', False)
 
 	def test_return(self):
 		assert_result_is('if 1<2 then 5 else 4', 5)

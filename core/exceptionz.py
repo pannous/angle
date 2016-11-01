@@ -28,6 +28,9 @@ class InternalError(StandardError):
 class NotMatching(StandardError):
     pass
 
+class UndeclaredVariable(StandardError):
+    pass
+
 class DidYouMean(StandardError):
     pass
 

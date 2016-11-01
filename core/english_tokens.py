@@ -154,6 +154,7 @@ fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right"
 class_words = ['is an', 'is a', 'has type', 'is of type','has class', 'is of class','is instance of','is instance','instance of']  # ...
 subtype_words =['inherits','inherits from','extends','is subtype of','is subtype','subtype of','is subclass of','is subclass','subclass of','has base class']
 
+to_be_words = ['is','be','are',':=','=']
 be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
             '=', '==', 'equals', 'equal', \
             'is equal to', "consist of", "consists of", "is made up of", 'equal to', 'same', 'the same as', 'same as',

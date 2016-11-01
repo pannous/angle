@@ -637,10 +637,10 @@ def regular_hash():
   h = {}
 
   def lamb():
-    if len(h) > 0: tokens([';', ','])
+    if len(h) > 0:return tokens([';', ','])
     quoted = maybe_tokens(['"', "'"])
     key = word()
-    if quoted: tokens(['"', "'"])
+    if quoted:return tokens(['"', "'"])
     # Property versus hash !!
     maybe_tokens(['=>', '=', ':', '>']) or starts_with("{")
     maybe_tokens(['=>', '=', ':', '>'])
@@ -722,7 +722,7 @@ def quick_expression():  # bad idea!
   elif the.current_word in the.params.keys():
     result = true_param()
   elif the.current_word in the.variables.keys():
-    result = known_variable()
+    result = known_variable() #  we don't rise undeclared variable here
   elif the.current_word in the.method_names:
     if method_allowed(the.current_word):
       result = method_call()  # already wrapped maybe(method_call)
@@ -1709,7 +1709,7 @@ def declaration():
 @Starttokens(let_words)
 def setter(var=None):
   # if not var:
-  must_contain_before(args=be_words + ['set'], before=['>', '<', '+', '-', '|', '/', '*'])
+  must_contain_before(args=['is','be','are',':=','=','set'], before=['>', '<', '+', '-', '|', '/', '*',';'])
   _let = maybe_tokens(let_words)
   if _let: no_rollback()
   a = maybe(_the)
@@ -1722,6 +1722,7 @@ def setter(var=None):
   #     mod=var.modifier
   var = var or maybe(property) or variable(a, ctx=kast.Store())
   setta = maybe_tokens(['to']) or be()  # or not_to_be 	contain -> add or create
+  if not setta: raise NotMatching("BE!?") # bug ^^
   if (setta == ':=' or _let == 'alias'): return alias(var);
   # val = maybe(adjective) or expressions()
   val = expression()
@@ -1878,7 +1879,7 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
     if name in the.params:
       return the.params[name]
     else:
-      raise raise_not_matching("Unknown variable " + name)
+      raise UndeclaredVariable("Unknown variable " + name)
   # typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
   if isinstance(ctx, kast.Store):  # why not return existing variable?
@@ -2026,7 +2027,7 @@ def call_arg(position=1):
 # that_are bigger 8
 # whose z are nonzero
 def compareNode():
-  c = comparison()
+  c = comparison_word()
   if not c: raise NotMatching("NO comparison")
   if c == '=': raise NotMatching('compareNode = not allowed')  # todo Why not / when
   right = endNode()  # expression
@@ -2156,7 +2157,7 @@ def verb_comparison():
   return comp
 
 
-def comparison():  # WEAK maybe(pattern)):
+def comparison_word():  # WEAK maybe(pattern)):
   global comp
   comp = maybe(verb_comparison) or comparation()  # are bigger than
   return comp
@@ -2429,7 +2430,7 @@ def gerundium():
 
 
 def verbium():
-  return maybe(comparison) or verb() and adverb()  # be or have or
+  return maybe(comparison_word) or verb() and adverb()  # be or have or
 
 
 def resolve_netbase(n):
@@ -3110,6 +3111,7 @@ def endNode():
       maybe(ranger) or \
       maybe(value) or \
       maybe(typeNameMapped) or \
+      maybe(variable) or \
       maybe_token('a') or \
       raise_not_matching("Not an endNode")  # "+pointer_string())
   po = maybe(postjective)  # inverted
@@ -3270,22 +3272,22 @@ def svg(x):
 
 
 
-def be(): tokens(be_words)
+def be():
+  return tokens(be_words)
 
 
-def modifier(): tokens(modifier_words)
+def modifier():return tokens(modifier_words)
+
+def attribute():return tokens(attributes)
 
 
-def attribute(): tokens(attributes)
+def preposition():return tokens(prepositions)
 
 
-def preposition(): tokens(prepositions)
+def pronoun():return tokens(pronouns)
 
 
-def pronoun(): tokens(pronouns)
-
-
-def nonzero(): tokens(nonzero_keywords)
+def nonzero():return tokens(nonzero_keywords)
 
 
 def wordnet_is_adverb():

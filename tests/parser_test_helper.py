@@ -124,9 +124,9 @@ def assert_has_error(x,ex=None):
                 # raise e from e
                 #else:
                 raise e, None, sys.exc_info()[2]
-            print("OK, got expected ERROR %s : %s"%(ex,e))
+            print("OK, got expected %s : %s"%(ex,e))
         else:
-            print("OK, got expected ERROR "+str(e))
+            print("OK, got expected "+str(e))
         return
     raise Exception("EXPECTED ERROR: "+str(ex)+"\nIN: "+x)
 
