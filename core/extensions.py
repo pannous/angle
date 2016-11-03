@@ -1,12 +1,13 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
 # encoding=utf8  
-import sys  
-reload(sys)  
-sys.setdefaultencoding('utf8')
 
-# >>> sys.getdefaultencoding()
-# 'utf8'
+try: # py2
+  import sys  
+  reload(sys)  
+  sys.setdefaultencoding('utf8')
+except:
+  pass
 
 import os
 import re
@@ -14,10 +15,8 @@ import shutil
 
 from extension_functions import *
 
-# import exceptions
 # import builtins
 # import __builtin__
-
 
 def xx(y):
   if isinstance(y,list):  return xlist(y)

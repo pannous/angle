@@ -11,6 +11,10 @@ def random_matrix(x,y):return np.random.rand(x,y) # (0,1) !
 def pick(xs):
     return xs[randint(len(xs))]
 
+def readlines(source):
+    print("open(source).readlines()")
+    return map(str.strip,open(source).readlines())
+
 def reverse(x):
     y=x.reverse()
     return y or x
@@ -79,8 +83,10 @@ def length(self):
 
 def say(x):
     print(x) 
-    import os
     os.system("say '%s'"%x)
+
+def bash(x):
+    os.system(x)
 
 def beep():
     print("\aBEEP ")
@@ -102,7 +108,6 @@ def match_path(p):
 
 
 def is_file(p, must_exist=True):
-
     if(not isinstance(p,str)):return False
     if re.search(r'^\d*\.\d+',p): return False
     if re.match(r'^\d*\.\d+',str(p)): return False

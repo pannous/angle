@@ -70,28 +70,6 @@ End
 Here 'mail' acts as argument name and argument type at once.
 No more Java style Mail mail=new Mail().getMail();
 
-
-Language Specification
-----------------------
-Angle is a multi-paradigm programming language with [gradual typing](https://en.m.wikipedia.org/wiki/Gradual_typing).
-
-Read the [DOSSIER](https://github.com/pannous/english-script/blob/master/DOSSIER.md) for a more complete [**language specification**](https://github.com/pannous/english-script/blob/master/DOSSIER.md), vision and some background. 
-
-The grammar is not meant to be linguistically complete, but [functionality complete](https://en.wikipedia.org/wiki/Functional_completeness) and easily extendable. It is currently running in the 
-* [ruby](https://github.com/pannous/english-script) and [python](https://github.com/pannous/angle) environment, but will soon compile to the 
-* WEB(!!) thanks to [WebAssembly](https://github.com/WebAssembly/design)
-* JVM thanks to [Mirah](https://github.com/mirah/mirah), [zippy](https://bitbucket.org/ssllab/zippy/overview) and [truffle](https://github.com/OracleLabs/Truffle)
-* [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe Mirah too), 
-* As a final aim: run **natively**, maybe similar to [Crystal](https://github.com/manastech/crystal), [Vala](https://en.wikipedia.org/wiki/Vala_%28programming_language%29) or RPython
-
-Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Bootstrapping_%28compilers%29) is an important mid-term goal.
-
-"Premature optimization is the root of all evil." Many programming languages 'optimize' on the syntax level in order to optimize the resulting applications. Maybe [this](http://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html) is a mistake.
-
-To check out the current capabilities of English Script have a look at the [tests](https://github.com/pannous/angle/tree/master/tests),
-[keywords](https://github.com/pannous/angle/blob/master/core/english_tokens.py) and
-[grammar](https://github.com/pannous/angle/blob/master/core/english_parser.py)
-
 INSTALL
 -------
 `git clone --recursive git@github.com:pannous/angle.git`
@@ -125,13 +103,57 @@ Run it and see yourself!
 
 `⦠ x is 2; if all 0,2,4 are smaller 5 then increase x`
 
-Why the python implementation
------------------------------
-We can **compile** English script / Angle directly to python byte-code:
+
+
+Language Specification
+----------------------
+Angle is a multi-paradigm programming language with [gradual typing](https://en.m.wikipedia.org/wiki/Gradual_typing).
+
+Read the [DOSSIER](https://github.com/pannous/english-script/blob/master/DOSSIER.md) for a more complete [**language specification**](https://github.com/pannous/english-script/blob/master/DOSSIER.md), vision and some background. 
+
+The grammar is not meant to be linguistically complete, but [functionality complete](https://en.wikipedia.org/wiki/Functional_completeness) and easily extendable.
+"Premature optimization is the root of all evil." Many programming languages 'optimize' on the syntax level in order to optimize the resulting applications. Maybe [this](http://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html) is a mistake.
+
+To check out the current capabilities of English Script have a look at the [tests](https://github.com/pannous/angle/tree/master/tests),
+[keywords](https://github.com/pannous/angle/blob/master/core/english_tokens.py) and
+[grammar](https://github.com/pannous/angle/blob/master/core/english_parser.py)
+
+Future
+------
+English Script / Angle is currently running in the 
+* [ruby](https://github.com/pannous/english-script) and [python](https://github.com/pannous/angle) environment, but will soon compile to the 
+* WEB(!!) thanks to [WebAssembly](https://github.com/WebAssembly/design)
+* JVM thanks to [Mirah](https://github.com/mirah/mirah), [zippy](https://bitbucket.org/ssllab/zippy/overview) and [truffle](https://github.com/OracleLabs/Truffle)
+* [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe Mirah too), 
+* As a final aim: run **natively**, maybe similar to [Crystal](https://github.com/manastech/crystal), [Vala](https://en.wikipedia.org/wiki/Vala_%28programming_language%29) or RPython
+
+Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Bootstrapping_%28compilers%29) is an important mid-term goal.
+
+**precedence**
+One very hot idea is to allow modifying the language grammar on the fly, at least till a limited extend.
+One first step would be to make possible setting the precedence of functions.
+This would enable very natural and sweet mathematical expressions, especially combined with Unicode names:
+```
+class Complex alias ℂ (re, im)
+	to add number x
+		ℂ(this.real+x.real, this.im+x.im)
+	end
+	alias '+' = add
+end	
+ℂ.add.precedence=Number.add.precedence-1
+ī := √-1
+ī + 3ī == 4ī
+```
+This would run against the goal to avoid sigil special chars though.
+
+
+
+Why the new python implementation
+---------------------------------
+We can **compile** English script / [Angle](https://github.com/pannous/angle/) directly to python byte-code:
 As opposed to Ruby, Python comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
 Compiling is so much nicer & faster than interpreted code.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
 
 For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/english-script/tree/master/DOSSIER.md)
-
