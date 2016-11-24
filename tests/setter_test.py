@@ -4,7 +4,7 @@ from parser_test_helper import *
 from power_parser import WrongType, ImmutableVaribale
 
 
-class VariableTest(ParserBaseTest):
+class VariableTest(ParserBaseTest,unittest.TestCase):
 
   def setUp(self):
     angle.use_tree = False

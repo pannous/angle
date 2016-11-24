@@ -5,7 +5,7 @@ angle._verbose = False
 from parser_test_helper import *
 
 
-class NumberTest(ParserBaseTest):
+class NumberTest(ParserBaseTest,unittest.TestCase):
     
 
     def test_type1(self):

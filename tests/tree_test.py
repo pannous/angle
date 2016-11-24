@@ -3,7 +3,7 @@ import angle
 from parser_test_helper import *
 angle.use_tree=True
 
-class TreeTest(ParserBaseTest):
+class TreeTest(ParserBaseTest,unittest.TestCase):
 
     def test_num(self):
         assert_result_emitted("1",ast.Num(1))

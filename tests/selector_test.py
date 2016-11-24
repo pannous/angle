@@ -3,7 +3,7 @@ import angle
 from parser_test_helper import *
 
 
-class SelectorTest(ParserBaseTest):
+class SelectorTest(ParserBaseTest,unittest.TestCase):
 
     def setUp(self):
         super(SelectorTest, self).setUp()

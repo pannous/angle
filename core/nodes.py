@@ -57,7 +57,7 @@ class Function(kast.FunctionDef):
     def __init__(self,*margs, **args):
         if not args:
             args=margs[0] # ruby style hash args
-        self.name     =args['name']
+        self.name     =str(args['name'])
         self.body     =args['body']
         self.clazz    =None # dangling ... NOT type(object) as in ruby!
         self.object   =None # in Python ist dies bis zum Aufruf nicht bekannt!?!
@@ -166,9 +166,9 @@ class FunctionCall(ast.Assign): # todo: bad name
         if 'class' in args: self.clazz = args['class']
         if 'module' in args: self.clazz = self.clazz or args['module']
         # AST CONTENT:
-        if isinstance(func,str): func=kast.name(func)
+        if isinstance(func,(str,unicode)): func=kast.name(func)
         if not isinstance(func,kast.Name):
-            raise Exception("NO NAME %s"%func)
+            raise Exception("NOT A NAME %s"%func)
         self.targets=[kast.Name(id="it",ctx=ast.Store())]
         if self.arguments==None:self.arguments=[]
         elif not isinstance(self.arguments,(list,dict)):self.arguments=[self.arguments]

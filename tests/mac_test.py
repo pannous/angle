@@ -6,7 +6,7 @@ angle.use_tree = False
 from parser_test_helper import *
 
 
-class MacTest(ParserBaseTest):
+class MacTest(ParserBaseTest,unittest.TestCase):
     
 
     def test_mail(self):

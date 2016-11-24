@@ -223,8 +223,10 @@ def pointer_string():
 
 def print_pointer(force=False):
   if the.current_token and (force or the._verbose):
-    print(the.current_token, file=sys.stderr)
-    print(pointer_string(), file=sys.stderr)
+    print(the.current_token)#, file=sys.stderr)
+    print(pointer_string())#, file=sys.stderr)
+    # print(the.current_token, file=sys.stderr)
+    # print(pointer_string(), file=sys.stderr)
   return OK
 
 
@@ -361,7 +363,8 @@ def parse_tokens(s):
 
   the.tokenstream = []
   def token_eater(token_type, tokenn, start_row_col, end_row_col, line):
-    if token_type != tokenize.COMMENT and token_type != tokenize.ENCODING \
+    if py3 and token_type == tokenize.ENCODING: return
+    if token_type != tokenize.COMMENT \
       and not line.startswith("#") and not line.startswith("//"):
       l = len(the.tokenstream)
       the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, l))
@@ -375,7 +378,9 @@ def parse_tokens(s):
   def readline():
     global i
     i = i + 1
-    if i<len(_lines): return str.encode(_lines[i]) # py3 wants bytes wtf
+    if i<len(_lines):
+      if py2:return  _lines[i]
+      else: str.encode(_lines[i]) # py3 wants bytes wtf
     else:return b''
 
   if py2:tokenize.tokenize(readline, token_eater)  # tokenize the string
@@ -398,8 +403,6 @@ def drop_comments():
   i=0
   prev=""
   for token in extensions.xlist(the.tokenstream):
-    print(the.tokenstream)
-    print(token)
     is_beginning_of_line = token[2][1] == 0 # 1??
     # line = token[4]
     str = token[1]
@@ -908,10 +911,10 @@ def maybe(expr):
     verbose(e)
   except Exception as e:
     error(e)
-    raise e.with_traceback(sys.exc_info()[2])  # reraise!!! with traceback backtrace !!!!
+    raise  # reraise!!! with traceback backtrace !!!!
   except Error as e:
     error(e)
-    raise e.with_traceback(sys.exc_info()[2])  # reraise!!! with traceback backtrace !!!!
+    raise  # reraise!!! with traceback backtrace !!!!
   finally:
     depth = depth - 1
   # except Exception as e:
@@ -1054,7 +1057,7 @@ def parse(s, target_file=None):
   except Exception as e:
     error(target_file)
     print_pointer(True)
-    raise e.with_traceback(sys.exc_info()[2])
+    raise # blank reraises e with stacktrace
   # except NotMatching as e:
   #     import traceback
   #     traceback.print_stack() # backtrace

@@ -259,8 +259,10 @@ def fix_ast_module(my_ast, fix_body=True):
     # my_ast.body.insert(0, ast.Global(names=['it']))
     # my_ast.body.insert(0, ast.Import([name('extensions')]))
     # my_ast.body.insert(0, ast.Import([name('extensions')]))
-    # my_ast.body.insert(0, ast.Import(['extensions']))
-    my_ast.body.insert(0, ast.ImportFrom('extension_functions', [ast.alias(str('*'), None)], 0))
+    my_ast.body.insert(0, ast.Import([ast.alias('extensions', None)]))
+    my_ast.body.insert(0, ast.Import([ast.alias('extension_functions', None)]))
+    # ImportFrom(module='ast', names=[alias(name='*', asname=None)], level=0)
+    # my_ast.body.insert(0, ast.ImportFrom(module='extension_functions', names=[ast.alias(name='*',  asname=None)],level= 0))
     # my_ast.body.insert(0, ast.ImportFrom('extension_functions', [str('*')], 0))
     # my_ast.body.insert(0, ast.ImportFrom(name('extension_functions'), [ast.alias('*', None)], 0))
     for s in to_inject:
@@ -348,6 +350,8 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
     my_ast = fix_ast_module(my_ast, fix_body=fix_body)
     # The mode must be 'exec' to compile a module, 'single' to compile a
     # single (interactive) statement, or 'eval' to compile a SINGLE expression.
+    print("///////////////")
+    print(my_ast)
     code = compile(my_ast, source_file, 'exec')  # regardless!
     # TypeError: required field "lineno" missing from expr NONONO!
     # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
@@ -374,8 +378,8 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
     print_ast(my_ast)
     print_source(my_ast,source_file)
     info_ = sys.exc_info()[2]
-    if py3: raise e from e # py3 WTF WTF , how to do both??
-    # raise e, None, info_ #py2
+    # if py3: raise e from e # py3 WTF WTF , how to do both??
+    raise e, None, info_ #py2
 
 def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, code=None):
   if fix:

@@ -4,6 +4,11 @@ import sys
 py2=sys.version < '3'
 py3=sys.version >= '3'
 
+if py3:
+    class unicode(bytes):
+        pass
+    # Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
+
 
 from random import randint
 from random import random as _random
@@ -43,9 +48,7 @@ def Pow(x,y):
 def is_string(s):
     # import extensions
     class xstr(str):pass
-    if py2: return isinstance(s,str) or isinstance(s,xstr) or isinstance(s,unicode) #or issubclass(s,str) or issubclass(s,unicode)
-    if py3: return isinstance(s,str) or isinstance(s,xstr) or isinstance(s,bytes) #or issubclass(s,str) or issubclass(s,unicode)
-    # Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
+    return isinstance(s,str) or isinstance(s,xstr) or isinstance(s,unicode) #or issubclass(s,str) or issubclass(s,unicode)
 
 def flatten(l):
     if isinstance(l, list) or isinstance(l, tuple):

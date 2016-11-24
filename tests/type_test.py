@@ -4,7 +4,7 @@ angle.use_tree = False
 from parser_test_helper import *
 
 
-class TypeTest(ParserBaseTest):
+class TypeTest(ParserBaseTest,unittest.TestCase):
 
     def test_typed_variable(self):
         parse('Int i=7')

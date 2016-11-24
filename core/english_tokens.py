@@ -42,7 +42,8 @@ special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
 NEWLINE = "NEWLINE"
 
-articles = ['a', 'an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
+# TODO : 'a' MESS !
+articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
             'this']  # 'that' * 2 !!!
 
 no_quantifiers = ["nothing", "neither", "none", "no"]
@@ -257,6 +258,7 @@ self_modifying_operators = ['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%
 newline_tokens = [ "\n", "\r\n", ';',"\.\n", "\. "]
 
 kast_operator_map = {
+# NOOO, astor can't handle kast:(
     "+": ast.Add(),
     "plus": ast.Add(),
     "add": ast.Add(),

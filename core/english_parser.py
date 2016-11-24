@@ -450,6 +450,7 @@ def is_a(x, type0):
   _type = mapType(type0)
   if is_string(_type): raise Exception("BAD TYPE %s" % type0)
   if isinstance(x, _type): return True
+  if isinstance(x,unicode) and _type==types.StringType: return True
   return False
 
 
@@ -470,6 +471,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     l = l.split(" ")
   if isinstance(l, list) and type in type_names:
     l = [x for x in l if is_a(x, type)]
+  if(n>len(l)):raise IndexError("%d > %d in %s[%d]"%(n,len(l),l,n))
   the.result = l[n]  # .__getitem__(n)
   if angle.in_condition:
     return the.result
@@ -639,7 +641,7 @@ def regular_hash():
   h = {}
 
   def lamb():
-    if len(h) > 0:return tokens([';', ','])
+    if len(h) > 0: tokens([';', ','])
     quoted = maybe_tokens(['"', "'"])
     key = word()
     if quoted:return tokens(['"', "'"])
@@ -929,10 +931,10 @@ def method_definition(name=None,return_type=None):
   angle.in_params = True
   args = []
   def arguments():
+    if the.current_offset==0: raise_not_matching("BLOCK START")
     a = param(len(args))
     maybe_token(',')
     args.append(a)
-    if not the.current_offset: raise_not_matching("STOP AT NEWLINE")
     return a
   # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
@@ -1754,8 +1756,8 @@ def setter(var=None):
       val=guard
       add_variable(var, guard, mod, _type)
     else:
-      if py3: raise e from e
-      # raise e, None, sys.exc_info()[2]
+      # if py3: raise e from e
+      raise e, None, sys.exc_info()[2]
 
   # end_expression via statement!
   if not interpreting():
@@ -2265,6 +2267,7 @@ def check_condition(cond=None, negate=False):
   if cond == True or cond == 'True': return True
   if cond == False or cond == 'False': return False
   if isinstance(cond, ast.BinOp): cond = Condition(left=cond.left, comp=cond.op, right=cond.right)
+  if isinstance(cond, Variable):return cond.value
   if cond == None or not isinstance(cond, Condition):
     raise InternalError("NO Condition given! %s" % cond)
 
@@ -2949,7 +2952,7 @@ def do_call(obj0, method0, args0=[]):
   #         return obj.__getattribute__(method)
   #     else:
   #         method(args[1])  # square of 7
-  print(("CALLING %s %s with %s" % (obj or "", method, args)), file=sys.stderr)
+  print(("CALLING %s %s with %s" % (obj or "", method, args)))#, file=sys.stderr)
 
   if not args and not isinstance(method, collections.Callable) and method in dir(obj):
     return obj.__getattribute__(method)
@@ -3043,7 +3046,7 @@ def do_compare(a, comp, b):
     return False
   elif comp == 'equal' or comp == 'the same' or comp == 'the same as' or comp == 'the same as' or comp == '=' or comp == '==':
     return a == b  # Redundant
-  elif comp in be_words or isinstance(comp, ast.Eq) or 'same' in comp:
+  elif comp in be_words or isinstance(comp, (ast.Eq,kast.Eq)) or 'same' in comp:
     return a == b or isinstance(b, type) and isinstance(a, b)
   else:
     try:
@@ -3324,7 +3327,7 @@ def adjective():
 
 def quote():
   raiseEnd()
-  if the.current_type == _token.STRING or the.current_word[0] == "'":
+  if the.current_type == _token.STRING or the.current_word[0] == "'" or the.current_word[0] == '"':
     the.result = the.current_word[1:-1]
     if not interpreting():
       the.result = kast.Str(s=the.result)
@@ -3662,6 +3665,8 @@ def start_shell(args=[]):
       print('Syntax Error')
     except GivingUp as e:
       print('Syntax Error')
+    except NameError as e:
+      print('Name Error')
     except SyntaxError as e:
       print('Syntax Error')
     except Exception as e:

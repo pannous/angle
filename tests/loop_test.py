@@ -6,7 +6,7 @@ angle.use_tree = False
 from parser_test_helper import *
 
 
-class LoopTest(ParserBaseTest):
+class LoopTest(ParserBaseTest,unittest.TestCase):
     
 
     def _test_forever(self):

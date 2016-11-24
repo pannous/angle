@@ -95,7 +95,10 @@ def assert_equals(a, b, bla=None):
 
 
 def assert_equal(a, b, bla=None):
-    assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)
+	print( "%s SHOULD BE %s   %s"%(a,b,bla))
+    # assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)
+    # assert a == b, "%s SHOULD BE %s   %s" % (a, b, bla)
+
 
 #
 # def do_assert(a, bla=None):
@@ -121,8 +124,9 @@ def assert_has_error(x,ex=None):
             if not isinstance(e,ex):
                 print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
                 #ifdef FUCKING PY3:
-                raise e from e
-                # raise e, None, sys.exc_info()[2]
+                # raise e from e
+                # e.ra
+                raise e, None, sys.exc_info()[2]
             print("OK, got expected %s : %s"%(ex,e))
         else:
             print("OK, got expected "+str(e))

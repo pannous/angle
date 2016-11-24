@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import angle
-
-angle.use_tree = False
 from ast import *
 from parser_test_helper import *
+# from parser_test_helper import ParserBaseTest
 # from extensions import *
 
+angle.use_tree = False
 
 class FunctionTest(ParserBaseTest):
 

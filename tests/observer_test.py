@@ -4,7 +4,7 @@ angle.use_tree = False
 from parser_test_helper import *
 
 
-class ObserverTest(ParserBaseTest):
+class ObserverTest(ParserBaseTest,unittest.TestCase):
     
 
     def _test_every_date1(self):

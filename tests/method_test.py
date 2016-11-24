@@ -3,7 +3,7 @@ import angle
 from parser_test_helper import *
 
 
-class MethodTest(ParserBaseTest):
+class MethodTest(ParserBaseTest,unittest.TestCase):
     
 
     def test_result(self):

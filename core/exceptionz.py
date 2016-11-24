@@ -14,7 +14,9 @@ global DidYouMean
 
 #if py3
 class StandardError(Exception):
-    pass
+    def with_traceback(self,tb):
+        return self #todo1
+
 
 
 

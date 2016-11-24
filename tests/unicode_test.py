@@ -5,7 +5,7 @@ import angle
 from parser_test_helper import *
 
 
-class UnicodeTest(ParserBaseTest):
+class UnicodeTest(ParserBaseTest,unittest.TestCase):
 
     def setUp(self):
         angle.use_tree = False
