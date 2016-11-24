@@ -121,9 +121,8 @@ def assert_has_error(x,ex=None):
             if not isinstance(e,ex):
                 print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
                 #ifdef FUCKING PY3:
-                # raise e from e
-                #else:
-                raise e, None, sys.exc_info()[2]
+                raise e from e
+                # raise e, None, sys.exc_info()[2]
             print("OK, got expected %s : %s"%(ex,e))
         else:
             print("OK, got expected "+str(e))

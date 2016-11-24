@@ -11,8 +11,10 @@
 global NotMatching
 global DidYouMean
 # global GivingUp
-# class StandardError(Exception):
-#     pass
+
+#if py3
+class StandardError(Exception):
+    pass
 
 
 

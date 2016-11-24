@@ -1,3 +1,4 @@
+#/usr/local/bin/pip install -r requirements.txt
 astor
-# codegen replaced by astor
 stem
+# codegen replaced by astor

@@ -23,8 +23,10 @@ class Condition(ast.Compare):#todo: BinOp ?
         return "%s %s %s"%(self.left,self.comp,self.right)
 #             return "%s %s %s"%(extensions.xx(self.left), self.comp, extensions.xx(self.right))
 
-
-class Quote(str,ast.Str):
+# extensions.xstr
+class teee:
+    pass
+class Quote(teee,ast.Str):
     def is_a(className):
         # if isinstance(className,type): isinstance(return,className)
         if isinstance(className,str): className=className.lower()

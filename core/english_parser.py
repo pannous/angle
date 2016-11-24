@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 # encoding=utf8  
-import sys  
-reload(sys)  
-sys.setdefaultencoding('utf8')
+
+import sys
+py3=sys.version < '3'
 
 
 # from exceptions import GivingUp
@@ -13,7 +13,7 @@ import ast
 from ast import NodeVisitor
 import traceback
 import types
-import sys
+
 import stem.util.system
 # import interpretation
 import inspect
@@ -32,8 +32,6 @@ from extensions import *
 import token as _token
 import the
 from tree import TreeNode
-
-py3=sys.version < '3'
 
 def parent_node():
   pass
@@ -716,6 +714,7 @@ def quick_expression():  # bad idea!
     result = quote()
   elif the.current_word in the.token_map:  # safe, ok!
     fun = the.token_map[the.current_word]
+    # no_rollback() #! << NEW
     debug("token_map: %s -> %s" % (the.current_word, fun))
     if look_ahead(['rd', 'st', 'nd']): fun = nth_item
     result = fun()  # already wrapped maybe(fun)
@@ -1249,7 +1248,9 @@ def true_method(obj=None):
     if callable(variable.value):
       name = variable.value.func_name
     else:
-      obj, name = subProperty(variable.value)
+      name=findMethod(nil,variable.value)
+      if not name:
+        obj, name = subProperty(variable.value)
   else:
     obj, property = subProperty(obj)
     name = maybe_tokens(the.method_names) or maybe(verb)
@@ -1303,6 +1304,7 @@ def method_call(obj=None):
 
     def call_args():
       if len(args) > 0: maybe_tokens([',', 'and'])
+      if starts_with(';'): return False # done
       arg = call_arg()
       if isinstance(arg,list):
         args.extend(arg)
@@ -1747,8 +1749,8 @@ def setter(var=None):
       val=guard
       add_variable(var, guard, mod, _type)
     else:
-      # if py3: raise e from e
-      raise e, None, sys.exc_info()[2]
+      if py3: raise e from e
+      # raise e, None, sys.exc_info()[2]
 
   # end_expression via statement!
   if not interpreting():
@@ -1772,6 +1774,7 @@ def alias(var=None):
   a = rest_of_line()  # can't parse yet (i.e. x:= y*y )
   # a=maybe(action_or_block) or rest_of_line()
   add_variable(var, a)
+  var.type="alias"
   if angle.use_tree:
     f = Function(name=var.name, body=a)
     addMethodNames(f)
@@ -1799,6 +1802,7 @@ def add_variable(var, val, mod=None, _type=None):
   var.modifier = mod
   the.variableTypes[var.name] = var.type
   if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
+  return var
 
 
 # todo : allow other methods: go to berlin ...
@@ -1864,6 +1868,7 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
   # else:
   #     raise NotMatching()
   if not all or all[0] == None: raise_not_matching()
+  print(all)
   name = " ".join(all)
   if not typ and len(all) > 1 and isType(all[0]): name = all[1:-1].join(' ')  # (p ? 0 : 1)
   if p: name = p + ' ' + name

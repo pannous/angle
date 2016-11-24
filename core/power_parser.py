@@ -177,7 +177,9 @@ def star(lamb, giveUp=False):
       if len(good) > max:
         raise Exception(" too many occurrences of " + to_source(lamb))
   except GivingUp as e:
-    if giveUp:  raise e, None, sys.exc_info()[2]
+    if giveUp:
+      # if py2: raise e, None, sys.exc_info()[2] #
+      if py3: raise e from e # f'ing py3!
     verbose("GivingUp ok in star")  # ok in star!
     set_token(old)
     return good
@@ -235,8 +237,9 @@ def error(e, force=False):
     # if angle.use_tree:
     #     import TreeBuilder
     #     TreeBuilder.show_tree()
-    if not angle._verbose: raise e, None, sys.exc_info()[2]  # SyntaxError(e):
-
+    if not angle._verbose:
+      # if py2: raise e, None, sys.exc_info()[2]  # SyntaxError(e):
+      if py3: raise e from e  # f'ing py3!
 
 def warn(e):
   print(e)
@@ -326,6 +329,7 @@ def next_token(check=True):
   # if check: check_comment()
   the.token_number = the.token_number + 1
   if (the.token_number >= len(the.tokenstream)):
+    if not check: return EndOfDocument()
     raise EndOfDocument()
   token = the.tokenstream[the.token_number]
   the.previous_word = the.current_word
@@ -354,40 +358,66 @@ def parse_tokens(s):
 
   the.tokenstream = []
 
-  def tokeneater(token_type, tokenn, start_row_col, end_row_col, line):
+  def token_eater(token_type, tokenn, start_row_col, end_row_col, line):
     if token_type != tokenize.COMMENT and not line.startswith("#") and not line.startswith("//"):
-      the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
+      l = len(the.tokenstream)
+      the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, l))
   s=s.replace("⦠","")
-  # tokenize.tokenize(BytesIO(s.decode('utf-8').encode('utf-8')).readline, tokeneater)  # tokenize the string
-  # tokenize.tokenize(s.decode('utf-8'), tokeneater)  # tokenize the string
-  done=0
   global done
-  def lines():
-    global done
-    if done: return ''
-    done=1
-    return s.decode('utf-8')#.split('\n') # next
 
-  tokenize.tokenize(lines, tokeneater)  # tokenize the string
-  tokenize.tokenize(BytesIO(s.encode('utf-8')).readline, tokeneater)  # tokenize the string
+  _lines=s.decode('utf-8').split('\n')
+  global i
+  i=-1
+  def readline():
+    global i
+    i = i + 1
+    if i<len(_lines): return _lines[i]
+    else:return ''
+
+
+  tokenize.tokenize(readline, token_eater)  # tokenize the string
   return the.tokenstream
 
+def x_comment(token):
+  drop=True # False # keep comments?
+  if drop: the.tokenstream.remove(token)
+  else: token[0] = tokenize.COMMENT #TypeError: 'tuple' object does not support item assignment
+    # the.tokenstream[i]=(token[0],token[1],token[2],token[3],token[4],i) #renumber!!
 
-#
-# def drop_comments():
-#   c = False
-#   i=0
-#   for token in extensions.xlist(the.tokenstream):
-#     if token[4].startswith("#"):
-#       the.tokenstream.remove(token)
-#     elif token[1] == '\n':
-#       c = False
-#     elif token[0] == tokenize.COMMENT or c:
-#       c = True
-#       the.tokenstream.remove(token)
-#     else:
-#       token[0]=i
-#       i=i+1 #renumber!!
+
+#  '#' DONE BY TOKENIZER! (54, '\n', (1, 20), (1, 21), '#!/usr/bin/env angle\n', 0)
+#  rest done here: // -- /*
+def drop_comments():
+  in_comment_block = False
+  in_comment_line = False
+  i=0
+  prev=""
+  for token in extensions.xlist(the.tokenstream):
+    is_beginning_of_line = token[2][1] == 0 # 1??
+    # line = token[4]
+    str = token[1]
+    token_type = token[0]
+    if str=="//" or str=="#":
+      x_comment(token)
+      in_comment_line = True
+    elif str == '\n':
+      in_comment_line = False
+    elif prev=="*" and str.endswith("/"):
+      x_comment(token)
+      in_comment_block=False
+    elif in_comment_block or in_comment_line:
+      x_comment(token)
+    elif prev=="/" and str.startswith("*"):
+      i=i-1 # drop prev_token too!!
+      x_comment(prev_token) # '/' too ;)
+      x_comment(token)
+      in_comment_block=True
+    else:
+      # token[-1] =i #renumber!! 'tuple' object does not support item assignment
+      the.tokenstream[i]=(token[0],token[1],token[2],token[3],token[4],i) #renumber!!
+      i=i+1
+    prev=str
+    prev_token=token
 
 
 
@@ -408,7 +438,8 @@ def init(strings):
   if is_string(strings):
     the.lines = strings.split("\n")
     parse_tokens(strings)
-  # drop_comments()  # DONE BY TOKENIZER! (54, '\n', (1, 20), (1, 21), '#!/usr/bin/env angle\n', 0)
+  drop_comments()
+
   the.tokens_len = len(the.tokenstream)
   the.token_number = -1
   next_token()
@@ -770,7 +801,7 @@ def block(multiple=False):  # type):
   end_of_block = maybe(end_block)  # ___ done_words
   while (multiple or not end_of_block) and not checkEndOfFile():
     end_of_statement()  # danger, might act as block end!
-    no_rollback()
+    no_rollback() # if ...
     if multiple: maybe_newline()
 
     # star(end_of_statement)
@@ -963,7 +994,7 @@ def clear():
 def parse(s, target_file=None):
   global last_result, result
   if not s: return
-  verbose("PARSING")
+  verbose("PARSING" +s)
   if (isinstance(s,file)):
     source_file=s.name
     s = s.readlines()
@@ -997,7 +1028,9 @@ def parse(s, target_file=None):
     if the.result in ['False', 'false']: the.result = False
     if isinstance(the.result, nodes.Variable): the.result = the.result.value
     import ast
-    got_ast = isinstance(the.result, ast.AST) or isinstance(the.result, list) and isinstance(the.result[0], ast.AST)
+    got_ast = isinstance(the.result, ast.AST)
+    if isinstance(the.result, list) and len(the.result)>0:
+      got_ast = isinstance(the.result[0], ast.AST)
     if angle.use_tree and got_ast:
       import emitters
       the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
@@ -1141,9 +1174,10 @@ def rest_of_statement():
 # todo merge ^> :
 def rest_of_line():
   rest = ""
-  while not checkEndOfLine():
-    rest += next_token(False) + " "
-  return rest
+  while not checkEndOfLine() and not current_word==';':
+    rest += current_word + " "
+    next_token(False)
+  return rest.strip()
 
 
 def comment_block():
@@ -1220,7 +1254,7 @@ def integer():
   match = re.search(r'^\s*(-?\d+)', the.string)
   if match:
     current_value = int(match.groups()[0])
-    next_token()
+    next_token(False)
     # "E20": kast.Pow(10,20),
     # if not interpreting(): return ast.Num(current_value)
     # import kast.kast
@@ -1240,7 +1274,7 @@ def real():
   match = re.search(r'^\s*(-?\d*\.\d+)', the.string)
   if match:
     current_value = float(match.groups()[0])
-    next_token()
+    next_token(False)
     return current_value
   # return false
   raise NotMatching("no real (unreal)")
@@ -1254,7 +1288,7 @@ def complex():
   if not match: match = re.search(r'^(\d*\.\d+\s*\+\s*\d*\.\d+j)', s)  # 3+3i
   if match:
     the.current_value = complex(match[0].groups())
-    next_token()
+    next_token(False)
     return current_value
   return False
 

@@ -2,7 +2,6 @@
 
 from parser_test_helper import *
 
-
 class ConditionTest(ParserBaseTest):
 
     def test_block(self):

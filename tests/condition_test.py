@@ -317,3 +317,4 @@ class ConditionTest(ParserBaseTest):
 	# def test_complicated3(self):
 	#	 parse('x is 2; if 0,2,4 are smaller 5 then increase x; assert x equals 3')
 	#	 assert(self.result()==True)
+
