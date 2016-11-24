@@ -198,7 +198,8 @@ class Argument(kast.arg):
     #attr_accessor :name, :type, :position, :default, :preposition, :value
     def __init__(self, *margs, **args):
         if not args:args=margs[0] # ruby style hash args
-        super(Argument, self).__init__(*margs, **args)
+        # super(Argument, self).__init__(*margs, **args)
+        # super().__init__(self, *margs, **args)
         # self.ctx= _ast.Param()
         # self.id=self.name
         self.name       =args['name']       if 'name'    in args else None

@@ -1,6 +1,7 @@
 import _ast
 import ast
 import sys
+import collections
 
 py3 = sys.version < '3'
 
@@ -57,7 +58,7 @@ class Reflector(object):  # Implements list interface is
   def __getitem__(self, name):
     if name == "__tracebackhide__":
       return False  # for py.test
-    print("Reflector __getitem__ %s" % str(name))
+    print(("Reflector __getitem__ %s" % str(name)))
     if name in the.params:
       the.result = english_parser.do_evaluate(the.params[name])
     elif name in the.variables:
@@ -77,13 +78,13 @@ class Reflector(object):  # Implements list interface is
         m = m.body  # INJECT!
       return m
     else:
-      print("UNKNOWN ITEM %s" % name)
+      print(("UNKNOWN ITEM %s" % name))
       return name  # kast.name(name)
       # raise Exception("UNKNOWN ITEM %s" % name)
     return the.result
 
   def __setitem__(self, key, value):
-    print("Reflector __setitem__ %s %s" % (key, value))
+    print(("Reflector __setitem__ %s %s" % (key, value)))
     if key in the.variables:
       the.variables[key].value = value
     else:
@@ -150,7 +151,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
     return x  # and done!
 
   def visit_function(self, x):
-    return name(x.func_name)  # assign method via name
+    return name(x.__name__)  # assign method via name
 
   def visit_Name(self, x):
     return x  # and done!
@@ -194,7 +195,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
     return x  # WHY???
 
   def visit_Function(self, x):  # FunctionDef
-    x.body = map(self.generic_visit, x.body)
+    x.body = list(map(self.generic_visit, x.body))
     x.body = fix_block(x.body)
     if not x in to_inject:
       to_inject.append(x);
@@ -215,11 +216,11 @@ class PrepareTreeVisitor(ast.NodeTransformer):
       function_def = the.methods[node.name]
       if isinstance(function_def, ast.FunctionDef):
         to_inject.append(function_def)
-      elif callable(function_def):
+      elif isinstance(function_def, collections.Callable):
         to_provide[node.name]=function_def
       else:
         print("HUH")
-      print("NEED TO IMPORT %s ??" % function_def)
+      print(("NEED TO IMPORT %s ??" % function_def))
     skip_assign = True
     node.value.args = map_values(node.value.args)
     if skip_assign:
@@ -325,9 +326,9 @@ def print_ast(my_ast):
     print("")
   except Exception as e:
     print(e)
-    print("CAN'T DUMP ast %s"% my_ast)
+    print(("CAN'T DUMP ast %s"% my_ast))
     if not isinstance(my_ast,list):
-      print(my_ast.body)
+      print((my_ast.body))
 
 
 def print_source(my_ast,source_file='inline'):
@@ -393,7 +394,7 @@ def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, co
     args.update(to_provide) # globals
     namespace=args #{} # << GIVE AND RECEIVE GLOBALS!!
     namespace['it']=None # better than ast.global
-    exec(code) in namespace  # self contained!
+    exec((code), namespace)  # self contained!
     ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
   ret = ret or the.result
   # verbose("GOT RESULT %s" % ret)
@@ -402,7 +403,7 @@ def run_ast(my_ast, source_file="(String)", args={}, fix=True, context=False, co
 
 
 def map_values(val):
-  return map(wrap_value, val)
+  return list(map(wrap_value, val))
 
 
 def wrap_value(val):
@@ -419,9 +420,9 @@ def wrap_value(val):
   if isinstance(val, str): return kast.Str(val)
   if isinstance(val, int): return kast.Num(val)
   if isinstance(val, float): return kast.Num(val)
-  if isinstance(val, tuple): return kast.Tuple(map(wrap_value, val), ast.Load())
-  if isinstance(val, list): return kast.List(map(wrap_value, val), ast.Load())
-  if isinstance(val, dict): return kast.Dict(map(wrap_value, val), ast.Load())
+  if isinstance(val, tuple): return kast.Tuple(list(map(wrap_value, val)), ast.Load())
+  if isinstance(val, list): return kast.List(list(map(wrap_value, val)), ast.Load())
+  if isinstance(val, dict): return kast.Dict(list(map(wrap_value, val)), ast.Load())
   t = type(val)
   raise Exception("UNKNOWN TYPE %s : %s !" % (val, t))
 
@@ -432,9 +433,9 @@ def emit_pyc(code, fileName='output.pyc'):
   import time
   with open(fileName, 'wb') as fc:
     fc.write('\0\0\0\0')
-    py_compile.wr_long(fc, long(time.time()))
+    py_compile.wr_long(fc, int(time.time()))
     marshal.dump(code, fc)
     fc.flush()
     fc.seek(0, 0)
     fc.write(py_compile.MAGIC)
-    print("WRITTEN TO " + fileName)
+    print(("WRITTEN TO " + fileName))

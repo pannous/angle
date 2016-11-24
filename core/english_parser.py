@@ -3,9 +3,10 @@
 # encoding=utf8  
 
 import sys
-py3=sys.version < '3'
+py2=sys.version < '3'
+py3=sys.version >= '3'
 
-
+import collections
 # from exceptions import GivingUp
 import _ast
 # import yappi
@@ -13,7 +14,7 @@ import ast
 from ast import NodeVisitor
 import traceback
 import types
-
+import sys
 import stem.util.system
 # import interpretation
 import inspect
@@ -32,6 +33,8 @@ from extensions import *
 import token as _token
 import the
 from tree import TreeNode
+
+py3=sys.version < '3'
 
 def parent_node():
   pass
@@ -68,9 +71,9 @@ class Starttokens(object):
   def __call__(self, original_func):
     decorator_self = self
     for t in self.starttokens:
-      if t in the.token_map:
+      if t in iter(the.token_map):
         debug("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
-      the.token_map[t] = original_func
+      the.token_map[str(t)] = original_func
     return original_func
 
 
@@ -153,6 +156,7 @@ def value():
   if the.current_type == _token.NUMBER:
     return number()
   current_value = None
+  # TypeError: unsupported operand type(s) for +: 'dict_keys' and 'list' WTF PY3 8(
   no_keyword_except(constants + numbers + result_words + nill_words + ['+', '-'])
   the.result = maybe(bracelet) or \
                maybe(quote) or \
@@ -488,7 +492,7 @@ def functionalselector():
   xs = known_variable()
   crit = selector()
   _('}')
-  return filter(xs, crit)
+  return list(filter(xs, crit))
 
 
 global inside_list
@@ -718,9 +722,9 @@ def quick_expression():  # bad idea!
     debug("token_map: %s -> %s" % (the.current_word, fun))
     if look_ahead(['rd', 'st', 'nd']): fun = nth_item
     result = fun()  # already wrapped maybe(fun)
-  elif the.current_word in the.params.keys():
+  elif the.current_word in list(the.params.keys()):
     result = true_param()
-  elif the.current_word in the.variables.keys():
+  elif the.current_word in list(the.variables.keys()):
     result = known_variable() #  we don't rise undeclared variable here
   elif the.current_word in the.method_names:
     if method_allowed(the.current_word):
@@ -843,10 +847,10 @@ def piped_actions(a=False):
   xmodule, obj, name = true_method() or bash_action()
   args = star(call_arg)
   angle.in_pipe = False
-  if callable(name): args = [args, Argument(value=a)]  # with owner
+  if isinstance(name, collections.Callable): args = [args, Argument(value=a)]  # with owner
   if interpreting():
     the.result = do_call(a, name, args)
-    print(the.result)
+    print((the.result))
     return the.result
   else:
     return OK
@@ -928,6 +932,7 @@ def method_definition(name=None,return_type=None):
     a = param(len(args))
     maybe_token(',')
     args.append(a)
+    if not the.current_offset: raise_not_matching("STOP AT NEWLINE")
     return a
   # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
@@ -950,7 +955,7 @@ def method_definition(name=None,return_type=None):
   b = action_or_block()  # define z as 7 allowed !!!
   look_ahead("return","Return statement out of method {block}, are you missing curlies?",must_not_be=True)
   if not isinstance(b, list): b = [b]
-  if not isinstance(b[-1], (ast.Print,ast.Return)):
+  if not isinstance(b[-1], (kast.Print,ast.Return)):
     b[-1] = kast.setter("it", b[-1])
   # b[-1]=(ast.Expr(b[-1]))
   f.body = b
@@ -979,10 +984,10 @@ def bash_action():
   # any{ maybe(  ) or   statements )
   if interpreting():
     try:
-      print('Going to execute ' + command)
+      print(('Going to execute ' + command))
       the.result = execute(command)
       print('the.result:')
-      print(the.result)
+      print((the.result))
       if the.result:
         return the.result.split("\n")
       else:
@@ -1131,7 +1136,7 @@ def spo():
 
 
 def print_variables():
-  return ''.join(['%s=%s' % (v, k) for v, k in variables.iteritems()])
+  return ''.join(['%s=%s' % (v, k) for v, k in variables.items()])
 
 
 def is_object_method(method_name):
@@ -1202,7 +1207,7 @@ def is_method(name):
 
 def import_module(module_name):
   try:
-    print("TRYING MODULE " + module_name)
+    print(("TRYING MODULE " + module_name))
     import importlib
 
     importlib.import_module(module_name)
@@ -1224,7 +1229,7 @@ def subProperty(context):
     properties += dir(ext)
   property = maybe_tokens(properties)
   # the.moduleMethods[module_name] etc!
-  if not property or callable(property) or is_method(property):
+  if not property or isinstance(property, collections.Callable) or is_method(property):
     return context, property  # save methods for later!
   property = maybe_token(".") and subProperty(property) or property
   return property, None
@@ -1236,7 +1241,7 @@ def true_method(obj=None):
     no_keyword_except(ex)
   should_not_start_with(auxiliary_verbs)
   xmodule = maybe_tokens(the.moduleNames)
-  xvariable = maybe_tokens(the.variables.keys())
+  xvariable = maybe_tokens(list(the.variables.keys()))
   if xmodule:
     module, moduleMethods = import_module(xmodule)
     obj, name = subProperty(module)
@@ -1245,8 +1250,8 @@ def true_method(obj=None):
     if not name: name = maybe_tokens(moduleMethods)
   elif xvariable:
     variable = the.variables[xvariable]
-    if callable(variable.value):
-      name = variable.value.func_name
+    if isinstance(variable.value, collections.Callable):
+      name = variable.value.__name__
     else:
       name=findMethod(nil,variable.value)
       if not name:
@@ -1288,7 +1293,7 @@ def method_call(obj=None):
     obj = obj or None  # globals
   else:
     maybe_token('of')
-    obj = maybe(the.classes.keys()) or maybe(the.moduleNames)  # exclude vars
+    obj = maybe(list(the.classes.keys())) or maybe(the.moduleNames)  # exclude vars
     if not angle.in_args:
       obj = obj or maybe(liste)  # danger: liste vs args below
     maybe_token(',')
@@ -1527,7 +1532,7 @@ def prepare_named_args(args):
   # eval_args(args)
   context_variables = copy.copy(the.variables)
   if not isinstance(args, dict): return args  # = {'arg': args}
-  for arg, val in args.iteritems():
+  for arg, val in args.items():
     if arg in context_variables:
       v = context_variables[arg]
       # v = v.clone
@@ -1544,7 +1549,7 @@ def do_execute_block(b, args={}):
   global variableValues
   if not b: return False
   if b == True: return True
-  if callable(b): return do_call(None, b, args)
+  if isinstance(b, collections.Callable): return do_call(None, b, args)
   if isinstance(b, FunctionCall): return do_call(b.object, b.name, args or b.arguments)
   args = prepare_named_args(args)
   if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
@@ -1868,8 +1873,7 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
   # else:
   #     raise NotMatching()
   if not all or all[0] == None: raise_not_matching()
-  print(all)
-  name = " ".join(all)
+  name = " ".join(str(v) for v in all)
   if not typ and len(all) > 1 and isType(all[0]): name = all[1:-1].join(' ')  # (p ? 0 : 1)
   if p: name = p + ' ' + name
   name = name.strip()
@@ -2449,7 +2453,7 @@ def the_noun_that():
   if the.current_word == "that":
     criterium = star(selector)  # todo: apply ;)
     if criterium and interpreting():
-      n = filter(n, criterium)
+      n = list(filter(n, criterium))
     else:
       n = resolve_netbase(n)
   else:
@@ -2506,8 +2510,8 @@ def mapType(x0):
   if x == "word": return str  # DANGER!
   if x == "int": return int
   if x == "integer": return int
-  if x == "long": return long
-  if x == "double": return long
+  if x == "long": return int
+  if x == "double": return int
   if x == "str": return str
   if x == "string": return str
   if x == "real": return float
@@ -2587,7 +2591,7 @@ def do_evaluate_property(attr, node):
   if attr in ['type', 'class', 'kind']:
     return get_class(node)
   if isinstance(node, list):
-    return map(lambda x: do_evaluate_property(attr, x), node)
+    return [do_evaluate_property(attr, x) for x in node]
   if isinstance(attr, _ast.AST):
     return todo("do_evaluate_property")
   try:
@@ -2608,7 +2612,7 @@ def do_evaluate(x, _type=None):
   if x == NILL: return None
   # if x == 'pi': return math.pi
   # if x == 'tau': return 2*math.pi
-  if callable(x): return x  # x()  Whoot
+  if isinstance(x, collections.Callable): return x  # x()  Whoot
   if isinstance(x, type): return x
   if isinstance(x, ast.Num): return x.n
   if isinstance(x, ast.Str): return x.s
@@ -2619,7 +2623,7 @@ def do_evaluate(x, _type=None):
   # if is_string(x): return x
   # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
   if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
-  if isinstance(x, list): return map(do_evaluate, x)
+  if isinstance(x, list): return list(map(do_evaluate, x))
   # if maybe(x.is_a) Array: return x.to_s
   if is_string(x):
     if _type and isinstance(_type, extensions.Numeric): return float(x)
@@ -2743,12 +2747,12 @@ def is_unbound(method):
 
 
 def instance(bounded_method):
-  return bounded_method.im_self
+  return bounded_method.__self__
 
 
 def findMethod(obj0, method0, args0=None, bind=True):
   method = method0
-  if callable(method): return method
+  if isinstance(method, collections.Callable): return method
   if isinstance(method, Function): return method  # .body is AST!
   if not obj0 and isinstance(args0, list) and len(args0) == 1:
     obj0 = args0[0]
@@ -2791,7 +2795,7 @@ def findMethod(obj0, method0, args0=None, bind=True):
   #     raise_not_matching("NO such METHOD %s" % method)
   # if not is_string(method):
   #     raise_not_matching("NO such METHOD %s" % method)
-  if not callable(method) and isinstance(args0, list) and len(args0)>0:  # TRY TO WORK ARGUMENT WISE!
+  if not isinstance(method, collections.Callable) and isinstance(args0, list) and len(args0)>0:  # TRY TO WORK ARGUMENT WISE!
     function = findMethod(obj0 or args0[0], method0, args0[0], bind=False)
     return function
   # def map_list(xs,*xss):
@@ -2834,7 +2838,7 @@ def eval_args(args):
   if not args: return []  # None
   # if args and is_string(args): args = xstr(args).replace_numerals()
   if isinstance(args, (list, tuple)):
-    args = map(do_evaluate, args)
+    args = list(map(do_evaluate, args))
   elif isinstance(args, dict):
     pass  # OK
   else:
@@ -2847,11 +2851,11 @@ def eval_args(args):
 def align_args(args, clazz, method):
   # selfmodifying = self_modifying(method)
   # if selfmodifying: return args  # todo
-  is_bound = 'im_self' in dir(method) and method.im_self
+  is_bound = 'im_self' in dir(method) and method.__self__
   if is_bound:
-    if method.im_self == args: args = None
+    if method.__self__ == args: args = None
     if (args and isinstance(args, list) and len(args) > 0):
-      if method.im_self == args[0]: args.remove(args[0])
+      if method.__self__ == args[0]: args.remove(args[0])
     return args
   try:
     if isinstance(method, Function):
@@ -2890,13 +2894,13 @@ def call_unbound(method, args, number_of_arguments):
     try:
       the.result = method(**args) or NILL
     except:
-      the.result = method(*args.values()) or NILL
+      the.result = method(*list(args.values())) or NILL
   if isinstance(args, list) or isinstance(args, tuple):
     if is_unbound(method) and len(args) == 1 and number_of_arguments == 1:
       import types
       arg0 = args[0]
       obj_type = type(arg0)
-      if (method.im_class in extensionMap.values()):
+      if (method.__self__.__class__ in list(extensionMap.values())):
         the.result = method(xx(arg0)) or NILL
       else:
         # the.result = method(arg0) or NILL
@@ -2924,13 +2928,13 @@ def do_call(obj0, method0, args0=[]):
   # args0=map(do_evaluate,args0)
   args = eval_args(args0)
   method = findMethod(obj0, method0, args)
-  method_name = callable(method) and str(method) or method0  # what for??
+  method_name = isinstance(method, collections.Callable) and str(method) or method0  # what for??
   # if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
   if (method == 'of'): return evaluate_property(args0, obj0)
   # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
   is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
-  is_bound = 'im_self' in dir(method) and method.im_self
+  is_bound = 'im_self' in dir(method) and method.__self__
 
   # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
   obj = do_evaluate(obj0)
@@ -2945,29 +2949,29 @@ def do_call(obj0, method0, args0=[]):
   #         return obj.__getattribute__(method)
   #     else:
   #         method(args[1])  # square of 7
-  print >> sys.stderr, ("CALLING %s %s with %s" % (obj or "", method, args))
+  print(("CALLING %s %s with %s" % (obj or "", method, args)), file=sys.stderr)
 
-  if not args and not callable(method) and method in dir(obj):
+  if not args and not isinstance(method, collections.Callable) and method in dir(obj):
     return obj.__getattribute__(method)
 
   try:
-    if not callable(method) and isinstance(args, list):  # TRY TO WORK ARGUMENT WISE!
+    if not isinstance(method, collections.Callable) and isinstance(args, list):  # TRY TO WORK ARGUMENT WISE!
       def map_list(x):
         function = findMethod(x, method0, None)
         if isinstance(function, FunctionCall):
-          from emitters import pyc_emitter
+          from .emitters import pyc_emitter
           return pyc_emitter.eval_ast(function, args)
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
           raise Exception("DONT KNOW how to apply %s to %s" % (method0, args0))
         return function()
 
-      the.result = map(map_list, args)
+      the.result = list(map(map_list, args))
       return the.result
   except Exception as e:
     print(e)
     verbose("CAN'T CALL ARGUMENT WISE")
 
-  if not callable(method):
+  if not isinstance(method, collections.Callable):
     raise MethodMissingError(type(obj), method, args)
 
   if is_math(method_name):
@@ -3035,12 +3039,12 @@ def do_compare(a, comp, b):
   elif comp in class_words:
     if a == b or isinstance(a, b): return True
     if isinstance(a, Variable): return issubclass(a.type, b) or isinstance(a.value, b)
-    if isinstance(a, types.TypeType): return issubclass(a, b)  # issubclass? a bird is an animal OK
+    if isinstance(a, type): return issubclass(a, b)  # issubclass? a bird is an animal OK
     return False
   elif comp == 'equal' or comp == 'the same' or comp == 'the same as' or comp == 'the same as' or comp == '=' or comp == '==':
     return a == b  # Redundant
   elif comp in be_words or isinstance(comp, ast.Eq) or 'same' in comp:
-    return a == b or isinstance(b, types.TypeType) and isinstance(a, b)
+    return a == b or isinstance(b, type) and isinstance(a, b)
   else:
     try:
       return a.send(comp, b)  # raises!
@@ -3067,7 +3071,7 @@ def selectable():
   maybe_tokens(['every', 'all', 'those'])
   xs = do_evaluate(known_variable()) or endNoun()
   s = maybe(selector)  # right=xs, left implicit! (BAD!)
-  if interpreting(): xs = filter(xs, s)  # except xs
+  if interpreting(): xs = list(filter(xs, s))  # except xs
   return xs
 
 
@@ -3096,7 +3100,7 @@ def ranger(a=None):
   b = number()
   if angle.use_tree:
     return kast.call('range',[a,ast.Num(b+1)])
-  return range(a, b + 1)  # count from 1 to 10 => 10 INCLUDED, thus +1!
+  return list(range(a, b + 1))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 
 # #  or  endNode have adjective  or  endNode attribute  or  endNode verbTo verb # or endNode auxiliary gerundium
@@ -3161,7 +3165,7 @@ def check_end_of_statement():
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
   return beginning_of_line() or maybe_newline() or starts_with(done_words) \
-         or the.previous_word == ';' or the.previous_word == '\n' or token(';', 'end_of_statement')
+      or the.current_offset==0 or the.previous_word == ';' or the.previous_word == '\n' or token(';', 'end_of_statement')
   # consume ";", but DON'T consume done_words here!
 
 
@@ -3342,7 +3346,7 @@ def maybe_param(method, classOrModule):
 
 
 def true_param():
-  vars = the.params.keys()
+  vars = list(the.params.keys())
   if (len(vars) == 0): raise NotMatching()
   v = tokens(vars)
   v = the.params[v]  # why maybe(later)
@@ -3351,7 +3355,7 @@ def true_param():
 
 def known_variable(node=True):
   # must_not_start_with(the.method_names)
-  vars = the.variables.keys()
+  vars = list(the.variables.keys())
   if (len(vars) == 0): raise NotMatching()
   v = tokens(vars)
   v = the.variables[v]  # why maybe(later)
@@ -3639,7 +3643,7 @@ def start_shell(args=[]):
   if len(args) > 1:
     input0 = ' '.join(args)
   else:
-    input0 = raw_input('⦠ ')
+    input0 = input('⦠ ')
   while input0:
     # while input = Readline.readline('angle-script⦠ ', True)
     readline.write_history_file(home + "/.english_history")
@@ -3651,7 +3655,7 @@ def start_shell(args=[]):
       interpretation = parse(input0, None)
       if not interpretation: next
       # if angle.use_tree: print(interpretation.tree)
-      print(interpretation.result)
+      print((interpretation.result))
     except IgnoreException as e:
       pass
     except NotMatching as e:
@@ -3662,7 +3666,7 @@ def start_shell(args=[]):
       print('Syntax Error')
     except Exception as e:
       print(e)
-    input0 = raw_input("⦠ ")
+    input0 = input("⦠ ")
   exit()
 
 
@@ -3681,9 +3685,9 @@ def main():
     print("\t./angle (no args for shell)")
     return start_shell()
   a = str(ARGV[1])
-  print(">>> %s" % a)
+  print((">>> %s" % a))
   if a == "--version" or a == '-version' or a == '-v':
-    print(the.version)
+    print((the.version))
     return
   if a == "--verbose":
     angle._verbose = True
@@ -3693,9 +3697,9 @@ def main():
   try:
     interpretation = parse(a.decode('utf-8'), target_file)
     # interpretation = parse(a.encode('utf-8'), target_file)
-    if angle.use_tree: print(interpretation.tree)
+    if angle.use_tree: print((interpretation.tree))
     if the.result and not not the.result and not the.result == Nil:
-      print(the.result)
+      print((the.result))
     if not target_file: start_shell()
   except NotMatching as e:
     print(e)

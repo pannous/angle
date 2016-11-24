@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function  # for stderr
+  # for stderr
 
 # from TreeBuilder import show_tree
 # from english_parser import result, comment, condition, root
 import sys
+py2=sys.version < '3'
+py3=sys.version >= '3'
 import tokenize
 import english_tokens
 import re
@@ -16,6 +18,7 @@ from extension_functions import is_string
 import nodes
 from the import *
 import the
+
 
 
 # Beware of decorator classes. They don't work on methods unless you manually reinvent the logic of instancemethod descriptors.
@@ -179,7 +182,7 @@ def star(lamb, giveUp=False):
   except GivingUp as e:
     if giveUp:
       # if py2: raise e, None, sys.exc_info()[2] #
-      if py3: raise e from e # f'ing py3!
+      if py3: raise e # f'ing py3!
     verbose("GivingUp ok in star")  # ok in star!
     set_token(old)
     return good
@@ -239,7 +242,7 @@ def error(e, force=False):
     #     TreeBuilder.show_tree()
     if not angle._verbose:
       # if py2: raise e, None, sys.exc_info()[2]  # SyntaxError(e):
-      if py3: raise e from e  # f'ing py3!
+      if py3: raise e  # f'ing py3!
 
 def warn(e):
   print(e)
@@ -357,25 +360,27 @@ def parse_tokens(s):
   from io import BytesIO
 
   the.tokenstream = []
-
   def token_eater(token_type, tokenn, start_row_col, end_row_col, line):
-    if token_type != tokenize.COMMENT and not line.startswith("#") and not line.startswith("//"):
+    if token_type != tokenize.COMMENT and token_type != tokenize.ENCODING \
+      and not line.startswith("#") and not line.startswith("//"):
       l = len(the.tokenstream)
       the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, l))
   s=s.replace("⦠","")
   global done
 
-  _lines=s.decode('utf-8').split('\n')
+  if py2: _lines=s.decode('utf-8').split('\n')
+  else: _lines=s.split('\n')
   global i
   i=-1
   def readline():
     global i
     i = i + 1
-    if i<len(_lines): return _lines[i]
-    else:return ''
+    if i<len(_lines): return str.encode(_lines[i]) # py3 wants bytes wtf
+    else:return b''
 
-
-  tokenize.tokenize(readline, token_eater)  # tokenize the string
+  if py2:tokenize.tokenize(readline, token_eater)  # tokenize the string
+  else: [token_eater(*t) for t in tokenize.tokenize(readline)]
+  # else: map(token_eater,tokenize.tokenize(readline))
   return the.tokenstream
 
 def x_comment(token):
@@ -393,6 +398,8 @@ def drop_comments():
   i=0
   prev=""
   for token in extensions.xlist(the.tokenstream):
+    print(the.tokenstream)
+    print(token)
     is_beginning_of_line = token[2][1] == 0 # 1??
     # line = token[4]
     str = token[1]
@@ -561,7 +568,7 @@ def must_contain_before(args, before):  # ,before():None
       break
     next_token()
   set_token(old)
-  if not good: raise (NotMatching(args))
+  if not good: raise NotMatching
   return good
 
 
@@ -587,9 +594,9 @@ def must_contain_before_old(before, *args):  # ,before():None
         good = None
     if good: break
 
-  if not good: raise (NotMatching(x))
+  if not good: raise NotMatching
   for nl in english_tokens.newline_tokens:
-    if nl in str(good): raise (NotMatching(x))  # ;while
+    if nl in str(good): raise NotMatching  # ;while
     # if nl in str(good.pre_match): raise (NotMatching(x))  # ;while
   return OK
 
@@ -609,7 +616,7 @@ def look_ahead(expect_next, doraise=False,must_not_be=False):
     if must_not_be:
       return OK # NOT FOUND
     if doraise:
-      raise (NotMatching(expect_next+": "+doraise))
+      raise NotMatching
     return False
 
 
@@ -838,10 +845,10 @@ def block(multiple=False):  # type):
   #   p
   #
 
-
+import collections
 def maybe(expr):
   global original_string, last_node, current_value, depth, current_node, last_token
-  if not callable(expr):  # duck!
+  if not isinstance(expr, collections.Callable):  # duck!
     return maybe_tokens(expr)
   the.current_expression = expr
   depth = depth + 1
@@ -850,12 +857,12 @@ def maybe(expr):
   try:
     result = expr()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
     adjust_rollback()
-    if angle._debug and (callable(result)):
+    if angle._debug and (isinstance(result, collections.Callable)):
       raise Exception("BUG!? returned CALLABLE " + str(result))
     if result or result == 0:  # and result!='False'
-      verbose("GOT result from " + str(expr) + " : " + str(result))
+      verbose("GOT result "+ str(expr) + " : " + str(result))
     else:
-      verbose("No result from " + str(expr))
+      verbose("No result " + str(expr))
       set_token(old)
       # the.string = old
     last_node = current_node
@@ -879,7 +886,7 @@ def maybe(expr):
       #     import TreeBuilder
       #     TreeBuilder.show_tree()  # Not reached
       ex = GivingUp(str(e) + "\n" + to_source(expr) + "\n" + pointer_string())
-      raise ex, None, sys.exc_info()[2]
+      raise ex.with_traceback(sys.exc_info()[2])
       # error e #exit
       # raise SyntaxError(e)
   except EndOfDocument as e:
@@ -901,10 +908,10 @@ def maybe(expr):
     verbose(e)
   except Exception as e:
     error(e)
-    raise e, None, sys.exc_info()[2]  # reraise!!! with traceback backtrace !!!!
+    raise e.with_traceback(sys.exc_info()[2])  # reraise!!! with traceback backtrace !!!!
   except Error as e:
     error(e)
-    raise e, None, sys.exc_info()[2]  # reraise!!! with traceback backtrace !!!!
+    raise e.with_traceback(sys.exc_info()[2])  # reraise!!! with traceback backtrace !!!!
   finally:
     depth = depth - 1
   # except Exception as e:
@@ -923,7 +930,7 @@ def maybe(expr):
 
 def one_or_more(expressions):
   all = [expressions()]
-  more = star(expressions)
+  more = the.current_offset and star(expressions)
   if more:
     all.append(more)
   return all
@@ -991,11 +998,17 @@ def clear():
     do_interpret()
 
 
+import io
+try:
+    file_types = (file, io.IOBase)
+except NameError:
+    file_types = (io.IOBase,) #py3 --
+
 def parse(s, target_file=None):
   global last_result, result
   if not s: return
   verbose("PARSING" +s)
-  if (isinstance(s,file)):
+  if (isinstance(s,file_types)):
     source_file=s.name
     s = s.readlines()
     angle.use_tree = True
@@ -1012,7 +1025,7 @@ def parse(s, target_file=None):
   if (len(s) < 1000): verbose(s)
   try:
     import english_parser
-    if isinstance(s, file):
+    if isinstance(s, file_types):
       source_file = str(s)
       target_file = source_file + ".pyc"
       s = s.readlines()
@@ -1041,7 +1054,7 @@ def parse(s, target_file=None):
   except Exception as e:
     error(target_file)
     print_pointer(True)
-    raise e, None, sys.exc_info()[2]
+    raise e.with_traceback(sys.exc_info()[2])
   # except NotMatching as e:
   #     import traceback
   #     traceback.print_stack() # backtrace
@@ -1240,7 +1253,7 @@ def fraction():
   else:
     next_token()
     # AttributeError: 'unicode' object has no attribute 'parse_number'
-    from extensions import xstr
+    from .extensions import xstr
     m = xstr(m).parse_number()
   the.result = float(f) + m
   return the.result
@@ -1254,7 +1267,7 @@ def integer():
   match = re.search(r'^\s*(-?\d+)', the.string)
   if match:
     current_value = int(match.groups()[0])
-    next_token(False)
+    next_token(False) # Advancing by hand, its not a regular token
     # "E20": kast.Pow(10,20),
     # if not interpreting(): return ast.Num(current_value)
     # import kast.kast
@@ -1311,30 +1324,30 @@ def load_module_methods():
   warnings.filterwarnings("ignore", category=UnicodeWarning)
 
   try:
-    import cPickle as pickle
+    import pickle as pickle
   except:
     import pickle
   # static, load only once, create with module_method_map.py
-  the.methodToModulesMap = pickle.load(open(angle.home+"/data/method_modules.bin"))
-  the.moduleMethods = pickle.load(open(angle.home+"/data/module_methods.bin"))
-  the.moduleNames = pickle.load(open(angle.home+"/data/module_names.bin"))
-  the.moduleClasses = pickle.load(open(angle.home+"/data/module_classes.bin"))
+  the.methodToModulesMap = pickle.load(open(angle.home+"/data/method_modules.bin",'rb'))
+  the.moduleMethods = pickle.load(open(angle.home+"/data/module_methods.bin",'rb'))
+  the.moduleNames = pickle.load(open(angle.home+"/data/module_names.bin",'rb'))
+  the.moduleClasses = pickle.load(open(angle.home+"/data/module_classes.bin",'rb'))
   import english_parser
 
-  for mo, mes in the.moduleMethods.items():
+  for mo, mes in list(the.moduleMethods.items()):
     if not method_allowed(mo): continue
     the.token_map[mo] = english_parser.method_call
     for meth in mes:
       if method_allowed(meth):
         the.token_map[meth] = english_parser.method_call
-  for mo, cls in the.moduleClasses.items():
+  for mo, cls in list(the.moduleClasses.items()):
     for meth in cls:  # class as CONSTRUCTOR
       if method_allowed(meth):
         the.token_map[meth] = english_parser.method_call
 
   # if not the.method_names: # todo pickle
-  constructors = the.classes.keys() + english_tokens.type_names
-  the.method_names = the.methods.keys() + c_methods + methods.keys() + core_methods + builtin_methods + the.methodToModulesMap.keys()
+  constructors = list(the.classes.keys()) + english_tokens.type_names
+  the.method_names = list(the.methods.keys()) + c_methods + list(methods.keys()) + core_methods + builtin_methods + list(the.methodToModulesMap.keys())
   # for c in constructors:
   #     if not c in the.method_names: the.method_names.append(c)
   for x in dir(extensions):
