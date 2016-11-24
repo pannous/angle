@@ -15,5 +15,5 @@ class LoopTest(ParserBaseTest):
         assert_that("'be4ep' ~ regex '\d' == 4")
 
     def test_match3(self):
-        skip()
+        # skip()
         assert_that("'be4ep' ~ '\d' == 4")
