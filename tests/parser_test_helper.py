@@ -13,6 +13,9 @@ from extensions import *
 global parser
 parser = english_parser#.EnglishParser()
 
+NONE = "None"
+TRUE = "True"
+FALSE = "False"
 ENV = {'APPLE': True}
 methods = {}
 functions = {}
@@ -203,6 +206,7 @@ class ParserBaseTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        angle._debug = angle._debug or 'ANGLE_DEBUG' in os.environ
         cls.parser = _parser = english_parser#.EnglishParser()
         pass # reserved for expensive environment one time set up
 
@@ -266,7 +270,7 @@ class ParserBaseTest(unittest.TestCase):
             print(('Testing ' + x))
             init(x)
             ok = self.parser.condition()
-            if ok==False or ok=='False':
+            if ok==False or ok==FALSE or ok==NONE: # no match etc
                 assert False, 'NOT PASSING: ' + str( msg)
         print('TEST PASSED!  ' + str( msg) + ' \t VALUE '+str(ok))
 

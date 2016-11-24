@@ -1339,14 +1339,14 @@ def load_module_methods():
 
   for mo, mes in list(the.moduleMethods.items()):
     if not method_allowed(mo): continue
-    the.token_map[mo] = english_parser.method_call
+    the.method_token_map[mo] = english_parser.method_call
     for meth in mes:
       if method_allowed(meth):
-        the.token_map[meth] = english_parser.method_call
+        the.method_token_map[meth] = english_parser.method_call
   for mo, cls in list(the.moduleClasses.items()):
     for meth in cls:  # class as CONSTRUCTOR
       if method_allowed(meth):
-        the.token_map[meth] = english_parser.method_call
+        the.method_token_map[meth] = english_parser.method_call
 
   # if not the.method_names: # todo pickle
   constructors = list(the.classes.keys()) + english_tokens.type_names

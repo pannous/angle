@@ -4,6 +4,10 @@ import sys
 py2=sys.version < '3'
 py3=sys.version >= '3'
 
+
+true = True
+false = False
+
 if py3:
     class unicode(bytes):
         pass
@@ -114,6 +118,38 @@ def match_path(p):
     m = re.search(r'^(\/[\w\'\.]+)',p)
     if not m: return False
     return m
+
+def regex_match(a,b):
+    NONE = "None"
+    match=regex_matches(a,b)
+    if match:
+        try: return a[match.start():match.end()].strip()
+        except: return b[match.start():match.end()].strip()
+    return NONE
+
+
+# RegexType= _sre.SRE_Pattern#type(r'')
+MatchObjectType= type(re.search('', ''))
+def regex_matches(a,b):
+    if isinstance(a,re._pattern_type):
+        return a.search(b) #
+    if isinstance(b,re._pattern_type):
+        return b.search(a)
+    if is_string(a) and len(a)>0:
+        if a[0]=="/": return re.compile(a).search(b)
+    if is_string(b) and len(b)>0:
+        if b[0]=="/": return re.compile(b).search(a)
+
+    try:b=re.compile(b)
+    except:
+        print("FAILED: re.compile(%s)"%b)
+        b = re.compile(str(b))
+    print(a)
+    print(b)
+    return b.search(a) # vs
+    # return b.match(a) # vs search
+    # return a.__matches__(b) # other cases
+    # return a.contains(b)
 
 
 def is_file(p, must_exist=True):

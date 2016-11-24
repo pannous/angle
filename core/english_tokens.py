@@ -18,6 +18,7 @@ true = True
 false = False
 TRUE = "True"
 FALSE = "False"
+NONE = "None"
 NILL = "None"
 Nil = "None"
 # Nill="None"
@@ -166,7 +167,7 @@ be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have 
 # OR class_words
 comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                     'element of', 'subset of', 'in', 'are', 'were', \
-                    '>=', '==','!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', 'gt', 'lt', 'eq', \
+                    '>=', '==','!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥','~','~=','=~','~~','gt', 'lt', 'eq', \
                     'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
                     'bigger', 'greater', 'equals', 'smaller', 'less', 'more', 'the same as', \
                     'same as', 'similar', 'comes after', 'inherits from', 'implements' \

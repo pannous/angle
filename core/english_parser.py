@@ -62,20 +62,21 @@ def do_self_modify(v, mod, arg):
 
 # ## global the.string
 
-class Starttokens(object):
-  def __init__(self, starttokens):
-    if not isinstance(starttokens, list):
-      starttokens = [starttokens]
-    self.starttokens = starttokens
-
-  def __call__(self, original_func):
-    decorator_self = self
-    for t in self.starttokens:
-      if t in iter(the.token_map):
-        debug("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
-      the.token_map[str(t)] = original_func
-    return original_func
-
+# class Starttokens(object):
+#   def __init__(self, starttokens):
+#     if not isinstance(starttokens, list):
+#       starttokens = [starttokens]
+#     self.starttokens = starttokens
+#
+#   def __call__(self, original_func):
+#     decorator_self = self
+#     for t in self.starttokens:
+#       if t in iter(the.token_map):
+#         debug("ALREADY mapped \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
+#       else:
+#         the.token_map[str(t)] = original_func
+#     return original_func
+#
 
 class Todo:
   pass
@@ -260,14 +261,13 @@ def includes(dependency, type, version):
   if type and type in "javascript script js".split():
     return javascript_require(dependency)
 
-
-def regexp(x):
-  ## global the.string
-  match = re.search(x, the.string)
-  match = match or re.search(r'(?im)^\s*%s' % x, the.string)
-  if not match: raise NotMatching(x)
-  the.string = the.string[match.end():].strip()
-  return match
+@Starttokens(["r'",'/',"regex","regexp","regular expression"])
+def regexp():
+  maybe_tokens(["regex","regexp","regular expression"])
+  if the.string.startswith("r'"): return re.compile(the.string[2:-1])
+  elif the.string.startswith("'"): return re.compile(the.string[1:-1])
+  # if the.string.startswith("/"): return re.compile(the.string[1:)
+  return re.compile(the.string)
 
 
 def package_version():
@@ -276,7 +276,7 @@ def package_version():
   tokens(['v', 'version'])
   c = c or maybe_tokens(comparison_words)
   # current_value=
-  the.result = c + " " + regexp('\d(\.\d)*')
+  the.result = c + " " + regex_match(r'\d(\.\d)*',the.string)
   maybe_tokens("or later")
   return the.result
 
@@ -699,7 +699,8 @@ def contains(token):
   return token in the.current_line
 
 
-def quick_expression():  # bad idea!
+def quick_expression():  # bad idea?
+  result = False
   if the.current_word == '': raise EndOfLine()
   if the.current_word == ';': raise EndOfStatement()
   if the.current_word == ',':
@@ -709,13 +710,15 @@ def quick_expression():  # bad idea!
     return immediate_hash()
   if the.current_word == '{' and (contains("=>") or contains(":")):
     return hash_map()
-  if the.current_word in operators + special_chars + ["element", "item"]:
-    return False  # todo: --x
-  result = False
-
+  if the.current_word.startswith("r'"):# wrongly tokeinzied: : or the.current_word.startswith("/"):
+    result = regexp()
+    next_token(False)
   if look_ahead('='):
     if not angle.in_condition: return setter()
     # if angle.in_condition: return condition()
+  if the.current_word in operators + special_chars + ["element", "item"]:
+    return False # USE ALGEBRA!!  #TODO: if more than one
+
   if the.current_type == _token.STRING or the.current_word.startswith("'"):
     result = quote()
   elif the.current_word in the.token_map:  # safe, ok!
@@ -724,6 +727,8 @@ def quick_expression():  # bad idea!
     debug("token_map: %s -> %s" % (the.current_word, fun))
     if look_ahead(['rd', 'st', 'nd']): fun = nth_item
     result = fun()  # already wrapped maybe(fun)
+  elif the.current_word in the.method_token_map:
+    raise Error("method_token_map not thought through!!")
   elif the.current_word in list(the.params.keys()):
     result = true_param()
   elif the.current_word in list(the.variables.keys()):
@@ -736,6 +741,9 @@ def quick_expression():  # bad idea!
   elif the.current_word in english_tokens.type_names:
     return maybe(setter) or method_definition()  # or ... !!!!!
   if not result: return False
+  if the.current_word in operators + special_chars + ["element", "item"]:
+    op=the.current_word;next_token()
+    return do_math(result,op,expression())
   while True:
     z = post_operations(result)
     if not z or z == result: break  # or z=='False'
@@ -795,9 +803,10 @@ def space():
 
 
 def expression(fallback=None, resolve=True):
-  if the.current_word == '': raise EndOfLine()
-  if the.current_word == ';': raise EndOfStatement()
   maybe(space) # why? bug!
+  if the.current_word == '' or len(the.current_word)==0:
+    raise EndOfLine()
+  if the.current_word == ';': raise EndOfStatement()
   the.result = ex = maybe(quick_expression) or \
                     maybe(listselector) or \
                     maybe(algebra) or \
@@ -1983,6 +1992,7 @@ def call_cast(x, typ):
 def nod():  # options{generateAmbigWarnings=false)):
   return maybe(number) or \
          maybe(quote) or \
+         maybe(regexp) or \
          maybe(known_variable) or \
          maybe(true_param) or \
          the_noun_that()
@@ -2721,6 +2731,10 @@ def do_math(a, op, b):
   if op == '>=': return a >= b
   if op == '==': return a == b
   if op == '=': return a == b
+  if op == '~': return regex_match(a,b)
+  if op == '~=': return regex_match(a,b)
+  if op == '=~': return regex_match(a,b)
+  if op == '~~': return regex_match(a,b)
   if op == 'is': return a == b  # NOT the same as python a is b:
   if op == 'be': return a == b
   if op == 'equal to': return a == b
@@ -3114,6 +3128,7 @@ def endNode():
       maybe(fileName) or \
       maybe(linuxPath) or \
       maybe(quote) or \
+      maybe(regexp) or \
       maybe(lambda: maybe(article) and typeNameMapped()) or \
       maybe(simpleProperty) or \
       maybe(evaluate_property) or \

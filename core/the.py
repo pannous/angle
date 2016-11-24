@@ -40,6 +40,7 @@ string=""
 tokenstream=[] # tuple:
 tokens_len=0 # len(tokenstream)
 token_map={} # directly map tokens to their functions
+method_token_map={} # directly map tokens to functions
 token_number=0
 current_type=0
 current_offset=0
