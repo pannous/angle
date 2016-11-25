@@ -223,7 +223,7 @@ modifier_words = const_words + ['protected', 'private', 'public', 'static', 'voi
 adverbs = ['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely',
            'by any means', 'without a doubt']
 
-let_words = ['let', 'set','alias']
+let_words = ['let', 'set'] #,'alias'
 
 time_words = ['seconds', 'second', 'minutes', 'minute', 'a.m.', 'p.m.', 'pm', "o'clock", 'hours', 'hour']  # etc... !
 

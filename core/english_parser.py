@@ -483,13 +483,16 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
 
 
 def listselector():
-  return maybe(nth_item) or functionalselector()
+  return maybe(nth_item)#
+ # or functionalselector() # expensive -> later!
 
-  # DANGER: INTERFERES WITH maybe(LIST), NAH, NO COMMA: {x > 3)
-
-
-@Starttokens('{')
+# DANGER: INTERFERES WITH maybe(LIST), NAH, NO COMMA: {x > 3)
+# { optional around standard selector  birds that fly
+# @Starttokens('{','(')
+# expensive -> later!
 def functionalselector():
+  if contains(','): return list()
+  if contains(':'): return hash()
   _('{')
   xs = known_variable()
   crit = selector()
@@ -501,7 +504,7 @@ global inside_list
 inside_list = False
 
 
-@Starttokens(['[', '(', '{'])
+@Starttokens(['[', '('])# , '{' vs hash!! -> only in js!
 def liste(check=True, first=None):
   global inside_list
   if not first and the.current_word == ',': raise NotMatching()
@@ -743,9 +746,9 @@ def quick_expression():  # bad idea?
   elif the.current_word in english_tokens.type_names:
     return maybe(setter) or method_definition()  # or ... !!!!!
   if not result: return False
-  if the.current_word in operators + special_chars + ["element", "item"]:
-    op=the.current_word;next_token()
-    return do_math(result,op,nod())
+  # if not angle.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
+  #   op=the.current_word;next_token()
+  #   return do_math(result,op,nod())
   while True:
     z = post_operations(result)
     if not z or z == result: break  # or z=='False'
@@ -3455,7 +3458,8 @@ def loops():
          raise_not_matching("Not a loop")
 
 
-@Starttokens(['for', 'repeat with'])
+# todo merge for_i_in_collection
+@Starttokens(['repeat with'])
 def repeat_with():
   maybe_token('for') or _('repeat') and _('with')
   no_rollback()
