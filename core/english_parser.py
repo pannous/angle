@@ -1655,7 +1655,6 @@ def assure_same_type(var, type):
     if issubclass(type,extensions.xchar):
     # var.type = type  # ok: upgrade
       return # OK
-
   # try:
   if oldType and type and not issubclass(oldType, type):  # FAIL:::type <= oldType:
     raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(type))
@@ -1673,6 +1672,7 @@ def assure_same_type_overwrite(var, val):
     if val.return_type != "Unknown" and val.return_type != oldType:  # None:
       raise WrongType("OLD: %s %s VS %s return_type: %s " % (oldType, oldValue, val, val.return_type))
   elif oldType and not isinstance(val, oldType) and not issubclass(oldType, type(val)):
+    return do_cast(val,oldType)
     raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
   if var.final and var.value and not val == var.value:
     raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
@@ -1984,10 +1984,12 @@ def do_cast(x, typ):
   if typ == "integer": return int(x)
   if typ == str: return str(x)
   if typ == xstr: return str(x)
+  if typ == unicode: return str(x)
   if typ == "str": return str(x)
   if typ == "string": return str(x)
-  todo("to_do:do_cast")
-  return x
+  if typ == extensions.xchar and len(x)==1:
+    return extensions.xchar(x[0])
+  raise WrongType("CANNOT CAST: %s (%s) TO %s " % (x, type(x), typ))
 
 
 def call_cast(x, typ):

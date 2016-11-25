@@ -747,7 +747,7 @@ class xstr(str):
   def reverse_string(str):
       return xstr(str).reverse()
 
-class xchar(str):
+class xchar(unicode): # unicode: multiple bases have instance lay-out conflict
   def __coerce__(self, other):
       if isinstance(other,int):
           other=chr(other)

@@ -9,7 +9,7 @@ true = True
 false = False
 
 if py3:
-    class unicode(bytes):
+    class unicode(xstr,bytes): # xchar[]
         pass
     # Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
 

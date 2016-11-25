@@ -860,7 +860,7 @@ def maybe(expr):
   try:
     result = expr()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
     adjust_rollback()
-    if angle._debug and (isinstance(result, collections.Callable)):
+    if angle._debug and (isinstance(result, collections.Callable)) and not isinstance(result,type):
       raise Exception("BUG!? returned CALLABLE " + str(result))
     if result or result == 0:  # and result!='False'
       verbose("GOT result "+ str(expr) + " : " + str(result))
