@@ -717,6 +717,8 @@ def quick_expression():  # bad idea?
     if not angle.in_condition: return setter()
     # if angle.in_condition: return condition()
   if the.current_word in operators + special_chars:
+    if angle.in_algebra: return False
+    return algebra(result)
     if the.current_word!="~": return False # USE ALGEBRA // Fuckup !!  #TODO: if more than one
 
   if the.current_type == _token.STRING or the.current_word.startswith("'"):
