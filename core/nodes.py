@@ -246,7 +246,7 @@ class Variable(kast.Name):
     # attr_accessor :name, :type,:owner, :value, :final, :modifier     # :scope, :module, << owner
 
     def __init__(self, *margs, **args):
-        super(Variable, self).__init__(*margs, **args)
+        super(Variable, self).__init__()#*margs, **args)
         if not args: args=margs[0]
         self.name    =args['name']
         self.ctx     =args['ctx'] if 'ctx' in args else ast.Load()
