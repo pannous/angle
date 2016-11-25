@@ -365,10 +365,9 @@ def parse_tokens(s):
   the.tokenstream = []
   def token_eater(token_type, tokenn, start_row_col, end_row_col, line):
     if py3 and token_type == tokenize.ENCODING: return
-    if token_type != tokenize.COMMENT \
-      and not line.startswith("#") and not line.startswith("//"):
-      l = len(the.tokenstream)
-      the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, l))
+    # if token_type != tokenize.COMMENT \
+    #   and not line.startswith("#") and not line.startswith("//"):
+    the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
   s=s.replace("⦠","")
   global done
 
@@ -681,7 +680,12 @@ def invalidate_obsolete(old_nodes):
 
 # start_block INCLUDED!! (optional !?!)
 def beginning_of_line():
-  return the.current_type == _token.INDENT or the.current_token[2][1] == 0
+  # if previous_word
+  if the.token_number>1:
+    previous_offset=the.tokenstream[the.token_number-1][2][1]
+    if previous_offset > the.current_offset:
+      return True
+  return the.current_type == _token.INDENT or the.current_offset == 0
 
 
 def block(multiple=False):  # type):

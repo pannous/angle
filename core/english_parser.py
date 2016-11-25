@@ -997,7 +997,7 @@ def bash_action():
   ok = starts_with(['bash','exec','`'] + bash_commands)
   if not ok: raise_not_matching("no bash commands")
   no_rollback()
-  remove_tokens('execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
+  maybe_tokens('execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
   command = maybe(quote)  # danger bash "hi">echo
   command = command or rest_of_line()
   # any{ maybe(  ) or   statements )
@@ -1762,7 +1762,7 @@ def setter(var=None):
     else:
       _type = _cast  # todo
   val = do_evaluate(val ) or do_evaluate(guard)
-  allow_rollback()
+  # allow_rollback()
   if setta in ['are', 'consist of', 'consists of']:
     val = flatten(val)
 

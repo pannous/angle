@@ -104,6 +104,8 @@ class ListTest(ParserBaseTest,unittest.TestCase):
         assert_equals(the.variables['z'], [1, 2, 3, 4, 5, 6])
 
     def test_concatenation2c(self):
+        # raise Exception("SERIOUS BUG: LOOP!")
+        # skip()
         parse('x is 1,2\n       y is 3,4\n       z is x + y')
         assert_equals(the.variables['z'], [1, 2, 3, 4])
 
