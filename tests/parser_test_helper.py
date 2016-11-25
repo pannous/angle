@@ -179,9 +179,6 @@ def equals(a, b):
 def name(x):
     return x
 
-def assert_that(x,msg=None, block=None):
-    return base_test.do_assert(x,msg=None, block=None)
-
 
 def copy_variables(variables=variables):
     global variableValues

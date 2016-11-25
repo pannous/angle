@@ -13,7 +13,6 @@ class FunctionTest(ParserBaseTest):
 		angle.use_tree = True
 		angle._verbose = True
 
-
 	def test_identity2(self):
 		parse("define identity number n\n\tn\nassert identity(1) is 1")
 		# parse("define identity number n\nn\nend\nassert identity(1) is 1")
@@ -23,6 +22,9 @@ class FunctionTest(ParserBaseTest):
 		# parse("define add number n\nn+2\nend\nassert add(1,2) is 3")
 		# parse("define add number n to number m\nn+2\nend\nassert add(1,2) is 3")
 		# parse("define add number n to number m\nn+m\nend\nassert add(1,2) is 3")
+
+	def test_assert(self):
+		self.assert_that("assert 2 + 4 is 6")
 
 	def test_add3(self):
 		parse("define add number n to number m\nn+m\nend\nassert add 2 to 4 is 6")

@@ -11,6 +11,7 @@ import tokenize
 import english_tokens
 import re
 import token as _token
+import collections #py3
 import angle
 import extensions
 from exceptionz import *
@@ -430,7 +431,6 @@ def drop_comments():
     prev_token=token
 
 
-
 def init(strings):
   # global is ok within one file but do not use it across different files
   global no_rollback_depth, rollback_depths, line_number, original_string, root, lines, depth, left, right, comp
@@ -462,67 +462,10 @@ def init(strings):
   for nr in english_tokens.numbers:
     the.token_map[nr] = number
 
-    # result           =None NOO, keep old!
-
-
-    # def s(s):
-    #     allow_rollback()
-    #     init(s)
-    # parser.init the.string
-
-
-def assert_equals(a, b):
-  if a != b: raise NotPassing("#{a} should equal #{b}")
-
-
-def doassert(x=None, block=None):
-  if not x and block: x = block()  # yield
-  # if not x: raise Exception.new (to_source(block))
-  if block and not x: raise NotPassing(to_source(block))
-  if not x: raise NotPassing()
-  if is_string(x):
-    try:
-      # if the.string: root
-      s(x)
-      import english_parser
-
-      ok = english_parser.condition()
-    except SyntaxError as e:
-      raise e  # ScriptError.new "NOT PASSING: SyntaxError : "+x+" \t("+e.class.to_s+") "+e.to_s
-    # except Exception as e:
-    #     raise NotPassing("NOT PASSING: " + str(x) + " \t(" + str(type(e)) + ") " + str(e))
-
-    if not ok:
-      raise NotPassing("NOT PASSING: " + str(x))
-    print(x)
-
-  print("TEST PASSED! " + str(x) + " \t" + to_source(block).to_s)
-  return True
-
 
 def error_position():
   pass
 
-
-# def interpretation():
-#     interpretation.error_position = error_position()
-#     return interpretation
-
-
-# gem 'debugger'
-# gem 'ruby-debug19', :require => 'ruby-debug'
-# import ruby-debug
-# import debugger
-# gem 'ParseTree' ruby 1.9 only :{
-# import sourcify #http://stackoverflow.com/questions/5774916/print-actual-ruby-code-of-a-block BAD
-# import method_source
-
-# gem 'ruby-debug', :platforms => :ruby_18
-# gem 'ruby-debug19', :platforms => :ruby_19, :require => 'ruby-debug'
-
-# def maybe(block):
-#  return yield except True
-#
 def raiseEnd():
   if current_type == _token.ENDMARKER:
     raise EndOfDocument()
@@ -636,13 +579,6 @@ def lastmaybe(stack):
 def caller_name():
   return caller()
 
-
-# for i in 0..(len(caller)):
-#   if not caller[i].match(r'parser'): next
-#   name=caller[i].match(r'`(.*)'')[1]
-#   if caller[i].index("parser"): return name
-
-
 # remove the border, if above border
 def adjust_interpret():
   depth = caller_depth()
@@ -676,56 +612,6 @@ def check_rollback_allowed():
   throwing = True  # []
   level = 0
   return c < no_rollback_depth or c > no_rollback_depth + 2
-
-
-# if no result: same as try but throws
-
-# same as maybe
-# def any(block):
-#     global throwing
-#     raiseEnd()
-#     # if checkEnd: return
-#     last_try = 0
-#     # if level>20: throw "Max recursion reached #{to_source(block)}"
-#     if len(caller()) > 180: raise MaxRecursionReached(to_source(block))
-#     was_throwing = throwing
-#     throwing = False
-#     # throwing[level]=false
-#     old = current_token
-#     # oldString = the.string
-#     result = False
-#     try:
-#         result = block()  # yield  # <--- !!!!!
-#         if not result:
-#             set_token(old)
-#             # the.string = oldString
-#             raise NoResult(to_source(block))
-#         return result
-#     except EndOfDocument:
-#         verbose("EndOfDocument")
-#     except EndOfLine:
-#         verbose("EndOfLine")
-#     except GivingUp as e:
-#         raise e
-#     except NotMatching:
-#         verbose("NotMatching")
-#         # retry
-#     except IgnoreException as e:
-#         verbose("Error in %s" % to_source(block))
-#         error(e)
-#
-#     if result: verbose("Succeeded with any #{to_source(block)}")
-#     # if verbose and not result: string_pointer()
-#     last_token = pointer_string()  # if not last_token:
-#     if check_rollback_allowed():
-#         set_token(old)
-#         # the.string = oldString
-#     throwing = was_throwing
-#     # throwing[level]=True
-#     # level=level-1
-#     if result: return result
-#     raise NotMatching(to_source(block))
-#     # throw "Not matching #{to_source(block)}"
 
 
 def read_source(x):
@@ -846,9 +732,7 @@ def block(multiple=False):  # type):
   # p=parent_node()
   # if p: p.content=content
   #   p
-  #
 
-import collections
 def maybe(expr):
   global original_string, last_node, current_value, depth, current_node, last_token
   if not isinstance(expr, collections.Callable):  # duck!

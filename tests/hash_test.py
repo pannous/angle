@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = False
+# angle.use_tree = False
+angle.use_tree = True
 angle._verbose = False
 from parser_test_helper import *
 
@@ -13,11 +14,17 @@ class HashTest(ParserBaseTest):
     #     h = parse('{"SuperSecret" : "kSecValueRef"}')
     #     assert_equals(h['SuperSecret'], 'kSecValueRef')
 
-    def test_json_data(self):
-        init('{a{b:"b";c:"c"}}')
-        self.parser.hash_map()
+
+
+    def test_simple0(self):
+        init('{a:1}')
+        val=self.parser.hash_map()
+        assert_equals(val, {'a': 1})
 
     def test_simple(self):
+        assert_equals(parse('{a:1}'), {'a': 1})
+
+    def test_simple2(self):
         assert_equals(parse('{:a => "b"}'), {'a': 'b', })
 
     def test_invariance(self):
@@ -44,3 +51,7 @@ class HashTest(ParserBaseTest):
         assert_equals(x, {'a': {'b': 'b', 'c': 'c'}})
         assert_equals(parse("x['a']"),{'b': 'b', 'c': 'c'})
         assert_equals(parse("x['a']['b']"),'b')
+
+    def test_json_data(self):
+        init('{a{b:"b";c:"c"}}')
+        self.parser.hash_map()
