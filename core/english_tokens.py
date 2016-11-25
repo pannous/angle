@@ -14,6 +14,8 @@ import kast.kast
 from nodes import Quote
 from power_parser import *  # app_path, verbose
 from extensions import xlist
+
+
 true = True
 false = False
 TRUE = "True"
@@ -21,8 +23,10 @@ FALSE = "False"
 NONE = "None"
 NILL = "None"
 Nil = "None"
+nil = "None"
 # Nill="None"
 ZERO = '0'
+
 
 bash_commands = ['ls', 'cd']
 

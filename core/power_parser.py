@@ -1256,7 +1256,7 @@ def fraction():
   else:
     next_token()
     # AttributeError: 'unicode' object has no attribute 'parse_number'
-    from .extensions import xstr
+    from extensions import xstr
     m = xstr(m).parse_number()
   the.result = float(f) + m
   return the.result

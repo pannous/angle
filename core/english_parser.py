@@ -98,7 +98,7 @@ def _(x):
 def nill():
   if tokens(nill_words): return NILL
 
-
+@Starttokens(['True', 'False', 'true', 'false'])
 def boolean():
   b = tokens(['True', 'False', 'true', 'false'])
   the.result = (b == 'True' or b == 'true') and TRUE or FALSE
@@ -262,12 +262,13 @@ def includes(dependency, type, version):
     return javascript_require(dependency)
 
 @Starttokens(["r'",'/',"regex","regexp","regular expression"])
-def regexp():
-  maybe_tokens(["regex","regexp","regular expression"])
-  if the.string.startswith("r'"): return re.compile(the.string[2:-1])
-  elif the.string.startswith("'"): return re.compile(the.string[1:-1])
-  # if the.string.startswith("/"): return re.compile(the.string[1:)
-  return re.compile(the.string)
+def regexp(val=0):
+  if not val:
+    tokens(["regex","regexp","regular expression"])
+    val=the.string
+  if val.startswith("r'"): return re.compile(val[2:-1])
+  elif val.startswith("'"): return re.compile(val[1:-1])
+  return re.compile(val)
 
 
 def package_version():
@@ -339,7 +340,7 @@ def ast_operator(op):
 def apply_op(stack, i, op):
   if interpreting():  # and not angel.use_tree:
     if op == "!" or op == "not":
-      stack[i:i + 2] = [not evaluate(stack[i + 1])]
+      stack[i:i + 2] = [not do_evaluate(stack[i + 1])]
     else:
       result = do_math(stack[i - 1], op, stack[i + 1])
       stack[i - 1:i + 2] = [result]
@@ -714,7 +715,7 @@ def quick_expression():  # bad idea?
   if the.current_word == '{' and (contains("=>") or contains(":")):
     return hash_map()
   if the.current_word.startswith("r'"):# wrongly tokeinzied: : or the.current_word.startswith("/"):
-    result = regexp()
+    result = regexp(the.current_word)
     next_token(False)
   if look_ahead('='):
     if not angle.in_condition: return setter()
@@ -733,7 +734,10 @@ def quick_expression():  # bad idea?
     if look_ahead(['rd', 'st', 'nd']): fun = nth_item
     result = fun()  # already wrapped maybe(fun)
   elif the.current_word in the.method_token_map:
-    raise Error("method_token_map not thought through!!")
+    fun = the.method_token_map[the.current_word]
+    debug("method_token_map: %s -> %s" % (the.current_word, fun))
+    # raise Error("method_token_map not thought through!!")
+    result = fun()  # already wrapped maybe(fun)
   elif the.current_word in list(the.params.keys()):
     result = true_param()
   elif the.current_word in list(the.variables.keys()):
@@ -827,7 +831,6 @@ def expression(fallback=None, resolve=True):
   # maybe(swift_hash) or \
 
   ex = post_operations(ex) or ex
-  # ex = postoperations(ex) or ex
   skip_comments()
 
   if not interpreting():
@@ -2710,7 +2713,7 @@ def do_math(a, op, b):
   if op == '^': return a ** b
   # if op == '^': return a ^ b
   if op == 'xor': return a ^ b
-  if op == 'and': return a and b
+  if op == 'and': return a and b or FALSE
   if op == '&&': return a and b
   if op == 'but not':
       return a and not b

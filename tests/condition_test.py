@@ -39,6 +39,8 @@ class ConditionTest(ParserBaseTest):
 
 
 	def test_root_comparisons_eq(self):
+		self.doCleanups()
+		self.parser.clear()
 		assert_has_error('x==2')
 		# assert_has_error('x==2',UndeclaredVariable)
 		assert_result_is('x=2;x==2', True)
@@ -74,9 +76,10 @@ class ConditionTest(ParserBaseTest):
 	def test_if_(self):
 		assert_result_is('if(1<2) then 3 else 4', 3)
 		assert_result_is('if 1<2 then 5 else 4', 5)
+
+	def test_if_1(self):
 		assert_result_is('if 1<2 then true else 4', True)
 		assert_result_is('if 1<2 then "True" else 4', True)
-
 
 	def test_else_(self):
 		assert_result_is('if(3<2) then 3 else 4', 4)
@@ -117,6 +120,7 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(check, False)
 
 	def test_list_quantifiers2(self):# bug: algebra 0,1,2 is smaller 3
+		skip()
 		check = parse('x=5;if one of 0,1,2 is smaller 3 then x++')
 		assert_equals(check, 6)
 
