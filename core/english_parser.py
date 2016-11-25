@@ -858,10 +858,10 @@ def expression(fallback=None, resolve=True):
 
 def piped_actions(a=False):
   if angle.in_pipe: return False
-  must_contain("|")
+  must_contain(["|",'pipe']) # then
   angle.in_pipe = True
   a = a or statement()
-  token('|')
+  tokens(['|','pipe'])
   no_rollback()
   xmodule, obj, name = true_method() or bash_action()
   args = star(call_arg)
