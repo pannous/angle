@@ -449,9 +449,13 @@ def special_blocks():
 
 def is_a(x, type0):
   _type = mapType(type0)
+  debug(_type)
   if is_string(_type): raise Exception("BAD TYPE %s" % type0)
   if isinstance(x, _type): return True
   if isinstance(x,unicode) and _type==types.StringType: return True
+  if isinstance(x,unicode) and _type==xchar and len(x)==1: return True
+  if isinstance(x,unicode) and _type==xstr: return True
+  if isinstance(xx(x), _type): return True
   return False
 
 
@@ -501,25 +505,21 @@ def functionalselector():
   return list(filter(xs, crit))
 
 
-global inside_list
-inside_list = False
-
 
 @Starttokens(['[', '('])# , '{' vs hash!! -> only in js!
 def liste(check=True, first=None):
-  global inside_list
   if not first and the.current_word == ',': raise NotMatching()
   if angle.in_hash: must_not_contain(":")  # ,before=',')
   if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
   # +[' '] ???
   start_brace = maybe_tokens(['[', '{', '('])  # only one!
-  if not start_brace and (inside_list or in_args): raise NotMatching('not a deep list')
+  if not start_brace and (angle.in_list or in_args): raise NotMatching('not a deep list')
 
   # all<<expression(start_brace)
   # angel.verbose=True #debug
-  inside_list = True
+  angle.in_list = True
   first = first or maybe(endNode)
-  if not first: inside_list = False
+  if not first: angle.in_list = False
   if not first: raise_not_matching()
   if isinstance(first, list):
     all = first
@@ -539,7 +539,7 @@ def liste(check=True, first=None):
   if start_brace == '[': _(']')
   if start_brace == '{': _('}')
   if start_brace == '(': _(')')
-  inside_list = False
+  angle.in_list = False
   if angle.use_tree:
     # return kast.List(all,ast.Load()) # ast.Load() ??
     return xlist(all)  # Important in order to distinguish from list
@@ -610,14 +610,14 @@ def swift_hash():
     key = word()
     maybe_tokens(['"', "'"])
     _(':')
-    angle.inside_list = True
+    angle.angle.in_list = True
     h[key] = expression()  # no
     the.result = {key: h[key]}
     return the.result
 
   star(hashy)
   _(']')
-  angle.inside_list = False
+  angle.angle.in_list = False
   return h
 
 
@@ -652,7 +652,7 @@ def regular_hash():
     # Property versus hash !!
     maybe_tokens(['=>', '=', ':', '>']) or starts_with("{")
     maybe_tokens(['=>', '=', ':', '>'])
-    # angle.inside_list = True
+    # angle.angle.in_list = True
     val = expression()
     h[key] = val
     return {key: val}
@@ -661,7 +661,7 @@ def regular_hash():
   _('}')
   angle.in_hash = False
 
-  # angle.inside_list = False
+  # angle.angle.in_list = False
   return h
   # careful with blocks/closures ! map{puts it} VS data{a:"b")
 
@@ -753,10 +753,14 @@ def quick_expression():  # bad idea?
   # if not angle.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
   #   op=the.current_word;next_token()
   #   return do_math(result,op,nod())
-  while True:
-    z = post_operations(result)
-    if not z or z == result: break  # or z=='False'
-    result = z
+  try:
+    while True:
+      z = post_operations(result)
+      if not z or z == result: break  # or z=='False'
+      result = z
+  except e:
+    print (e)
+    pass # allow some extra stuff?
   return result
 
 
@@ -781,6 +785,9 @@ def post_operations(context):  # see quick_expression !!
     elif the.current_word == 'are':
       return False  # DONT DO algebra here HACK
   if the.current_word == '|': return piped_actions(context or the.last_result)
+  if the.current_word in comparison_words:
+    compar=comparation()
+    return do_compare(context,compar,expression()) or FALSE
   if the.current_word in operators:  # not quantifier
     return algebra(context)
   if the.current_word == '[':
@@ -2123,8 +2130,8 @@ def than_comparative():
   _('than')
   return maybe(adverb) or endNode()
 
-
-def comparative():
+# more bigger
+def comparative(): # partial
   c = maybe(more_comparative) or adverb
   if c.startswith('more') or maybe(lambda: c.ends_with('er')):
     comp = c
@@ -2528,6 +2535,7 @@ def mapType(x0):
   x = x0.lower()
   if x == "char": return xchar
   if x == "character": return xchar
+  if x == "letter": return xchar
   # if x == "class": return type #DANGER!
   if x == "type": return type
   if x == "word": return str  # DANGER!
@@ -2758,8 +2766,8 @@ def do_math(a, op, b):
   if op == '≠': return a != b
   if op == 'is not': return a != b
   if op == 'isn\'t': return a != b
-  if op in class_words: return isinstance(a, b) or xobject.is_a(a, b)
-  if op in subtype_words: return issubclass(a, b) or xobject.is_(a, b)
+  if op in class_words: return isinstance(a, b) or is_a(a, b)
+  if op in subtype_words: return issubclass(a, b) or is_(a, b)
   raise Exception("UNKNOWN OPERATOR " + op)
 
 
@@ -2993,6 +3001,7 @@ def do_call(obj0, method0, args0=[]):
         return function()
 
       the.result = list(map(map_list, args))
+      print("GOT RESULT %s " % (the.result))
       return the.result
   except Exception as e:
     print(e)
@@ -3017,7 +3026,10 @@ def do_call(obj0, method0, args0=[]):
     if is_bound or is_builtin:
       call_unbound(method, args, number_of_arguments)
     else:
+      # try:
       the.result = method(obj, args) or NILL
+      # except: the.result = method(args) or NILL
+
       # the.result = method(obj, *args) or NILL
       # the.result = method([obj]+args) or NILL try!
   else:
@@ -3037,6 +3049,7 @@ def do_call(obj0, method0, args0=[]):
   # if the.result == NoMethodError: msg = "ERROR CALLING #{obj).#{method)(): #{args))"
   if the.result == MethodMissingError: raise MethodMissingError(obj, method, args)
   # raise SyntaxError("ERROR CALLING: NoMethodError")
+  print("GOT RESULT %s " % (the.result))
   return the.result
 
 
@@ -3092,19 +3105,41 @@ def simpleProperty():
     return x
   return kast.Attribute(kast.Name(module, kast.Load()), prop, kast.Load())
 
+#       maybe_tokens(['every', 'all', 'those'])
+
+def drop_plural(x):
+  if x.endswith("s"): return x[:-1]
+  return x
+
+# all floats in xs
+@Starttokens(['every', 'all', 'those'])
+def liste_selector():
+  if angle.in_list: return False
+  tokens(['every', 'all', 'those'])
+  typ=typeName()
+  tokens(['in','of'])
+  xs=maybe(variable) or liste()
+  if interpreting():
+    if isinstance(xs,Variable): xs=xs.value
+    print("FILTERING %s in %s"%(typ,xs))
+    xs = list(filter(lambda x:is_a(x,typ),xs))  # except xs
+    print(xs)
+    return xs
+  return todo("filter list")
+
 
 def selectable():
   must_contain(['that', 'whose', 'which'])
   maybe_tokens(['every', 'all', 'those'])
   xs = do_evaluate(known_variable()) or endNoun()
   s = maybe(selector)  # right=xs, left implicit! (BAD!)
-  if interpreting(): xs = list(filter(xs, s))  # except xs
+  if interpreting(): xs = list(filters(xs, s))  # except xs
   return xs
 
 
 # see selectable
-def filter(liste, criterion):
-  global right, left, comp
+def filters(liste, criterion):
+  # global right, left, comp
   if not criterion: return liste
   mylist = do_evaluate(liste)
   # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
@@ -3112,9 +3147,9 @@ def filter(liste, criterion):
     method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
     args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
   else:
-    method = comp or criterion()
+    method = criterion() # comp or ??
     args = right
-  mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
+  return mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
 
 def ranger(a=None):
@@ -3143,6 +3178,7 @@ def endNode():
       maybe(simpleProperty) or \
       maybe(evaluate_property) or \
       maybe(selectable) or \
+      maybe(liste_selector) or \
       maybe(known_variable) or \
       maybe(article) and word() or \
       maybe(ranger) or \

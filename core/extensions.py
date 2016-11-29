@@ -2,6 +2,8 @@
 # nocoding: interpy "string interpolation #{like ruby}"
 # encoding=utf8  
 
+import cPickle as pickle
+
 try: # py2
   import sys  
   reload(sys)  
@@ -1044,6 +1046,29 @@ class xobject:
       if isinstance(x, list) and x.length == 1 and self.is_(x[0]):  return True
       return False
 
+def dump(o,file="dump.bin"):
+  pickle.dump(o,open(file, 'wb'),protocol=pickle.HIGHEST_PROTOCOL)
+  print("saved to '"+file+"'")
+
+def load_pickle(file_name="dump.bin"):
+  return pickle.load(open(file_name,'rb'))
+
+def unpickle(file_name="dump.bin"):
+  return pickle.load(open(file_name,'rb'))
+
+def undump(file_name="dump.bin"):
+  return pickle.load(open(file_name,'rb'))
+
+def restore(file_name="dump.bin"):
+  return pickle.load(open(file_name,'rb'))
+
+
+def load(file):
+  return open(file,'rt').read()
+
+def load_binary(file):
+  return open(file,'rb').read()
+
 
 
 # class Encoding:
@@ -1064,3 +1089,4 @@ class xobject:
   #     return False
 
 print("extensions loaded")
+

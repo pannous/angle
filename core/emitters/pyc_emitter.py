@@ -318,17 +318,19 @@ def get_ast(python, source='inline.py', context='exec'):
   return py_ast
 
 
-def print_ast(my_ast):
+def print_ast(my_ast,source_file='inline'):
   try:
     x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
+    open(source_file + ".ast", 'wt').write("from ast import *\ninline_ast="+x.replace('(','(\n'))
     print(x)
     print("")
     x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
+    open(source_file + ".short.ast", 'wt').write("short_ast="+x)
     print(x)
     print("")
   except Exception as e:
     print(e)
-    print(("CAN'T DUMP ast %s"% my_ast))
+    print(("CAN'T DUMP ast / print_ast %s"% my_ast))
     if not isinstance(my_ast,list):
       print((my_ast.body))
 
@@ -339,8 +341,9 @@ def print_source(my_ast,source_file='inline'):
       open(source_file + ".py", 'wt').write(source)
       print(source)  # => CODE
     except:
-      import traceback
-      traceback.print_exc()  # backtrace
+      raise
+      # import traceback
+      # traceback.print_exc()  # backtrace
 
 
 def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False, fix_body=True, context='exec'):
@@ -375,7 +378,7 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
   except Exception as e:
     print(e)
     print(my_ast)
-    print_ast(my_ast)
+    print_ast(my_ast,source_file)
     print_source(my_ast,source_file)
     info_ = sys.exc_info()[2]
     # if py3: raise e from e # py3 WTF WTF , how to do both??

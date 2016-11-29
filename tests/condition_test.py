@@ -120,7 +120,7 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(check, False)
 
 	def test_list_quantifiers2(self):# bug: algebra 0,1,2 is smaller 3
-		skip()
+		# skip()
 		check = parse('x=5;if one of 0,1,2 is smaller 3 then x++')
 		assert_equals(check, 6)
 
@@ -257,12 +257,6 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(c2, 3)
 		assert_equals(the.variables['c'], 3)
 
-	def test_if_in_loop(self):
-		skip()
-		emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
-		assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beeped')
-	#   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
-
 
 	def test_comparisons(self):
 		init('two is bigger than zero')
@@ -303,7 +297,7 @@ class ConditionTest(ParserBaseTest):
 		self.assert_that('1==1')
 
 	def test_complicated(self):
-		skip()
+		# skip()
 		# ; is  consumed for end of action but also needed for end of statement
 		parse('x is 2; if all 0,2,4 are smaller 5 then increase x; assert x equals 3')
 		assert(the.result==True)

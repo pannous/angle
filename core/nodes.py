@@ -305,6 +305,7 @@ class Variable(kast.Name):
     def __add__(self, other):
         self.value+=other
         return self.value
+
     def __mul__(self, other):
         self.value*=other
         return self.value

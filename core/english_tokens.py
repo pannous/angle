@@ -71,7 +71,7 @@ type_names = ["auto", "string", "int", "integer", "bool", "boolean", "list", "ar
               "number", "set", "type", "str",
               'Auto', 'String', 'Int', 'Integer', 'Bool', 'Boolean', 'List', 'Array', 'Hash', 'Float', 'Real', 'Double',
               'Number', 'Set', 'Type', 'Str',
-                                       "char", "character", "word", "class", "type", "name", "label", "length", "size"
+                                       "char", "character", "letter", "word", "class", "type", "name", "label", "length", "size"
               ]
 ##danger(self): object,class ,class  ):
 # from math import pi

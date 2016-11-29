@@ -172,6 +172,20 @@ def is_dir(x, must_exist=True):
 #   print "\n"
 #   x
 
+def is_a(self, clazz):
+    if self is clazz: return True
+    try:
+        ok = isinstance(self, clazz)
+        if ok: return True
+    except Exception as e:
+        print(e)
+
+    className = str(clazz).lower()
+    if className == str(self).lower(): return True  # KINDA
+
+    if self.is_(clazz): return True
+    return False
+
 def grep(xs,pattern):
     return filter(pattern, xs)
 

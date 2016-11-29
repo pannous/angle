@@ -177,4 +177,12 @@ class EmitterTest(ParserBaseTest):
     assert_result_emitted('def invert(x){x.reverse;\nreturn x;}\nxs=[1,4,7];invert xs', [7, 4, 1])
     # Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
 
+  def test_if_in_loop(self):
+    # skip()
+    # emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
+    assert_equals(parse('c=0;\nwhile c<3:\nc++;\nif c>1 then beep;\ndone'), 'beeped')
+
+#   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
+
+
 # Module(body=[Assign(targets=[Name(id='xs', ctx=Store(), lineno=1, col_offset=0)], value=List(elts=[Num(n=1, lineno=1, col_offset=4), Num(n=2, lineno=1, col_offset=6), Num(n=3, lineno=1, col_offset=8)], ctx=Load(), lineno=1, col_offset=3), lineno=1, col_offset=0), Expr(value=Call(func=Attribute(value=Name(id='xs', ctx=Load(), lineno=1, col_offset=11), attr='reverse', ctx=Load(), lineno=1, col_offset=11), args=[], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=11), Print(dest=None, values=[Name(id='xs', ctx=Load(), lineno=1, col_offset=30)], nl=True, lineno=1, col_offset=24)])

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = False
-angle._verbose = False
 from parser_test_helper import *
 
 
 class ListTest(ParserBaseTest,unittest.TestCase):
-    
+
     def setUp(self):
+        angle.use_tree = False
+        angle._verbose = False
         self.parser.do_interpret()
         super(ListTest, self).setUp()
 
@@ -197,9 +197,24 @@ class ListTest(ParserBaseTest,unittest.TestCase):
         skip()
         self.assert_that('square 1,2 and 3 == 1,4,9')
 
+    def test_every_selector(self):
+        # DAMN PLURAL!
+        self.assert_result_is('all letter in 1,"a",2,"c",3',["a","c"])
+        self.assert_that('(all letter in 1,"a",2,"c",3) == "a","c"')
+        # self.assert_result_is('all letters in 1,"a",2,"c",3',["a","c"])
+        # self.assert_that('(all letters in 1,"a",2,"c",3) == "a","c"')
+
+    def test_every_selector2(self):
+        self.assert_that('(all number in 1,"a",2,3) == 1,2,3')
+        self.assert_that('(all numbers in 1,"a",2,3) == 1,2,3')
+        self.assert_that('(every number in 1,"a",2,3) == 1,2,3')
+
     def test_map3(self):
-        skip()
-        self.assert_that('square every number in 1,2,3 ==1,4,9')
+        # skip()
+        test_every_selector(self)
+        self.assert_that('square every number in 1,"a",2,3 == 1,4,9')
+
+    def test_map4(self):
         self.assert_that('add one to every number in 1,2,3 ==2,3,4')
         self.assert_that("square every number in 1,'a',3 ==1,9")
 

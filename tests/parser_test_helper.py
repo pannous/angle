@@ -149,6 +149,9 @@ def sleep(s):
 def parse(s):
     if not (isinstance(s,str) or isinstance(s,unicode) or isinstance(s,file)): return s
     print("PARSING %s"%s)
+
+    with open("inline", 'wt') as outf:
+        outf.write(s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
     if(isinstance(r,list) and isinstance(r[0],ast.AST) or isinstance(r,ast.AST)):
