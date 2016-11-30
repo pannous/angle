@@ -341,9 +341,10 @@ def print_source(my_ast,source_file='inline'):
       open(source_file + ".py", 'wt').write(source)
       print(source)  # => CODE
     except:
-      raise
-      # import traceback
-      # traceback.print_exc()  # backtrace
+      # raise
+      print("SOURCE NOT STANDARD CONFORM")
+      import traceback
+      traceback.print_exc()  # backtrace
 
 
 def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False, fix_body=True, context='exec'):

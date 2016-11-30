@@ -1006,7 +1006,7 @@ def bash_action():
   ok = starts_with(['bash','exec','`'] + bash_commands)
   if not ok: raise_not_matching("no bash commands")
   no_rollback()
-  maybe_tokens('execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash')
+  maybe_tokens(['execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash'])
   command = maybe(quote)  # danger bash "hi">echo
   command = command or rest_of_line()
   # any{ maybe(  ) or   statements )
