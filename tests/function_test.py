@@ -1,18 +1,16 @@
 #!/usr/bin/env python
-import angle
-from ast import *
 from parser_test_helper import *
 # from parser_test_helper import ParserBaseTest
 # from extensions import *
 
-angle.use_tree = False
+
 
 class FunctionTest(ParserBaseTest):
 
 	def setUp(self):
-		angle.use_tree = True
-		angle._verbose = False
-		# angle._verbose = True never set manually here!
+		context.use_tree=True
+
+	# context._verbose = True never set manually here!
 
 	def test_identity2(self):
 		parse("define identity number n\n\tn\nassert identity(1) is 1")

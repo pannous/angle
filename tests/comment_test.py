@@ -7,8 +7,8 @@ from parser_test_helper import *
 class CommentTest(ParserBaseTest):
 
 	def setUp(self):
-		angle.testing = True
-	# 	angle.use_tree=False
+		context.testing = True
+	# 	context.use_tree=False
 
 	def test_python_comment(self):
 		assert_result_is('1 # 3', 1)

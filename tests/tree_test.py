@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import angle
 from parser_test_helper import *
-angle.use_tree=True
+context.use_tree=True
 
 class TreeTest(ParserBaseTest,unittest.TestCase):
 

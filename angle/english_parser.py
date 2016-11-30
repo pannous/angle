@@ -6,32 +6,25 @@ import sys
 py2=sys.version < '3'
 py3=sys.version >= '3'
 
-import collections
 # from exceptions import GivingUp
 import _ast
 # import yappi
-import ast
-from ast import NodeVisitor
 import traceback
 import types
-import sys
 import stem.util.system
 # import interpretation
 import inspect
-import emitters.pyc_emitter
+import pyc_emitter
 # from exceptions.exceptions import GivingUp
-from exceptionz import *
-from exceptionz import MethodMissingError,EndOfStatement
 #
 from english_tokens import *
 from kast import kast
 from power_parser import *
 import power_parser
-from nodes import FunctionDef, Argument, Variable, Property, Compare, FunctionCall
-from angle import *
+from context import *
+import context as the
 from extensions import *
 import token as _token
-import the
 from tree import TreeNode
 
 py3=sys.version < '3'
@@ -302,7 +295,7 @@ def imports():  # requirements
 
 
 @Starttokens(context_keywords)
-def context():
+def module():
   tokens(context_keywords)
   context = word()
   newlines()  # part of block?
@@ -354,7 +347,7 @@ def apply_op(stack, i, op):
 
 def fold_algebra(stack):
   used_operators = [x for x in operators if x in stack]
-  while len(stack) > 1:
+  while len(stack) > 1 and len(used_operators)>0:
     for op in used_operators:
       i = 0
       while i < len(stack):
@@ -367,7 +360,7 @@ def fold_algebra(stack):
 
 
 def algebra(val=None):
-  if angle.in_algebra: return False  # TODOO?? x * f(x-1)
+  if context.in_algebra: return False  # TODOO?? x * f(x-1)
   # global result
   if not val: must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
   stack = []
@@ -375,15 +368,15 @@ def algebra(val=None):
   stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
 
   def lamb():
-    if the.current_word in be_words and angle.in_args:
+    if the.current_word in be_words and context.in_args:
       return False  # f x is 0 == f(x) is 0 NOT f(x is 0) !!
     op = maybe(comparation) or operator()
     # if in_setter and op == '=': return False # see setter!
     if op == '=': raise NotMatching#return False # see setter!
     n = maybe_token('not')
     y = maybe(value) or maybe(bracelet)
-    angle.in_algebra = True
-    y = y or expression()  # so deep still NOT ok, use angle.in_algebra
+    context.in_algebra = True
+    y = y or expression()  # so deep still NOT ok, use context.in_algebra
     # y = maybe(value) or bracelet()
     # y = postoperations(y) or y NOO but need LIST!
     if y == ZERO: y = 0
@@ -393,7 +386,7 @@ def algebra(val=None):
     return y or True
 
   star(lamb)
-  angle.in_algebra = False
+  context.in_algebra = False
   the.result = fold_algebra(stack)
   if the.result == False: the.result = FALSE
   return the.result
@@ -478,7 +471,7 @@ def nth_item():  # Also redundant with property evaluation (But okay as a shortc
     l = [x for x in l if is_a(x, type)]
   if(n>len(l)):raise IndexError("%d > %d in %s[%d]"%(n,len(l),l,n))
   the.result = l[n]  # .__getitem__(n)
-  if angle.in_condition:
+  if context.in_condition:
     return the.result
   if set and _('to'):  # or maybe_tokens(be_words): #LATER
     val = endNode()
@@ -509,17 +502,17 @@ def functionalselector():
 @Starttokens(['[', '('])# , '{' vs hash!! -> only in js!
 def liste(check=True, first=None):
   if not first and the.current_word == ',': raise NotMatching()
-  if angle.in_hash: must_not_contain(":")  # ,before=',')
+  if context.in_hash: must_not_contain(":")  # ,before=',')
   if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
   # +[' '] ???
   start_brace = maybe_tokens(['[', '{', '('])  # only one!
-  if not start_brace and (angle.in_list or in_args): raise NotMatching('not a deep list')
+  if not start_brace and (context.in_list or in_args): raise NotMatching('not a deep list')
 
   # all<<expression(start_brace)
   # angel.verbose=True #debug
-  angle.in_list = True
+  context.in_list = True
   first = first or maybe(endNode)
-  if not first: angle.in_list = False
+  if not first: context.in_list = False
   if not first: raise_not_matching()
   if isinstance(first, list):
     all = first
@@ -539,8 +532,8 @@ def liste(check=True, first=None):
   if start_brace == '[': _(']')
   if start_brace == '{': _('}')
   if start_brace == '(': _(')')
-  angle.in_list = False
-  if angle.use_tree:
+  context.in_list = False
+  if context.use_tree:
     # return kast.List(all,ast.Load()) # ast.Load() ??
     return xlist(all)  # Important in order to distinguish from list
   return all
@@ -610,14 +603,14 @@ def swift_hash():
     key = word()
     maybe_tokens(['"', "'"])
     _(':')
-    angle.angle.in_list = True
+    context.context.in_list = True
     h[key] = expression()  # no
     the.result = {key: h[key]}
     return the.result
 
   star(hashy)
   _(']')
-  angle.angle.in_list = False
+  context.context.in_list = False
   return h
 
 
@@ -640,7 +633,7 @@ def hash_map():
 @Starttokens('{')
 def regular_hash():
   _('{')
-  angle.in_hash = True
+  context.in_hash = True
   maybe_token(':') and no_rollback()  # symbol
   h = {}
 
@@ -652,16 +645,16 @@ def regular_hash():
     # Property versus hash !!
     maybe_tokens(['=>', '=', ':', '>']) or starts_with("{")
     maybe_tokens(['=>', '=', ':', '>'])
-    # angle.angle.in_list = True
+    # context.context.in_list = True
     val = expression()
     h[key] = val
     return {key: val}
 
   star(lamb)
   _('}')
-  angle.in_hash = False
+  context.in_hash = False
 
-  # angle.angle.in_list = False
+  # context.context.in_list = False
   return h
   # careful with blocks/closures ! map{puts it} VS data{a:"b")
 
@@ -709,7 +702,7 @@ def quick_expression():  # bad idea?
   if the.current_word == ';': raise EndOfStatement()
   if the.current_word == ',':
     return liste(first=the.result)
-  if not angle.in_params and look_ahead(':'):
+  if not context.in_params and look_ahead(':'):
     warn("look_ahead(':'): # AND ...")
     return immediate_hash()
   if the.current_word == '{' and (contains("=>") or contains(":")):
@@ -718,11 +711,11 @@ def quick_expression():  # bad idea?
     result = regexp(the.current_word)
     next_token(False)
   if look_ahead('='):
-    if not angle.in_condition: return setter()
-    # if angle.in_condition: return condition()
+    if not context.in_condition: return setter()
+    # if context.in_condition: return condition()
   if the.current_word in operators + special_chars:
     if the.current_word!="~": return False # USE ALGEBRA // Fuckup !!  #TODO: if more than one
-    # if angle.in_algebra: return False
+    # if context.in_algebra: return False
     # return algebra(result)
 
   if the.current_type == _token.STRING or the.current_word.startswith("'"):
@@ -750,7 +743,7 @@ def quick_expression():  # bad idea?
   elif the.current_word in english_tokens.type_names:
     return maybe(setter) or method_definition()  # or ... !!!!!
   if not result: return False
-  # if not angle.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
+  # if not context.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
   #   op=the.current_word;next_token()
   #   return do_math(result,op,nod())
   # try:
@@ -764,46 +757,46 @@ def quick_expression():  # bad idea?
   return result
 
 
-def post_operations(context):  # see quick_expression !!
-  if the.current_word == '': return context
-  if the.current_word == ';': return context
-  if the.current_word == '.': return method_call(context)
-  if the.current_word == ',' and not (angle.in_args or angle.in_params or angle.in_hash):
-    return liste(check=False, first=context)
+def post_operations(result):  # see quick_expression !!
+  if the.current_word == '': return result
+  if the.current_word == ';': return result
+  if the.current_word == '.': return method_call(result)
+  if the.current_word == ',' and not (context.in_args or context.in_params or context.in_hash):
+    return liste(check=False, first=result)
   if the.current_word in operators and look_ahead('='):
-    return self_modify(context)
+    return self_modify(result)
   if the.current_word == '+' and look_ahead('+'):
-    return plusPlus(context)
+    return plusPlus(result)
   if the.current_word == '-' and look_ahead('-'):
-    return minusMinus(context)
+    return minusMinus(result)
   if the.current_word in be_words:
-    if not angle.in_condition:
-      if isinstance(context, Variable):
-        return setter(context)
+    if not context.in_condition:
+        if isinstance(result, Variable):
+          return setter(result)
     # else:
     #     raise_not_matching("better try setter")
     elif the.current_word == 'are':
       return False  # DONT DO algebra here HACK
-  if the.current_word == '|': return piped_actions(context or the.last_result)
+  if the.current_word == '|': return piped_actions(result or the.last_result)
   # if the.current_word in comparison_words:
   #   if not look_ahead(operators):
   #     compar=comparation()
   #     return do_compare(context,compar,expression()) or FALSE
     # else algebra(context)
   if the.current_word in operators:  # not quantifier
-    return algebra(context)
+    return algebra(result)
   if the.current_word == '[':
-    return evaluate_index(context)
+    return evaluate_index(result)
   if the.current_word in operators + special_chars + ["element", "item"]:
     return False
-  if context and the.current_word == 'to': return ranger(context)
-  if context and the.current_word == 'if': return action_if(context)
+  if result and the.current_word == 'to': return ranger(result)
+  if result and the.current_word == 'if': return action_if(result)
   # raise_not_matching("quick_expression too simplistic")
-  if the.current_line.endswith("times"): return action_n_times(context)
-  if the.current_word in be_words: return setter(context)
+  if the.current_line.endswith("times"): return action_n_times(result)
+  if the.current_word in be_words: return setter(result)
   if the.current_word == "if":  # YAY!
-    return context if _("if") and condition() else maybe("else") and expression() or None
-  if the.current_word == "as": return maybe_cast(context)
+    return result if _("if") and condition() else maybe("else") and expression() or None
+  if the.current_word == "as": return maybe_cast(result)
   return False
   # or maybe_algebra(context) or context
 
@@ -843,7 +836,7 @@ def expression(fallback=None, resolve=True):
   skip_comments()
 
   if not interpreting():
-    # if not angle.use_tree:
+    # if not context.use_tree:
     #     return (start, pointer())
     return ex  # the.result  # AST NODE, Hopefully
 
@@ -866,15 +859,15 @@ def expression(fallback=None, resolve=True):
 
 
 def piped_actions(a=False):
-  if angle.in_pipe: return False
+  if context.in_pipe: return False
   must_contain(["|",'pipe']) # then
-  angle.in_pipe = True
+  context.in_pipe = True
   a = a or statement()
   tokens(['|','pipe'])
   no_rollback()
   xmodule, obj, name = true_method() or bash_action()
   args = star(call_arg)
-  angle.in_pipe = False
+  context.in_pipe = False
   if isinstance(name, collections.Callable): args = [args, Argument(value=a)]  # with owner
   if interpreting():
     the.result = do_call(a, name, args)
@@ -912,7 +905,7 @@ def statement(doraise=True):
       raise_not_matching("Not a statement %s" % pointer_string())
   # AS RETURN VALUE! DANGER!
 
-  angle.in_condition = False  # hack!
+  context.in_condition = False  # hack!
   the.result = x
   the.last_result = x
   skip_comments()
@@ -954,7 +947,7 @@ def method_definition(name=None,return_type=None):
     name = word(include=english_operators)  # maybe(noun) or verb()  # integrate or word
 
   brace = maybe_token('(')
-  angle.in_params = True
+  context.in_params = True
   args = []
   def arguments():
     if the.current_offset==0: raise_not_matching("BLOCK START")
@@ -965,7 +958,7 @@ def method_definition(name=None,return_type=None):
   # obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
   star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
-  angle.in_params = False
+  context.in_params = False
   if brace: token(')')
 
   return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
@@ -1033,7 +1026,7 @@ def if_then_else():
   #     ok = FALSE
   adjust_rollback()
   o = maybe(otherwise) or FALSE
-  if angle.use_tree:
+  if context.use_tree:
     if isinstance(ok, ast.IfExp):
       ok.orelse = o or []
     else:
@@ -1252,8 +1245,8 @@ def import_module(module_name):
 def subProperty(context):
   maybe_token(".")
   properties = dir(context)
-  if type(context) in angle.extensionMap:
-    ext = angle.extensionMap[type(context)]
+  if context and type(context) in context.extensionMap:
+    ext = context.extensionMap[type(context)]
     properties += dir(ext)
   property = maybe_tokens(properties)
   # the.moduleMethods[module_name] etc!
@@ -1311,7 +1304,7 @@ def true_method(obj=None):
 def method_call(obj=None):
   # verb_node
   module, obj, method_name = true_method(obj)
-  angle.in_algebra = False  # hack?
+  context.in_algebra = False  # hack?
   # method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
   # no_rollback()  # maybe doch?
   start_brace = maybe_tokens(['(', '{'])  # '[', list and closure danger: index)
@@ -1322,7 +1315,7 @@ def method_call(obj=None):
   else:
     maybe_token('of')
     obj = maybe(list(the.classes.keys())) or maybe(the.moduleNames)  # exclude vars
-    if not angle.in_args:
+    if not context.in_args:
       obj = obj or maybe(liste)  # danger: liste vs args below
     maybe_token(',')
     # print(sorted files)
@@ -1332,7 +1325,7 @@ def method_call(obj=None):
   assume_args = True  # not starts_with("of")  # True    #<< Redundant with property eventilation!
   args = None
   if has_args(method, module or obj, assume_args):
-    angle.in_args = True
+    context.in_args = True
     args = []
 
     def call_args():
@@ -1346,8 +1339,8 @@ def method_call(obj=None):
       return args
 
     star(call_args) # args = set above!
-    if not args and not angle.use_tree:  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
-      if angle.use_tree:
+    if not args and not context.use_tree:  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
+      if context.use_tree:
         args = obj
       else:
         args = do_evaluate(obj)
@@ -1357,7 +1350,7 @@ def method_call(obj=None):
     if more: obj = [obj] + liste(False)
 
   method = findMethod(obj, method, args)  # if not unique before!
-  angle.in_args = False
+  context.in_args = False
   if start_brace == '(': _(')')
   if start_brace == '[': _(']')
   if start_brace == '{': _('}')
@@ -1414,7 +1407,7 @@ def assert_that():
   s = condition()
   if interpreting():
     assert check_condition(s), s
-  if angle.use_tree:
+  if context.use_tree:
     # left=kast.assign('left', s.left)
     # s.left=kast.name('left')
     # return [left, ast.Assert(test=s, msg=str(s) + "\n %s %s %s" % (s.left, s.comp, s.right))]
@@ -1458,7 +1451,7 @@ def returns():
   the.result = maybe(expression)
   if interpreting():
     the.params.clear()
-  if angle.use_tree:
+  if context.use_tree:
     return ast.Return(value=the.result)
   return the.result
 
@@ -1485,7 +1478,7 @@ def action():  # NOT THE SAME AS EXPRESSION!?
   # maybe( verb_node ) or
   # maybe( verb )
   # if not interpreting():
-  #     if not angle.use_tree: return (start, pointer())
+  #     if not context.use_tree: return (start, pointer())
   # if the.result=='False': the.result=False #SURE??
   return the.result  # value or AST
 
@@ -1562,7 +1555,9 @@ def prepare_named_args(args):
   import copy
   # eval_args(args)
   context_variables = copy.copy(the.variables)
-  if not isinstance(args, dict): return args  # = {'arg': args}
+  if not isinstance(args, dict):
+    # todo()
+    return {'arg': args}
   for arg, val in args.items():
     if arg in context_variables:
       v = context_variables[arg]
@@ -1583,12 +1578,12 @@ def do_execute_block(b, args={}):
   if isinstance(b, collections.Callable): return do_call(None, b, args)
   if isinstance(b, FunctionCall): return do_call(b.object, b.name, args or b.arguments)
   args = prepare_named_args(args)
-  if isinstance(b, kast.AST): return emitters.pyc_emitter.eval_ast(b, args)
+  if isinstance(b, kast.AST): return pyc_emitter.eval_ast(b, args)
   if isinstance(b, list) and isinstance(b[0], kast.AST):
-    # return emitters.pyc_emitter.eval_ast(b, args, context='eval')
-    return emitters.pyc_emitter.eval_ast(b, args)
-    # return emitters.pyc_emitter.eval_ast(b, args)
-    # return emitters.pyc_emitter.eval_ast(b, args,fix_body=False)
+    # return pyc_emitter.eval_ast(b, args, context='eval')
+    return pyc_emitter.eval_ast(b, args)
+    # return pyc_emitter.eval_ast(b, args)
+    # return pyc_emitter.eval_ast(b, args,fix_body=False)
   if isinstance(b, TreeNode): b = b.content
   if not is_string(b): return b  # OR :. !!!
   block_parser = the  # EnglishParser()
@@ -1811,7 +1806,7 @@ def alias(var=None):
   # a=maybe(action_or_block) or rest_of_line()
   add_variable(var, a)
   var.type="alias"
-  if angle.use_tree:
+  if context.use_tree:
     f = FunctionDef(name=var.name, body=a)
     addMethodNames(f)
     return f
@@ -2184,7 +2179,7 @@ def selector():
       maybe(that) or \
       maybe(token('of') and endNode) or \
       preposition and nod  # friends in africa
-  if angle.use_tree:
+  if context.use_tree:
     return parent_node()
   return x
 
@@ -2235,7 +2230,7 @@ def comparation():
   # if Jens.smaller then ok:
   maybe_token('than')  # , 'then' #_22'then' ;) danger:
   comp = comp or eq
-  if angle.use_tree:
+  if context.use_tree:
     comp=kast_operator_map[comp] # todo: hacky _min LATER
   return comp
 
@@ -2362,14 +2357,14 @@ def method_dir(left):
 
 # def condition():
 def condition_new():
-  angle.in_condition = True
+  context.in_condition = True
   # if contains('all',
   maybe_token('either')
   # c=action_or_expression()
   c = expression()
   # c=algebra() # too weak ^^
   # c=maybe(algebra) or action_or_expression()
-  angle.in_condition = False
+  context.in_condition = False
   return c
 
 
@@ -2384,7 +2379,7 @@ def condition():
   quantifier = maybe_tokens(quantifiers)  # vs selector()!
   filter = None
   if quantifier: filter = maybe(element_in) or maybe_tokens(["of", "in"])  # all words in
-  angle.in_condition = True
+  context.in_condition = True
   left = action_or_expression(quantifier)  # OK: algebra!
   if isinstance(left, ast.BinOp):
     left = Compare(left=left.left, comp=left.op, right=left.right)
@@ -2395,7 +2390,7 @@ def condition():
   # allow_rollback # upto maybe(where)?
   if comp: right = action_or_expression(None)
   if brace: _(')')
-  angle.in_condition = False
+  context.in_condition = False
   if not comp: return left
   negate = (negated or _not) and not (negated and _not)
   # angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
@@ -2510,10 +2505,9 @@ def the_noun_that():
 
 def const_defined(c):
   if c == "Pass": return False
-  if c in angle.moduleClasses:
+  if c in context.moduleClasses:
     return True
   # SLOW: LIVE
-  import inspect
   # modules = dict(sys.modules)  # dictionary changed size during iteration
   # for module in modules:
   #     for name, obj in inspect.getmembers(modules[module]):
@@ -2653,8 +2647,9 @@ def do_evaluate(x, _type=None):
   if isinstance(x, ast.Num): return x.n
   if isinstance(x, ast.Str): return x.s
   # if isinstance(x, ast.Unifuck): return x.s
-  if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
+  # if isinstance(x, nodes.Variable): return do_evaluate(x.value)
   if isinstance(x, Variable): return do_evaluate(x.value)
+  if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
   if isinstance(x, extensions.File): return x.to_path
   # if is_string(x): return x
   # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
@@ -2670,8 +2665,8 @@ def do_evaluate(x, _type=None):
     return x
   # if isinstance(x, extensions.Method): return x.call  #Whoot
   if not interpreting(): return x
-  if isinstance(x, kast.AST): return emitters.pyc_emitter.eval_ast([x])  # shouldn't happen here?
-  if isinstance(x, list) and isinstance(x[0], kast.AST): return emitters.pyc_emitter.eval_ast(x)
+  if isinstance(x, kast.AST): return pyc_emitter.eval_ast([x])  # shouldn't happen here?
+  if isinstance(x, list) and isinstance(x[0], kast.AST): return pyc_emitter.eval_ast(x)
   # if x == True or x == False: return x
   return x  # DEFAULT!
   # except (TypeError, SyntaxError)as e:
@@ -2814,14 +2809,14 @@ def findMethod(obj0, method0, args0=None, bind=True):
     return globals()[method];
   if method in dir(obj0):
     return getattr(obj0, method)  # NOT __getattribute__(name)!!!!
-  if _type in angle.extensionMap:
-    ex = angle.extensionMap[_type]
+  if _type in context.extensionMap:
+    ex = context.extensionMap[_type]
     if method in dir(ex):
       method = getattr(ex, method)  # NOT __getattribute__(name)!!!!
       if bind:
         method = method.__get__(obj0, ex)  # bind!
       return method
-  # if method in angle.extensionMap and not obj0:
+  # if method in context.extensionMap and not obj0:
   #     return the.extensionMap[method]
   if isinstance(obj0, type) and method in obj0.__dict__:
     method = obj0.__dict__[method]  # class
@@ -3121,7 +3116,7 @@ def drop_plural(x):
 # all floats in xs
 @Starttokens(['every', 'all', 'those'])
 def liste_selector():
-  if angle.in_list: return False
+  if context.in_list: return False
   tokens(['every', 'all', 'those'])
   typ=typeName()
   tokens(['in','of'])
@@ -3150,7 +3145,7 @@ def filters(liste, criterion):
   if not criterion: return liste
   mylist = do_evaluate(liste)
   # if not isinstance(mylist, mylist): mylist = get_iterator(mylist)
-  if angle.use_tree:
+  if context.use_tree:
     method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
     args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
   else:
@@ -3160,14 +3155,14 @@ def filters(liste, criterion):
 
 
 def ranger(a=None):
-  if angle.in_params or angle.in_args:
+  if context.in_params or context.in_args:
     return False # add 1 to 3 != add [1,2,3]
   must_contain('to')
   maybe_token('from')
   a = a or number()
   _('to')
   b = number()
-  if angle.use_tree:
+  if context.use_tree:
     return kast.call('range',[a,ast.Num(b+1)])
   return list(range(a, b + 1))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
@@ -3211,7 +3206,7 @@ def endNoun(included=None):
     else:
       raise NotMatching('no endNoun')
 
-  if angle.use_tree: return obj
+  if context.use_tree: return obj
   # return adjs.to_s+" "+obj.to_s # hmmm  hmmm
   if adjs and isinstance(adjs, list):
     todo("adjectives in endNoun")
@@ -3277,11 +3272,13 @@ def evaluate_index(obj=None):
   # if interpreting(): the.result=do_send v,:[], i
   # if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
   va = do_evaluate(obj)
-  if interpreting(): the.result = va[i]  # va.__index__(i)  # old value
-  if set != None:  # and interpreting():
-    the.result = va[i] = set  # va.__index__(i, set)
-  if set != None and isinstance(obj, Variable):
-    the.result = obj.value = va
+  if interpreting():
+    the.result = va[i]  # va.__index__(i)  # old value
+    if set != None:  # and interpreting():
+      the.result = va[i] = set  # va.__index__(i, set)
+    if set != None and isinstance(obj, Variable):
+      the.result = obj.value = va
+  else: todo()
   # if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
   return the.result
 
@@ -3445,7 +3442,7 @@ def known_variable(node=True):
 def noun(include=[]):
   a = maybe_tokens(articles)
   if not a: should_not_start_with(xlist(keywords) - include)
-  if not angle.use_wordnet:
+  if not context.use_wordnet:
     return word(include)
   if the.current_word in the.nouns:
     return the.current_word
@@ -3707,8 +3704,8 @@ def ruby_action():
 
 def start_shell(args=[]):
   import readline
-  angle._debug = angle._debug or 'ANGLE_DEBUG' in os.environ
-  # angle.home=os.environ['ANGLE_HOME']
+  context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
+  # context.home=os.environ['ANGLE_HOME']
   from os.path import expanduser
   home = expanduser("~")  # WTF
   readline.read_history_file(home + '/.english_history')
@@ -3726,7 +3723,7 @@ def start_shell(args=[]):
       # interpretation= parser.parse input
       interpretation = parse(input0, None)
       if not interpretation: next
-      # if angle.use_tree: print(interpretation.tree)
+      # if context.use_tree: print(interpretation.tree)
       print((interpretation.result))
     except IgnoreException as e:
       pass
@@ -3745,10 +3742,9 @@ def start_shell(args=[]):
 
 
 def main():
-  angle._verbose = False
   the._verbose = False
   ARGV = sys.argv
-  angle.home=os.environ['ANGLE_HOME']
+  context.home=os.environ['ANGLE_HOME']
   # version=`git rev-list --all --count`
   # ARGF=sys.argv
   if len(ARGV) == 1:
@@ -3764,14 +3760,14 @@ def main():
     print((the.version))
     return
   if a == "--verbose":
-    angle._verbose = True
+    context._verbose = True
   # read from commandline argument or pipe!!
   # all=ARGF.read or File.read(a) except a
   target_file = None
   try:
     interpretation = parse(a.decode('utf-8'), target_file)
     # interpretation = parse(a.encode('utf-8'), target_file)
-    if angle.use_tree: print((interpretation.tree))
+    if context.use_tree: print((interpretation.tree))
     if the.result and not not the.result and not the.result == Nil:
       print((the.result))
     if not target_file: start_shell()

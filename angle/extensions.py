@@ -61,8 +61,8 @@ def extension(clazz):
 #     def __call__(self,clazz):
 #         self.base()
 #         import angle
-#         angle.extensionMap[self.base]=clazz
-#         print(angle.extensionMap)
+#         context.extensionMap[self.base]=clazz
+#         print(context.extensionMap)
 
 
 

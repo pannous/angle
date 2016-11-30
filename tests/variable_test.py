@@ -7,7 +7,7 @@ from power_parser import WrongType, ImmutableVaribale
 class VariableTest(ParserBaseTest,unittest.TestCase):
 
   def setUp(self):
-    angle.use_tree = False
+    pass
 
   def test_a_setter_article_vs_variable(self):
     skip()
@@ -18,7 +18,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
     assert_equals(variables['dog'], 'green')
 
   def test_alias(self):
-    angle.use_tree=False
+    context.use_tree=False
     parse('alias x=y*y')
     parse('z:=y*y')
     parse('y=8')

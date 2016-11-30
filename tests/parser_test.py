@@ -5,7 +5,7 @@ import interpretation
 import tests.parser_test_helper
 from parser_test_helper import *
 
-angle.use_tree = False
+
 # from test_helper import *
 from english_parser import *
 
@@ -46,7 +46,7 @@ class ParserTest(unittest.TestCase): # PASS ParserBaseTest): #EnglishParser
 
     # def NOmethod_missing(self, sym, args, block):
     #     syms = sym.to_s()
-    #     if angle.parser and contains(sym, angle.parser.methods()):
+    #     if context.parser and contains(sym, context.parser.methods()):
     #         [
     #         if equals(0, args.len()):
     #             x = maybe(),

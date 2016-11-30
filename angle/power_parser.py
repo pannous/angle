@@ -12,15 +12,15 @@ import english_tokens
 import re
 import token as _token
 import collections #py3
-import angle
+import context
 import extensions
 from exceptionz import *
 from extension_functions import is_string
-import nodes
-from the import *
-import the
-
-
+# import nodes
+from nodes import Argument, Variable, Property, Compare, FunctionCall,FunctionDef
+# from nodes import *
+import context as the
+from context import *
 
 # Beware of decorator classes. They don't work on methods unless you manually reinvent the logic of instancemethod descriptors.
 class Starttokens(object):
@@ -240,10 +240,10 @@ def error(e, force=False):
     # print(clean_backtrace e.backtrace)
     # print(e.str( class )+" "+e.str(message))
     print_pointer()
-    # if angle.use_tree:
+    # if context.use_tree:
     #     import TreeBuilder
     #     TreeBuilder.show_tree()
-    if not angle._verbose:
+    if not context._verbose:
       # if py2: raise e, None, sys.exc_info()[2]  # SyntaxError(e):
       if py3: raise e  # f'ing py3!
 
@@ -262,12 +262,12 @@ def caller():
 
 
 def verbose(info):
-  if angle._verbose:
+  if context._verbose:
     print(info)
 
 
 def debug(info):
-  if angle._debug:
+  if context._debug:
     print(info)
 
 
@@ -581,29 +581,29 @@ def caller_name():
 # remove the border, if above border
 def adjust_interpret():
   depth = caller_depth()
-  if (angle.interpret_border > depth - 2):
-    angle.interpret = angle.did_interpret
-    angle.interpret_border = -1  # remove the border
+  if (context.interpret_border > depth - 2):
+    context.interpret = context.did_interpret
+    context.interpret_border = -1  # remove the border
     do_interpret()
 
 
 def do_interpret():
-  if (angle.did_interpret != angle.interpret):
-    angle.did_interpret = angle.interpret
-  angle.interpret = True
+  if (context.did_interpret != context.interpret):
+    context.did_interpret = context.interpret
+  context.interpret = True
 
 
 def dont_interpret():
   depth = caller_depth()
-  if angle.interpret_border < 0:
-    angle.interpret_border = depth
-    angle.did_interpret = angle.interpret
-  angle.interpret = False
+  if context.interpret_border < 0:
+    context.interpret_border = depth
+    context.did_interpret = context.interpret
+  context.interpret = False
 
 
 def interpreting():
-  if angle.use_tree: return False
-  return angle.interpret
+  if context.use_tree: return False
+  return context.interpret
 
 
 def check_rollback_allowed():
@@ -728,9 +728,9 @@ def block(multiple=False):  # type):
 
   the.last_result = the.result
   if interpreting(): return statements[-1]
-  if angle.use_tree:
+  if context.use_tree:
     the.result = statements  #
-  # if angle.debug:print_pointer(True)
+  # if context.debug:print_pointer(True)
   return statements  # content
   # if angel.use_tree:
   # p=parent_node()
@@ -743,12 +743,12 @@ def maybe(expr):
     return maybe_tokens(expr)
   the.current_expression = expr
   depth = depth + 1
-  if (depth > angle.max_depth): raise SystemStackError("len(nodes)>max_depth)")
+  if (depth > context.max_depth): raise SystemStackError("len(nodes)>max_depth)")
   old = current_token
   try:
     result = expr()  # yield <<<<<<<<<<<<<<<<<<<<<<<<<<<<
     adjust_rollback()
-    if angle._debug and (isinstance(result, collections.Callable)) and not isinstance(result,type):
+    if context._debug and (isinstance(result, collections.Callable)) and not isinstance(result, type):
       raise Exception("BUG!? returned CALLABLE " + str(result))
     if result or result == 0:  # and result!='False'
       verbose("GOT result "+ str(expr) + " : " + str(result))
@@ -770,10 +770,10 @@ def maybe(expr):
       current_value = None
     if cc < rb:  # and not cc+2<rb # not check_rollback_allowed:
       error("NO ROLLBACK, GIVING UP!!!")
-      # if angle._verbose:
+      # if context._verbose:
       #     print(last_token)
       # print_pointer()  # ALWAYS!
-      # if angle.use_tree:
+      # if context.use_tree:
       #     import TreeBuilder
       #     TreeBuilder.show_tree()  # Not reached
       ex = GivingUp(str(e) + "\n" + to_source(expr) + "\n" + pointer_string())
@@ -875,17 +875,17 @@ def clear():
   variables = {}
   variableValues = {}
   # the._verbose=True # False
-  angle.testing = True
+  context.testing = True
   the.variables.clear()
   the.variableTypes.clear()
   the.variableValues.clear()
-  angle.in_hash = False
-  angle.in_list = False
-  angle.in_condition = False
-  angle.in_args = False
-  angle.in_params = False
-  angle.in_pipe = False
-  if not angle.use_tree:
+  context.in_hash = False
+  context.in_list = False
+  context.in_condition = False
+  context.in_args = False
+  context.in_params = False
+  context.in_pipe = False
+  if not context.use_tree:
     do_interpret()
 
 
@@ -898,20 +898,20 @@ except NameError:
 def parse(s, target_file=None):
   global last_result, result
   if not s: return
-  verbose("PARSING" +s)
+  verbose("PARSING " +s)
   if (isinstance(s,file_types)):
     source_file=s.name
     s = s.readlines()
-    angle.use_tree = True
+
   elif s.endswith(".e") or s.endswith(".a"):
     target_file = target_file or s + ".pyc"
     source_file = s
     s = open(s).readlines()
-    angle.use_tree = True
+
   else:
-    source_file = 'inline'
+    source_file = 'out/inline'
     open(source_file, 'wt').write(s)
-  if angle._debug:
+  if context._debug:
     print("  File \"%s\", line 1 ... running " % source_file)
   if (len(s) < 1000): verbose(s)
   try:
@@ -926,18 +926,18 @@ def parse(s, target_file=None):
     allow_rollback()
     init(s)
     the.result = english_parser.rooty()
-    if isinstance(the.result, nodes.FunctionCall):
+    if isinstance(the.result, FunctionCall):
       the.result = english_parser.do_execute_block(the.result)
     if the.result in ['True', 'true']: the.result = True
     if the.result in ['False', 'false']: the.result = False
-    if isinstance(the.result, nodes.Variable): the.result = the.result.value
+    if isinstance(the.result, Variable): the.result = the.result.value
     import ast
     got_ast = isinstance(the.result, ast.AST)
     if isinstance(the.result, list) and len(the.result)>0:
       got_ast = isinstance(the.result[0], ast.AST)
-    if angle.use_tree and got_ast:
-      import emitters
-      the.result = emitters.pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
+    if context.use_tree and got_ast:
+      import pyc_emitter
+      the.result = pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
     else:
       if isinstance(the.result, ast.Num): the.result = the.result.n
       if isinstance(the.result, ast.Str): the.result = the.result.s
@@ -1164,8 +1164,8 @@ def integer():
     # import kast.kast
     from kast import kast
     # import ast
-    if angle.use_tree: return kast.Num(current_value)
-    # if angle.use_tree: return ast.Num(current_value)
+    if context.use_tree: return kast.Num(current_value)
+    # if context.use_tree: return ast.Num(current_value)
     if current_value == 0:
       current_value = ZERO
     return current_value
@@ -1219,10 +1219,10 @@ def load_module_methods():
   except:
     import pickle
   # static, load only once, create with module_method_map.py
-  the.methodToModulesMap = pickle.load(open(angle.home+"/data/method_modules.bin",'rb'))
-  the.moduleMethods = pickle.load(open(angle.home+"/data/module_methods.bin",'rb'))
-  the.moduleNames = pickle.load(open(angle.home+"/data/module_names.bin",'rb'))
-  the.moduleClasses = pickle.load(open(angle.home+"/data/module_classes.bin",'rb'))
+  the.methodToModulesMap = pickle.load(open(context.home + "/data/method_modules.bin", 'rb'))
+  the.moduleMethods = pickle.load(open(context.home + "/data/module_methods.bin", 'rb'))
+  the.moduleNames = pickle.load(open(context.home + "/data/module_names.bin", 'rb'))
+  the.moduleClasses = pickle.load(open(context.home + "/data/module_classes.bin", 'rb'))
   import english_parser
 
   for mo, mes in list(the.moduleMethods.items()):
@@ -1243,9 +1243,9 @@ def load_module_methods():
   #     if not c in the.method_names: the.method_names.append(c)
   for x in dir(extensions):
     the.method_names.append(x)
-  angle.extensionMap = extensions.extensionMap
-  for _type in angle.extensionMap:
-    ex = angle.extensionMap[_type]
+  context.extensionMap = extensions.extensionMap
+  for _type in context.extensionMap:
+    ex = context.extensionMap[_type]
     for method in dir(ex):
       # if not method in the.method_names: #the.methods:
       #     the.methods[method]=getattr(ex,method)

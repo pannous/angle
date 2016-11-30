@@ -4,12 +4,11 @@ from unittest import TestCase
 from unittest import BaseTestSuite
 
 import angle
-import emitters.pyc_emitter
-
-import english_parser
-import power_parser
-from nodes import *
+import ast
+from angle import english_parser,power_parser, context,nodes,pyc_emitter
+# from nodes import * #EVIL!! creates second class WTF
 from extensions import *
+
 global parser
 parser = english_parser#.EnglishParser()
 
@@ -57,11 +56,11 @@ def p(x):
 
 
 def last_result():
-    return the.last_result
+    return context.last_result
 
 
 def parse_tree(x):
-    angle.use_tree=True
+    context.use_tree=True
     power_parser.dont_interpret()
     angle_ast=power_parser.parse(x).tree #AST
     if not isinstance(angle_ast, ast.Module):
@@ -75,7 +74,7 @@ def puts(x):
 
 
 def assert_result_emitted(a, b, bla=None):
-    angle.use_tree=True
+    context.use_tree=True
     x=parse(a)
     if isinstance(x,ast.Module):x=x.body
     assert_equals(b,x,bla)
@@ -122,7 +121,7 @@ def assert_has_error(x,ex=None):
         if callable(x):
             x()
         else: parse(x)
-    except Exception as e :
+    except (Exception, StandardError) as e :
         if ex:
             if not isinstance(e,ex):
                 print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
@@ -150,17 +149,17 @@ def parse(s):
     if not (isinstance(s,str) or isinstance(s,unicode) or isinstance(s,file)): return s
     print("PARSING %s"%s)
 
-    with open("inline", 'wt') as outf:
+    with open("out/inline", 'wt') as outf:
         outf.write(s)
     interpretation= english_parser.parse(s)
     r=interpretation.result
     if(isinstance(r,list) and isinstance(r[0],ast.AST) or isinstance(r,ast.AST)):
         if isinstance(r,ast.Module): r=r.body[-1] #YA?
-        r=emitters.pyc_emitter.run_ast(r)
-    variables.update(the.variables)
-    variableValues.update(the.variableValues)
-    functions.update(the.methods)
-    methods.update(the.methods)
+        r=pyc_emitter.run_ast(r)
+    variables.update(context.variables)
+    variableValues.update(context.variableValues)
+    functions.update(context.methods)
+    methods.update(context.methods)
     print("DONE PARSING %s"%s)
     return r
 
@@ -172,7 +171,7 @@ def init(str):
 
 
 def result():
-    return the.result
+    return context.result
 
 
 def equals(a, b):
@@ -188,25 +187,27 @@ def copy_variables(variables=variables):
     variable_keys = variables.keys()
     for name in variable_keys:
         v_ = variables[name]
-        if isinstance(v_,Variable):
-            the.variables[name]=v_
-            the.variableValues[name]=v_.value
+        if isinstance(v_,angle.nodes.Variable):
+            context.variables[name]=v_
+            context.variableValues[name]=v_.value
             continue
-        the.variableValues[name]=v_
-        the.variables[name]=Variable(name=name,value=v_,type=type(v_))
-        variables[name]=Variable(name=name,value=v_,type=type(v_))
+        context.variableValues[name]=v_
+        context.variables[name]=angle.nodes.Variable(name=name,value=v_,type=type(v_))
+        variables[name]=angle.nodes.Variable(name=name,value=v_,type=type(v_))
 
 class ParserBaseTest(unittest.TestCase):
     global _parser
     # def __init__(self, *args, **kwargs): #ruby : initialize
     #     super(ParserBaseTest, self).__init__()
     #     if ENV['TEST_SUITE'] or ENV['DEBUG_ANGLE']or ENV['ANGLE_DEBUG']or ENV['DEBUG']:
-    #         angle._verbose = False
+    #
     #     self.parser = _parser = english_parser#.EnglishParser()
 
     @classmethod
     def setUpClass(cls):
-        angle._debug = angle._debug or 'ANGLE_DEBUG' in os.environ
+        context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
+        context._verbose = context._debug or context._verbose or 'ANGLE_VERBOSE' in os.environ
+        context.testing = True
         cls.parser = _parser = english_parser#.EnglishParser()
         pass # reserved for expensive environment one time set up
 
@@ -292,22 +293,22 @@ class ParserBaseTest(unittest.TestCase):
         self.parser.init(string)
 
     def variables(self):
-        return the.variables
+        return context.variables
 
     def variableValues(self):
-        return the.variableValues
+        return context.variableValues
 
     def functions(self):
-        return the.methods
+        return context.methods
 
     def methods(self):
-        return the.methods
+        return context.methods
 
     def interpretation(self):
         return self.interpretation
 
     def result(self):
-        return the.result
+        return context.result
         # self.parser.result
 
     def parse_tree(self, x):
@@ -316,7 +317,7 @@ class ParserBaseTest(unittest.TestCase):
         self.parser.dont_interpret()
         interpretation = self.parser.parse(x)
         self.parser.full_tree()
-        if angle.emit:
+        if context.emit:
             return parser.emit(interpretation, interpretation.root())
         else:
             return interpretation.evaluate()
@@ -326,19 +327,19 @@ class ParserBaseTest(unittest.TestCase):
     #     emit(interpretation, {'run': True, }, NativeCEmitter())
 
     def parse(self, x):
-        if interpret:
+        if context.interpret:
             self.parser.do_interpret()
-        if angle.emit:
+        if context.emit:
             self.result = parse_tree(x)
         else:
             self.result = self.parser.parse(x)
-        return the.result
+        return context.result
 
     def variableTypes(self, v):
         type(variables[v], )
 
     # def verbose(self):
-    #     if angle.raking:
+    #     if context.raking:
     #         return None
     #     self.parser.verbose = True
 

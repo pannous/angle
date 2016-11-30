@@ -6,15 +6,15 @@ sys.path.append('/Users/me/angle/')
 sys.path.append('/Users/me/angle/core/')
 
 import angle
-angle.use_tree = True
-# angle.use_tree = False
+
+#
 from parser_test_helper import *
 
 
 class AlgebraTest(ParserBaseTest):
 
   def setUp(self):
-    angle.use_tree=False
+    context.use_tree=False
     super(AlgebraTest, self).setUp()
 
   def test_algebra1(self):
@@ -67,7 +67,7 @@ class AlgebraTest(ParserBaseTest):
     # def setUp(self):
     #     self.parser=parser(self) #HYH>?
     #     self.parser.do_interpret()
-    #     angle.use_tree=False
+    #     context.use_tree=False
     #     super(AlgebraTest, self).setUp()
 
     def test_algebra1(self):
@@ -77,19 +77,19 @@ class AlgebraTest(ParserBaseTest):
         assert_equals(self.parser.fraction(), 4)
         init('4.0+3.0')
         self.parser.do_interpret()
-        angle.use_tree = False
+
         assert_equals(self.parser.algebra(), 7)
         assert_result_is('4.0+3.0', 7.0)
 
         def test_algebra_NOW(self):
-          angle.use_tree = True
+
           # skip('test_algebra_NOW, DONT SKIP!')
           assert_result_is('1.0+3/4.0', 7 / 4.)
           assert_result_is('1.0+(3/4.0)', 7 / 4.)
           assert_result_is('1+3/4.0', 7 / 4.)
 
         def test_logic(self):
-          angle.use_tree = True
+
           # skip('test_algebra_NOW, DONT SKIP!')
           assert_result_is('¬1', False) # alt l on mac
           assert_result_is('!0', True)
@@ -110,7 +110,7 @@ class AlgebraTest(ParserBaseTest):
           assert_result_is('!True', False)
 
     def test_tau_pi(self):
-        angle.use_tree = True
+
         import math
         assert_that('tau / 2 = pi')
         # assert_result_is('tau / 2 ', math.pi)

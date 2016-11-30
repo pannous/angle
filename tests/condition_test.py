@@ -2,21 +2,32 @@
 # -*- coding: utf-8 -*-
 
 import angle
-# angle.use_tree = angle.emit
-import emitters.pyc_emitter
+# context.use_tree = context.emit
+import pyc_emitter
 
-angle.use_tree = False
-angle.testing = True
 from parser_test_helper import *
 from parser_test_helper import variables
-from exceptionz import UndeclaredVariable
 
 class ConditionTest(ParserBaseTest):
 
+
 	def setUp(self):
-		angle.use_tree=False
-		angle._verbose=False
+		context.use_tree=False
+		context.interpret=True
 		self.parser.do_interpret()
+		self.parser.clear()
+
+	def test_simple(self):
+		assert_result_is('1==2', False)
+
+	def test_root_comparisons(self):
+		assert_result_is('1<2', True)
+		assert_result_is('1≠2', True)
+		assert_result_is('2==2', True)
+		assert_result_is('1==2', False)
+		assert_result_is('3<2', False)
+		assert_result_is('3>2', True)
+		# assert_result_is('1=2', False)
 
 	def test_eq(self):
 		variables['counter'] = 3
@@ -51,17 +62,9 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is('1==2', False)
 
 	def test_UndeclaredVariable(self):
+		from angle.exceptionz import UndeclaredVariable
 		assert_has_error('x=y',UndeclaredVariable)
 
-
-	def test_root_comparisons(self):
-		assert_result_is('1<2', True)
-		assert_result_is('1≠2', True)
-		assert_result_is('2==2', True)
-		assert_result_is('1==2', False)
-		assert_result_is('3<2', False)
-		assert_result_is('3>2', True)
-		# assert_result_is('1=2', False)
 
 	def test_return(self):
 		assert_result_is('if 1<2 then 5 else 4', 5)
@@ -145,7 +148,10 @@ class ConditionTest(ParserBaseTest):
 
 
 	def test_and(self):
-		assert self.parse('x=2;if x is smaller 3 and x is bigger 1 then true')
+		x=self.parse('x=2;if x is smaller 3 and x is bigger 1 then true')
+		assert x
+
+	def test_and2(self):
 		assert self.parse('x=2;if x is smaller 3 and x is bigger 1 then true else false')
 		assert_result_is('x=2;if x is smaller 3 and x is bigger 1 then true else false', True)
 
@@ -225,15 +231,15 @@ class ConditionTest(ParserBaseTest):
 
 	def test_if_smaller(self):
 		parse('x=2;if x is smaller 3 then x++')
-		assert_equals(the.variables['x'], 3)
+		assert_equals(variables['x'], 3)
 		parse('x=2;if x is smaller three then x++')
-		assert_equals(the.variables['x'], 3)
+		assert_equals(variables['x'], 3)
 		parse('x=2;if x is smaller three then x++')
-		assert_equals(the.variables['x'], 3)
+		assert_equals(variables['x'], 3)
 		parse('x=2;if x is smaller than three then x++')
-		assert_equals(the.variables['x'], 3)
+		assert_equals(variables['x'], 3)
 		parse('x=2;if x is smaller than three x++')
-		assert_equals(the.variables['x'], 3)
+		assert_equals(variables['x'], 3)
 
 	def test_if_return(self):
 		assert_equals(parse('if 1>0 then beep'), 'beeped')

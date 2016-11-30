@@ -1,2 +1,2 @@
 #!/usr/bin/env python
-__author__ = 'me'
+__author__ = 'info@pannous.com'

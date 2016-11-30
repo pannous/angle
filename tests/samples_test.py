@@ -7,8 +7,8 @@ class SamplesTest(ParserBaseTest):
 
     def setUp(self):
       super(SamplesTest, self).setUp()
-      angle.use_tree = True
-      # angle._verbose = True
+
+      # context._verbose = True
       self.parser.clear()
 
 

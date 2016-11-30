@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = False
 from parser_test_helper import *
-
 
 class ObserverTest(ParserBaseTest,unittest.TestCase):
     

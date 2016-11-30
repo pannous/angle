@@ -30,7 +30,6 @@ interpret=True #False
 did_interpret = False
 
 javascript = ''
-context = ''
 variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)
@@ -80,7 +79,6 @@ depth=0
 current_node=None
 current_value=None
 parser=globals()
-context=None
 def is_number(s):            #isint isnum
     return isinstance(s,int) or isinstance(s,float) or is_string(s) and s.isdigit() # is number isnumeric
 

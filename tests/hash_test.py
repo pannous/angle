@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import angle
-angle.use_tree = False
-angle.use_tree = True
-# angle._verbose = False
+
+
+#
 from parser_test_helper import *
 
 
@@ -15,7 +15,7 @@ class HashTest(ParserBaseTest):
     #     assert_equals(h['SuperSecret'], 'kSecValueRef')
 
     # def setUp(self):
-    #     angle.use_tree = False
+    #
 
     def test_simple0(self):
         init('{a:1}')

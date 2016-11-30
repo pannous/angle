@@ -106,8 +106,8 @@ def beep():
 
 def beep(bug=True):
     print("\aBEEP ")
-    import angle
-    if not angle.testing:
+    import context
+    if not context.testing:
         import os
         os.system("say 'beep'")
     return 'beeped'

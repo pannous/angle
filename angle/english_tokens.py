@@ -3,7 +3,7 @@ import ast
 from tokenize import tokenize, untokenize, NUMBER, STRING, NAME, OP
 from io import BytesIO
 import os
-import angle
+import context
 import extensions
 
 ##################/
@@ -11,7 +11,6 @@ import extensions
 ##################
 # def __init__(self):
 import kast.kast
-from nodes import Quote
 from power_parser import *  # app_path, verbose
 from extensions import xlist
 

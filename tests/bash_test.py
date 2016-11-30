@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import angle
-# angle.use_tree = angle.emit
-angle.use_tree = False
+# context.use_tree = context.emit
+
 from parser_test_helper import *
 
 

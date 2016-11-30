@@ -1,22 +1,23 @@
 import _ast
 import ast
 
-import emitters.pyc_emitter
+# import pyc_emitter
 import kast.kast
-import the
+import context as the
 from kast import kast
-from the import *
 import sys #
+import pyc_emitter
 
-# if angle.use_tree:
+# if context.use_tree:
 #         c=ast.Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[
 class Compare(ast.Compare):#todo: BinOp ?
     def __init__(self, *args, **kwargs): #ruby : initialize
         super(Compare, self).__init__(*args, **kwargs)
+        import english_tokens
         self.left = kwargs['left']
         self.comp=  kwargs['comp']
         if isinstance(self.comp,(str,ast.Str)):
-            self.comp = kast_operator_map[str(comp)]
+            self.comp = english_tokens.kast_operator_map[str(self.comp)]
         self.right = kwargs['right']
         self.left=self.left
         self.ops=[self.comp]
@@ -28,6 +29,7 @@ class Compare(ast.Compare):#todo: BinOp ?
 # extensions.xstr
 class teee:
     pass
+
 class Quote(teee,ast.Str):
     def is_a(className):
         # if isinstance(className,type): isinstance(return,className)
@@ -78,7 +80,7 @@ class FunctionDef(kast.FunctionDef):
         if not self.arguments :self.arguments=[]
         # self.args       =self.arguments
         # todo: later
-        args = ast.arguments(args=emitters.pyc_emitter.map_values(self.arguments), vararg=None, kwarg=None, defaults=[])
+        args = ast.arguments(args=pyc_emitter.map_values(self.arguments), vararg=None, kwarg=None, defaults=[])
         super(kast.FunctionDef,self).__init__(name=self.name,args=args,body=self.body,decorator_list=self.decorators)
 
 
@@ -129,15 +131,15 @@ class FunctionDef(kast.FunctionDef):
         return self.name
     #
     # def __call__(self, *args, **kwargs):
-    #     return emitters.pyc_emitter.eval_ast(FunctionCall(self.name, args))
+    #     return pyc_emitter.eval_ast(FunctionCall(self.name, args))
 
     def call(self,args):
         import english_parser
-        import emitters.pyc_emitter
+        import pyc_emitter
         args= english_parser.align_args( args, self.object or self.scope,self)
         # return english_parser.do_call(self.name, args)
-        return emitters.pyc_emitter.eval_ast([self,FunctionCall(self.name, args)], args)
-        # return emitters.pyc_emitter.eval_ast(FunctionCall(self, args))
+        return pyc_emitter.eval_ast([self,FunctionCall(self.name, args)], args)
+        # return pyc_emitter.eval_ast(FunctionCall(self, args))
 
         # def call(*args):
         # self.parser. self.context.
@@ -211,6 +213,7 @@ class Argument(kast.arg):
         self.type       =args['type']       if 'type'    in args else None
         self.default    =args['default']    if 'default' in args else None
         self.value      =args['value']      if 'value'   in args else None
+        self.id = self.name
 
 
         # scope.variables[name]=self

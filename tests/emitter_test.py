@@ -2,11 +2,11 @@
 import angle
 import exceptions
 
-import emitters.pyc_emitter
+import pyc_emitter
 import power_parser
 
-angle.use_tree = True
-angle._verbose = False
+
+
 from parser_test_helper import *
 
 
@@ -17,12 +17,12 @@ class EmitterTest(ParserBaseTest):
     assert_equals(last_result(parse_tree(x, True)), r)
 
   def test_js_emitter(self):
-    if angle.use_tree == False:
+    if context.use_tree == False:
       assert_result_emitted('x=5;increase x', 6)
       # skip()
 
   def test_int_setter(self):
-    if angle.use_tree == False:
+    if context.use_tree == False:
       skip()
     assert_result_emitted('x=5;puts x', 5)
 
@@ -52,7 +52,7 @@ class EmitterTest(ParserBaseTest):
       pass  # all good, did raise
 
   def test_printf(self):
-    angle.use_tree = True
+
     self.parser.dont_interpret()
     parse("printf 'hello world'", False)
     self.parser.full_tree()
@@ -70,7 +70,7 @@ class EmitterTest(ParserBaseTest):
   # Module([Assign([Name('x', Store())], Num(1))])
 
   def test_setter2(self):
-    angle.use_tree = True
+
     self.parser.dont_interpret()
     assert_result_emitted("x='ho';puts x", 'ho')
     # interpretation = (self.parser.interpretation() or Interpretation())
@@ -125,15 +125,15 @@ class EmitterTest(ParserBaseTest):
     # assert('identity(5) is 5')
 
   def test_beep_import(self):
-    emitters.pyc_emitter.get_ast("beep()")
+    pyc_emitter.get_ast("beep()")
     assert_equals(parse('beep'), 'beeped')
 
   def test_deep_in_loop(self):
     exec (compile("c=0\nwhile c<3:\n c+=1\n if c>1:beep()", '', 'exec')) in {'beep': beep}
-    py_ast = emitters.pyc_emitter.get_ast("c=0\nwhile c<3:\n c+=1\n if c>1:beep()")
-    emitters.pyc_emitter.run_ast(py_ast) # WHOOT??  expected some sort of expr, but got <_ast.While object at 0x111a48c10>
+    py_ast = pyc_emitter.get_ast("c=0\nwhile c<3:\n c+=1\n if c>1:beep()")
+    pyc_emitter.run_ast(py_ast) # WHOOT??  expected some sort of expr, but got <_ast.While object at 0x111a48c10>
 
-    # emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
+    # pyc_emitter.get_ast("c+=1\nif c>1:beep()")
     # assert_equals(parse('c=0;while c<3:c++;if c>1 then beep;done'), 'beeped')
     #   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
 
@@ -179,7 +179,7 @@ class EmitterTest(ParserBaseTest):
 
   def test_if_in_loop(self):
     # skip()
-    # emitters.pyc_emitter.get_ast("c+=1\nif c>1:beep()")
+    # pyc_emitter.get_ast("c+=1\nif c>1:beep()")
     assert_equals(parse('c=0;\nwhile c<3:\nc++;\nif c>1 then beep;\ndone'), 'beeped')
 
 #   If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])

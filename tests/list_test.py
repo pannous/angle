@@ -6,8 +6,6 @@ from parser_test_helper import *
 class ListTest(ParserBaseTest,unittest.TestCase):
 
     def setUp(self):
-        angle.use_tree = False
-        angle._verbose = False
         self.parser.do_interpret()
         super(ListTest, self).setUp()
 
