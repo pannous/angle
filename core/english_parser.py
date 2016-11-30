@@ -27,7 +27,7 @@ from english_tokens import *
 from kast import kast
 from power_parser import *
 import power_parser
-from nodes import Function, Argument, Variable, Property, Condition, FunctionCall
+from nodes import FunctionDef, Argument, Variable, Property, Compare, FunctionCall
 from angle import *
 from extensions import *
 import token as _token
@@ -935,7 +935,7 @@ def addMethodNames(f):
     if not obj.preposition:
       name = f.name + " " + obj.name
       args = f.arguments[1:]
-      f2 = Function(name=name, arguments=args, return_type=f.return_type, body=f.body)
+      f2 = FunctionDef(name=name, arguments=args, return_type=f.return_type, body=f.body)
       the.methods[name] = f2
       the.method_names.insert(0, name)  # add longnames first!
       addMethodNames(f2)
@@ -974,7 +974,7 @@ def method_definition(name=None,return_type=None):
 
   dont_interpret()
 
-  f = Function(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
+  f = FunctionDef(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
   # ,modifiers:modifiers, annotations:annotations
   the.methods[name] = f
   the.method_names.insert(0,name)
@@ -984,7 +984,7 @@ def method_definition(name=None,return_type=None):
   look_ahead("return","Return statement out of method {block}, are you missing curlies?",must_not_be=True)
   if not isinstance(b, list): b = [b]
   if not isinstance(b[-1], (kast.Print,ast.Return)):
-    b[-1] = kast.setter("it", b[-1])
+    b[-1] = kast.assign("it", b[-1])
   # b[-1]=(ast.Expr(b[-1]))
   f.body = b
   f2.body = b  # ürx
@@ -1194,7 +1194,7 @@ def has_args(method, clazz=object, assume=0):
   if method in ['increase', '++',
                 '--']:  # increase by 8: todo all intransitive verbs with objects! IF OBJECT  'invert' x
     return 0
-  if isinstance(method, Function):
+  if isinstance(method, FunctionDef):
     return len(method.arguments)
   method = findMethod(clazz, method)
   try:
@@ -1415,6 +1415,9 @@ def assert_that():
   if interpreting():
     assert check_condition(s), s
   if angle.use_tree:
+    # left=kast.assign('left', s.left)
+    # s.left=kast.name('left')
+    # return [left, ast.Assert(test=s, msg=str(s) + "\n %s %s %s" % (s.left, s.comp, s.right))]
     return ast.Assert(test=s, msg=str(s))
   return s
 
@@ -1809,7 +1812,7 @@ def alias(var=None):
   add_variable(var, a)
   var.type="alias"
   if angle.use_tree:
-    f = Function(name=var.name, body=a)
+    f = FunctionDef(name=var.name, body=a)
     addMethodNames(f)
     return f
   return var
@@ -1854,9 +1857,9 @@ def go_thread():
     body = []
     if not isinstance(a, list): a = [a]
     body.append(ast.Import([ast.alias(name='threading', asname=None)]))  # alias('threading'
-    body.append(Function(name='_tmp', body=a))
+    body.append(FunctionDef(name='_tmp', body=a))
     # ast_lambda = ast.Lambda(args=[], body=a) Lambda Doesn't like Print statement!!
-    body.append(kast.setter('_t', kast.call_attribute('threading', 'Thread', target=kast.name('_tmp'))))
+    body.append(kast.assign('_t', kast.call_attribute('threading', 'Thread', target=kast.name('_tmp'))))
     body.append(kast.call_attribute('_t', 'start'))
     return body
   return OK
@@ -2232,8 +2235,8 @@ def comparation():
   # if Jens.smaller then ok:
   maybe_token('than')  # , 'then' #_22'then' ;) danger:
   comp = comp or eq
-  # if angle.use_tree:
-  #   comp=kast_operator_map[comp] # todo: hacky _min LATER
+  if angle.use_tree:
+    comp=kast_operator_map[comp] # todo: hacky _min LATER
   return comp
 
 
@@ -2295,9 +2298,9 @@ def check_list_condition(quantifier, left, comp, right):
 def check_condition(cond=None, negate=False):
   if cond == True or cond == 'True': return True
   if cond == False or cond == 'False': return False
-  if isinstance(cond, ast.BinOp): cond = Condition(left=cond.left, comp=cond.op, right=cond.right)
+  if isinstance(cond, ast.BinOp): cond = Compare(left=cond.left, comp=cond.op, right=cond.right)
   if isinstance(cond, Variable):return cond.value
-  if cond == None or not isinstance(cond, Condition):
+  if cond == None or not isinstance(cond, Compare):
     raise InternalError("NO Condition given! %s" % cond)
 
     # return cond
@@ -2384,7 +2387,7 @@ def condition():
   angle.in_condition = True
   left = action_or_expression(quantifier)  # OK: algebra!
   if isinstance(left, ast.BinOp):
-    left = Condition(left=left.left, comp=left.op, right=left.right)
+    left = Compare(left=left.left, comp=left.op, right=left.right)
   if starts_with("then"): return left
   _not = False
   comp = use_verb = maybe(verb_comparison)  # run like , contains
@@ -2400,7 +2403,7 @@ def condition():
   if isinstance(left, list) and not isinstance(right, list):  # and not maybe(lambda: comp in method_dir(left))
     quantifier = quantifier or "all"
   # if not comp: return  negate ?  not a : a
-  cond = Condition(left=left, comp=comp, right=right)
+  cond = Compare(left=left, comp=comp, right=right)
   if interpreting():
     if quantifier:
       if negate:
@@ -2790,7 +2793,7 @@ def instance(bounded_method):
 def findMethod(obj0, method0, args0=None, bind=True):
   method = method0
   if isinstance(method, collections.Callable): return method
-  if isinstance(method, Function): return method  # .body is AST!
+  if isinstance(method, FunctionDef): return method  # .body is AST!
   if not obj0 and isinstance(args0, list) and len(args0) == 1:
     obj0 = args0[0]
   _type = type(obj0)
@@ -2895,7 +2898,7 @@ def align_args(args, clazz, method):
       if method.__self__ == args[0]: args.remove(args[0])
     return args
   try:
-    if isinstance(method, Function):
+    if isinstance(method, FunctionDef):
       expect = len(method.args)
       #     method = findMethod(clazz, method)
     else:
@@ -2906,7 +2909,7 @@ def align_args(args, clazz, method):
     if isinstance(args, list):
       if (len(args) > expect and len(args)>1 ):
         args = [args]
-    if isinstance(method, Function):
+    if isinstance(method, FunctionDef):
       for i in range(expect):
         aa = method.args[i]
         if isinstance(aa, Argument):
@@ -2978,7 +2981,7 @@ def do_call(obj0, method0, args0=[]):
   args = align_args(args, obj, method)
   number_of_arguments = has_args(method, obj, not not args)
 
-  if isinstance(method, Function):
+  if isinstance(method, FunctionDef):
     the.result = do_execute_block(method.body, args)
     return the.result
   # if (args and args[0] == 'of'):  # and has_args(method, obj)):

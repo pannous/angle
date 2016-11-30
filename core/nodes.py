@@ -10,11 +10,13 @@ import sys #
 
 # if angle.use_tree:
 #         c=ast.Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[
-class Condition(ast.Compare):#todo: BinOp ?
+class Compare(ast.Compare):#todo: BinOp ?
     def __init__(self, *args, **kwargs): #ruby : initialize
-        super(Condition, self).__init__(*args, **kwargs)
+        super(Compare, self).__init__(*args, **kwargs)
         self.left = kwargs['left']
-        self.comp= kwargs['comp']
+        self.comp=  kwargs['comp']
+        if isinstance(self.comp,(str,ast.Str)):
+            self.comp = kast_operator_map[str(comp)]
         self.right = kwargs['right']
         self.left=self.left
         self.ops=[self.comp]
@@ -49,7 +51,7 @@ class Quote(teee,ast.Str):
     def value(self):
         return self.quoted()
 
-class Function(kast.FunctionDef):
+class FunctionDef(kast.FunctionDef):
     #attr_accessor :name, :arguments, :return_type, :scope, :module, :clazz, :object, :body
 
     # def args(self):return self.arguments
@@ -111,7 +113,7 @@ class Function(kast.FunctionDef):
         return "<Function %s>"%(self.name)
 
     def __eq__(self, other):
-        if isinstance(other,Function):
+        if isinstance(other, FunctionDef):
             ok=        self.name  == other.name
             ok= ok and self.scope == other.scope
             ok= ok and self.clazz == other.clazz
@@ -152,7 +154,7 @@ class FunctionCall(ast.Assign): # todo: bad name
         # self.keywords = []
         # self.kwargs = self.starargs = None
         if callable(func):func=func.__name__#lulwoot  keep self.method=func?
-        if isinstance(func,Function): func=func.name #eek name->func!
+        if isinstance(func, FunctionDef): func=func.name #eek name->func!
 
         func = args['func'] if 'func' in args else func
         func = args['name'] if 'name' in args else func

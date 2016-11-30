@@ -34,7 +34,7 @@ class FunctionTest(ParserBaseTest):
 	def test_opencv(self):
 		i=parse("to create a fullscreen window with name n: return cv2.namedWindow(n, cv.CV_WINDOW_FULLSCREEN)")
 		fbody=[]
-		f=Function(name="create fullscreen window",arguments=[Argument(name="n")],body=fbody)
+		f=FunctionDef(name="create fullscreen window", arguments=[Argument(name="n")], body=fbody)
 		assert_equals(the.result,f)
 		parse("create a fullscreen window with name \"test\"")
 
@@ -109,7 +109,7 @@ class FunctionTest(ParserBaseTest):
 		#		 Argument({'preposition': 'by', 'name': 'y', 'position': 2, })]
 		args = [Argument({'name': 'x', 'preposition': None, 'position': 0, }),
 				Argument({'preposition': 'by', 'name': 'y', 'position': 1, })]
-		f = Function({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
+		f = FunctionDef({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
 		assert_equal(f, g)
 		return f
 
@@ -124,7 +124,7 @@ class FunctionTest(ParserBaseTest):
 		arg2 = Argument({'name': 'y', 'preposition': 'by', 'position': 2, })
 		body='x+y;'
 		body=ast.BinOp(left=ast.Name('x'),op=ast.Add,right=ast.Name('y'))
-		f = Function({'arguments': arg2, 'name': 'increase', 'body': body, 'object': arg1, })
+		f = FunctionDef({'arguments': arg2, 'name': 'increase', 'body': body, 'object': arg1, })
 		assert_equal(f, g)
 		assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
@@ -139,7 +139,7 @@ class FunctionTest(ParserBaseTest):
 		parse('to get numbers smaller x: return 1 to x - 1')
 		g = the.methods['get']
 		# g = the.methods['get numbers smaller eeek']
-		f = Function({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
+		f = FunctionDef({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
 		assert_equal(f, g)
 		assert_equals(self.parser.call_function(f, 4), [1, 2, 3])
 

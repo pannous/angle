@@ -46,7 +46,7 @@ sourcegen.visit_Argument = sourcegen.visit_Name
 sourcegen.visit_Condition = sourcegen.visit_Compare
 import angle
 import english_parser
-from kast.kast import Print, setter, name
+from kast.kast import Print, assign, name
 from kast import kast
 import nodes
 import the
@@ -73,7 +73,7 @@ class Reflector(object):  # Implements list interface is
       return list.reverse
     elif name in the.methods:
       m = the.methods[name]
-      if isinstance(m, nodes.Function):
+      if isinstance(m, nodes.FunctionDef):
         raise Exception("%s must be declared or imported before!" % m)
         m = m.body  # INJECT!
       return m
@@ -132,8 +132,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
         new_values.append(value)
         continue
       new_values.append(value)
-    xs[:] = new_values
-    return xs
+    # new_nodes[:] = new_values
+    return new_values
     # parent = self.parent()
     # if isinstance(parent, ast.Module):
     #     return xs
@@ -194,7 +194,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
   def visit_arguments(self, x):
     return x  # WHY???
 
-  def visit_Function(self, x):  # FunctionDef
+  def visit_Function(self, x): #old:
+    return visit_FunctionDef(self, x)
+
+  def visit_FunctionDef(self, x):
     x.body = list(map(self.generic_visit, x.body))
     x.body = fix_block(x.body)
     if not x in to_inject:
@@ -259,8 +262,8 @@ def fix_ast_module(my_ast, fix_body=True):
     # my_ast.body.insert(0, ast.Global(names=['it']))
     # my_ast.body.insert(0, ast.Import([name('extensions')]))
     # my_ast.body.insert(0, ast.Import([name('extensions')]))
-    my_ast.body.insert(0, ast.Import([ast.alias('extensions', None)]))
-    my_ast.body.insert(0, ast.Import([ast.alias('extension_functions', None)]))
+    # my_ast.body.insert(0, ast.Import([ast.alias('extensions', None)]))
+    # my_ast.body.insert(0, ast.Import([ast.alias('extension_functions', None)]))
     # ImportFrom(module='ast', names=[alias(name='*', asname=None)], level=0)
     # my_ast.body.insert(0, ast.ImportFrom(module='extension_functions', names=[ast.alias(name='*',  asname=None)],level= 0))
     # my_ast.body.insert(0, ast.ImportFrom('extension_functions', [str('*')], 0))
@@ -276,19 +279,19 @@ def fix_ast_module(my_ast, fix_body=True):
 
 def fix_block(body, returns=True, prints=False):
   # if not isinstance(body[0], ast.Global):
-  #   body.insert(0, ast.Global(names=['it']))
+  body.insert(0, ast.Global(names=['it']))
     # body.insert(1, kast.setter(name('it'),kast.none))
   last_statement = body[-1]
   if isinstance(last_statement, list) and len(last_statement) == 1:
     last_statement = last_statement[0]
     print("HOW??")
-  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.Function, ast.Return, ast.Assert)):
+  if not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert)):
     if (isinstance(last_statement, ast.Print)):
-      body[-1] = (setter("it", last_statement.values[0]))
+      body[-1] = (assign("it", last_statement.values[0]))
       last_statement.values[0] = name("it")
       body.append(last_statement)
     else:
-      body[-1] = (setter("it", last_statement))
+      body[-1] = (assign("it", last_statement))
   if isinstance(last_statement, (ast.Assign)):
     if not "it" in [x.id for x in last_statement.targets]:
       last_statement.targets.append(name("it"))
@@ -359,7 +362,6 @@ def eval_ast(my_ast, args={}, source_file='inline', target_file=None, run=False,
     code = compile(my_ast, source_file, 'exec')  # regardless!
     # TypeError: required field "lineno" missing from expr NONONO!
     # this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
-
     if angle.use_tree and not run:
       the.result = my_ast
       return my_ast  # code #  Don't evaluate here, run_ast() later!

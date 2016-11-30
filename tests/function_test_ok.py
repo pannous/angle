@@ -100,7 +100,7 @@ class FunctionTest(ParserBaseTest):
         parse('how to increase x by y: x+y;')
         g = functions['increase']
         args = [Argument.new({'name': 'x', 'preposition': None, 'position': 1, }), Argument.new({'preposition': 'by', 'name': 'y', 'position': 2, })]
-        f = Function.new({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
+        f = FunctionDef.new({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
         assert_equal(f, g)
         assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)
 
@@ -109,7 +109,7 @@ class FunctionTest(ParserBaseTest):
         g = functions['increase']
         arg1 = Argument.new({'type': 'number', 'position': 1, 'name': 'x', 'preposition': None, })
         arg2 = Argument.new({'preposition': 'by', 'name': 'y', 'position': 2, })
-        f = Function.new({'name': 'increase', 'body': 'x+y;', 'arguments': arg2, 'object': arg1, })
+        f = FunctionDef.new({'name': 'increase', 'body': 'x+y;', 'arguments': arg2, 'object': arg1, })
         assert_equal(f, g)
         assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)
 
@@ -120,7 +120,7 @@ class FunctionTest(ParserBaseTest):
     def test_class_method(self):
         parse('how to list all numbers smaller x: [1..x]')
         g = functions['list']
-        f = Function.new({'body': '[1..x]', 'name': 'list', 'arguments': arg2(), 'object': arg1(), })
+        f = FunctionDef.new({'body': '[1..x]', 'name': 'list', 'arguments': arg2(), 'object': arg1(), })
         assert_equal(f, g)
         assert_equals(self.parser.call_function(f, 4), [1, 2, 3])
 
