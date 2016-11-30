@@ -545,14 +545,17 @@ def must_contain_before_old(before, *args):  # ,before():None
     # if nl in str(good.pre_match): raise (NotMatching(x))  # ;while
   return OK
 
+def peek(expect_next):
+  return the.current_word==expect_next or the.current_word in expect_next
+  # return look_ahead(expect_next,offset=0)
 
 # NOT == starts_with !!!
-def look_ahead(expect_next, doraise=False,must_not_be=False):
+def look_ahead(expect_next,offset=1, doraise=False,must_not_be=False):
   if the.current_word == '': return False
   if the.token_number + 1 >= the.tokens_len:
     print("BUG: this should not happen")
     return False
-  token = the.tokenstream[the.token_number + 1]
+  token = the.tokenstream[the.token_number + offset]
   if expect_next == token[1]:
     return True
   elif isinstance(expect_next, list) and token[1] in expect_next:
@@ -996,6 +999,7 @@ def escape_token(t):
   return z
 
 
+# != look_ahead: starts_with consumes!
 def starts_with(tokenz):
   if checkEndOfLine(): return False
   if is_string(tokenz):

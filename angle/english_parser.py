@@ -534,8 +534,8 @@ def liste(check=True, first=None):
   if start_brace == '(': _(')')
   context.in_list = False
   if context.use_tree:
-    # return kast.List(all,ast.Load()) # ast.Load() ??
-    return xlist(all)  # Important in order to distinguish from list
+    return kast.List(all,ast.Load()) # ast.Load() ??
+    # return xlist(all)  # Important in order to distinguish from list
   return all
 
 
@@ -695,6 +695,10 @@ def maybe_algebra(context):
 def contains(token):
   return token in the.current_line
 
+def contains_any(tokens):
+  for token in tokens:
+    if token in the.current_line:
+      return True
 
 def quick_expression():  # bad idea?
   result = False
@@ -720,11 +724,12 @@ def quick_expression():  # bad idea?
 
   if the.current_type == _token.STRING or the.current_word.startswith("'"):
     result = quote()
+  if the.current_word in numbers and contains_any(['item', 'element', 'object', 'word', 'char', 'character']):
+      result=nth_item() # unstable HACK!
   elif the.current_word in the.token_map:  # safe, ok!
     fun = the.token_map[the.current_word]
     # no_rollback() #! << NEW
     debug("token_map: %s -> %s" % (the.current_word, fun))
-    if look_ahead(['rd', 'st', 'nd']): fun = nth_item
     result = fun()  # already wrapped maybe(fun)
   elif the.current_word in the.method_token_map:
     fun = the.method_token_map[the.current_word]
@@ -3283,6 +3288,7 @@ def evaluate_index(obj=None):
   return the.result
 
 
+
 def evaluate_property(x=None):
   maybe_token('all')  # list properties (all files in x)
   must_contain_before(['of', 'in', '.'], '(')
@@ -3668,11 +3674,14 @@ def repeat_n_times():
   n = number()
   _('times')
   dont_interpret()
+  no_rollback()
   b = action_or_block()
   adjust_interpret()
   if interpreting():
     xint(n).times_do(lambda: do_execute_block(b))
-  # else: return ast.For(
+  else:
+    todo("repeat_n_times")
+  #  return ast.For(
   return the.result
   # if angel.use_tree: parent_node()
 

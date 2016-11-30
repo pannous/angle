@@ -6,8 +6,14 @@ from parser_test_helper import *
 class ListTest(ParserBaseTest,unittest.TestCase):
 
     def setUp(self):
+        # context.use_tree=False
         self.parser.do_interpret()
         super(ListTest, self).setUp()
+
+    def test_natural_array_index(self):
+        parse('x=[1,2,3]')
+        assert_equals(parse('second element in [1,2,3]'), 2)
+        assert_equals(parse('third element in x'), 3)
 
     def test_type0(self):
         init('1 , 2 , 3')

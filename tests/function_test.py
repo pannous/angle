@@ -9,6 +9,7 @@ class FunctionTest(ParserBaseTest):
 
 	def setUp(self):
 		context.use_tree=True
+		context.interpret=False
 
 	# context._verbose = True never set manually here!
 
@@ -174,6 +175,10 @@ class FunctionTest(ParserBaseTest):
 		assert_equals(name(self.parser.nod(), ), 'x')
 
 	def test_add_to_zero(self):
+		from extensions import *
+		from extension_functions import *
+		context.use_tree=False # not yet
+		parser.do_interpret()
 		parse('counter is zero; repeat three times: increase counter by 1; done repeating;')
 		assert_equals(variables['counter'], 3)
 
@@ -193,11 +198,6 @@ class FunctionTest(ParserBaseTest):
 	def test_x(self):
 		the.variables['x']=Variable(name='x',value=1)
 		assert_equals(parse('x'), 1)
-
-	def test_natural_array_index(self):
-		parse('x=[1,2,3]')
-		assert_equals(parse('second element in [1,2,3]'), 2)
-		assert_equals(parse('third element in x'), 3)
 
 
 	def test_natural_array_index_setter(self):

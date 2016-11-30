@@ -169,7 +169,7 @@ be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have 
 #  '=>' '<=', DANGER
 # OR class_words
 comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
-                    'element of', 'subset of', 'in', 'are', 'were', \
+                     'subset of', 'in', 'are', 'were', \
                     '>=', '==','!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥','~','~=','=~','~~','gt', 'lt', 'eq', \
                     'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
                     'bigger', 'greater', 'equals', 'smaller', 'less', 'more', 'the same as', \
