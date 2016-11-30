@@ -11,7 +11,7 @@ class FunctionTest(ParserBaseTest):
 
 	def setUp(self):
 		angle.use_tree = True
-		angle._verbose = True
+		# angle._verbose = True never set manually here!
 
 	def test_identity2(self):
 		parse("define identity number n\n\tn\nassert identity(1) is 1")

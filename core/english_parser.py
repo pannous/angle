@@ -753,14 +753,14 @@ def quick_expression():  # bad idea?
   # if not angle.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
   #   op=the.current_word;next_token()
   #   return do_math(result,op,nod())
-  try:
-    while True:
-      z = post_operations(result)
-      if not z or z == result: break  # or z=='False'
-      result = z
-  except e:
-    print (e)
-    pass # allow some extra stuff?
+  # try:
+  while True:
+    z = post_operations(result)
+    if not z or z == result: break  # or z=='False'
+    result = z
+  # except Exception as e:
+  #   print (e)
+  #   pass # allow some extra stuff?
   return result
 
 
@@ -785,9 +785,11 @@ def post_operations(context):  # see quick_expression !!
     elif the.current_word == 'are':
       return False  # DONT DO algebra here HACK
   if the.current_word == '|': return piped_actions(context or the.last_result)
-  if the.current_word in comparison_words:
-    compar=comparation()
-    return do_compare(context,compar,expression()) or FALSE
+  # if the.current_word in comparison_words:
+  #   if not look_ahead(operators):
+  #     compar=comparation()
+  #     return do_compare(context,compar,expression()) or FALSE
+    # else algebra(context)
   if the.current_word in operators:  # not quantifier
     return algebra(context)
   if the.current_word == '[':
@@ -3083,6 +3085,8 @@ def do_compare(a, comp, b):
     return False
   elif comp == 'equal' or comp == 'the same' or comp == 'the same as' or comp == 'the same as' or comp == '=' or comp == '==':
     return a == b  # Redundant
+  elif comp == 'not equal' or comp == 'not the same' or comp == 'different' or comp == '!=' or comp == '≠':
+    return a != b  # Redundant
   elif comp in be_words or isinstance(comp, (ast.Eq,kast.Eq)) or 'same' in comp:
     return a == b or isinstance(b, type) and isinstance(a, b)
   else:
@@ -3090,7 +3094,7 @@ def do_compare(a, comp, b):
       return a.send(comp, b)  # raises!
     except:
       error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
-      return a.send(comp + '?', b)
+      # return a.send(comp + '?', b)
 
 
 # see method_call!!
