@@ -550,7 +550,7 @@ def peek(expect_next):
   # return look_ahead(expect_next,offset=0)
 
 # NOT == starts_with !!!
-def look_ahead(expect_next,offset=1, doraise=False,must_not_be=False):
+def look_ahead(expect_next, doraise=False,must_not_be=False,offset=1):
   if the.current_word == '': return False
   if the.token_number + 1 >= the.tokens_len:
     print("BUG: this should not happen")

@@ -193,7 +193,7 @@ def interpretation():
   i.error_position = error_position()
   # super  # set tree, nodes
   i.javascript = javascript
-  i.context = context
+  # i.context = _context
   i.methods = the.methods
   i.ruby_methods = builtin_methods
   i.variables = the.variables
@@ -229,8 +229,8 @@ def rooty():
   # # maybe( ruby_def )or\ # SHOULD BE just as method_definition !!:
 
 
-def set_context(context):
-  context = context
+def set_context(_context):
+  _context = _context
 
 
 def package():
@@ -297,12 +297,12 @@ def imports():  # requirements
 @Starttokens(context_keywords)
 def module():
   tokens(context_keywords)
-  context = word()
+  _context = word()
   newlines()  # part of block?
   # NL
   block()
   done()  # done context!!!
-  return context
+  return _context
 
 
 #  surrounded by braces everything can be of value!
@@ -679,17 +679,17 @@ def immediate_hash():  # a:b a:{b} OR a{b:c}):
 
 # todo PYTHONBUG ^^
 
-def maybe_cast(context):
+def maybe_cast(_context):
   if not maybe_token('as'): return False
   typ = typeNameMapped()
-  return call_cast(context, typ)
+  return call_cast(_context, typ)
 
 
-def maybe_algebra(context):
+def maybe_algebra(_context):
   op = maybe_tokens(operators)
   if not op: return False
   z = expression()
-  return do_call(context, op, z)
+  return do_call(_context, op, z)
 
 
 def contains(token):
@@ -1247,16 +1247,16 @@ def import_module(module_name):
     raise e
 
 
-def subProperty(context):
+def subProperty(_context):
   maybe_token(".")
-  properties = dir(context)
-  if context and type(context) in context.extensionMap:
-    ext = context.extensionMap[type(context)]
+  properties = dir(_context)
+  if _context and type(_context) in context.extensionMap:
+    ext = context.extensionMap[type(_context)]
     properties += dir(ext)
   property = maybe_tokens(properties)
   # the.moduleMethods[module_name] etc!
   if not property or isinstance(property, collections.Callable) or is_method(property):
-    return context, property  # save methods for later!
+    return _context, property  # save methods for later!
   property = maybe_token(".") and subProperty(property) or property
   return property, None
 

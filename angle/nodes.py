@@ -160,6 +160,7 @@ class FunctionCall(ast.Assign): # todo: bad name
 
         func = args['func'] if 'func' in args else func
         func = args['name'] if 'name' in args else func
+        self.func=func
         self.name = func
         self.arguments = args['arguments'] if 'arguments' in args else arguments
         self.object =object
