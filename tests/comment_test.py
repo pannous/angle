@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import angle
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class CommentTest(ParserBaseTest):

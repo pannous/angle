@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-from parser_test_helper import *
+from tests.parser_test_helper import *
 # from parser_test_helper import ParserBaseTest
 # from extensions import *
-
-
+import tests.parser_test_helper
+from tests.parser_test_helper import *
 
 class FunctionTest(ParserBaseTest):
 

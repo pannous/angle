@@ -12,12 +12,12 @@ global NotMatching
 global DidYouMean
 # global GivingUp
 
+
+
 #if py3
 class StandardError(Exception):
     def with_traceback(self,tb):
         return self #todo1
-
-
 
 
 class InternalError(StandardError):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import angle
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class UnicodeTest(ParserBaseTest,unittest.TestCase):

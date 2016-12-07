@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import angle
 
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class TypeTest(ParserBaseTest,unittest.TestCase):

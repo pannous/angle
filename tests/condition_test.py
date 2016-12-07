@@ -5,7 +5,7 @@ import angle
 # context.use_tree = context.emit
 import pyc_emitter
 
-from parser_test_helper import *
+from tests.parser_test_helper import *
 from parser_test_helper import variables
 
 class ConditionTest(ParserBaseTest):

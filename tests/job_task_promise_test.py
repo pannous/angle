@@ -2,7 +2,7 @@
 import angle
 #
 #
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class JobTest(ParserBaseTest):

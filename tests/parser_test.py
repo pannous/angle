@@ -3,7 +3,7 @@ import angle
 import english_parser
 import interpretation
 import tests.parser_test_helper
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 # from test_helper import *

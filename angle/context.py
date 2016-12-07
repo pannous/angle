@@ -125,3 +125,7 @@ verbs=['be', 'have', 'do', 'get', 'make', 'want', 'try', 'buy', 'take', 'apply',
 emit=False
 
 version="0.6.4"
+
+
+global starttokens_done
+starttokens_done=False

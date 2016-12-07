@@ -2,7 +2,7 @@
 import angle
 # context.use_tree = context.emit
 
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class BashTest(ParserBaseTest):

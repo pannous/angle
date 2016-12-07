@@ -3,7 +3,7 @@ import angle
 import english_parser
 
 
-from parser_test_helper import *
+from tests.parser_test_helper import *
 
 
 class LoopTest(ParserBaseTest):

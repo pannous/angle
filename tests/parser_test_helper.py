@@ -5,6 +5,8 @@ from unittest import BaseTestSuite
 
 import angle
 import ast
+
+import exceptionz
 from angle import english_parser,power_parser, context,nodes,pyc_emitter
 # from nodes import * #EVIL!! creates second class WTF
 from extensions import *
@@ -121,14 +123,14 @@ def assert_has_error(x,ex=None):
         if callable(x):
             x()
         else: parse(x)
-    except (Exception, StandardError) as e :
+    except (Exception, exceptionz.StandardError) as e :
         if ex:
             if not isinstance(e,ex):
                 print("WRONG ERROR: "+str(e)+" expected error: "+str(ex))
                 #ifdef FUCKING PY3:
-                # raise e from e
-                # e.ra
-                raise e, None, sys.exc_info()[2]
+                raise e from e
+                # e.raise()
+                # raise e, None, sys.exc_info()[2]
             print("OK, got expected %s : %s"%(ex,e))
         else:
             print("OK, got expected "+str(e))

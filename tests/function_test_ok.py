@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from parser_test_helper import *
+from tests.parser_test_helper import *
 import angle
 
-from parser_test_helper import *
+from tests.parser_test_helper import *
 from extensions import *
 
 def p(x):
