@@ -50,7 +50,7 @@ NEWLINE = "NEWLINE"
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
             'this']  # 'that' * 2 !!!
 
-no_quantifiers = ["nothing", "neither", "none", "no"]
+negative_quantifiers = ["nothing", "neither", "none", "no"]
 
 all_quantifiers = ["all", "every", "everything", "the whole"]
 

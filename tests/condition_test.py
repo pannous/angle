@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import exceptionz
 from tests.parser_test_helper import *
 from parser_test_helper import variables
 
@@ -60,8 +60,8 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is('1==2', False)
 
 	def test_UndeclaredVariable(self):
-		from angle.exceptionz import UndeclaredVariable
-		assert_has_error('x=y', UndeclaredVariable)
+		# from angle.exceptionz import UndeclaredVariable
+		assert_has_error('x=y', exceptionz.UndeclaredVariable)
 
 	def test_return(self):
 		assert_result_is('if 1<2 then 5 else 4', 5)

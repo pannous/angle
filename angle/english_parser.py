@@ -2404,8 +2404,10 @@ def condition():
 	left = action_or_expression(quantifier)  # OK: algebra!
 	if isinstance(left, ast.BinOp):
 		left = Compare(left=left.left, comp=left.op, right=left.right)
-	if starts_with("then"): return left
-	_not = False
+	if starts_with("then"):
+		if quantifier in negative_quantifiers:
+			return not left
+		return left
 	comp = use_verb = maybe(verb_comparison)  # run like , contains
 	if not use_verb: comp = maybe(comparation)
 	# allow_rollback # upto maybe(where)?
@@ -2711,12 +2713,14 @@ def is_math(method):
 
 
 def do_math(a, op, b):
-	a = do_evaluate(a)
-	b = do_evaluate(b)
+	a = do_evaluate(a) or 0
+	b = do_evaluate(b) or 0
 	if isinstance(a, Variable):
 		a = a.value
 	if isinstance(b, Variable):
 		b = b.value
+	a=xx(a)
+	b=xx(b)
 	# a = float(a)
 	# b = float(b)
 	if op == '+': return a + b

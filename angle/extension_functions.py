@@ -2,11 +2,11 @@ import re  # for 'is_file'
 import os
 import sys
 
-import extensions
 import numpy as np
 
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
+
 
 true = True
 false = False
@@ -64,7 +64,10 @@ def Pow(x, y):
 
 
 def is_string(s):
-  # import extensions
+  import extensions
+  if py3:
+	  class unicode(extensions.xstr):  # , bytes):  # xchar[] TypeError: multiple bases have instance lay-out conflict
+		  pass
   class xstr(str): pass
   return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, unicode)
   # or issubclass(s,str) or issubclass(s,unicode)
