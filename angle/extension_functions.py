@@ -66,7 +66,7 @@ def Pow(x, y):
 def is_string(s):
   # import extensions
   class xstr(str): pass
-  return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, extensions.unicode)
+  return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, unicode)
   # or issubclass(s,str) or issubclass(s,unicode)
 
 

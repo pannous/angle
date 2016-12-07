@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from kast import ast_export
-# from kast.ast_export import emit_pyc
 from tests.parser_test_helper import *
 
 

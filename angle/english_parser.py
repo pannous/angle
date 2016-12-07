@@ -334,20 +334,27 @@ def isUnary(op):
 def ast_operator(op):
 	return kast_operator_map[op]
 
+def fix_context(x):
+	if isinstance(x, Variable): x=kast.name(x.name)
+	return x
 
 def apply_op(stack, i, op):
+	right = stack[i + 1]
+	left = stack[i - 1]
 	if interpreting():  # and not angel.use_tree:
 		if op == "!" or op == "not":
-			stack[i:i + 2] = [not do_evaluate(stack[i + 1])]
+			stack[i:i + 2] = [not do_evaluate(right)]
 		else:
-			result = do_math(stack[i - 1], op, stack[i + 1])
+			result = do_math(left, op, right)
 			stack[i - 1:i + 2] = [result]
 	else:
 		if op == "!" or op == "not":
-			stack[i:i + 2] = [kast.Not(stack[i + 1])]
+			stack[i:i + 2] = [kast.Not(right)]
 		else:
 			# ast.BoolOp ??
-			stack[i - 1:i + 2] = [kast.BinOp(stack[i - 1], ast_operator(op), stack[i + 1])]
+			left = fix_context(left)
+			right = fix_context(right)
+			stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
 
 
 def fold_algebra(stack):
@@ -370,8 +377,6 @@ def algebra(val=None):
 	if not val: must_contain_before(args=operators, before=be_words + ['then', ',', ';', ':'])  # todo is smaller ->
 	stack = []
 	val = val or maybe(value) or bracelet()
-	if isinstance(val, Variable):
-		val=kast.name(val.name) # val.value
 	stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
 
 	def lamb():

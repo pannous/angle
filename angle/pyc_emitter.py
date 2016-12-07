@@ -319,9 +319,9 @@ def fix_block(body, returns=True, prints=False):
 			last_statement.targets.append(name("it"))
 	if returns and not isinstance(body[-1], ast.Return):
 		body.append(ast.Return(name("it")))
-	if prints:
-		if py3:pass#body.append(kast.call("print", name("it")))
-		else:body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
+	# if prints:
+	# 	if py3:pass#body.append(kast.call("print", name("it")))
+		# else:body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
 	return body
 
 
@@ -415,15 +415,15 @@ class Namespace():
 		self.variables = variables
 
 
-def run_ast(my_ast, source_file="(String)", args={}, fix=True, _context='', code=None):
-	if fix:
-		my_ast = fix_ast_module(my_ast)
-	if not code:
-		code = compile(my_ast, source_file, 'exec')
-	# TypeError: required field "lineno" missing from expr NONO,
-	# this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
+def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', code=None):
+	if not args: args = {}
+	if fix: my_ast = fix_ast_module(my_ast)
+	if not code: code = compile(my_ast, source_file, 'exec')
+	# TypeError: required field "lineno" missing from expr:
+	# NONONO this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
+
 	# eval can't handle arbitrary python code (eval("import math") ), and
-	# exec() doesn't return the results.
+	# exec() doesn't return the results directly, BUT via namespace YAY!
 	if _context == 'eval':
 		my_globals = get_globals(args)
 		ret = eval(code, my_globals, Reflector())  # in _context
@@ -433,7 +433,7 @@ def run_ast(my_ast, source_file="(String)", args={}, fix=True, _context='', code
 		namespace = args  # {} # << GIVE AND RECEIVE GLOBALS!!
 		namespace['it'] = None  # better than ast.global
 		# namespace=Namespace(namespace)
-		exec((code), namespace)  # self contained!
+		exec(code, namespace)  # self contained!
 		ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
 	ret = ret or the.result
 	# verbose("GOT RESULT %s" % ret)
