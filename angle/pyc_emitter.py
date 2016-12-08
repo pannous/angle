@@ -430,7 +430,8 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 	else:
 		# http://lucumr.pocoo.org/2011/2/1/exec-in-python/
 		args.update(to_provide)  # globals
-		namespace = args  # {} # << GIVE AND RECEIVE GLOBALS!!
+		namespace = context.variables
+		namespace.update(args) # << GIVE AND RECEIVE GLOBALS!!
 		namespace['it'] = None  # better than ast.global
 		# namespace=Namespace(namespace)
 		exec(code, namespace)  # self contained!

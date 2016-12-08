@@ -568,11 +568,11 @@ def must_contain_before_old(before, *args):  # ,before():None
 
 
 def peek(expect_next):
-	return the.current_word == expect_next or the.current_word in expect_next
 	# return look_ahead(expect_next,offset=0)
+	return the.current_word == expect_next or the.current_word in expect_next
 
 
-# NOT == starts_with !!!
+# NOT == starts_with, peek, peek_any !!! TODO: clean!
 def look_ahead(expect_next, doraise=False, must_not_be=False, offset=1):
 	if the.current_word == '': return False
 	if the.token_number + 1 >= the.tokens_len:

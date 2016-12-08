@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import exceptionz
 from tests.parser_test_helper import *
-from parser_test_helper import variables
-
 
 class ConditionTest(ParserBaseTest):
 
@@ -36,7 +33,7 @@ class ConditionTest(ParserBaseTest):
 	def test_eq1(self):
 		variables['counter'] = 3
 		copy_variables(variables)
-		self.variables()
+		print(self.variables())
 		assert self.parse('counter == 3')
 		assert self.parse('counter = 3')
 		init('counter = 3')
@@ -120,7 +117,7 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(check, False)
 
 	def test_list_quantifiers2(self):  # bug: algebra 0,1,2 is smaller 3
-		skip()
+		# skip()
 		check = parse('x=5;if one of 0,1,2 is smaller 3 then x++')
 		assert_equals(check, 6)
 
@@ -139,7 +136,7 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(check, False)
 
 	def test_assert(self):
-		skip()
+		# skip()
 		assert self.parse("assert 3rd word in 'hi my friend' is 'friend'")
 		assert self.parse("assert 3rd word in 'hi my friend' is 'friend'")
 		assert_result_is("assert 3rd word in 'hi my friend' is 'friend'", True)
@@ -299,7 +296,7 @@ class ConditionTest(ParserBaseTest):
 		self.assert_that('1==1')
 
 	def test_complicated(self):
-		skip()
+		# skip()
 		# ; is  consumed for end of action but also needed for end of statement
 		parse('x is 2; if all 0,2,4 are smaller 5 then increase x; assert x equals 3')
 		assert (the.result == True)

@@ -464,9 +464,9 @@ def is_a(x, type0):
 	return False
 
 
-def nth_item():  # Also redundant with property evaluation (But okay as a shortcut)):
+def nth_item(val=0):  # Also redundant with property evaluation (But okay as a shortcut)):
 	set = maybe_token('set')
-	n = tokens(numbers + ['first', 'last', 'middle'])
+	n = val or tokens(numbers + ['first', 'last', 'middle'])
 	n = xstr(n).parse_integer()
 	if (n > 0): n = n - 1  # -1 AppleScript style !!! BUT list[0] !!!
 	raiseEnd()
@@ -734,33 +734,44 @@ def quick_expression():  # bad idea?
 		# if context.in_algebra: return False
 		# return algebra(result)
 
+	# number
 	if the.current_type == _token.NUMBER:
 		result = number()
+		# n'th item
+		if maybe_tokens(['rd','nd','th']):
+			result = nth_item(result)
+	# string
 	elif the.current_type == _token.STRING or the.current_word.startswith("'"):
 		result = quote()
-	elif the.current_word in numbers and contains_any(['item', 'element', 'object', 'word', 'char', 'character']):
-			result=nth_item() # unstable HACK!
+	# <token>
 	elif the.current_word in the.token_map:  # safe, ok!
 		fun = the.token_map[the.current_word]
 		# no_rollback() #! << NEW
 		debug("token_map: %s -> %s" % (the.current_word, fun))
 		result = fun()  # already wrapped maybe(fun)
+	# method builtin?
 	elif the.current_word in the.method_token_map:
 		fun = the.method_token_map[the.current_word]
 		debug("method_token_map: %s -> %s" % (the.current_word, fun))
-		# raise Error("method_token_map not thought through!!")
 		result = fun()  # already wrapped maybe(fun)
-	elif the.current_word in list(the.params.keys()):
-		result = true_param()
-	elif the.current_word in list(the.variables.keys()):
-		result = known_variable() #  we don't rise undeclared variable here
+	# method dynamic?  <<
 	elif the.current_word in the.method_names:
 		if method_allowed(the.current_word):
 			result = method_call()  # already wrapped maybe(method_call)
-	if look_ahead('of'):
-		result = evaluate_property(result)
+	# param
+	elif the.current_word in list(the.params.keys()):
+		result = true_param()
+	# variable
+	elif the.current_word in list(the.variables.keys()):
+		result = known_variable() #  we don't rise undeclared variable here
+	# type TODO
 	elif the.current_word in english_tokens.type_names:
 		return maybe(setter) or method_definition()  # or ... !!!!!
+
+	# a of b
+	if look_ahead('of'):
+		result = evaluate_property(result)
+
 	if not result: return False
 	# if not context.in_algebra and the.current_word in operators  + ["element", "item"]:# + special_chars todo
 	#   op=the.current_word;next_token()
@@ -1423,7 +1434,8 @@ def assert_that():
 	# s=statement()
 	do_interpret()
 	# s = condition_old()
-	s = condition()
+	# s = condition()
+	s = expression()
 	if interpreting():
 		assert check_condition(s), s
 	if context.use_tree:
@@ -2415,7 +2427,7 @@ def condition():
 	if brace: _(')')
 	context.in_condition = False
 	if not comp: return left
-	negate = (negated or _not) and not (negated and _not)
+	negate = negated #(negated or _not) and not (negated and _not) << where did "_not" go???
 	# angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
 	# 1,2,3 are smaller 4  VS 1,2,4 in 3
 	if isinstance(left, list) and not isinstance(right, list):  # and not maybe(lambda: comp in method_dir(left))
