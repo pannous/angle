@@ -3,6 +3,8 @@ import sys
 py2=sys.version < '3'
 py3=sys.version >= '3'
 sys.path.append('$ANGLE_HOME')
+sys.path.append('.')
+sys.path.append('angle')
 
 from angle import english_parser
 english_parser.main()

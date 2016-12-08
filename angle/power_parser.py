@@ -934,7 +934,7 @@ def parse(s, target_file=None):
 	if (isinstance(s, file_types)):
 		source_file = s.name
 		s = s.readlines()
-	elif s.endswith(".e") or s.endswith(".a"):
+	elif s.endswith(".e") or s.endswith(".an"):
 		target_file = target_file or s + ".pyc"
 		source_file = s
 		s = open(s).readlines()
@@ -1129,16 +1129,16 @@ def comment_block():
 		next_token()
 
 
-@Starttokens(['//', '#', '\'', '--', '/'])
+@Starttokens(['//', '#', '\'', '--']) # , '/' regex!
 def skip_comments():
-	if the.current_word == None: return
+	if the.current_word is None: return
 	l = len(the.current_word)
 	if l == 0: return
 	if the.current_type == tokenize.COMMENT:
 		next_token()
 	# if the.current_word[0]=="#": ^^ OK!
 	#        return rest_of_line()
-	if (l > 1):
+	if l > 1:
 		# if current_word[0]=="#": rest_of_line()
 		if the.current_word[0:2] == "--": return rest_of_line()
 		if the.current_word[0:2] == "//": return rest_of_line()
