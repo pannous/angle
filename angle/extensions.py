@@ -361,9 +361,9 @@ class xlist(list):
 		return list.__lt__(self, other)
 
 	# TypeError: unorderable types: int() < list() fucking python 3
-	def __cmp__(self, other):
-		if not isinstance(other, list): other = [other]
-		return list.__cmp__(self, other)
+	# def __cmp__(self, other):
+	# 	if not isinstance(other, list): other = [other]
+	# 	return list.__cmp__(self, other)
 
 	def __sub__(self, other):  # xlist-[1]-[2] minus
 		if not hasattr(other, '__iter__'): other = [other]
@@ -830,9 +830,8 @@ class xint(int):
 	def __coerce__(self, other):
 		return int(other)
 
-	def __cmp__(self, other):
-		if isinstance(other, list): return list.__cmp__([self], other)
-		return other == self
+	# def __cmp__(self, other):
+	# 	if isinstance(other, list): return list.__cmp__([self], other)
 
 	def c(self):  # unwrap, for optimization):
 		return str(self)  # "NUM2INT(#{self.to_s})"

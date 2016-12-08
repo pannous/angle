@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import angle
 from tests.parser_test_helper import *
-
 
 class SamplesTest(ParserBaseTest):
 
@@ -11,9 +9,9 @@ class SamplesTest(ParserBaseTest):
       # context._verbose = True
       self.parser.clear()
 
-
     def test_addition(self):
       x=parse("samples/addition.e")
+      assert x, "parsed"
       assert_result_is("add 7 to 3","10")
 
     def test_hello_world(self):

@@ -1,9 +1,17 @@
 #!/usr/local/bin/python
+
+
+
 import ast
 import os
 # from ast import *
 import ipython_genutils.py3compat
 import sys
+
+if 'TESTING' in os.environ:
+	quit(1)
+	# tests.parser_test_helper.skip()
+	# raise Warning("Don't Test this")
 
 # from kast import *
 # import astor

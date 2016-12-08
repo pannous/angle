@@ -267,6 +267,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
 # Module([Expr(Num(1))])
 def fix_ast_module(my_ast, fix_body=True):
+	# if isinstance(my_ast, ast.Module): my_ast = my_ast.body[-1]  # YA?
 	# gotta wrap: 1 => Module(body=[Expr(value=[Num(n=1)])])
 	if not type(my_ast) == ast.Module:
 		# my_ast = flatten(my_ast)
@@ -351,9 +352,9 @@ def get_ast(python, source='out/inline.py', _context='exec'):
 	return py_ast
 
 
-def print_ast(my_ast, source_file='out/inline'):
+def print_ast(my_ast, source_file='out/inline',with_line_numbers=False):
 	try:
-		x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
+		x = ast.dump(my_ast, annotate_fields=True, include_attributes=with_line_numbers)
 		open(source_file + ".ast", 'wt').write("from ast import *\ninline_ast=" + x.replace('(', '(\n'))
 		print(x)
 		print("")

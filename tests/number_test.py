@@ -5,6 +5,7 @@ from tests.parser_test_helper import *
 
 
 class NumberTest(ParserBaseTest, unittest.TestCase):
+
 	def test_increment(self):
 		assert_result_is('x=2;x++', 3)
 

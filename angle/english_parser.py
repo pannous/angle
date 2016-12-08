@@ -1241,12 +1241,18 @@ def get_module(module):
 		importlib.import_module(module)
 		return sys.modules[module]
 
+def first_is_self(method):
+	try:
+		args, varargs, varkw, defaults = inspect.getargspec(method)
+		return args[0] == 'self'
+	except:
+		return False
 
-# In Python 2.7, built-in function objects such as print()
-# simply do not have enough information for you to discover what arguments they support!!
+# In Python 2.7, built-in function objects such as print() simply
+# do not have enough information for you to discover what arguments they support!!
 def has_args(method, clazz=object, assume=0):
-	if method in ['increase', '++',
-								'--']:  # increase by 8: todo all intransitive verbs with objects! IF OBJECT  'invert' x
+	#  todo all intransitive verbs with objects! IF OBJECT  'invert' x
+	if method in ['increase', '++', '--']:  # increase by 8:
 		return 0
 	if isinstance(method, FunctionDef):
 		return len(method.arguments)
@@ -1740,9 +1746,12 @@ def assure_same_type_overwrite(var, val):
 	if (isinstance(val, FunctionCall)):
 		if val.return_type != "Unknown" and val.return_type != oldType:  # None:
 			raise WrongType("OLD: %s %s VS %s return_type: %s " % (oldType, oldValue, val, val.return_type))
-	elif oldType and not isinstance(val, oldType) and not issubclass(oldType, type(val)):
-		return do_cast(val,oldType)
-		raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
+	elif oldType:
+		try:
+			if not isinstance(val, oldType) and not issubclass(oldType, type(val)):
+				return do_cast(val,oldType)
+		except:
+			raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 	if var.final and var.value and not val == var.value:
 		raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 	var.value = val
@@ -3034,19 +3043,19 @@ def do_call(obj0, method0, args0=[]):
 	# args0=map(do_evaluate,args0)
 	args = eval_args(args0)
 	method = findMethod(obj0, method0, args)
-	method_name = isinstance(method, collections.Callable) and str(method) or method0  # what for??
+	method_name = isinstance(method, collections.Callable) and method.__name__ or method0  # what for??
 	# if callable(method): obj = method.owner no such concept in Python !! only as self parameter
 
 	if (method == 'of'): return evaluate_property(args0, obj0)
 	# if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
 	is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
 	is_bound = 'im_self' in dir(method) and method.__self__
-
+	is_bound = is_bound or 'bound' in str(method)  # hack
 	# if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
 	obj = do_evaluate(obj0)
 	args = align_args(args, obj, method)
 	number_of_arguments = has_args(method, obj, not not args)
-
+	first_self = first_is_self(method)
 	if isinstance(method, FunctionDef):
 		the.result = do_execute_block(method.body, args)
 		return the.result
@@ -3088,7 +3097,7 @@ def do_call(obj0, method0, args0=[]):
 			the.result = call_unbound(method, args, number_of_arguments)
 		else:
 			the.result = method()
-	elif not args or not number_of_arguments:
+	elif not args or number_of_arguments==0 or number_of_arguments==1 and first_self:
 		if is_bound or is_builtin:
 			the.result = method() or NILL
 		else:
@@ -3098,6 +3107,8 @@ def do_call(obj0, method0, args0=[]):
 			call_unbound(method, args, number_of_arguments)
 		else:
 			# try:
+			if(isinstance(args,list) and len(args)==1):
+				args=args[0]
 			the.result = method(obj, args) or NILL
 			# except: the.result = method(args) or NILL
 

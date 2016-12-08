@@ -6,102 +6,129 @@
 # YEP: exceptionz works!!!
 
 # import minitest
-  # DONT ROLLBACK StandardError
-  # DO ROLLBACK all NotMatching
+# DONT ROLLBACK StandardError
+# DO ROLLBACK all NotMatching
+
 global NotMatching
 global DidYouMean
+
+
 # global GivingUp
+import sys
 
+py2 = sys.version < '3'
+py3 = sys.version >= '3'
 
+if py3:
+	class StandardError(Exception):
+		def with_traceback(self, tb):
+			return self  # todo1
 
-#if py3
-class StandardError(Exception):
-    def with_traceback(self,tb):
-        return self #todo1
-
+StandardError= StandardError
 
 class InternalError(StandardError):
-    pass
+	pass
+
 
 class NoMethodError(StandardError):
-    pass
+	pass
+
 
 class InternalError(StandardError):
-    pass
+	pass
+
 
 class NotMatching(StandardError):
-    pass
+	pass
+
 
 class UndeclaredVariable(StandardError):
-    pass
+	pass
+
 
 class DidYouMean(StandardError):
-    pass
+	pass
+
 
 class UnknownCommandError(StandardError):
-    pass
+	pass
+
 
 class SecurityError(StandardError):
-    pass
+	pass
+
 
 # NotPassing = Class.new StandardError
 class NotPassing(StandardError):
-    pass
+	pass
+
 
 class NoResult(NotMatching):
-    pass
+	pass
+
 
 class EndOfDocument(StandardError):
-    pass
+	pass
+
 
 class EndOfLine(NotMatching):
-    pass
+	pass
+
 
 class MaxRecursionReached(StandardError):
-    pass
+	pass
+
 
 class EndOfBlock(NotMatching):
-    pass
+	pass
+
 
 class GivingUp(StandardError):
-    pass
+	pass
+
 
 class ShouldNotMatchKeyword(NotMatching):
-    pass
+	pass
+
 
 class KeywordNotExpected(NotMatching):
-    pass
+	pass
+
 
 class UndefinedRubyMethod(NotMatching):
-    pass
+	pass
+
 
 class EndOfStatement(NotMatching):
-    pass
+	pass
+
 
 class MustNotMatchKeyword(NotMatching):
-    pass
+	pass
 
 
 class MethodMissingError(StandardError):
-    pass
+	pass
+
 
 class WrongType(StandardError):
-    pass
+	pass
+
 
 class ImmutableVaribale(StandardError):
-    pass
+	pass
+
 
 class SystemStackError(StandardError):
-    pass
+	pass
 
 
 class IgnoreException(Exception):
-  pass
+	pass
+
 
 try:
-    class Error(Exception):
-        pass
+	class Error(Exception):
+		pass
 except:
-    pass
-
-
+	pass

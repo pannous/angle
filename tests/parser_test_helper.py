@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import inspect
 import unittest
-from unittest import TestCase
-from unittest import BaseTestSuite
 
 import angle
 import ast
+import nodes
 
 import exceptionz
-from angle import english_parser, power_parser, context, nodes, pyc_emitter
+from angle import english_parser, context, pyc_emitter
 # from nodes import * #EVIL!! creates second class WTF
 from extensions import *
 import collections
@@ -28,6 +27,11 @@ emit = False
 global base_test
 base_test = None
 import context as the
+
+
+def name(x):
+	return x
+
 
 def contains(a, b):
 	return a in b or b in a
@@ -68,6 +72,7 @@ def p(x):
 def last_result():
 	return context.last_result
 
+
 #
 # def parse_tree(x):
 # 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
@@ -93,7 +98,7 @@ def assert_result_emitted(a, b, bla=None):
 
 
 def assert_result_is(a, b, bla=None):
-	print("  File \"%s\", line %d"%(inspect.stack()[1][1], inspect.stack()[1][2]))
+	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	# print(inspect.stack()[1][3])
 	x = parse(a)
 	# y=parse(b)
@@ -143,10 +148,10 @@ def assert_has_error(x, ex=None):
 			x()
 		else:
 			parse(x)
-	except (Exception, exceptionz.Exception) as e:
+	except (Exception, exceptionz.StandardError) as e: #, exceptionz.Exception
 		if ex:
 			if not isinstance(e, ex):
-				print(("WRONG ERROR: " + str(e) + " expected error: " + str(ex)))
+				print(("WRONG ERROR: {0} {1} expected error: {2}".format(e.__class__.__name__,str(e), str(ex))))
 				# ifdef FUCKING PY3:
 				raise  # e from e
 			# e.raise()
@@ -166,31 +171,31 @@ def sleep(s):
 	pass
 
 
-def parse(s):
-	if not "parser_test_helper" in inspect.stack()[1][1]:
-		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
-	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
-	with open("out/inline", 'wt') as outf:
-		outf.write(s)
-	interpretation = english_parser.parse(s)
-	r = interpretation.result
-	if (isinstance(r, list) and isinstance(r[0], ast.AST) or isinstance(r, ast.AST)):
-		if isinstance(r, ast.Module): r = r.body[-1]  # YA?
-		r = pyc_emitter.run_ast(r)
+def update_local(context):
 	variables.update(context.variables)
 	variableValues.update(context.variableValues)
 	functions.update(context.methods)
 	methods.update(context.methods)
+
+
+def parse(s):
+	if not "parser_test_helper" in inspect.stack()[1][1]:
+		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
+	with open("out/inline", 'wt') as outfile:
+		outfile.write(s)
+	interpretation = english_parser.parse(s)
+	r = interpretation.result
+	if isinstance(r, ast.AST) or isinstance(r, list) and isinstance(r[0], ast.AST):
+		r = pyc_emitter.run_ast(r)
+	update_local(context)
 	print(("DONE PARSING %s\n\n" % s))
 	return r
 
 
-def init(str):
+def init(s):
 	copy_variables()
-	english_parser.init(str)
-
-
-# parser.init(str)
+	english_parser.init(s)
 
 
 def result():
@@ -201,22 +206,18 @@ def equals(a, b):
 	return a == b
 
 
-def name(x):
-	return x
-
-
 def copy_variables(variables=variables):
 	global variableValues
 	variable_keys = list(variables.keys())
 	for name in variable_keys:
 		v_ = variables[name]
-		if isinstance(v_, angle.nodes.Variable):
+		if isinstance(v_, nodes.Variable):
 			context.variables[name] = v_
 			context.variableValues[name] = v_.value
 			continue
 		context.variableValues[name] = v_
-		context.variables[name] = angle.nodes.Variable(name=name, value=v_, type=type(v_))
-		variables[name] = angle.nodes.Variable(name=name, value=v_, type=type(v_))
+		context.variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
+		variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
 
 
 class ParserBaseTest(unittest.TestCase):

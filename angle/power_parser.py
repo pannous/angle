@@ -188,8 +188,7 @@ def star(lamb, giveUp=False):
 				raise Exception(" too many occurrences of " + to_source(lamb))
 	except GivingUp as e:
 		if giveUp:
-			# if py2: raise e, None, sys.exc_info()[2] #
-			if py3: raise e  # f'ing py3!
+			raise
 		verbose("GivingUp ok in star")  # ok in star!
 		set_token(old)
 		return good
@@ -250,8 +249,7 @@ def error(e, force=False):
 		#     import TreeBuilder
 		#     TreeBuilder.show_tree()
 		if not context._verbose:
-			# if py2: raise e, None, sys.exc_info()[2]  # SyntaxError(e):
-			if py3: raise e  # f'ing py3!
+			raise
 
 
 def warn(e):
@@ -371,11 +369,11 @@ def parse_tokens(s):
 
 	the.tokenstream = []
 
-	def token_eater(token_type, tokenn, start_row_col, end_row_col, line):
+	def token_eater(token_type, token_str, start_row_col, end_row_col, line):
 		if py3 and token_type == tokenize.ENCODING: return
 		# if token_type != tokenize.COMMENT \
 		#   and not line.startswith("#") and not line.startswith("//"):
-		the.tokenstream.append((token_type, tokenn, start_row_col, end_row_col, line, len(the.tokenstream)))
+		the.tokenstream.append((token_type, token_str, start_row_col, end_row_col, line, len(the.tokenstream)))
 
 	s = s.replace("⦠", "")
 	global done
@@ -390,6 +388,8 @@ def parse_tokens(s):
 	def readlines():
 		global i
 		i += 1
+		while i < len(_lines) and (_lines[i].startswith("#") or _lines[i].startswith("//")):
+			i += 1 # remove comments early!  BAD: /*////*/ !!
 		if i < len(_lines):
 			if py2:
 				return _lines[i]
@@ -806,7 +806,7 @@ def maybe(expr):
 			#     import TreeBuilder
 			#     TreeBuilder.show_tree()  # Not reached
 			ex = GivingUp(str(e) + "\n" + to_source(expr) + "\n" + pointer_string())
-			raise ex.with_traceback(sys.exc_info()[2])
+			raise ex
 			# error e #exit
 			# raise SyntaxError(e)
 	except EndOfDocument as e:

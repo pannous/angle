@@ -42,7 +42,7 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
         # assert_result_is('τ / 2 = π', True)
 
     def test_algebra_NOW2(self):
-        skip('test_algebra_NOW, DONT SKIP!')
+        # skip('test_algebra_NOW, DONT SKIP!')
         assert_result_is('1+(3/4)', 7/4.)
         assert_result_is('1+3/4', 7/4.)
 
