@@ -41,7 +41,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
   def test_variable_range(self):
     i = parse('list i is 5 to 10')
     i = parse('i is 5 to 10')
-    assert_equal(i, range(5, 10 + 1))  # count from 1 to 10 => 10 INCLUDED, thus +1!
+    assert_equal(i, list(range(5, 10 + 1)))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
   def test_variable_type_cast2(self):
     skip()

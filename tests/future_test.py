@@ -16,7 +16,7 @@ class FutureTest:
         self.parser.if_then()
         assert_equals(variables['everything'], 'fine')
         parse('x=2;if x is smaller than three then everything is good;')
-        print(variables['everything'])
+        print((variables['everything']))
         assert_equals(variables['everything'], 'good')
 
     def test_repeat_until(self):

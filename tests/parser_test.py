@@ -22,9 +22,9 @@ class ParserTest(unittest.TestCase): # PASS ParserBaseTest): #EnglishParser
         path = "../samples/"
         for f in ls(path):
             if(f.startswith(".")):continue
-            print("parsing %s!"%f)
+            print(("parsing %s!"%f))
             parse(open(path+f))
-            print("OK, parsed %s successfully!"%f)
+            print(("OK, parsed %s successfully!"%f))
             print("YAY!!!!!!!!!!!!!!!!!!!!!!!!")
 
     def test_block_comment(self):

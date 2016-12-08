@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import inspect
 import unittest
 from unittest import TestCase
 from unittest import BaseTestSuite
@@ -10,6 +11,7 @@ import exceptionz
 from angle import english_parser, power_parser, context, nodes, pyc_emitter
 # from nodes import * #EVIL!! creates second class WTF
 from extensions import *
+import collections
 
 global parser
 parser = english_parser  # .EnglishParser()
@@ -66,15 +68,16 @@ def p(x):
 def last_result():
 	return context.last_result
 
-
-def parse_tree(x):
-	context.use_tree = True
-	power_parser.dont_interpret()
-	angle_ast = power_parser.parse(x).tree  # AST
-	if not isinstance(angle_ast, ast.Module):
-		angle_ast = kast.Module(body=[angle_ast])
-	angle_ast = ast.fix_missing_locations(angle_ast)
-	return angle_ast
+#
+# def parse_tree(x):
+# 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+# 	context.use_tree = True
+# 	power_parser.dont_interpret()
+# 	angle_ast = power_parser.parse(x).tree  # AST
+# 	if not isinstance(angle_ast, ast.Module):
+# 		angle_ast = kast.Module(body=[angle_ast])
+# 	angle_ast = ast.fix_missing_locations(angle_ast)
+# 	return angle_ast
 
 
 def puts(x):
@@ -82,6 +85,7 @@ def puts(x):
 
 
 def assert_result_emitted(a, b, bla=None):
+	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	context.use_tree = True
 	x = parse(a)
 	if isinstance(x, ast.Module): x = x.body
@@ -89,6 +93,8 @@ def assert_result_emitted(a, b, bla=None):
 
 
 def assert_result_is(a, b, bla=None):
+	print("  File \"%s\", line %d"%(inspect.stack()[1][1], inspect.stack()[1][2]))
+	# print(inspect.stack()[1][3])
 	x = parse(a)
 	# y=parse(b)
 	y = b
@@ -99,13 +105,14 @@ def assert_result_is(a, b, bla=None):
 
 
 def assert_equals(a, b, bla=None):
+	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if a == 'False': a = False
 	if isinstance(a, ast.List): a = a.value
 	assert a == b, "%s SHOULD BE %s   %s" % (a, b, bla)
 
 
 def assert_equal(a, b, bla=None):
-	print("%s SHOULD BE %s   %s" % (a, b, bla))
+	print(("%s SHOULD BE %s   %s" % (a, b, bla)))
 
 
 # assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)
@@ -129,23 +136,24 @@ def skip(me=0):
 
 
 def assert_has_error(x, ex=None):
+	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	got_ex = False
 	try:
-		if callable(x):
+		if isinstance(x, collections.Callable):
 			x()
 		else:
 			parse(x)
-	except (Exception, exceptionz.StandardError) as e:
+	except (Exception, exceptionz.Exception) as e:
 		if ex:
 			if not isinstance(e, ex):
-				print("WRONG ERROR: " + str(e) + " expected error: " + str(ex))
+				print(("WRONG ERROR: " + str(e) + " expected error: " + str(ex)))
 				# ifdef FUCKING PY3:
 				raise  # e from e
 			# e.raise()
 			# raise e, None, sys.exc_info()[2]
-			print("OK, got expected %s : %s" % (ex, e))
+			print(("OK, got expected %s : %s" % (ex, e)))
 		else:
-			print("OK, got expected " + str(e))
+			print(("OK, got expected " + str(e)))
 		return
 	raise Exception("EXPECTED ERROR: " + str(ex) + "\nIN: " + x)
 
@@ -159,9 +167,9 @@ def sleep(s):
 
 
 def parse(s):
-	if not (isinstance(s, str) or isinstance(s, unicode) or isinstance(s, file)): return s
-	print("PARSING %s" % s)
-
+	if not "parser_test_helper" in inspect.stack()[1][1]:
+		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
 	with open("out/inline", 'wt') as outf:
 		outf.write(s)
 	interpretation = english_parser.parse(s)
@@ -173,7 +181,7 @@ def parse(s):
 	variableValues.update(context.variableValues)
 	functions.update(context.methods)
 	methods.update(context.methods)
-	print("DONE PARSING %s" % s)
+	print(("DONE PARSING %s\n\n" % s))
 	return r
 
 
@@ -199,7 +207,7 @@ def name(x):
 
 def copy_variables(variables=variables):
 	global variableValues
-	variable_keys = variables.keys()
+	variable_keys = list(variables.keys())
 	for name in variable_keys:
 		v_ = variables[name]
 		if isinstance(v_, angle.nodes.Variable):
@@ -234,14 +242,14 @@ class ParserBaseTest(unittest.TestCase):
 		self.parser.clear()  # OK Between test, just not between parses!
 
 	def parse(self, s):
-		print("PARSING %s" % s)
+		print(("PARSING %s" % s))
 		x = _parser.parse(s).result
-		print("DONE PARSING %s" % s)
+		print(("DONE PARSING %s" % s))
 		return x
 
 	def assert_has_no_error(self, x):
 		parse(x)
-		print(x + ' parses OK')
+		print((x + ' parses OK'))
 
 	def assert_has_error(self, x, block):
 		try:
@@ -259,7 +267,7 @@ class ParserBaseTest(unittest.TestCase):
 
 	def assert_equals(self, a, b):
 		if a == b or str(a) == str(b):
-			print('TEST PASSED! %s      %s == %s' % (self.parser.original_string, a, b))
+			print(('TEST PASSED! %s      %s == %s' % (self.parser.original_string, a, b)))
 		else:
 			assert a == b, "%s should equal %s" % (a, b)
 		# print(filter_stack(caller()))
@@ -272,9 +280,9 @@ class ParserBaseTest(unittest.TestCase):
 		if not msg: msg = x
 		ok = False
 		if x == True:
-			print('TEST PASSED! ' + str(msg))
+			print(('TEST PASSED! ' + str(msg)))
 			return True
-		if callable(msg):
+		if isinstance(msg, collections.Callable):
 			msg = msg.call()
 		if block:
 			msg = (msg or self.parser.to_source(block))
@@ -288,7 +296,7 @@ class ParserBaseTest(unittest.TestCase):
 			ok = self.parser.condition()
 			if ok == False or ok == FALSE or ok == NONE:  # no match etc
 				assert False, 'NOT PASSING: ' + str(msg)
-		print('TEST PASSED!  ' + str(msg) + ' \t VALUE ' + str(ok))
+		print(('TEST PASSED!  ' + str(msg) + ' \t VALUE ' + str(ok)))
 
 	# def NOmethod_missing(self, sym, args, block):
 	#     syms = sym.to_s()

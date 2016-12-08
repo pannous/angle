@@ -33,7 +33,7 @@ class ConditionTest(ParserBaseTest):
 	def test_eq1(self):
 		variables['counter'] = 3
 		copy_variables(variables)
-		print(self.variables())
+		print((self.variables()))
 		assert self.parse('counter == 3')
 		assert self.parse('counter = 3')
 		init('counter = 3')
@@ -219,9 +219,6 @@ class ConditionTest(ParserBaseTest):
 	def test_else(self):
 		assert_equals(parse('if 1 then false else 2'), False)
 		assert_equals(parse('if 1 then false else 2'), False)
-
-	def test_incr(self):
-		assert_result_is('x=2;x++', 3)
 
 	def test_if_smaller(self):
 		parse('x=2;if x is smaller 3 then x++')

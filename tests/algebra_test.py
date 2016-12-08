@@ -40,7 +40,7 @@ class AlgebraTest(ParserBaseTest):
     # assert_result_is('2 to the power of 10', 1024)
 
   def test_algebra_POW2(self):
-    assert_result_is(u'⦠pow 3, 4', 81) # how, lol
+    assert_result_is('⦠pow 3, 4', 81) # how, lol
     # assert_result_is(u'⦠pow 3, 4', 1024)
 
   def test_algebra_NOW(self):

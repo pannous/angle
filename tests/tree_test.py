@@ -60,5 +60,5 @@ class TreeTest(ParserBaseTest,unittest.TestCase):
     def test_algebra(self):
         init('2*(3+10)')
         ok = self.parser.algebra()
-        print('Parsed input as %s !'%ok)
+        print(('Parsed input as %s !'%ok))
         assert_equals(ok, 26)

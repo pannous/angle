@@ -23,7 +23,7 @@ from extension_functions import is_string
 from nodes import Argument, Variable, Property, Compare, FunctionCall, FunctionDef
 # from nodes import *
 import context as the
-from context import *
+from context import * #NOO! 2 different!
 
 
 # Beware of decorator classes. They don't work on methods unless you manually reinvent the logic of instancemethod descriptors.
@@ -930,22 +930,23 @@ except NameError:
 def parse(s, target_file=None):
 	global last_result, result
 	if not s: return
-	verbose("PARSING " + s)
+	# verbose("PARSING " + s)
 	if (isinstance(s, file_types)):
 		source_file = s.name
 		s = s.readlines()
-
 	elif s.endswith(".e") or s.endswith(".a"):
 		target_file = target_file or s + ".pyc"
 		source_file = s
 		s = open(s).readlines()
-
 	else:
 		source_file = 'out/inline'
 		open(source_file, 'wt').write(s)
 	if context._debug:
-		print("  File \"%s\", line 1 ... running " % source_file)
-	if (len(s) < 1000): verbose(s)
+		print("  File \"%s\", line 1" % source_file)
+	if (len(s) < 1000):
+		print("--------PARSING:---------")
+		verbose(s)
+		print("-------------------------")
 	try:
 		import english_parser
 		if isinstance(s, file_types):

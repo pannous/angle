@@ -15,7 +15,7 @@ class FunctionTest(ParserBaseTest):
         code = File.read(dir+('fibonacci.e'))
         code = self.fix_encoding(code)
         p(code)
-        print(parse(code))
+        print((parse(code)))
         fib = functions['fibonacci']
         print(fib)
         # assert fib.args[0].name=='number'
@@ -38,7 +38,7 @@ class FunctionTest(ParserBaseTest):
         print(f10)
         assert_equals(f10, 55)
         assert_equals(parse('fibonacci of 10'), 55)
-        print(parse('assert fibonacci of 10 is 55'))
+        print((parse('assert fibonacci of 10 is 55')))
 
     def test_identity(self):
         identity0=parse("def identity(x):return x")
@@ -51,13 +51,13 @@ class FunctionTest(ParserBaseTest):
         code = File.read(dir+('identity.e'))
         code = fix_encoding(code)
         p(code)
-        print(parse(code))
+        print((parse(code)))
         identity = functions['identity']
         assert(equals('x', identity.args[0].name))
         print(identity)
-        print(identity.call(5))
+        print((identity.call(5)))
         assert(equals(5, identity.call(5)))
-        print(parse('identity(5)'))
+        print((parse('identity(5)')))
         assert('identity(5) is 5')
 
     def test_factorial(self):
@@ -75,10 +75,10 @@ class FunctionTest(ParserBaseTest):
             code = read(File.open(dir+(file), 'rb', {'binary': True, 'encoding': 'UTF-8', }))
             code = fix_encoding(code)
             p(code)
-            print(parse(code))
+            print((parse(code)))
             fib = functions['fibonacci']
             print(fib)
-            print(fib.call(5))
+            print((fib.call(5)))
             parse('fibonacci(5)')
 
     def test_basic_syntax(self):

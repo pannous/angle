@@ -2,6 +2,7 @@ import _ast
 import ast
 
 # import pyc_emitter
+import extensions
 import kast.kast
 import context as the
 from kast import kast
@@ -80,8 +81,8 @@ class FunctionDef(kast.FunctionDef):
         if not self.arguments :self.arguments=[]
         # self.args       =self.arguments
         # todo: later
-        args = ast.arguments(args=pyc_emitter.map_values(self.arguments), vararg=None, kwarg=None, defaults=[])
-        super(kast.FunctionDef,self).__init__(name=self.name,args=args,body=self.body,decorator_list=self.decorators)
+        self.args = ast.arguments(args=pyc_emitter.map_values(self.arguments), vararg=None, kwarg=None, defaults=[])
+        super(kast.FunctionDef,self).__init__(name=self.name,args=self.args,body=self.body,decorator_list=self.decorators)
 
 
         # self.scope    =args['scope'] # == class??
@@ -171,7 +172,7 @@ class FunctionCall(ast.Assign): # todo: bad name
         if 'class' in args: self.clazz = args['class']
         if 'module' in args: self.clazz = self.clazz or args['module']
         # AST CONTENT:
-        if isinstance(func,(str,unicode)): func=kast.name(func)
+        if isinstance(func, (str, extensions.unicode)): func=kast.name(func)
         if not isinstance(func,kast.Name):
             raise Exception("NOT A NAME %s"%func)
         self.targets=[kast.Name(id="it",ctx=ast.Store())]

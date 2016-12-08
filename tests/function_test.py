@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import nodes
 from tests.parser_test_helper import *
 # from parser_test_helper import ParserBaseTest
 # from extensions import *
@@ -17,14 +18,20 @@ class FunctionTest(ParserBaseTest):
 		parse("define identity number n\n\tn\nassert identity(1) is 1")
 		# parse("define identity number n\nn\nend\nassert identity(1) is 1")
 
+	def test_assert(self):
+		# self.assert_that("assert 1+1==2")
+		# self.assert_that("1+1==2")
+		parse("assert 1+1==2")
+
+	def test_assert2(self):
+		self.assert_that("assert 2 + 4 is 6")
+
 	def test_add2(self):
 		parse("define add2 number n\nn+2\nend\nassert add2(1) is 3")
 		# parse("define add number n\nn+2\nend\nassert add(1,2) is 3")
 		# parse("define add number n to number m\nn+2\nend\nassert add(1,2) is 3")
 		# parse("define add number n to number m\nn+m\nend\nassert add(1,2) is 3")
 
-	def test_assert(self):
-		self.assert_that("assert 2 + 4 is 6")
 
 	def test_add3(self):
 		parse("define add number n to number m\nn+m\nend\nassert add 2 to 4 is 6")
@@ -53,13 +60,13 @@ class FunctionTest(ParserBaseTest):
 		code = read(dir + ('fibonacci.e'))
 		code = fix_encoding(code)
 		print(code)
-		print(parse(code))
+		print((parse(code)))
 		fib = the.methods['fibonacci']
 		print(fib)
 		assert (equals('n', fib.arguments[0].name))  # name(args[0], )))
 		# assert (equals('number', fib.arguments[0].name))  # name(args[0], )))
 		assert_equals(parse('fibonacci of 10'), 89)
-		print(parse('assert fibonacci of 10 is 89')) # 55
+		print((parse('assert fibonacci of 10 is 89'))) # 55
 		# f10 = fib.call(10)
 		# print(f10)
 		# assert_equals(f10, 89)
@@ -69,14 +76,14 @@ class FunctionTest(ParserBaseTest):
 		code = read(dir + ('identity.e'))
 		code = fix_encoding(code)
 		print (code)
-		print(parse(code))
+		print((parse(code)))
 		identity = the.methods['identity']
 		assert (equals('x', identity.arguments[0].name))
 		print(identity)
-		print(identity.call(5))
-		print(identity(5))
+		print((identity.call(5)))
+		print((identity(5)))
 		assert (equals(5, identity(5)))
-		print(parse('identity(5)'))
+		print((parse('identity(5)')))
 		assert ('identity(5) is 5')
 
 	def test_basic_syntax(self):
@@ -170,13 +177,11 @@ class FunctionTest(ParserBaseTest):
 		# parse('Math.e ~= 2.71828')
 
 	def test_x_name(self):
-		variables['x'] = Variable(name='x',value=7)
+		variables['x'] = nodes.Variable(name='x', value=7)
 		init('x')
 		assert_equals(name(self.parser.nod(), ), 'x')
 
 	def test_add_to_zero(self):
-		from extensions import *
-		from extension_functions import *
 		context.use_tree=False # not yet
 		parser.do_interpret()
 		parse('counter is zero; repeat three times: increase counter by 1; done repeating;')
@@ -193,12 +198,12 @@ class FunctionTest(ParserBaseTest):
 		assert_equals(parse('x=[1,2,3];x[2]'), 3)
 
 	def test_array_index_set(self):
+		parser.clear()
 		assert_equals(parse('x=[1,2,3];x[2]=0;x'), [1, 2, 0])
 
 	def test_x(self):
 		the.variables['x']=Variable(name='x',value=1)
 		assert_equals(parse('x'), 1)
-
 
 	def test_natural_array_index_setter(self):
 		parse('x=[1,2,3]')

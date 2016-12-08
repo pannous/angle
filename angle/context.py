@@ -78,6 +78,7 @@ negated=False
 depth=0
 current_node=None
 current_value=None
+needs_extensions=False # until ...
 parser=globals()
 def is_number(s):            #isint isnum
     return isinstance(s,int) or isinstance(s,float) or is_string(s) and s.isdigit() # is number isnumeric

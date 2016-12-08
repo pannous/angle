@@ -167,7 +167,7 @@ class EmitterTest(tests.parser_test_helper.ParserBaseTest):
 
   def test_deep_in_loop(self):
     # skip()
-    exec(compile("c=0\nwhile c<3:\n c+=1\n if c>1:beep()", '', 'exec')) in {'beep': beep}
+    exec((compile("c=0\nwhile c<3:\n c+=1\n if c>1:beep()", '', 'exec')), {'beep': beep})
     py_ast = pyc_emitter.get_ast("c=0\nwhile c<3:\n c+=1\n if c>1:beep()")
     pyc_emitter.run_ast(py_ast)  # WHOOT??  expected some sort of expr, but got <_ast.While object at 0x111a48c10>
 

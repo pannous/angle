@@ -36,7 +36,7 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
     def test_tau_pi(self):
 
         import math
-        assert_that('tau / 2 = pi')
+        self.assert_that('tau / 2 = pi')
         # assert_result_is('tau / 2 ', math.pi)
         # assert_result_is('†/2', math.pi)# alt+t on mac
         # assert_result_is('τ / 2 = π', True)

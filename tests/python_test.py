@@ -16,6 +16,7 @@ import traceback
 # import t_vars.x
 # from t_vars import x #needs no global !
 import unittest
+import collections
 
 
 class Tokenizer(unittest.TestCase):
@@ -35,10 +36,10 @@ class Tokenizer(unittest.TestCase):
         srow, scol = srow_scol
         erow, ecol = erow_ecol # tuple
         if lastLine!= line :
-            print line
+            print(line)
             lastLine=line
-        print "%d,%d-%d,%d:\t%d=%s\t%s" % \
-            (srow, scol, erow, ecol,ttype, token.tok_name[ttype], repr(tokenn))
+        print("%d,%d-%d,%d:\t%d=%s\t%s" % \
+            (srow, scol, erow, ecol,ttype, token.tok_name[ttype], repr(tokenn)))
         token.INDENT # not available here :(
         token.DEDENT #!!
          # for toknum, tokval, _, _, _  in g:
@@ -69,7 +70,7 @@ class PythonTest(unittest.TestCase):
 
         try:
             self.do_raise()
-        except IgnoreException  as e:
+        except IgnoreException as e:
             raise e
 
     def dont_test_exception_fallthrough(self):
@@ -134,18 +135,18 @@ class GlobalTest():
     def test_all(self):
         Foo.p='class attribute' # HAS NO EFFECT ON INNER p !!!!!!!!!
         foo = Foo()
-        print(Foo.p) #class attribute
-        print(foo.p) #instance self
-        print(foo.global_p())# global var
-        print(foo.instance_p()) #instance self
+        print((Foo.p)) #class attribute
+        print((foo.p)) #instance self
+        print((foo.global_p()))# global var
+        print((foo.instance_p())) #instance self
         foo.p='instance var override'
-        print(foo.p)
-        print(foo.global_p())
-        print(foo.instance_p())
-        print(Foo.global_p(0)) # Call instance methods as if they we are class functions!!!
+        print((foo.p))
+        print((foo.global_p()))
+        print((foo.instance_p()))
+        print((Foo.global_p(0))) # Call instance methods as if they we are class functions!!!
         foo2 = Foo()
         foo2.setP('set globally')
-        print(foo.global_p())
+        print((foo.global_p()))
         # quit()
 
     # from Foo import p
@@ -182,14 +183,14 @@ class GlobalTest():
 def interrogate(item):
     """Print useful information about item."""
     if hasattr(item, '__name__'):
-     print( "NAME:    ", item.__name__)
+     print(( "NAME:    ", item.__name__))
     if hasattr(item, '__class__'):
-     print("CLASS:   ", item.__class__.__name__)
-    print ("ID:      ", id(item))
-    print ("TYPE:    ", type(item))
-    print ("VALUE:   ", repr(item))
-    print ("CALLABLE: ", callable(item))
-    if callable(item):
+     print(("CLASS:   ", item.__class__.__name__))
+    print(("ID:      ", id(item)))
+    print(("TYPE:    ", type(item)))
+    print(("VALUE:   ", repr(item)))
+    print(("CALLABLE: ", isinstance(item, collections.Callable)))
+    if isinstance(item, collections.Callable):
      print("Yes")
     else:
      print("No")
@@ -198,7 +199,7 @@ def interrogate(item):
         if(doc):
             doc = doc.strip()   # Remove leading/trailing whitespace.
             firstline = doc.split('\n')[0]
-            print("DOC:     ", firstline)
+            print(("DOC:     ", firstline))
 
 
 def inspect(item):
@@ -206,7 +207,7 @@ def inspect(item):
     all={}
     for attr in dir(item):
         m=getattr(item,attr)
-        if callable(m):
+        if isinstance(m, collections.Callable):
             try:m=m()
             except:'so?'
         all[attr]=m
@@ -217,7 +218,7 @@ class Pointer(int):
     def __str__(self):
         return '2'
 
-print(Pointer(1))
+print((Pointer(1)))
 assert str(Pointer(1))=='2'
 # assert Pointer(1)=='2' # NO!
 # try:
@@ -253,11 +254,11 @@ class forbiddenfruitExtendBuiltinsTest():
         # print(type(words_of_wisdom))
         # print(classmethod(words_of_wisdom))
         curse(str, "z", 7)
-        print(x.z) # YAY !!! retroactively gifts attribute to all instances
+        print((x.z)) # YAY !!! retroactively gifts attribute to all instances
         reverse(str, "z")
-        print(x.z) # NOO:( don't work!!
+        print((x.z)) # NOO:( don't work!!
         a="dfs"
-        print(a.z) # NOO:(
+        print((a.z)) # NOO:(
 
 
 

@@ -7,7 +7,6 @@ py2=sys.version < '3'
 py3=sys.version >= '3'
 
 # from exceptions import GivingUp
-import _ast
 # import yappi
 import traceback
 import types
@@ -18,16 +17,30 @@ import pyc_emitter
 # from exceptions.exceptions import GivingUp
 #
 from english_tokens import *
+import ast_magic
+import _ast
 from kast import kast
+from _ast import *  # VS
+# from kast.kast import * # DANGER: inheritance not handled correctly in all libs!
+
 from power_parser import *
 import power_parser
-from context import *
+# from context import * # DOESN'T WORK!!
 import context as the
 from extensions import *
 import token as _token
-from tree import TreeNode
+# from tree import TreeNode
+import nodes
 
 py3=sys.version < '3'
+
+def get(name):
+	if isinstance(name,Name): name=name.id # make sure to Load() !!
+	if(isinstance(name,nodes.Variable)): name=name.name
+	return _ast.Name(id=name,ctx=Load())
+from kast.kast import name
+# def name(x):
+# 	return kast.name()
 
 def parent_node():
 	pass
@@ -327,11 +340,13 @@ def operator():
 
 
 def isUnary(op):
-	return
+	todo("isUnary")
+	return False
 
 
-# always Rightfully assume that the values left and right of the operator are the final values
 def ast_operator(op):
+	if isinstance(op,(cmpop,BinOp)):
+		return op
 	return kast_operator_map[op]
 
 def fix_context(x):
@@ -354,18 +369,34 @@ def apply_op(stack, i, op):
 			# ast.BoolOp ??
 			left = fix_context(left)
 			right = fix_context(right)
-			stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
+
+			if isinstance(op,_ast.operator):
+				stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
+			elif op in true_operators:
+				stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
+			elif op in comparison_words:
+				stack[i - 1:i + 2] = [kast.Compare(left, [ast_operator(op)], [right])] # array for multi compare !
+			else:
+				stack[i - 1:i + 2] = [kast.Compare(left, [ast_operator(op)], [right])]
 
 
 def fold_algebra(stack):
 	used_operators = [x for x in operators if x in stack]
-	while len(stack) > 1 and len(used_operators)>0:
-		for op in used_operators:
-			i = 0
-			while i < len(stack):
-				if stack[i] == op:
-					apply_op(stack, i, op)
-				i += 1
+	used_ast_operators = [x for x in kast_operator_map.values() if x in stack]
+	print("x in stack %s"%("==" in stack))
+	# while len(stack) > 1 and len(used_operators)>0:
+	for op in used_operators + used_ast_operators:
+		i = 0
+		leng = len(stack)
+		while i < len(stack):
+			if stack[i] == op:
+				apply_op(stack, i, op)
+			i += 1
+		# if leng == len(stack):
+		# 	raise Exception("OPERATOR NOT CONSUMED: "+op)
+	if len(stack) > 1 and len(used_operators) > 0:
+		raise Exception("NOT ALL OPERATORS CONSUMED IN %s ONLY %s"%(stack, used_operators))
+
 	# if not interpreting():
 	#     return kast.setter("it",stack[0])
 	return stack[0]
@@ -1785,6 +1816,9 @@ def setter(var=None):
 	#     _type=var.type
 	#     mod=var.modifier
 	var = var or maybe(property) or variable(a, ctx=kast.Store())
+	if current_word=="[":
+		return evaluate_index(var)
+	# if use_tree: var.ctx=Store()
 	setta = maybe_tokens(['to']) or be()  # or not_to_be 	contain -> add or create
 	if not setta: raise NotMatching("BE!?") # bug ^^
 	if (setta == ':=' or _let == 'alias'): return alias(var);
@@ -3301,22 +3335,26 @@ def evaluate_index(obj=None):
 		must_contain(['[', ']'])
 		obj = endNode()  # true_variable()
 	_('[')
-	i = endNode()
+	index = endNode()
 	_(']')
 	set = maybe_token('=') or None
 	if set: set = expression()
 	# if interpreting(): the.result=v.send :index,i
 	# if interpreting(): the.result=do_send v,:[], i
 	# if set and interpreting(): the.result=do_send(v,:[]=, [i, set])
-	va = do_evaluate(obj)
 	if interpreting():
-		the.result = va[i]  # va.__index__(i)  # old value
 		if set != None:  # and interpreting():
-			the.result = va[i] = set  # va.__index__(i, set)
-		if set != None and isinstance(obj, Variable):
-			the.result = obj.value = va
-	else: todo()
-	# if interpreting(): the.result=do_evaluate "#{v)[#{i)]"
+			if isinstance(obj, Variable):
+				the.result = obj.value[index] = set
+			else:
+				the.result = va[index] = set  # va.__index__(i, set)
+		else:
+			va = do_evaluate(obj)
+			the.result = va[index]  # va.__index__(i)  # old value
+	else:
+		the.result = Subscript(value=get(obj), slice=Index(index), ctx=Load())
+		if set != None:  # and interpreting():
+			the.result = Assign([Subscript(get(obj), Index(index), Store())],set)
 	return the.result
 
 

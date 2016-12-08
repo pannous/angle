@@ -96,5 +96,5 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
         def sum_and_stringify(nums):
             # type (list) -> str
             return str(sum(nums))
-        print(sum_and_stringify([1, 'b']))
+        print((sum_and_stringify([1, 'b'])))
 

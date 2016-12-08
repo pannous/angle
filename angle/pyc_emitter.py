@@ -58,7 +58,7 @@ import context as the
 
 to_inject = []
 to_provide = {}  # 'global' params for exec
-
+provided={}
 
 class Reflector(object):  # Implements list interface is
 	def __getitem__(self, name):
@@ -215,6 +215,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		# return ast.Name(x.name,ast.Load())
 
 	def visit_arguments(self, x):
+		x.ctx=_ast.Param() # never reached!
 		return x  # WHY???
 
 	def visit_Function(self, x):  # old:
@@ -225,8 +226,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		x.body = fix_block(x.body)
 		if not x in to_inject:
 			to_inject.append(x);
-		x.args = ast.arguments(args=map_values(x.arguments), vararg=None, kwarg=None, defaults=[])
+		arg = map_params(x.arguments)
+		x.args = ast.arguments(args=arg, vararg=None, kwarg=None, defaults=[])
 		x.decorator_list = x.decorators or []  # for now!!
+		provided[x.name]=x
 		return x
 
 	def visit_Argument(self, x):
@@ -244,11 +247,14 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 				to_inject.append(function_def)
 			elif isinstance(function_def, collections.Callable):
 				to_provide[node.name] = function_def
+			elif provided[node.name]:
+				print("OK, already provided "+ node.name)
 			else:
 				print("HUH")
 			print(("NEED TO IMPORT %s ??" % function_def))
 		skip_assign = True
-		node.value.args = map_values(node.value.args)
+		node.value.args = map_arguments(node.value.args)
+		node.args= node.value.args
 		if skip_assign:
 			# return node.value
 			return self.generic_visit(node.value)  # skip_assign
@@ -289,7 +295,8 @@ def fix_ast_module(my_ast, fix_body=True):
 		# my_ast.body.insert(0, ast.ImportFrom(module='extension_functions', names=[ast.alias(name='*',  asname=None)],level= 0))
 		# my_ast.body.insert(0, ast.ImportFrom('extension_functions', [str('*')], 0))
 		# my_ast.body.insert(0, ast.ImportFrom('angle', [ast.alias('extensions', None)], 0))
-		my_ast.body.insert(0, ast.ImportFrom('angle.extensions', [ast.alias('*', None)], 0))
+		if context.needs_extensions:
+			my_ast.body.insert(0, ast.ImportFrom('angle.extensions', [ast.alias('*', None)], 0))
 		for s in to_inject:
 			if not s in my_ast.body:
 				my_ast.body.insert(0, s)
@@ -445,13 +452,21 @@ def map_values(val):
 	return list(map(wrap_value, val))
 
 
-def wrap_value(val):
+def map_arguments(val): # todo: different ^^?
+	return list(map(wrap_value, val))
+
+
+def map_params(val):
+	return list(map(lambda x:wrap_value(x, _ast.Param()), val))
+
+
+def wrap_value(val,ctx=_ast.Load()):
 	if not val:
 		return kast.none
 	import nodes
 	if isinstance(val, nodes.Argument):
 		if val.name:
-			return ast.Name(id=val.name, ctx=_ast.Load())  # if FunctionCall
+			return ast.Name(id=val.name, ctx=ctx)  # if FunctionCall
 			# return ast.Name(id=val.name, ctx=_ast.Param()) # if FunctionDef
 		else:
 			return wrap_value(val.value)

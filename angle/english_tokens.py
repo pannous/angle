@@ -177,9 +177,11 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
                     'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor","neither"]
+math_operators= ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
 english_operators = xlist(["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
                      "modulo","print", ])
-operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] + english_operators + comparison_words + logic_operators
+true_operators = math_operators + english_operators + logic_operators # minus comparison_words
+operators = math_operators + english_operators + comparison_words + logic_operators
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
 # just make sure that 4 and False = False  4 and True == True
