@@ -1,3 +1,4 @@
+cd $ANGLE_HOME
 export PYTHONPATH=$PYTHONPATH:./angle/:./kast/:./tests/
 export TESTING=1
 # cd angle

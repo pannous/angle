@@ -100,6 +100,10 @@ def _(x):
 	return power_parser.token(x)
 
 
+def __(x):
+	return power_parser.tokens(x)
+
+
 # class Nil(object):
 #     pass
 #
@@ -661,6 +665,13 @@ def close_bracket():  # for nice GivingUp):
 	return _(')')
 
 
+def empty_map():
+	_("{")
+	_("}")
+	if interpreting():return EMPTY_MAP
+	return Expr(Dict([], []))
+
+
 def hash_map():
 	must_contain_before(args=[":", "=>"], before=["}"])
 	# z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
@@ -702,16 +713,13 @@ def regular_hash():
 	# careful with blocks/closures ! map{puts it} VS data{a:"b")
 
 
-def starts_with_(param):
-	return maybe(lambda: starts_with(param))
-
 
 def immediate_hash():  # a:b a:{b} OR a{b:c}):
 	must_contain_before([":", "=>"], "}")
 	w = maybe(quote) or word()  # expensive
 	if maybe_token(":") or maybe_token("=>"):  # disastrous :  BLOCK START!
 		r = expression()
-	elif starts_with_("{") or _('=>'):
+	elif starts_with("{") or _('=>'):
 		# maybe(lambda:starts_with("={")) and maybe_token('=') or:c)
 		no_rollback()
 		r = regular_hash()
@@ -745,25 +753,33 @@ def contains_any(tokens):
 
 def quick_expression():  # bad idea?
 	result = False
+	# end
 	if the.current_word == '': raise EndOfLine()
 	if the.current_word == ';': raise EndOfStatement()
-	if the.current_word == ',':
-		return liste(first=the.result)
-	if not context.in_params and look_ahead(':'):
-		warn("look_ahead(':'): # AND ...")
-		return immediate_hash()
-	if the.current_word == '{' and (contains("=>") or contains(":")):
-		return hash_map()
-	if the.current_word.startswith("r'"):# wrongly tokeinzied: : or the.current_word.startswith("/"):
-		result = regexp(the.current_word)
-		next_token(False)
-	if look_ahead('='):
+	# list
+	if the.current_word == ',': return liste(first=the.result)
+	# hash_map
+	if not context.in_params and look_1_ahead(':'):
+		return immediate_hash() # a:b ~ {a=>b} todo  a:string type etc
+	# hash_map
+	if the.current_word == '{':
+		if look_1_ahead('}'): return empty_map()
+		if contains("=>") or contains(":"): return hash_map()
+	# property
+	if look_1_ahead(['.','\'s',"of"]):
+		return property()
+	# setter
+	if look_1_ahead('='):
 		if not context.in_condition: return setter()
-		# if context.in_condition: return condition()
+	# declaration   (map x)
+	if the.current_word in type_names or the.current_word in the.classes.keys():
+		return declaration() # setter case ABOVE!
+	# NO(?!) algebra
 	if the.current_word in operators + special_chars:
 		if the.current_word!="~": return False # USE ALGEBRA // Fuckup !!  #TODO: if more than one
 		# if context.in_algebra: return False
 		# return algebra(result)
+		# if context.in_condition: return condition()
 
 	# number
 	if the.current_type == _token.NUMBER:
@@ -771,6 +787,10 @@ def quick_expression():  # bad idea?
 		# n'th item
 		if maybe_tokens(['rd','nd','th']):
 			result = nth_item(result)
+	# regexp
+	elif the.current_word.startswith("r'"):# wrongly tokeinzied: : or the.current_word.startswith("/"):
+		result = regexp(the.current_word)
+		next_token(False)
 	# string
 	elif the.current_type == _token.STRING or the.current_word.startswith("'"):
 		result = quote()
@@ -800,7 +820,7 @@ def quick_expression():  # bad idea?
 		return maybe(setter) or method_definition()  # or ... !!!!!
 
 	# a of b
-	if look_ahead('of'):
+	if look_1_ahead('of'):
 		result = evaluate_property(result)
 
 	if not result: return False
@@ -821,14 +841,15 @@ def quick_expression():  # bad idea?
 def post_operations(result):  # see quick_expression !!
 	if the.current_word == '': return result
 	if the.current_word == ';': return result
+	# if the.current_word in ['not']: return not result
 	if the.current_word == '.': return method_call(result)
 	if the.current_word == ',' and not (context.in_args or context.in_params or context.in_hash):
 		return liste(check=False, first=result)
-	if the.current_word in operators and look_ahead('='):
+	if the.current_word in operators and look_1_ahead('='):
 		return self_modify(result)
-	if the.current_word == '+' and look_ahead('+'):
+	if the.current_word == '+' and look_1_ahead('+'):
 		return plusPlus(result)
-	if the.current_word == '-' and look_ahead('-'):
+	if the.current_word == '-' and look_1_ahead('-'):
 		return minusMinus(result)
 	if the.current_word in be_words:
 		if not context.in_condition:
@@ -1035,7 +1056,7 @@ def method_definition(name=None,return_type=None):
 	f2 = addMethodNames(f)
 	# # with args! only in tree mode!!
 	b = action_or_block()  # define z as 7 allowed !!!
-	look_ahead("return","Return statement out of method {block}, are you missing curlies?",must_not_be=True)
+	look_1_ahead("return", "Return statement out of method {block}, are you missing curlies?", must_not_be=True)
 	if not isinstance(b, list): b = [b]
 	if not isinstance(b[-1], (kast.Print,ast.Return)):
 		b[-1] = kast.assign("it", b[-1])
@@ -1722,6 +1743,10 @@ def assure_same_type(var, type):
 		warn("TYPE AST")
 		return
 
+	if not isType(oldType):
+		warn("NOT A TYPE %s"%oldType) #todo?
+		return
+
 	# if isinstance(oldType,str):
 	#   oldType=eval(oldType)
 		# oldType =getattr(sys.modules[__name__], oldType)
@@ -1741,6 +1766,7 @@ def assure_same_type(var, type):
 
 
 def assure_same_type_overwrite(var, val,auto_cast=False):
+	if not val: return
 	oldType = var.type
 	oldValue = var.value
 	if (isinstance(val, FunctionCall)):
@@ -1782,14 +1808,29 @@ def get_obj(o):
 	# Object.property  or  object.property
 
 
-def property():
-	must_contain_before([".", "'s"], xlist(special_chars) - '.')
+def property():#sett=False,delay_eval=True):
+	must_contain_before([".", "'s", "of"], special_chars)
+	var = variable() # todo or word() # or type/class!
+	container = var.value
+	of=__(['.',"'s","of"]) # todo ,"of" don't work if var is unknown
 	no_rollback()
-	owner = class_constant
-	owner = get_obj(owner) or variables[known_variable(False)].value  # reference
-	_('.')
-	properti = word
-	return Property(name=properti, owner=owner)
+	properti = word()
+	if of=="of": container,properti= properti,container # flip!
+
+	# if sett:
+	sett= maybe_token('=') and expression()
+	if sett:
+		if interpreting():
+			if isinstance(container,dict): container[properti]=sett
+			else: setattr(container, properti, sett)
+			return sett
+		return Assign([Attribute(container, properti, sett and Store() or Load()), sett])
+	if interpreting():
+		# if delay_eval: return Attribute(container, properti, sett and Store() or Load())
+		if isinstance(container, dict): return container[properti]
+		else: return getattr(container, properti)
+	return Attribute(container, properti, sett and Store() or Load())
+	# return Property(name=properti, owner=owner)
 
 
 # difference to setter? just public int var const test # no be_words
@@ -1802,6 +1843,11 @@ def declaration():
 	maybe_tokens(['var', 'val', 'let'])
 	mod = mod or maybe_tokens(modifier_words)  # public static :.
 	var = maybe(known_variable) or variable(a, ctx=kast.Store())
+	try:
+		val= type() # DEFAULT CONSTRUCTOR!?
+	except:
+		val=None
+	add_variable(var,val,mod,_type=type)
 	if var.type:
 		assure_same_type(var, type)
 	else:
@@ -1826,7 +1872,7 @@ def setter(var=None):
 	# else:
 	#     _type=var.type
 	#     mod=var.modifier
-	var = var or maybe(property) or variable(a, ctx=kast.Store())
+	var = var or variable(a, ctx=kast.Store()) # property now has own method with setter
 	if current_word=="[":
 		return evaluate_index(var)
 	# if use_tree: var.ctx=Store()
@@ -1834,7 +1880,12 @@ def setter(var=None):
 	if not setta: raise NotMatching("BE!?") # bug ^^
 	if (setta == ':=' or _let == 'alias'): return alias(var);
 	# val = maybe(adjective) or expressions()
-	val = expression()
+	if maybe_tokens(['a','an']) and not _type: # todo x is a list of ... !?
+		_type = typeNameMapped()
+		val=_type() # default constructor!!!
+		return add_variable(var, val, mod, _type)
+	else:
+		val = expression()
 	_cast = maybe_tokens(["as", "kast", "kast to", "kast into", "kast as"]) and typeNameMapped()
 	guard = maybe_token("else") and value()
 	# guard = maybe_token("else") and action_or_block()
@@ -1873,7 +1924,7 @@ def alias(var=None):
 		must_contain(['alias', ':='])
 		ali = _('alias')
 		var = variable(False, ctx=kast.Store())
-		if look_ahead('('):
+		if look_1_ahead('('):
 			return method_definition(var.name)
 		ali or be()
 	dont_interpret()
@@ -1903,11 +1954,11 @@ def add_variable(var, val, mod=None, _type=None):
 		the.variables[var.name] = var
 		var.value = val
 	the.token_map[var.name] = known_variable
-
+	var.type= _type
 	var.final = mod in const_words
 	var.modifier = mod
 	the.variableTypes[var.name] = var.type
-	if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
+	# if isinstance(var, Property): var.owner.send(var.name + "=", val)  # todo
 	return var
 
 
@@ -2116,7 +2167,7 @@ def call_arg(position=1):
 	# a = maybe(variable)# and not the.current_word in operators
 	# if a: return Argument(name=a.name, type=a.type, preposition=pre, position=position, value=a)
 	type = maybe(typeNameMapped)
-	if look_ahead('='):
+	if look_1_ahead('='):
 		name = maybe(word)
 		maybe_token('=')
 	else:
@@ -2632,6 +2683,7 @@ def mapType(x0):
 	if x == "dict": return dict
 	if x == "dictionary": return dict
 	if x == "map": return dict
+	if x == "object": return object # vs dict See JS for goodness!
 	if x == "array": return list
 	if x == "set": return set
 	if x == "list": return list
@@ -2642,6 +2694,7 @@ def mapType(x0):
 	if x == "label": return str
 	if x == "length": return int
 	if x == "label": return str
+	raise UnkownType(x)
 	# if x == "size": return int or tuple
 	return x0
 

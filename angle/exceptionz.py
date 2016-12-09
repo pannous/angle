@@ -58,6 +58,9 @@ class SecurityError(StandardError):
 	pass
 
 
+class UnkownType(StandardError):
+	pass
+
 # NotPassing = Class.new StandardError
 class NotPassing(StandardError):
 	pass

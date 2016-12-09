@@ -9,6 +9,8 @@ global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
 global in_condition,in_pipe,in_args,line_number, in_list
 
+EMPTY_MAP = {'EMPTY_MAP': 1}
+
 _verbose = False# True # False angel.verbose() and not angel.raking()  # false
 _debug = False
 testing = False
@@ -60,7 +62,7 @@ moduleClasses={} # reuse module->Classes  class->modules !
 moduleMethods={}
 methodToModulesMap={}
 method_names=[]
-
+constructors = [] # type_keywords plus classes!!
 OK = 'OK'
 # result = ''
 result=None

@@ -1,11 +1,12 @@
-#!/usr/local/bin/python
+#!/usr/local/bin/python3
 import ast
 import os
-import unittest
-
-import ipython_genutils.py3compat
 import sys
+import unittest
 from astor import codegen
+
+sys.version < '3'
+
 
 if 'TESTING' in os.environ or 'TEST' in os.environ:
 	print("skipping while TESTING")
@@ -23,13 +24,12 @@ elif arg:
 	if arg.endswith(".py"):
 		expr = open(arg).read()
 		do_exec = True
-	try:
-		my_ast = ast.parse(arg)
-	except Exception as e:
-		print("Exception ast.parse(%s): %s"%(arg,e))
-
-		quit(1)
-	print(arg)
+	else: expr=arg
+	my_ast = ast.parse(expr)
+	# except Exception as e:
+	# 	print("Exception ast.parse(%s): %s"%(arg,e))
+	# 	quit(1)
+	print(expr)
 	print("")
 	x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
 	print(x)
@@ -45,7 +45,8 @@ elif arg:
 
 try:
 	inline_ast = "set in execfile:"
-	exec(open(ast_file).read())
+	if sys.version < '3':execfile(ast_file)
+	else: exec(open(ast_file).read())
 	try:
 		source = codegen.to_source(inline_ast)
 		print(source)  # => CODE

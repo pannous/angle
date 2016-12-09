@@ -20,7 +20,7 @@ import extensions
 from exceptionz import *
 from extension_functions import is_string
 # import nodes
-from nodes import Argument, Variable, Property, Compare, FunctionCall, FunctionDef
+from nodes import Argument, Variable, Compare, FunctionCall, FunctionDef
 # from nodes import *
 import context as the
 from context import * #NOO! 2 different!
@@ -567,13 +567,25 @@ def must_contain_before_old(before, *args):  # ,before():None
 	return OK
 
 
-def peek(expect_next):
-	# return look_ahead(expect_next,offset=0)
-	return the.current_word == expect_next or the.current_word in expect_next
+def starts_with_(param):
+	return maybe(lambda: starts_with(param))
+
+# ~ look_ahead 0
+def starts_with(tokenz):
+	if checkEndOfLine(): return False
+	if is_string(tokenz):
+		return tokenz == the.current_word
+	if the.current_word in tokenz:
+		return the.current_word
+	# for t in tokenz:
+	#     if t == the.current_word:
+	#         return t
+	return False
 
 
-# NOT == starts_with, peek, peek_any !!! TODO: clean!
-def look_ahead(expect_next, doraise=False, must_not_be=False, offset=1):
+# NOT starts_with!!!
+# expect_next token(s)
+def look_1_ahead(expect_next, doraise=False, must_not_be=False, offset=1):
 	if the.current_word == '': return False
 	if the.token_number + 1 >= the.tokens_len:
 		print("BUG: this should not happen")
@@ -587,7 +599,7 @@ def look_ahead(expect_next, doraise=False, must_not_be=False, offset=1):
 		if must_not_be:
 			return OK  # NOT FOUND
 		if doraise:
-			raise NotMatching
+			raise NotMatching(doraise)
 		return False
 
 
@@ -1027,20 +1039,6 @@ def escape_token(t):
 	z = re.sub(r'([^\w])', "\\\\\\1", t)
 	return z
 
-
-# != look_ahead: starts_with consumes!
-def starts_with(tokenz):
-	if checkEndOfLine(): return False
-	if is_string(tokenz):
-		return tokenz == the.current_word
-	if the.current_word in tokenz:
-		return the.current_word
-	# for t in tokenz:
-	#     if t == the.current_word:
-	#         return t
-	return False
-
-
 def raiseNewline():
 	if checkEndOfLine(): raise EndOfLine()
 
@@ -1270,7 +1268,7 @@ def load_module_methods():
 				the.method_token_map[meth] = english_parser.method_call
 
 	# if not the.method_names: # todo pickle
-	constructors = list(the.classes.keys()) + english_tokens.type_names
+	the.constructors = list(the.classes.keys()) + english_tokens.type_names
 	the.method_names = list(the.methods.keys()) + c_methods + list(
 		methods.keys()) + core_methods + builtin_methods + list(the.methodToModulesMap.keys())
 	# for c in constructors:

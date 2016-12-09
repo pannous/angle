@@ -2,6 +2,7 @@ import _ast
 import ast
 import sys
 import collections
+from _ast import *
 
 import context
 
@@ -226,9 +227,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		x.body = fix_block(x.body)
 		if not x in to_inject:
 			to_inject.append(x);
-		arg = map_params(x.arguments)
-		x.args = ast.arguments(args=arg, vararg=None, kwarg=None, defaults=[])
+		argList = map_def_argument_params(x.arguments)
+		x.args = ast.arguments(args=argList, vararg=None, kwarg=None, defaults=[], kwonlyargs=[], kw_defaults=[])
 		x.decorator_list = x.decorators or []  # for now!!
+		x.vararg = None
 		provided[x.name]=x
 		return x
 
@@ -252,16 +254,16 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 			else:
 				print("HUH")
 			print(("NEED TO IMPORT %s ??" % function_def))
-		skip_assign = True
 		node.value.args = map_arguments(node.value.args)
-		node.args= node.value.args
-		if skip_assign:
-			# return node.value
+		# node.args= node.value.args
+		skip_assign = True
+		if skip_assign: #
 			return self.generic_visit(node.value)  # skip_assign
-		else:
-			node.name = kast.name(node)
-			node.value = wrap_value(node.value)
-			return node
+			# return node.value
+		# else: #WHATS THAT??
+		# 	node.name = kast.name(node)
+		# 	node.value = wrap_value(node.value)
+		# 	return node
 
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
@@ -455,10 +457,19 @@ def map_values(val):
 
 def map_arguments(val): # todo: different ^^?
 	return list(map(wrap_value, val))
+	# return list(map(_ast.arg, map(wrap_value, val)))
+	# return _ast.arguments(list(map(wrap_value, val)))
 
 
-def map_params(val):
-	return list(map(lambda x:wrap_value(x, _ast.Param()), val))
+def get_id(x):
+	if isinstance(x,Name):return x.id
+	return x
+
+def map_def_argument_params(val):
+	def assure_arg(x):
+		return _ast.arg(get_id(x), None)
+	# return _ast.arg(get_id(x, _ast.Param()),[])
+	return list(map(assure_arg,val))
 
 
 def wrap_value(val,ctx=_ast.Load()):

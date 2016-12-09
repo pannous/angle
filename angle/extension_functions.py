@@ -4,6 +4,8 @@ import sys
 
 import numpy as np
 
+import extensions
+
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
 
@@ -75,8 +77,7 @@ def Pow(x, y):
 
 
 def is_string(s):
-	class xstr(str): pass
-	return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, np.unicode)
+	return isinstance(s, str) or isinstance(s, extensions.xstr) or isinstance(s, extensions.unicode)
 	# or issubclass(s,str) or issubclass(s,unicode)
 
 

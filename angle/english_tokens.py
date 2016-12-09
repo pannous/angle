@@ -14,7 +14,6 @@ import kast.kast
 from power_parser import *  # app_path, verbose
 from extensions import xlist
 
-
 true = True
 false = False
 TRUE = "True"
@@ -25,7 +24,6 @@ Nil = "None"
 nil = "None"
 # Nill="None"
 ZERO = '0'
-
 
 bash_commands = ['ls', 'cd']
 
@@ -62,23 +60,26 @@ quantifiers = ["any", "all", "every", "one", "each", "some", "most", "many", "no
                "everything", "the whole"]  # +number
 # articles+):
 
-result_words = ['it', 'they', 'result', 'its', 'that','the result','_']
+result_words = ['it', 'they', 'result', 'its', 'that', 'the result', '_']
 
 type_keywords = ["class", "interface", "module", "type", "kind"]
 
 type_names = ["auto", "string", "int", "integer", "bool", "boolean", "list", "array", "hash", "float", "real", "double",
-              "number", "set", "type", "str",
+              "number", "set", "type", "str", "class", "object", "map", "dict", "dictionary",
+              "char", "character", "letter", "word", "class", "type", "name", "label", "length", "size",
               'Auto', 'String', 'Int', 'Integer', 'Bool', 'Boolean', 'List', 'Array', 'Hash', 'Float', 'Real', 'Double',
-              'Number', 'Set', 'Type', 'Str',
-                                       "char", "character", "letter", "word", "class", "type", "name", "label", "length", "size"
+              'Number', 'Set', 'Type', 'Str', "Object", "Map", "Dict", "Dictionary"
               ]
 ##danger(self): object,class ,class  ):
 # from math import pi
 import math
-constantMap = {"True":TRUE, "false":FALSE, "yes":TRUE, "no":FALSE, "1":1, "0":ZERO,"½":1/2.,"\xc2\xbd":1/2.,
-               "pi":math.pi,"π":math.pi,"†":2*math.pi,"τ":2*math.pi, "tau":2*math.pi,"e":math.e,"euler":math.e} # tau=twou*pi=2*pi
 
-constants = list(constantMap.keys())# ["True", "false", "yes", "no", "1", "0", "pi","tau","e","euler"] # tau=twou*pi=2*pi
+constantMap = {"True": TRUE, "false": FALSE, "yes": TRUE, "no": FALSE, "1": 1, "0": ZERO,
+               "pi": math.pi, "π": math.pi, "†": 2 * math.pi, "τ": 2 * math.pi, "tau": 2 * math.pi, "e": math.e,
+               "euler": math.e, "½": 1 / 2., "\xc2\xbd": 1 / 2.,}  # tau=twou*pi=2*pi
+
+constants = list(
+	constantMap.keys())  # ["True", "false", "yes", "no", "1", "0", "pi","tau","e","euler"] # tau=twou*pi=2*pi
 
 question_words = ["when", "why", "where", "what", "who", "which", "whose", "whom",
                   "how"]  # ,"what's","how's","why's", "when's","who's",
@@ -156,31 +157,36 @@ fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right"
 
 # Classifiers==#measure word="litre","cups","kernels","ears","bushels",
 
-class_words = ['is an', 'is a', 'has type', 'is of type','has class', 'is of class','is instance of','is instance','instance of']  # ...
-subtype_words =['inherits','inherits from','extends','is subtype of','is subtype','subtype of','is subclass of','is subclass','subclass of','has base class']
+class_words = ['is an', 'is a', 'has type', 'is of type', 'has class', 'is of class', 'is instance of', 'is instance',
+               'instance of']  # ...
+subtype_words = ['inherits', 'inherits from', 'extends', 'is subtype of', 'is subtype', 'subtype of', 'is subclass of',
+                 'is subclass', 'subclass of', 'has base class']
 
-to_be_words = ['is','be','are',':=','=']
-be_words = ['is an', 'is a', 'is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
+to_be_words = ['is', 'be', 'are', ':=', '=']
+be_words = ['is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
             '=', '==', 'equals', 'equal', \
             'is equal to', "consist of", "consists of", "is made up of", 'equal to', 'same', 'the same as', 'same as',
             'the same']
+class_be_words = ['is an', 'is a', ]  # different!
 
 # nicer, sweeter, ....
 #  '=>' '<=', DANGER
 # OR class_words
-comparison_words = ['be', 'is of', 'is in', 'is a', 'is',\
-                     'subset of', 'in', 'are', 'were', \
-                    '>=', '==','!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥','~','~=','=~','~~','gt', 'lt', 'eq', \
+comparison_words = ['be', 'is of', 'is in', 'is a', 'is', \
+                    'subset of', 'in', 'are', 'were', \
+                    '>=', '==', '!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', '~', '~=', '=~', '~~', 'gt', 'lt', 'eq', \
                     'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
                     'bigger', 'greater', 'equals', 'smaller', 'less', 'more', 'the same as', \
                     'same as', 'similar', 'comes after', 'inherits from', 'implements' \
-                    'comes before', 'exact', 'exactly', '~>', 'at least', 'at most']
+                                                                          'comes before', 'exact', 'exactly', '~>',
+                    'at least', 'at most']
 
-logic_operators = ["!", "&&", "&", "||", "|", "not", "and","but", "or", "xor", "nor","neither"]
-math_operators= ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
-english_operators = xlist(["power", "to the","pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
-                     "modulo","print", ])
-true_operators = math_operators + english_operators + logic_operators # minus comparison_words
+logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
+math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
+english_operators = xlist(
+	["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
+	 "modulo", "print", ])
+true_operators = math_operators + english_operators + logic_operators  # minus comparison_words
 operators = math_operators + english_operators + comparison_words + logic_operators
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
@@ -188,47 +194,53 @@ operators = math_operators + english_operators + comparison_words + logic_operat
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 
-once_words = [ 'whenever', 'wherever', "as soon as", "once"] #'on the occasion that',
+once_words = ['whenever', 'wherever', "as soon as", "once"]  # 'on the occasion that',
 
-if_words = ['if'] #, 'in case that', 'provided that', 'assuming that', 'conceding that', 'granted that', \
+if_words = ['if']  # , 'in case that', 'provided that', 'assuming that', 'conceding that', 'granted that', \
 # 'on the assumption that', 'supposing that', 'with the condition that']
 
 #  NOT: '0','0.0','0,nix','zero',
-nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null', 'undefined', \
+nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null',
+              'undefined', \
               'zilch', 'nada', 'nuttin', 'nutting', 'zip', 'nix', 'cypher', 'cipher', 'leer', 'empty', 'nirvana',
               'void']  # 'love',
 
-done_words = ['◊','Ω',';;','}', 'done', 'Ende', 'end', 'okay', 'ok', 'OK', 'O.K.', 'alright', 'alrighty', 'that\'s it', 'thats it',
+done_words = ['◊', 'Ω', ';;', '}', 'done', 'Ende', 'end', 'okay', 'ok', 'OK', 'O.K.', 'alright', 'alrighty',
+              'that\'s it', 'thats it',
               "I'm done", "i'm done", \
               'fine', 'fi', 'fini', 'finish', 'fin', 'all set', 'finished', 'the end', 'over and out', 'over', 'q.e.d.',
               'qed', "<end>"]  # NL+ # NL verbium?]
 
-false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong', 'no','non','nix','nein','njet','niet']  # 'negative',
+false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong', 'no', 'non', 'nix', 'nein', 'njet', 'niet']  # 'negative',
 
-true_words = ['True', 'yes', 'ja', 'si'] # 'positive'
+true_words = ['True', 'yes', 'ja', 'si']  # 'positive'
 
 boolean_words = false_words + true_words
 
-otherKeywords = ['and', 'as', 'assert','back', 'beginning', 'but', 'by', 'contain', 'contains', 'copy', 'def', 'div', 'does',
-                 'eighth',  'else', \
+otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains', 'copy', 'def', 'div',
+                 'does',
+                 'eighth', 'else', \
                  'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for', 'fourth', 'even',
                  'front', 'get', \
-                 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that','result', 'last', 'local', 'me', 'middle', 'mod', 'my', \
+                 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that', 'result', 'last', 'local', 'me',
+                 'middle', 'mod', 'my', \
                  'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout', 'times', \
-                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'print', 'prop', 'property', 'put', 'ref',
+                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'print', 'prop', 'property', 'put',
+                 'ref',
                  'reference', \
                  'repeat', 'return', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
 const_words = ['constant', 'const', 'final', 'immutable', 'unchangeable']  # not: static
 
-modifier_words = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'mut', 'mutable',
-                           'variable', 'typed']
+modifier_words = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'mut',
+                                'mutable',
+                                'variable', 'typed']
 # ,'readable','read only','read-only','readonly','writable','write only','writeonly','changeable']
 
 adverbs = ['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely',
            'by any means', 'without a doubt']
 
-let_words = ['let', 'set'] #,'alias'
+let_words = ['let', 'set']  # ,'alias'
 
 time_words = ['seconds', 'second', 'minutes', 'minute', 'a.m.', 'p.m.', 'pm', "o'clock", 'hours', 'hour']  # etc... !
 
@@ -240,13 +252,12 @@ bla_words = ['tell me', 'hey', 'could you', 'give me', \
              'love to', 'like to', 'i asked you to', 'could i', \
              'i tell you to', 'i told you to', 'come on', \
              'i wanna', 'i want to', 'i want', 'i need to', \
-             'i need','either']
+             'i need', 'either']
 # either HAS MEANING! if x is either 3 or 4 != if x is 3 or 4 == if x is 3
 
 attributes = ['sucks', 'default']
 
 keywords = prepositions + modifier_words + be_words + comparison_words + fillers + nill_words + done_words + auxiliary_verbs + conjunctions + type_keywords + otherKeywords + numbers + operators
-
 
 start_block_words = [';', ':', 'do', '{', 'begin', 'start', 'first you ', 'second you', 'then you', 'finally you']
 #  with , then
@@ -261,186 +272,185 @@ invoke_keywords = ['call', 'execute', 'run', 'start', 'evaluate', 'eval', 'invok
 context_keywords = ['context', 'module', 'package']
 self_modifying_operators = ['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%=', '#=', '*=', '**=', '<<', '>>']
 
-newline_tokens = [ "\n", "\r\n", ';',"\.\n", "\. "]
+newline_tokens = ["\n", "\r\n", ';', "\.\n", "\. "]
 
 kast_operator_map = {
-# NOOO, astor can't handle kast:(
-    "+": ast.Add(),
-    "plus": ast.Add(),
-    "add": ast.Add(),
-    "-": ast.Sub(),
-    "minus": ast.Sub(),
-    "subtract": ast.Sub(),
-    "*": ast.Mult(),
-    "times": ast.Mult(),
-    "mul": ast.Mult(),
-    "multiplied": ast.Mult(),
-    "multiplied with": ast.Mult(),
-    "multiplied by": ast.Mult(),
-    "multiply": ast.Mult(),
-    "multiply with": ast.Mult(),
-    "multiply by": ast.Mult(),
-    "/": ast.Div(),
-    "div": ast.Div(),
-    "divided": ast.Div(),
-    "divided with": ast.Div(),
-    "divided by": ast.Div(),
-    "divide": ast.Div(),
-    "divide with": ast.Div(),
-    "divide by": ast.Div(),
-    "xor": ast.BitXor(),
-    # "^": ast.BitXor(),
-    "^": ast.Pow(),
-    "^^": ast.Pow(),
-    "**": ast.Pow(),
-    "pow": ast.Pow(),
-    "power": ast.Pow(),
-    "to the": ast.Pow(),
-    "to the power": ast.Pow(),
-    "to the power of": ast.Pow(),
-    "%": ast.Mod(),
-    "mod": ast.Mod(),
-    "modulo": ast.Mod(),
-    "!": ast.Not(),
-    "not": ast.Not(),
-    "&": ast.And(),  # BitAnd ENGLISH: a & b ~== a and b
-    "&&": ast.And(),
-    "and": ast.And(),
-    "|": ast.BitOr(),
-    "||": ast.Or(),
-    "or": ast.Or(),
-    "does not equal": ast.NotEq(),
-    "doesn't equal": ast.NotEq(),
-    "not equal": ast.NotEq(),
-    "is not": ast.NotEq(),
-    "isn't": ast.NotEq(),
-    "isnt": ast.NotEq(),
-    "!=": ast.NotEq(),
-    "≠": ast.NotEq(),
-    "=": ast.Eq(),
-    "==": ast.Eq(),
-    "===": ast.Eq(),
-    "~=": ast.Eq(),
-    "is": ast.Eq(),
-    "eq": ast.Eq(),
-    "equal": ast.Eq(),
-    "is equal": ast.Eq(),
-    "equal to": ast.Eq(),
-    "is equal to": ast.Eq(),
-    "equals": ast.Eq(),
-    "same": ast.Eq(),
-    "same as": ast.Eq(),  # is the same as ... rely on compariton!!
-    "identical": ast.Eq(),  # is identical to ... rely on compariton!!
-    ">": ast.Gt(),
-    "bigger": ast.Gt(),
-    "bigger than": ast.Gt(),
-    "more": ast.Gt(),
-    "more than": ast.Gt(),
-    "greater": ast.Gt(),
-    "greater than": ast.Gt(),
-    ">=": ast.GtE(),
-    "bigger or equal": ast.GtE(),
-    "more or equal": ast.GtE(),
-    "greater or equal": ast.GtE(),
-    "<": ast.Lt(),
-    "less": ast.Lt(),
-    "less than": ast.Lt(),
-    "smaller": ast.Lt(),
-    "smaller than": ast.Lt(),
-    "<=": ast.Lt(),
-    "less or equal": ast.Lt(),
-    "less than or equal": ast.Lt(),
-    "smaller or equal": ast.Lt(),
-    "smaller than or equal": ast.Lt(),
+	# NOOO, astor can't handle kast:(
+	"+": ast.Add(),
+	"plus": ast.Add(),
+	"add": ast.Add(),
+	"-": ast.Sub(),
+	"minus": ast.Sub(),
+	"subtract": ast.Sub(),
+	"*": ast.Mult(),
+	"times": ast.Mult(),
+	"mul": ast.Mult(),
+	"multiplied": ast.Mult(),
+	"multiplied with": ast.Mult(),
+	"multiplied by": ast.Mult(),
+	"multiply": ast.Mult(),
+	"multiply with": ast.Mult(),
+	"multiply by": ast.Mult(),
+	"/": ast.Div(),
+	"div": ast.Div(),
+	"divided": ast.Div(),
+	"divided with": ast.Div(),
+	"divided by": ast.Div(),
+	"divide": ast.Div(),
+	"divide with": ast.Div(),
+	"divide by": ast.Div(),
+	"xor": ast.BitXor(),
+	# "^": ast.BitXor(),
+	"^": ast.Pow(),
+	"^^": ast.Pow(),
+	"**": ast.Pow(),
+	"pow": ast.Pow(),
+	"power": ast.Pow(),
+	"to the": ast.Pow(),
+	"to the power": ast.Pow(),
+	"to the power of": ast.Pow(),
+	"%": ast.Mod(),
+	"mod": ast.Mod(),
+	"modulo": ast.Mod(),
+	"!": ast.Not(),
+	"not": ast.Not(),
+	"&": ast.And(),  # BitAnd ENGLISH: a & b ~== a and b
+	"&&": ast.And(),
+	"and": ast.And(),
+	"|": ast.BitOr(),
+	"||": ast.Or(),
+	"or": ast.Or(),
+	"does not equal": ast.NotEq(),
+	"doesn't equal": ast.NotEq(),
+	"not equal": ast.NotEq(),
+	"is not": ast.NotEq(),
+	"isn't": ast.NotEq(),
+	"isnt": ast.NotEq(),
+	"!=": ast.NotEq(),
+	"≠": ast.NotEq(),
+	"=": ast.Eq(),
+	"==": ast.Eq(),
+	"===": ast.Eq(),
+	"~=": ast.Eq(),
+	"is": ast.Eq(),
+	"eq": ast.Eq(),
+	"equal": ast.Eq(),
+	"is equal": ast.Eq(),
+	"equal to": ast.Eq(),
+	"is equal to": ast.Eq(),
+	"equals": ast.Eq(),
+	"same": ast.Eq(),
+	"same as": ast.Eq(),  # is the same as ... rely on compariton!!
+	"identical": ast.Eq(),  # is identical to ... rely on compariton!!
+	">": ast.Gt(),
+	"bigger": ast.Gt(),
+	"bigger than": ast.Gt(),
+	"more": ast.Gt(),
+	"more than": ast.Gt(),
+	"greater": ast.Gt(),
+	"greater than": ast.Gt(),
+	">=": ast.GtE(),
+	"bigger or equal": ast.GtE(),
+	"more or equal": ast.GtE(),
+	"greater or equal": ast.GtE(),
+	"<": ast.Lt(),
+	"less": ast.Lt(),
+	"less than": ast.Lt(),
+	"smaller": ast.Lt(),
+	"smaller than": ast.Lt(),
+	"<=": ast.Lt(),
+	"less or equal": ast.Lt(),
+	"less than or equal": ast.Lt(),
+	"smaller or equal": ast.Lt(),
+	"smaller than or equal": ast.Lt(),
 }
 
-
 kast_operator_map_min = {
-    "+": ast.Add(),
-    "-": ast.Sub(),
-    "*": ast.Mult(),
-    "/": ast.Div(),
-    "xor": ast.BitXor(),
-    # "^": ast.BitXor(),
-    "^": ast.Pow(),
-    "^^": ast.Pow(),
-    "**": ast.Pow(),
-    "pow": ast.Pow(),
-    "power": ast.Pow(),
-    "to the": ast.Pow(),
-    "to the power": ast.Pow(),
-    "to the power of": ast.Pow(),
-    "%": ast.Mod(),
-    "mod": ast.Mod(),
-    "modulo": ast.Mod(),
-    "!": ast.Not(),
-    "not": ast.Not(),
-    "&": ast.And(),  # BitAnd ENGLISH: a & b ~== a and b
-    "&&": ast.And(),
-    "and": ast.And(),
-    "|": ast.BitOr(),
-    "||": ast.Or(),
-    "or": ast.Or(),
-    "!=": ast.NotEq(),
-    "≠": ast.NotEq(),
-    "is": ast.Eq(),
-    "=": ast.Eq(),
-    "==": ast.Eq(),
-    "===": ast.Eq(),
-    "~=": ast.Eq(),
-    "is": ast.Eq(),
-    "eq": ast.Eq(),
-    ">": ast.Gt(),
-    ">=": ast.GtE(),
-    "<": ast.Lt(),
-    "<=": ast.Lt(),
-    "in": ast.In(),
-    "contains": ast.In(),#^-1
-    "element of": ast.In(),
+	"+": ast.Add(),
+	"-": ast.Sub(),
+	"*": ast.Mult(),
+	"/": ast.Div(),
+	"xor": ast.BitXor(),
+	# "^": ast.BitXor(),
+	"^": ast.Pow(),
+	"^^": ast.Pow(),
+	"**": ast.Pow(),
+	"pow": ast.Pow(),
+	"power": ast.Pow(),
+	"to the": ast.Pow(),
+	"to the power": ast.Pow(),
+	"to the power of": ast.Pow(),
+	"%": ast.Mod(),
+	"mod": ast.Mod(),
+	"modulo": ast.Mod(),
+	"!": ast.Not(),
+	"not": ast.Not(),
+	"&": ast.And(),  # BitAnd ENGLISH: a & b ~== a and b
+	"&&": ast.And(),
+	"and": ast.And(),
+	"|": ast.BitOr(),
+	"||": ast.Or(),
+	"or": ast.Or(),
+	"!=": ast.NotEq(),
+	"≠": ast.NotEq(),
+	"is": ast.Eq(),
+	"=": ast.Eq(),
+	"==": ast.Eq(),
+	"===": ast.Eq(),
+	"~=": ast.Eq(),
+	"is": ast.Eq(),
+	"eq": ast.Eq(),
+	">": ast.Gt(),
+	">=": ast.GtE(),
+	"<": ast.Lt(),
+	"<=": ast.Lt(),
+	"in": ast.In(),
+	"contains": ast.In(),  # ^-1
+	"element of": ast.In(),
 }
 # safe_reductions={
 # 'is bigger', 'is greater','is less','is smaller','is equal','are smaller','are bigger',
 # }
 #  only in the position of operators!! BUT HOW AFTER TOKENIZATION!?
-reductions={
-     " div": '/',
-    " divided": '/',
-    " divided with": '/',
-    " divided by": '/',
-    " divide": '/',
-    " divide with": '/',
-    " divide by": '/',
-    " times ": '*',
-    " mul ": '*',
-    " multiplied ": '*',
-    " multiplied with ": '*',
-    " multiplied by ": '*',
-    " multiply ": '*',
-    " multiply with ": '*',
-    " multiply by ": '*',
-    " plus ": '+',
-    " add ": '+',
-    " minus ": '-',
-    " subtract ": '-',
-    " substract ": '-',
-    " or equal ": "=",
-    " is equal ": "=",
-    " equal ": "=",
-    " equals ": "==",
-    " is identical ": "==",
-    " identical ": "==",
-    " same as ": "==",
-    "= to ": "=",
-    " less ": " <",
-    " smaller ": " <",
-    " greater ": " >",
-    " bigger ": " <",
-    " more ": " <",
-    " than ": "",
-    "does not equal": "!=",
-    "doesn't equal": "!=",
-    "not equal": "!=",
-    "is not": "!=",
-    "isn't": "!=",
-    "isnt": "!=",
+reductions = {
+	" div": '/',
+	" divided": '/',
+	" divided with": '/',
+	" divided by": '/',
+	" divide": '/',
+	" divide with": '/',
+	" divide by": '/',
+	" times ": '*',
+	" mul ": '*',
+	" multiplied ": '*',
+	" multiplied with ": '*',
+	" multiplied by ": '*',
+	" multiply ": '*',
+	" multiply with ": '*',
+	" multiply by ": '*',
+	" plus ": '+',
+	" add ": '+',
+	" minus ": '-',
+	" subtract ": '-',
+	" substract ": '-',
+	" or equal ": "=",
+	" is equal ": "=",
+	" equal ": "=",
+	" equals ": "==",
+	" is identical ": "==",
+	" identical ": "==",
+	" same as ": "==",
+	"= to ": "=",
+	" less ": " <",
+	" smaller ": " <",
+	" greater ": " >",
+	" bigger ": " <",
+	" more ": " <",
+	" than ": "",
+	"does not equal": "!=",
+	"doesn't equal": "!=",
+	"not equal": "!=",
+	"is not": "!=",
+	"isn't": "!=",
+	"isnt": "!=",
 }

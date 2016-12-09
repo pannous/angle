@@ -121,7 +121,7 @@ def assert_equals(a, b, bla=None):
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
 def assert_contains(a, b):
-	assert a in b or b in a, "%s SHOULD CONTAIN %s" % (a, b)
+	assert b in a or a in b, "%s SHOULD CONTAIN %s" % (a, b)
 
 
 # assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)

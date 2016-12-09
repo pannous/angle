@@ -324,9 +324,9 @@ class Variable(kast.Name):
 		def __div__(self, other):
 				self.value/=other
 				return self.value
-
-class Property(Variable):
-		pass
+#
+# class Property(Variable):
+# 		pass
 		# attr_accessor :name, :owner
 
 

@@ -11,7 +11,7 @@ def p(x):
 	print(x)
 
 
-class FunctionTest(ParserBaseTest):
+class FunctionTestOK(ParserBaseTest):
 	def test_fibonacci(self):
 		dir = 'samples/'
 		code = File.read(dir + ('fibonacci.e'))
@@ -64,12 +64,12 @@ class FunctionTest(ParserBaseTest):
 
 	def test_factorial(self):
 		parse("""\n
-                define the factorial of an integer i as
-                    if i is 0 then return 1
-                    i * factorial(i-1)
-                    # i times factorial of i minus one
-                end
-                assert factorial of 5 is 120""")
+								define the factorial of an integer i as
+										if i is 0 then return 1
+										i * factorial(i-1)
+										# i times factorial of i minus one
+								end
+								assert factorial of 5 is 120""")
 
 	def test_samples(self):
 		dir = 'samples/'
@@ -102,7 +102,7 @@ class FunctionTest(ParserBaseTest):
 		parse('how to increase x by y: x+y;')
 		g = functions['increase']
 		args = [Argument.new({'name': 'x', 'preposition': None, 'position': 1, }),
-		        Argument.new({'preposition': 'by', 'name': 'y', 'position': 2, })]
+						Argument.new({'preposition': 'by', 'name': 'y', 'position': 2, })]
 		f = FunctionDef.new({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
 		assert_equals(f, g)
 		assert_equals(self.parser.call_function(f, {'x': 1, 'y': 2, }), 3)

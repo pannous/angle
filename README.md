@@ -1,6 +1,6 @@
 ![ENGLISH SCRIPT](English script.png "ENGLISH SCRIPT")
 
-**[Angle](https://github.com/pannous/angle/)** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
+**[Angle](https://github.com/pannous/angle/)** is the Python(3) implementation of [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
 
 Examples
@@ -148,10 +148,10 @@ This would run against the goal to avoid sigil special chars though.
 
 
 
-Why the new python implementation
----------------------------------
+Why the new python(3) implementation
+------------------------------------
 We can **compile** English script / [Angle](https://github.com/pannous/angle/) directly to python byte-code:
-As opposed to Ruby, Python comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
+As opposed to Ruby, Python(3) comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
 Compiling is so much nicer & faster than interpreted code.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
