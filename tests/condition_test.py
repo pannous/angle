@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 from tests.parser_test_helper import *
 
+
 class ConditionTest(ParserBaseTest):
+
 
 	def setUp(self):
 		context.use_tree = False
@@ -22,7 +24,6 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is('1==2', False)
 		assert_result_is('3<2', False)
 		assert_result_is('3>2', True)
-
 	# assert_result_is('1=2', False)
 
 	def test_eq(self):

@@ -2,13 +2,16 @@
 import inspect
 import unittest
 
-import angle
 import ast
 import nodes
 
 import exceptionz
-from angle import english_parser, context, pyc_emitter
-# from nodes import * #EVIL!! creates second class WTF
+import english_parser
+import context
+import pyc_emitter
+# from angle import english_parser, pyc_emitter, context #NO! creates 2nd context !!!
+# from nodes import * #EVIL!! creates second class
+
 from extensions import *
 import collections
 
