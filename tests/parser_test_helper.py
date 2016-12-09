@@ -3,6 +3,8 @@ import inspect
 import unittest
 
 import ast
+
+import kast.kast
 import nodes
 
 import exceptionz
@@ -115,12 +117,11 @@ def assert_result_is(a, b, bla=None):
 def assert_equals(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if a == 'False': a = False
-	if isinstance(a, ast.List): a = a.value
-	assert a == b, "%s SHOULD BE %s   %s" % (a, b, bla)
+	if isinstance(a, ast.List): a = a.elts  # todo remove
+	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
-
-def assert_equal(a, b, bla=None):
-	print(("%s SHOULD BE %s   %s" % (a, b, bla)))
+def assert_contains(a, b):
+	assert a in b or b in a, "%s SHOULD CONTAIN %s" % (a, b)
 
 
 # assert a==b, "%s SHOULD BE %s   %s"%(a,b,bla)
@@ -182,6 +183,8 @@ def update_local(context):
 
 
 def parse(s):
+	if 'use_tree' in os.environ: context.use_tree = True
+	if 'no_tree' in os.environ: context.use_tree = False
 	if not "parser_test_helper" in inspect.stack()[1][1]:
 		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
@@ -232,6 +235,16 @@ class ParserBaseTest(unittest.TestCase):
 	#
 	#     self.parser = _parser = english_parser#.EnglishParser()
 
+	def setUp(self):
+		self.parser = english_parser
+		global base_test
+		base_test = self
+		self.parser.clear()  # OK Between test, just not between parses!
+		if 'use_tree' in os.environ: context.use_tree = True
+		if 'no_tree' in os.environ: context.use_tree = False
+		if not context.use_tree:
+			parser.do_interpret()
+
 	@classmethod
 	def setUpClass(cls):
 		context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
@@ -239,11 +252,6 @@ class ParserBaseTest(unittest.TestCase):
 		context.testing = True
 		cls.parser = _parser = english_parser  # .EnglishParser()
 		pass  # reserved for expensive environment one time set up
-
-	def setUp(self):
-		global base_test
-		base_test = self
-		self.parser.clear()  # OK Between test, just not between parses!
 
 	def parse(self, s):
 		print(("PARSING %s" % s))
@@ -360,7 +368,7 @@ class ParserBaseTest(unittest.TestCase):
 		if context.emit:
 			self.result = parse_tree(x)
 		else:
-			self.result = self.parser.parse(x)
+			self.result = self.parser.parse(x).result
 		return self.result
 
 	def variableTypes(self, v):

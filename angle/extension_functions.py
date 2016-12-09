@@ -188,7 +188,7 @@ def regex_matches(a, b):
 		b = re.compile(str(b))
 	print(a)
 	print(b)
-	return b.search(a)  # vs
+	return b.search(str(a))  # vs
 	# return b.match(a) # vs search
 	# return a.__matches__(b) # other cases
 	# return a.contains(b)

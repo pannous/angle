@@ -9,6 +9,7 @@ class UnicodeTest(ParserBaseTest,unittest.TestCase):
 
     def setUp(self):
         super(UnicodeTest, self).setUp()
+        context.use_tree=False
         self.parser.clear()
 
     def test_string_methods(self):

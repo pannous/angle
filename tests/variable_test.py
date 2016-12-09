@@ -4,10 +4,13 @@ from tests.parser_test_helper import *
 from power_parser import WrongType, ImmutableVaribale
 from nodes import *
 
+context.use_tree = False
+
+
 class VariableTest(ParserBaseTest,unittest.TestCase):
 
-	def setUp(self):
-		pass
+	# def setUp(self):
+	# 	parser.clear()
 
 	def test_a_setter_article_vs_variable(self):
 		skip()
@@ -43,13 +46,14 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 	def test_variable_type_cast(self):
 		parse('int i;i=3.2 as int')
 
-	def test_variable_range(self):
+	def test_variable_range_with_type(self):
+		skip()
 		i = parse('list i is 5 to 10')
-		assert_equal(i, list(range(5, 10 + 1)))  # count from 1 to 10 => 10 INCLUDED, thus +1!
+		assert_equals(i, list(range(5, 10 + 1)))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 	def test_variable_range2(self):
 		i = parse('i is 5 to 10')
-		assert_equal(i, list(range(5, 10 + 1)))  # count from 1 to 10 => 10 INCLUDED, thus +1!
+		assert_equals(i, list(range(5, 10 + 1)))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 	def test_variable_type_cast2(self):
 		skip()
@@ -65,13 +69,28 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 		# character
 		# all error free
 
-	def test_variable_type_safety0(self):
-		assert_has_no_error("typed i='hi';i='ho'")
+	def test_variable_type_safety_auto(self):
+		assert_has_no_error("typed i=3;i='ho'")
+
 
 	def test_variable_type_safety0(self):
 		assert_has_error('string i=3', WrongType)
 		assert_has_error("int i='hi'", WrongType)
 		assert_has_error("integer i='hi'", WrongType)
+
+	def test_auto_cast(self):
+		skip()
+		assert_result_is('auto string i=3', '3')
+		assert_result_is("auto int i='hi'", 0)
+		assert_result_is("auto integer i='hi'", 0)
+
+	def test_variable_type_as(self):
+		assert_result_is('i=3 as string', '3')
+		assert_result_is("i=4.3 as int", 4)
+		assert_result_is("i='hi' as int", 0)
+		assert_result_is('i=3 as string;i.type', str)
+		assert_result_is("i=4.3 as int;i.type", int)
+		assert_result_is("i='hi' as int;i.type", int)
 
 	def test_variable_type_safety1(self):
 		assert_has_error("an integer i;i='hi'", WrongType)

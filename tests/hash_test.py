@@ -5,6 +5,7 @@ import angle
 #
 from tests.parser_test_helper import *
 
+context.use_tree=False
 
 class HashTest(ParserBaseTest):
 

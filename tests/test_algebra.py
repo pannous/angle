@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import angle
-
-#
 from tests.parser_test_helper import *
 
 

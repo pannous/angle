@@ -120,7 +120,7 @@ class FunctionTest(ParserBaseTest):
 		args = [Argument({'name': 'x', 'preposition': None, 'position': 0, }),
 		        Argument({'preposition': 'by', 'name': 'y', 'position': 1, })]
 		f = FunctionDef({'body': 'x+y;', 'name': 'increase', 'arguments': args, })
-		assert_equal(f, g)
+		assert_equals(f, g)
 		return f
 
 	def test_params_call(self):
@@ -135,7 +135,7 @@ class FunctionTest(ParserBaseTest):
 		body = 'x+y;'
 		body = ast.BinOp(left=ast.Name('x'), op=ast.Add, right=ast.Name('y'))
 		f = FunctionDef({'arguments': arg2, 'name': 'increase', 'body': body, 'object': arg1, })
-		assert_equal(f, g)
+		assert_equals(f, g)
 		assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
 	def test_blue_yay(self):
@@ -150,7 +150,7 @@ class FunctionTest(ParserBaseTest):
 		g = the.methods['get']
 		# g = the.methods['get numbers smaller eeek']
 		f = FunctionDef({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
-		assert_equal(f, g)
+		assert_equals(f, g)
 		assert_equals(self.parser.call_function(f, 4), [1, 2, 3])
 
 	def test_simple_parameters(self):

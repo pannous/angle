@@ -9,5 +9,6 @@ Compare.__repr__ = lambda self: "%s %s %s " % (self.left, self.ops, self.compara
 operator.__repr__ = lambda self: self.__class__.__name__
 # operator.__repr__ = lambda self: self.name
 Num.__repr__ = lambda self: "%d" % (self.n)
+# Num.__eq__ = lambda self,other: if other is Num: "%d" % (self.n)
 Eq.__repr__ = lambda self: "=="  # lambda self:self.num
 Assert.__repr__ = lambda self: self.msg

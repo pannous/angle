@@ -22,7 +22,7 @@ class CompilerPythonEquivalenceTest:  # (ParserBaseTest):
 		angle_ast = parse_tree(contents)
 		print((ast.dump(file_ast, annotate_fields=False, include_attributes=False)))
 		print((ast.dump(angle_ast, annotate_fields=False, include_attributes=False)))
-		assert_equal(file_ast, angle_ast)
+		assert_equals(file_ast, angle_ast)
 		code = compile(angle_ast, 'file', 'exec')
 		if source == inline:
 			ast_export.emit_pyc(code)

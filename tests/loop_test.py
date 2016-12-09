@@ -22,17 +22,15 @@ class LoopTest(ParserBaseTest,unittest.TestCase):
         parse('c=0;while c<3:c++;beep;done')
         assert_equals(3, the.variables['c'].value)
 
-    def test_expressions(self):
+    def test_increment_expressions(self):
         parse('counter=1')
-
-        assert_equals(1, the.variableValues['counter'])
+        assert_equals(1, parse('counter'))
         parse('counter++')
-        assert_equals(2, the.variableValues['counter'])
+        assert_equals(2, parse('counter'))
         parse('counter+=1')
-        assert_equals(3, the.variableValues['counter'])
+        assert_equals(3, parse('counter'))
         parse('counter=counter+counter')
-        counter = the.variableValues['counter']
-        self.assert_that(counter.equals(6))
+        assert_equals(6, parse('counter'))
 
     def test_repeat(self):
         parse('counter =0; repeat three times: increase the counter; okay')

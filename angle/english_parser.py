@@ -1740,7 +1740,7 @@ def assure_same_type(var, type):
 	var.type = type  # ok: set
 
 
-def assure_same_type_overwrite(var, val):
+def assure_same_type_overwrite(var, val,auto_cast=False):
 	oldType = var.type
 	oldValue = var.value
 	if (isinstance(val, FunctionCall)):
@@ -1748,10 +1748,12 @@ def assure_same_type_overwrite(var, val):
 			raise WrongType("OLD: %s %s VS %s return_type: %s " % (oldType, oldValue, val, val.return_type))
 	elif oldType:
 		try:
+			wrong_type = WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 			if not isinstance(val, oldType) and not issubclass(oldType, type(val)):
-				return do_cast(val,oldType)
+				if auto_cast: return do_cast(val,oldType)
+				else: raise wrongType
 		except:
-			raise WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
+			raise wrong_type
 	if var.final and var.value and not val == var.value:
 		raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 	var.value = val
@@ -1854,10 +1856,7 @@ def setter(var=None):
 			val=guard
 			add_variable(var, guard, mod, _type)
 		else:
-			# if py3: raise e from e
-			# raise e, None, sys.exc_info()[2]
-			raise e.with_traceback(sys.exc_info()[2])
-			# raise e(None).with_traceback(sys.exc_info()[2])
+			raise
 
 	# end_expression via statement!
 	if not interpreting():

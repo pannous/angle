@@ -7,10 +7,11 @@ class ConditionTest(ParserBaseTest):
 
 
 	def setUp(self):
+		super(ParserBaseTest, self).setUp()
 		context.use_tree = False
 		context.interpret = True
-		self.parser.do_interpret()
-		self.parser.clear()
+		# self.parser.do_interpret()
+		english_parser.clear()
 
 	@staticmethod
 	def test_simple():

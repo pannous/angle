@@ -8,6 +8,8 @@ import sys
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
 
+
+
 if py3:
 	class file(io.IOBase):
 		pass  # WTF python3 !?!?!?!?!??
@@ -15,6 +17,12 @@ if py3:
 	class xrange:  # WTF python3 !?!?!?!?!??
 		pass
 
+	class xstr(str):
+		pass #later
+
+	class unicode(xstr):  # , bytes):  # xchar[] TypeError: multiple bases have instance lay-out conflict
+# Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
+		pass
 
 	# else: https://stackoverflow.com/questions/22098099/reason-why-xrange-is-not-inheritable-in-python
 	#   class range(xrange):
@@ -29,6 +37,8 @@ if py3:
 		pass
 
 file=file # nice trick: native py2 class or local py3 class
+unicode = unicode
+xrange= xrange
 
 if py2:
 	import cPickle as pickle
@@ -55,10 +65,10 @@ def xx(y):
 	if isinstance(y, float): return xfloat(y)
 	if isinstance(y, int):   return xint(y)
 	if isinstance(y, file):   return xfile(y)
-	if isinstance(y, xrange): return xlist(y)
-	if isinstance(y, range): return xlist(y)
 	if isinstance(y, char):  return xchar(y)
 	if isinstance(y, byte):  return xchar(y)
+	if isinstance(y, xrange): return xlist(y)
+	if py3 and isinstance(y, range): return xlist(y)
 	print("No extension for type %s" % type(y))
 	return y
 
@@ -801,11 +811,6 @@ class xstr(str):
 	def reverse_string(str):
 		return xstr(str).reverse()
 
-
-if py3:
-	class unicode(xstr):  # , bytes):  # xchar[] TypeError: multiple bases have instance lay-out conflict
-		pass
-	# Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
 
 
 class xchar(unicode):  # unicode: multiple bases have instance lay-out conflict

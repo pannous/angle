@@ -1,21 +1,20 @@
 #!/usr/bin/env python
-import angle
-# context.use_tree = context.emit
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 
 class BashTest(ParserBaseTest):
 
-    def test_pipe(self):
-        parse("bash 'ls -al' | column 1| row 2")
-
-    def test_ls(self):
-        f=parse("ls | row 4")
-        f=parse("ls | item 4")
-        # assert_equal(f, '.gitmodules')
-        assert_equal(f, 'algebra_test.py')
+	def test_ls(self):
+		g = parse("ls | row 4")
+		f = parse("ls | item 4")
+		assert_equals(g, f)
+		assert_contains(f, '.')
 
 
-    # def test_pipe2(self):
-    #     parse("def column n:n;bash 'ls -al' | column 1| row 2")
+	def test_pipe(self):
+		x = parse("bash 'ls -al' | column 1| row 2")
+		if not x: assert_contains(x, "number")
+
+	# def test_pipe2(self):
+	#     parse("def column n:n;bash 'ls -al' | column 1| row 2")

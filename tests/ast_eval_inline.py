@@ -1,12 +1,15 @@
 #!/usr/local/bin/python
 import ast
 import os
+import unittest
+
 import ipython_genutils.py3compat
 import sys
 from astor import codegen
 
-if 'TESTING' in os.environ:
-	quit(1)
+if 'TESTING' in os.environ or 'TEST' in os.environ:
+	print("skipping while TESTING")
+	unittest.skip("skipping while TESTING")
 
 ast_file = "out/inline.ast"
 do_exec = False
@@ -20,7 +23,12 @@ elif arg:
 	if arg.endswith(".py"):
 		expr = open(arg).read()
 		do_exec = True
-	my_ast = ast.parse(arg)
+	try:
+		my_ast = ast.parse(arg)
+	except Exception as e:
+		print("Exception ast.parse(%s): %s"%(arg,e))
+
+		quit(1)
 	print(arg)
 	print("")
 	x = ast.dump(my_ast, annotate_fields=True, include_attributes=True)
