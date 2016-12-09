@@ -39,7 +39,7 @@ class Starttokens(object):
 			return original_func
 		for t in self.starttokens:
 			if t in the.token_map:
-				print("ALREADY MAPPED \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
+				verbose("ALREADY MAPPED \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
 			the.token_map[t] = original_func
 		return original_func
 		# def wrappee( *args, **kwargs):
@@ -921,10 +921,9 @@ def clear():
 import io
 
 try:
-	file_types = (file, io.IOBase)
+	file_types = (extensions.file, extensions.xfile, io.IOBase)
 except NameError:
 	file_types = (io.IOBase,)  # py3 --
-
 
 # noinspection PyTypeChecker
 def parse(s, target_file=None):
@@ -944,9 +943,9 @@ def parse(s, target_file=None):
 	if context._debug:
 		print("  File \"%s\", line 1" % source_file)
 	if (len(s) < 1000):
-		print("--------PARSING:---------")
+		verbose("--------PARSING:---------")
 		verbose(s)
-		print("-------------------------")
+		verbose("-------------------------")
 	try:
 		import english_parser
 		if isinstance(s, file_types):

@@ -1,7 +1,7 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
-# encoding=utf8  
-
+# encoding=utf8
+import io
 import math
 import sys
 
@@ -9,9 +9,8 @@ py2 = sys.version < '3'
 py3 = sys.version >= '3'
 
 if py3:
-	class file:
+	class file(io.IOBase):
 		pass  # WTF python3 !?!?!?!?!??
-
 
 	class xrange:  # WTF python3 !?!?!?!?!??
 		pass
@@ -28,6 +27,8 @@ if py3:
 
 	class byte(str):
 		pass
+
+file=file # nice trick: native py2 class or local py3 class
 
 if py2:
 	import cPickle as pickle
@@ -47,6 +48,7 @@ from extension_functions import *
 
 
 def xx(y):
+	if isinstance(y, bool):  return y #xbool(y)
 	if isinstance(y, list):  return xlist(y)
 	if isinstance(y, str):   return xstr(y)
 	if isinstance(y, dict):  return xdict(y)

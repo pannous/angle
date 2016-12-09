@@ -9,7 +9,7 @@ global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,current_word,current_line
 global in_condition,in_pipe,in_args,line_number, in_list
 
-_verbose =  True # False angel.verbose() and not angel.raking()  # false
+_verbose = False# True # False angel.verbose() and not angel.raking()  # false
 _debug = False
 testing = False
 very_verbose = _verbose

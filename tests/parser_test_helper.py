@@ -358,7 +358,7 @@ class ParserBaseTest(unittest.TestCase):
 			self.result = parse_tree(x)
 		else:
 			self.result = self.parser.parse(x)
-		return context.result
+		return self.result
 
 	def variableTypes(self, v):
 		type(variables[v], )

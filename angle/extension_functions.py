@@ -15,6 +15,17 @@ from random import randint
 from random import random as _random
 
 
+def Max(a, b):
+	if a > b:
+		return a
+	return b
+
+
+def Min(a, b):
+	if a > b:
+		return b
+	return a
+
 def rand(n=1): return _random() * n
 
 
@@ -223,4 +234,4 @@ def grep(xs, pattern):
 	return filter(pattern, xs)
 
 
-print("extension functions loaded")
+# print("extension functions loaded")

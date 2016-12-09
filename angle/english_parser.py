@@ -383,7 +383,7 @@ def apply_op(stack, i, op):
 def fold_algebra(stack):
 	used_operators = [x for x in operators if x in stack]
 	used_ast_operators = [x for x in kast_operator_map.values() if x in stack]
-	print("x in stack %s"%("==" in stack))
+	# print("x in stack %s"%("==" in stack))
 	# while len(stack) > 1 and len(used_operators)>0:
 	for op in used_operators + used_ast_operators:
 		i = 0
@@ -3081,7 +3081,7 @@ def do_call(obj0, method0, args0=[]):
 				return function()
 
 			the.result = list(map(map_list, args))
-			print("GOT RESULT %s " % (the.result))
+			verbose("GOT RESULT %s " % (the.result))
 			return the.result
 	except Exception as e:
 		print(e)
@@ -3131,7 +3131,7 @@ def do_call(obj0, method0, args0=[]):
 	# if the.result == NoMethodError: msg = "ERROR CALLING #{obj).#{method)(): #{args))"
 	if the.result == MethodMissingError: raise MethodMissingError(obj, method, args)
 	# raise SyntaxError("ERROR CALLING: NoMethodError")
-	print("GOT RESULT %s " % (the.result))
+	verbose("GOT RESULT %s " % (the.result))
 	return the.result
 
 
@@ -3792,6 +3792,10 @@ def ruby_action():
 	exec (action or quote)
 
 
+# Thank you, python3 d****s, for making such a fantastic mess with input/raw_input
+# real_raw_input = vars(__builtins__).get('raw_input', input)
+from six.moves import input as real_raw_input
+
 def start_shell(args=[]):
 	import readline
 	context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
@@ -3802,8 +3806,9 @@ def start_shell(args=[]):
 	if len(args) > 1:
 		input0 = ' '.join(args)
 	else:
-		input0 = input('⦠ ')
-	while input0:
+		# input0 = input('⦠ ')
+		input0 = real_raw_input('⦠ ')
+	while True:#input0:
 		# while input = Readline.readline('angle-script⦠ ', True)
 		readline.write_history_file(home + "/.english_history")
 		# while True
@@ -3826,9 +3831,12 @@ def start_shell(args=[]):
 		except SyntaxError as e:
 			print('Syntax Error')
 		except Exception as e:
-			print(e)
-		input0 = input("⦠ ")
-	exit()
+			raise
+			# print(e)
+		# input0 = input("⦠ ")
+		input0 = real_raw_input('⦠ ')
+	print("Bye.")
+	exit(1)
 
 
 def main():
