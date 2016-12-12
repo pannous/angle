@@ -66,7 +66,7 @@ type_keywords = ["class", "interface", "module", "type", "kind"]
 
 type_names = ["auto", "string", "int", "integer", "bool", "boolean", "list", "array", "hash", "float", "real", "double",
               "number", "set", "type", "str", "class", "object", "map", "dict", "dictionary",
-              "char", "character", "letter", "word", "class", "type", "name", "label", "length", "size",
+              "char", "character", "letter", "word", "class", "type", "name", "label",
               'Auto', 'String', 'Int', 'Integer', 'Bool', 'Boolean', 'List', 'Array', 'Hash', 'Float', 'Real', 'Double',
               'Number', 'Set', 'Type', 'Str', "Object", "Map", "Dict", "Dictionary"
               ]

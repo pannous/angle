@@ -7,8 +7,10 @@ from nodes import *
 class FunctionTest(ParserBaseTest):
 	# TURNED INTO EMITTER TEST, cause BODY is better done via AST!!
 
-
 	def setUp(self):
+		if 'use_tree' in os.environ:
+			print("NO FunctionTest in interpreter mode (yet)")
+			skip()
 		context.use_tree = True
 		context.interpret = False
 	# context._verbose = True never set manually here!

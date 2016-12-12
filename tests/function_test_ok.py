@@ -12,6 +12,11 @@ def p(x):
 
 
 class FunctionTestOK(ParserBaseTest):
+	def setUp(self):
+		if 'use_tree' in os.environ:
+			print("NO FunctionTest in interpreter mode (yet)")
+			skip()
+
 	def test_fibonacci(self):
 		dir = 'samples/'
 		code = File.read(dir + ('fibonacci.e'))

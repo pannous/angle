@@ -767,7 +767,7 @@ def quick_expression():  # bad idea?
 		if contains("=>") or contains(":"): return hash_map()
 	# property
 	if look_1_ahead(['.','\'s',"of"]):
-		return property()
+		return maybe(method_call) or property() #simpleProperty()
 	# setter
 	if look_1_ahead('='):
 		if not context.in_condition: return setter()
@@ -1401,7 +1401,7 @@ def method_call(obj=None):
 	if module or obj or is_object_method(method_name):  # todo  not has_object(method) is_class_method:
 		obj = obj or None  # globals
 	else:
-		maybe_token('of')
+		maybe_token('of') # size of class?? << todo
 		obj = maybe(list(the.classes.keys())) or maybe(the.moduleNames)  # exclude vars
 		if not context.in_args:
 			obj = obj or maybe(liste)  # danger: liste vs args below
@@ -1808,6 +1808,21 @@ def get_obj(o):
 	# Object.property  or  object.property
 
 
+
+# see method_call!!
+def simpleProperty():
+	must_contain_before(".", special_chars + keywords)
+	module = token(the.moduleNames)  # or token(the.classes) # or objs!!
+	module = get_module(module)
+	_(".")
+	prop = word()
+	if interpreting():
+		x = getattr(module, prop)
+		return x
+	return kast.Attribute(kast.Name(module, kast.Load()), prop, kast.Load())
+#       maybe_tokens(['every', 'all', 'those'])
+
+# see method_call!!
 def property():#sett=False,delay_eval=True):
 	must_contain_before([".", "'s", "of"], special_chars)
 	var = variable() # todo or word() # or type/class!
@@ -3228,20 +3243,6 @@ def do_compare(a, comp, b):
 			error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
 			# return a.send(comp + '?', b)
 
-
-# see method_call!!
-def simpleProperty():
-	must_contain_before(".", special_chars + keywords)
-	module = token(the.moduleNames)  # or token(the.classes) # or objs!!
-	module = get_module(module)
-	_(".")
-	prop = word()
-	if interpreting():
-		x = getattr(module, prop)
-		return x
-	return kast.Attribute(kast.Name(module, kast.Load()), prop, kast.Load())
-
-#       maybe_tokens(['every', 'all', 'those'])
 
 def drop_plural(x):
 	if x.endswith("s"): return x[:-1]

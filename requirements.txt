@@ -1,5 +1,5 @@
-dill
 #/usr/local/bin/pip install -r requirements.txt
-astor
-stem
 # codegen replaced by astor
+astor
+dill
+stem
