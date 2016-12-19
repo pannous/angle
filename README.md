@@ -160,6 +160,6 @@ Beautiful is better than ugly.
 Explicit is better than implicit.
 Simple is better than complex.
 Complex is better than complicated.
-Flat is better than nested.
+Flat is better than nested.			
 
 For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/english-script/tree/master/DOSSIER.md)
