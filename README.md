@@ -155,6 +155,7 @@ As opposed to Ruby, Python(3) comes with a very nice and clean abstract syntax t
 Compiling is so much nicer & faster than interpreted code.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
 
+
 "There should be one-- and preferably only one --obvious way to do it"
 Beautiful is better than ugly.
 Explicit is better than implicit.
