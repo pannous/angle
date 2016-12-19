@@ -326,7 +326,7 @@ def fix_block(body, returns=True, prints=False):
 			body[-1] = (assign("it", last_statement))
 	if isinstance(last_statement, ast.Assign):
 		if not "it" in [x.id for x in last_statement.targets]:
-			last_statement.targets.append(name("it"))
+			last_statement.targets.append(Name(id="it",ctx=Store()))
 	if returns and not isinstance(body[-1], ast.Return):
 		body.append(ast.Return(name("it")))
 	# if prints:

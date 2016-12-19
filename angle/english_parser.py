@@ -672,34 +672,28 @@ def empty_map():
 	return Expr(Dict([], []))
 
 
+hash_assign = [":", "to", "=>", "->"] # tokenized as = > !?!
 def hash_map():
-	must_contain_before(args=[":", "=>"], before=["}"])
+	must_contain_before(args=hash_assign, before=["}"])
 	# z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
-
 	z = regular_hash() if starts_with("{") else immediate_hash()
 	return z
 
-	# colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
-	# careful with blocks!! {puts "s") VS {a:"s")
-
-
+# colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
+# careful with blocks!! {puts "s") VS {a:"s")
 # careful with blocks/closures ! map{puts it} VS data{a:"b")
 @Starttokens('{')
 def regular_hash():
 	_('{')
 	context.in_hash = True
-	maybe_token(':') and no_rollback()  # symbol
+	maybe_tokens(hash_assign) and no_rollback()  # symbol  why "MAYBE
 	h = {}
-
 	def lamb():
 		if len(h) > 0: tokens([';', ','])
-		quoted = maybe_tokens(['"', "'"])
-		key = word()
-		if quoted:return tokens(['"', "'"])
+			# context.in_list = True
+		key = maybe(quote) or word()
 		# Property versus hash !!
-		maybe_tokens(['=>', '=', ':', '>']) or starts_with("{")
-		maybe_tokens(['=>', '=', ':', '>'])
-		# context.context.in_list = True
+		maybe_tokens(hash_assign) or starts_with("{")
 		val = expression()
 		h[key] = val
 		return {key: val}
@@ -707,17 +701,17 @@ def regular_hash():
 	star(lamb)
 	_('}')
 	context.in_hash = False
-
 	# context.context.in_list = False
+	if not interpreting():
+		return Dict(list(h.keys()),list(h.values())) #ORDER OK???
 	return h
 	# careful with blocks/closures ! map{puts it} VS data{a:"b")
 
 
-
 def immediate_hash():  # a:b a:{b} OR a{b:c}):
-	must_contain_before([":", "=>"], "}")
+	must_contain_before(hash_assign, "}")
 	w = maybe(quote) or word()  # expensive
-	if maybe_token(":") or maybe_token("=>"):  # disastrous :  BLOCK START!
+	if maybe_tokens(hash_assign):  # disastrous :  BLOCK START!
 		r = expression()
 	elif starts_with("{") or _('=>'):
 		# maybe(lambda:starts_with("={")) and maybe_token('=') or:c)
@@ -725,9 +719,9 @@ def immediate_hash():  # a:b a:{b} OR a{b:c}):
 		r = regular_hash()
 	else:
 		raise_not_matching("no immediate_hash")
-	return {str(w): r}  # AH! USEFUL FOR NON-symbols !!!
-
-
+	if interpreting():
+		return {str(w): r}  # AH! USEFUL FOR NON-symbols !!!
+	return Dict(w,r)
 # todo PYTHONBUG ^^
 
 def maybe_cast(_context):
@@ -1729,17 +1723,17 @@ def for_i_in_collection():
 
 #  until_condition ,:while_condition ,:as_long_condition()
 
-def assure_same_type(var, type):
+def assure_same_type(var, _type):
 	if var.name in the.variableTypes:
-		oldType = the.variableTypes[var.name]
+		oldType = the.variableTypes[var.name] or type(var.value)
 	elif var.type:
 		oldType = var.type
 	else:
 		oldType = None
 
-	if type == "Unknown": return
+	if _type == "Unknown": return
 
-	if isinstance(type, ast.AST):
+	if isinstance(_type, ast.AST):
 		warn("TYPE AST")
 		return
 
@@ -1752,17 +1746,17 @@ def assure_same_type(var, type):
 		# oldType =getattr(sys.modules[__name__], oldType)
 
 	if oldType and issubclass(oldType,str):
-		if issubclass(type,extensions.xchar):
+		if issubclass(_type, extensions.xchar):
 		# var.type = type  # ok: upgrade
 			return # OK
 	# try:
-	if oldType and type and not issubclass(oldType, type):  # FAIL:::type <= oldType:
-		raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(type))
+	if oldType and _type and not issubclass(oldType, _type):  # FAIL:::type <= oldType:
+		raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(_type))
 	if oldType and var.type and not issubclass(oldType, var.type):
 		raise WrongType(var.name + " has type " + str(oldType) + ", cannot set to " + str(var.type))
-	if type and var.type and not (issubclass(var.type, type) or issubclass(type, var.type)):  # DOWNCAST TODO
-		raise WrongType(var.name + " has type " + str(var.type) + ", Can't set to " + str(type))
-	var.type = type  # ok: set
+	if _type and var.type and not (issubclass(var.type, _type) or issubclass(_type, var.type)):  # DOWNCAST TODO
+		raise WrongType(var.name + " has type " + str(var.type) + ", Can't set to " + str(_type))
+	var.type = _type  # ok: set
 
 
 def assure_same_type_overwrite(var, val,auto_cast=False):
@@ -1901,7 +1895,7 @@ def setter(var=None):
 		return add_variable(var, val, mod, _type)
 	else:
 		val = expression()
-	_cast = maybe_tokens(["as", "kast", "kast to", "kast into", "kast as"]) and typeNameMapped()
+	_cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) and typeNameMapped()
 	guard = maybe_token("else") and value()
 	# guard = maybe_token("else") and action_or_block()
 
@@ -1964,7 +1958,7 @@ def add_variable(var, val, mod=None, _type=None):
 	# if var.typed:
 	#     var.type = _type #ok: set
 
-	if not var.name in variableValues or mod != 'default':  # and interpreting():
+	if not var.name in variableValues.keys() or mod != 'default':  # and interpreting():
 		the.variableValues[var.name] = val
 		the.variables[var.name] = var
 		var.value = val
@@ -3397,7 +3391,7 @@ def evaluate_index(obj=None):
 	if not obj:
 		should_not_start_with('[')
 		must_contain(['[', ']'])
-		obj = endNode()  # true_variable()
+		obj = maybe(variable) or endNode()
 	_('[')
 	index = endNode()
 	_(']')
@@ -3565,8 +3559,10 @@ def known_variable(node=True):
 	# must_not_start_with(the.method_names)
 	vars = list(the.variables.keys())
 	if (len(vars) == 0): raise NotMatching()
-	v = tokens(vars)
-	v = the.variables[v]  # why maybe(later)
+	v0 = tokens(vars)
+	if not interpreting():
+		return name(v0)
+	v = the.variables[v0]  # why maybe(later)
 	# if interpret #LATER!: variableValues[v]
 	# if node and not interpreting(): return kast.name(v)
 	return v

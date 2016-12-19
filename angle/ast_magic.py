@@ -12,3 +12,9 @@ Num.__repr__ = lambda self: "%d" % (self.n)
 # Num.__eq__ = lambda self,other: if other is Num: "%d" % (self.n)
 Eq.__repr__ = lambda self: "=="  # lambda self:self.num
 Assert.__repr__ = lambda self: self.msg
+def comp_str(self, other):
+	if isinstance(other, Str):
+		return self.s == other.s
+	else:
+		return self.s == other
+Str.__eq__ = comp_str
