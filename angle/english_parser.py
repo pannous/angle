@@ -498,10 +498,10 @@ def is_a(x, type0):
 	if isinstance(xx(x), _type): return True
 	return False
 
-
+@Starttokens(number_selectors) # other numbers already handled
 def nth_item(val=0):  # Also redundant with property evaluation (But okay as a shortcut)):
 	set = maybe_token('set')
-	n = val or tokens(numbers + ['first', 'last', 'middle'])
+	n = val or tokens(number_selectors + ['first', 'last', 'middle'])
 	n = xstr(n).parse_integer()
 	if (n > 0): n = n - 1  # -1 AppleScript style !!! BUT list[0] !!!
 	raiseEnd()
@@ -1673,7 +1673,7 @@ def do_execute_block(b, args={}):
 		return pyc_emitter.eval_ast(b, args)
 		# return pyc_emitter.eval_ast(b, args)
 		# return pyc_emitter.eval_ast(b, args,fix_body=False)
-	if isinstance(b, TreeNode): b = b.content
+	# if isinstance(b, TreeNode): b = b.content
 	if not is_string(b): return b  # OR :. !!!
 	block_parser = the  # EnglishParser()
 	block_parser.variables = variables

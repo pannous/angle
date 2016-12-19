@@ -14,8 +14,10 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 
 
 	def test_natural_array_index(self):
-		parse('x=[1,2,3]')
 		assert_equals(parse('second element in [1,2,3]'), 2)
+
+	def test_natural_array_index_var(self):
+		parse('x=[1,2,3]')
 		assert_equals(parse('third element in x'), 3)
 
 	def test_lists(self):
@@ -235,7 +237,6 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 
 	def test_map3(self):
 		# skip()
-		test_every_selector(self)
 		self.assert_that('square every number in 1,"a",2,3 == 1,4,9')
 
 	def test_map4(self):

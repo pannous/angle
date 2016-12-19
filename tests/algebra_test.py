@@ -15,7 +15,7 @@ class AlgebraTest(ParserBaseTest):
 
   def setUp(self):
     context.use_tree=False
-    super(AlgebraTest, self).setUp()
+    # super(AlgebraTest, self).setUp()
 
   def test_algebra1(self):
     assert_result_is('two minus 1', 1)

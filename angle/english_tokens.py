@@ -35,10 +35,10 @@ import_keywords = ['dependencies', 'dependency', 'depends on', 'depends', 'requi
 require_types = "javascript script js gcc ruby gem header c cocoa native".split()  # todo c++ c# not tokenized!
 
 numbers = "1 2 3 4 5 6 7 8 9 0\
-      -1 -2 -3 -4 -5 -6 -7 -8 -9 -0\
-      1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
-      tenth ninth eighth seventh sixth fifth fourth third second first\
-      ten nine eight seven six five four three two one zero".split()
+      -1 -2 -3 -4 -5 -6 -7 -8 -9 -0 \
+          ten nine eight seven six five four three two one zero".split()
+number_selectors=" 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
+      tenth ninth eighth seventh sixth fifth fourth third second first".split()
 
 special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
@@ -341,6 +341,7 @@ kast_operator_map = {
 	"equals": ast.Eq(),
 	"same": ast.Eq(),
 	"same as": ast.Eq(),  # is the same as ... rely on compariton!!
+	"the same as": ast.Eq(),
 	"identical": ast.Eq(),  # is identical to ... rely on compariton!!
 	">": ast.Gt(),
 	"bigger": ast.Gt(),
