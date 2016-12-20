@@ -172,6 +172,9 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		assert (equals(list, the.variables['y'].value))
 		assert (isinstance(the.variables['x'].value, list))
 		assert_equals(the.variables['x'].type, list)
+
+	def test_type3b(self):
+		parse('x be 1,2,3;y= class of x')
 		assert_equals(type(the.variableValues['x']), list)
 		# assert_equals(kind(the.variableValues['x'], list)
 		assert_equals(the.variables['y'].value, list)
@@ -234,6 +237,11 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		self.assert_that('(all number in 1,"a",2,3) == 1,2,3')
 		self.assert_that('(all numbers in 1,"a",2,3) == 1,2,3')
 		self.assert_that('(every number in 1,"a",2,3) == 1,2,3')
+
+	def test_every_selector_no_braces(self):
+		self.assert_that('all number in 1,"a",2,3 == 1,2,3')
+		self.assert_that('all numbers in 1,"a",2,3 == 1,2,3')
+		self.assert_that('every number in 1,"a",2,3 == 1,2,3')
 
 	def test_map3(self):
 		# skip()

@@ -275,6 +275,12 @@ class Variable(kast.Name):
 		def __str__(self):
 					return str("xzcv %s"%self.name)
 
+		# def __index__(self,x):
+		# 	return self.value[x]
+
+		def __getitem__(self, item):
+			return self.value[item]
+
 		# def __len__(self):
 		#     return len(self.value)
 

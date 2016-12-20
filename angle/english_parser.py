@@ -20,6 +20,7 @@ from english_tokens import *
 import ast_magic
 import _ast
 from kast import kast
+from kast.kast import name,store,assign,call,num, zero, Self
 from _ast import *  # VS
 # from kast.kast import * # DANGER: inheritance not handled correctly in all libs!
 
@@ -214,7 +215,7 @@ def interpretation():
 	i.tree = the.result
 	i.error_position = error_position()
 	# super  # set tree, nodes
-	i.javascript = javascript
+	# i.javascript = javascript
 	# i.context = _context
 	i.methods = the.methods
 	i.ruby_methods = builtin_methods
@@ -623,9 +624,9 @@ def selfModify():
 #
 # @Interpret
 # @Starttokens(self_modifying_operators)
-def self_modify(exp=None):
+def self_modify(v=None,exp=None):
 	must_contain(self_modifying_operators)
-	v = variable()
+	v = v or variable()
 	mod = tokens(self_modifying_operators)
 	exp = exp or expression()  # value
 	arg = do_evaluate(exp, v.type)
@@ -633,7 +634,7 @@ def self_modify(exp=None):
 		op = tree.operator_equals(mod)
 		return kast.AugAssign(kast.Name(v.name, kast.Store()), op, arg)
 	else:
-		the.result = interpretation.self_modify(v, mod, arg)
+		the.result = do_self_modify(v, mod, arg)
 		the.variableValues[v.name] = the.result
 		v.value = the.result
 		return the.result
@@ -643,7 +644,6 @@ def self_modify(exp=None):
 def swift_hash():
 	_('[')
 	h = {}
-
 	def hashy():
 		if len(h) > 0: _(',')
 		maybe_tokens(['"', "'"])
@@ -721,7 +721,7 @@ def immediate_hash():  # a:b a:{b} OR a{b:c}):
 		raise_not_matching("no immediate_hash")
 	if interpreting():
 		return {str(w): r}  # AH! USEFUL FOR NON-symbols !!!
-	return Dict(w,r)
+	return kast.Dict([w],[r])
 # todo PYTHONBUG ^^
 
 def maybe_cast(_context):
@@ -839,7 +839,9 @@ def post_operations(result):  # see quick_expression !!
 	if the.current_word == '.': return method_call(result)
 	if the.current_word == ',' and not (context.in_args or context.in_params or context.in_hash):
 		return liste(check=False, first=result)
-	if the.current_word in operators and look_1_ahead('='):
+	# if the.current_word in operators and look_1_ahead('='):
+	# 	return self_modify(result) # see operator_equals
+	if the.current_word in self_modifying_operators:
 		return self_modify(result)
 	if the.current_word == '+' and look_1_ahead('+'):
 		return plusPlus(result)
@@ -1870,7 +1872,7 @@ def declaration():
 @Starttokens(let_words)
 def setter(var=None):
 	# if not var:
-	must_contain_before(args=['is','be','are',':=','=','set'], before=['>', '<', '+', '-', '|', '/', '*',';'])
+	must_contain_before(args=['is','be','are',':=','=','set','to'], before=['>', '<', '+', '-', '|', '/', '*',';'])
 	_let = maybe_tokens(let_words)
 	if _let: no_rollback()
 	a = maybe(_the)
@@ -1949,6 +1951,9 @@ def alias(var=None):
 
 
 def add_variable(var, val, mod=None, _type=None):
+	if not isinstance(var,Variable):
+		print("NOT a Variable: "+var)
+		return var
 	var.typed = _type or var.typed or 'typed' == mod  # in [mod]
 	if isinstance(val, FunctionCall):
 		assure_same_type(var, val.returns)
@@ -1963,7 +1968,7 @@ def add_variable(var, val, mod=None, _type=None):
 		the.variables[var.name] = var
 		var.value = val
 	the.token_map[var.name] = known_variable
-	var.type= _type
+	var.type= _type or type(val)
 	var.final = mod in const_words
 	var.modifier = mod
 	the.variableTypes[var.name] = var.type
@@ -2703,6 +2708,7 @@ def mapType(x0):
 	if x == "label": return str
 	if x == "length": return int
 	if x == "label": return str
+	if x == "class": raise NotMatching("class is not a type")#?
 	raise UnkownType(x)
 	# if x == "size": return int or tuple
 	return x0
@@ -3810,8 +3816,11 @@ def repeat_n_times():
 	if interpreting():
 		xint(n).times_do(lambda: do_execute_block(b))
 	else:
-		todo("repeat_n_times")
-	#  return ast.For(
+		# return Expr(Call(Name('times_do', Load()), [num(n), b], []))
+		return For(store('i'), call('range', [zero, n]), [assign('it', b)])
+
+
+	# todo("repeat_n_times")
 	return the.result
 	# if angel.use_tree: parent_node()
 

@@ -275,18 +275,16 @@ def fix_ast_module(my_ast, fix_body=True):
 		# my_ast = flatten(my_ast)
 		if not isinstance(my_ast, list):
 			my_ast = [my_ast]
-
-		def wrap_stmt(s):
-			if not isinstance(s, ast.stmt) and not isinstance(s, ast.Expr):
-				return ast.Expr(s)
-			else:
-				return s
-
+		#
+		# def wrap_stmt(s):
+		# 	if not isinstance(s, ast.stmt) and not isinstance(s, ast.Expr):
+		# 		return ast.Expr(s)
+		# 	else:
+		# 		return s
 		# my_ast = map(wrap_stmt,my_ast)
 		my_ast = ast.Module(body=my_ast)
 
 	PrepareTreeVisitor().visit(my_ast)
-
 	if fix_body:
 		# my_ast.body.insert(0, kast.setter(name('it'), kast.none))  # save here, unlike in block!
 		# my_ast.body.insert(0, ast.Global(names=['it']))

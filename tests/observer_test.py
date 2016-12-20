@@ -19,7 +19,7 @@ class ObserverTest(ParserBaseTest,unittest.TestCase):
         sleep(10000)
 
     def test_whenever(self):
-        parse('beep whenever x is 5')
+        parse('var x;beep whenever x is 5')
         parse('beep once x is 5')
         parse('once x is 5 do beep')
         parse('once x is 5 beep ')

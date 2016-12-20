@@ -31,7 +31,7 @@ in_algebra=False
 interpret=True #False
 did_interpret = False
 
-javascript = ''
+# javascript = ''
 variables = {}
 variableTypes = {}
 variableValues = {}  # ={nill: None)

@@ -28,9 +28,6 @@ class HashTest(ParserBaseTest):
 	def test_simple(self):
 		assert_equals(parse('{a:1}'), {'a': 1})
 
-	def test_simple2(self):
-		assert_equals(parse('{:a => "b"}'), {'a': 'b', })
-
 	def test_invariance(self):
 		assert_result_is('{a:"b"}', {'a': 'b' })
 
@@ -38,9 +35,15 @@ class HashTest(ParserBaseTest):
 		assert_equals(parse('{a{b:"b",c:"c"}}'), {'a': {'c': 'c', 'b': 'b', }, })
 		assert_equals(parse('{a{b:"b";c:"c"}}'), {'a': {'b': 'b', 'c': 'c', }, })
 		assert_equals(parse('{a:"b"}'), parse('{"a":"b"}'))
-		assert_equals(parse('{:a => "b"}'), {'a': 'b', })
 		assert_equals(parse('{a:{b:"b";c:"c"}}'), {'a': {'b': 'b', 'c': 'c', }, })
 
+	def test_simple_ruby(self):
+		skip()
+		assert_equals(parse('{:a => "b"}'), {'a': 'b', })
+
+	def test_invariance_ruby_style(self):
+		skip()
+		assert_equals(parse('{:a => {b:"b";c:"c"}}'), {'a': {'b': 'b', 'c': 'c', }, })
 
 
 	def test_immediate_hash(self):
