@@ -4,6 +4,8 @@ import sys
 import collections
 from _ast import *
 
+import os.path
+
 import ast_magic
 from ast_magic import wrap_value
 import context
@@ -355,6 +357,7 @@ def get_ast(python, source='out/inline.py', _context='exec'):
 
 
 def print_ast(my_ast, source_file='out/inline',with_line_numbers=False):
+	if not os.path.exists('out'):return
 	try:
 		x = ast.dump(my_ast, annotate_fields=True, include_attributes=with_line_numbers)
 		open(source_file + ".ast", 'wt').write("from ast import *\ninline_ast=" + x.replace('(', '(\n'))
@@ -374,7 +377,8 @@ def print_ast(my_ast, source_file='out/inline',with_line_numbers=False):
 def print_source(my_ast, source_file='out/inline'):
 	try:
 		source = codegen.to_source(my_ast)
-		open(source_file + ".py", 'wt').write(source)
+		if os.path.exists('out'):
+			open(source_file + ".py", 'wt').write(source)
 		print(source)  # => CODE
 	except:
 		# raise
@@ -481,6 +485,8 @@ def emit_pyc(code, fileName='output.pyc'):
 	import marshal
 	import py_compile
 	import time
+	if fileName=='out/inline.pyc':
+		return # don't cache inline.pyc bytecode
 	with open(fileName, 'wb') as fc:
 		fc.write(b'\0\0\0\0')
 		# py_compile.wr_long(fc, int(time.time()))

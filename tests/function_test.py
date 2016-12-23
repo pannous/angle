@@ -65,6 +65,7 @@ class FunctionTest(ParserBaseTest):
 		code = fix_encoding(code)
 		print(code)
 		print((parse(code)))
+		copy_variables()
 		fib = the.methods['fibonacci']
 		print(fib)
 		assert (equals('n', fib.arguments[0].name))  # name(args[0], )))

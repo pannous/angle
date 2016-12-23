@@ -950,7 +950,8 @@ def parse(s, target_file=None):
 		s = open(s).readlines()
 	else:
 		source_file = 'out/inline'
-		open(source_file, 'wt').write(s)
+		try:open(source_file, 'wt').write(s)
+		except:debug("no out directory")
 	if context._debug:
 		print("  File \"%s\", line 1" % source_file)
 	if (len(s) < 1000):

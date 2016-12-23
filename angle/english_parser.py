@@ -1870,7 +1870,7 @@ def declaration():
 		val= type() # DEFAULT CONSTRUCTOR!?
 	except:
 		val=None
-	add_variable(var,val,mod,_type=type)
+	var=add_variable(var,val,mod,_type=type)
 	if var.type:
 		assure_same_type(var, type)
 	else:
@@ -2834,8 +2834,8 @@ def do_evaluate(x, _type=None):
 
 def self_modifying(method):
 	if callable(method): method = method.__name__
-	return method == 'increase' or method == 'decrease' or method.endswith("!")
-
+	if is_string(method): return method == 'increase' or method == 'decrease' or method.endswith("!")
+	return False
 
 #
 # def self_modifying(method):

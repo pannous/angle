@@ -28,17 +28,20 @@ if py3:
 	#   class range(xrange):
 	#     pass
 
-
+else:
+	class bytes(str):
+		pass
 	class char(str):
 		pass
+# char = char
 
 
-	class byte(str):
-		pass
-
+class byte(str):
+	pass
+# byte= byte
 file=file # nice trick: native py2 class or local py3 class
 unicode = unicode
-xrange= xrange
+xrange = xrange
 
 if py2:
 	import cPickle as pickle
@@ -56,11 +59,17 @@ import shutil
 
 from extension_functions import *
 
+def type_name(x):
+	return type(x).__name__
 
 def xx(y):
+	if type_name(y).startswith('x'):   return y
+	if isinstance(y, xstr):   return y
+	if isinstance(y, xlist):   return y
 	if isinstance(y, bool):  return y #xbool(y)
 	if isinstance(y, list):  return xlist(y)
 	if isinstance(y, str):   return xstr(y)
+	if isinstance(y, unicode):   return xstr(y)
 	if isinstance(y, dict):  return xdict(y)
 	if isinstance(y, float): return xfloat(y)
 	if isinstance(y, int):   return xint(y)
