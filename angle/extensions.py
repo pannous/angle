@@ -314,7 +314,7 @@ class xlist(list):
 		except:
 			# if str(name) in globals():
 			method = globals()[str(name)]  # .method(m)
-		return map(lambda x: method(args, kwargs), xs)  # method bound to x
+		return xlist(map(lambda x: method(args, kwargs), xs))  # method bound to x
 
 	def pick(self):
 		return self[randint(len(self))]
@@ -325,7 +325,7 @@ class xlist(list):
 			try:
 				return method(self)
 			except:
-				map(method, self)
+				xlist(map(method, self))
 		return self.method_missing(name)
 
 	# return partial(self.method_missing, name)
@@ -335,7 +335,7 @@ class xlist(list):
 		return filter(func, xs)
 
 	def map(xs, func):
-		return map(func, xs)
+		return xlist(map(func, xs))
 
 	def last(xs):
 		return xs[-1]
@@ -353,9 +353,9 @@ class xlist(list):
 
 	def column(self, n):
 		if isinstance(self[0], str):
-			return map(lambda row: xstr(row).word(n + 1), self)
+			return xlist(map(lambda row: xstr(row).word(n + 1), self))
 		if isinstance(self[0], list):
-			return map(lambda row: row[n], self)
+			return xlist(map(lambda row: row[n], self))
 		raise Exception("column of %s undefined" % type(self[0]))
 
 	# c=self[n]
@@ -394,17 +394,17 @@ class xlist(list):
 		return xlist(i for i in other if i not in self)
 
 	def c(self):
-		return map(str.c, self).join(", ")  # leave [] which is not compatible with C
+		return xlist(map(str.c, self).join(", "))  # leave [] which is not compatible with C
 
 	def wrap(self):
 		# map(wrap).join(", ") # leave [] which is not compatible with C
 		return "rb_ary_new3(#{size}/*size*', #{wraps})"  # values
 
 	def wraps(self):
-		return map(lambda x: x.wrap, self).join(", ")  # leave [] which is not compatible with C
+		return xlist(map(lambda x: x.wrap, self).join(", "))  # leave [] which is not compatible with C
 
 	def values(self):
-		return map(lambda x: x.value, self).join(", ")  # leave [] which is not compatible with C
+		return xlist(map(lambda x: x.value, self).join(", "))  # leave [] which is not compatible with C
 
 	def contains_a(self, type):
 		for a in self:
@@ -453,7 +453,7 @@ class xlist(list):
 	#  select{|y|y.to_s.match(x)}
 	#
 	def names(self):
-		return map(str, self)
+		return xlist(map(str, self))
 
 	def rest(self, index=1):
 		return self[index:]
@@ -678,7 +678,7 @@ class xstr(str):
 		return self.synsets('adjective')
 
 	def examples(self):
-		return self.synsets.flatten.map('hyponyms').flatten().map('words').flatten.uniq.map('to_s')
+		return xlist(self.synsets.flatten.map('hyponyms').flatten().map('words').flatten.uniq.map('to_s'))
 
 	# def not_(self):
 	#   return None or not
