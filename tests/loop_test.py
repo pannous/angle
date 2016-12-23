@@ -30,14 +30,19 @@ class LoopTest(ParserBaseTest, unittest.TestCase):
 		parse('counter=counter+counter')
 		assert_equals(6, parse('counter'))
 
-	def test_repeat(self):
+
+	def test_repeat(self): # increase acting on Variable, not on value! hard for AST?
 		parse('counter =0; repeat three times: increase the counter; okay')
-		self.assert_that('counter==3')
 		counter_ = the.variables['counter']
 		assert_equals(counter_.value, 3)
+		self.assert_that('counter==3')
 
 	def test_repeat3(self):
+		print("I DON'T GET IT")
+		# TypeError: unsupported operand type(s) for +: 'BinOp' and 'int' why??
 		assert_result_is('counter =0; repeat three times: counter=counter+1; okay', 3)
+
+	def test_repeat4(self):
 		assert_result_is('counter =0; repeat while counter < 3: counter=counter+1; okay', 3)
 
 	def test_increment(self):
@@ -46,12 +51,14 @@ class LoopTest(ParserBaseTest, unittest.TestCase):
 	def test_repeat1(self):
 		parse('counter =0; repeat three times: counter+=1; okay')
 		self.assert_that('counter =3')
+
+	def test_repeat2(self):
 		parse('counter =0; repeat three times: counter++; okay')
 		counter = the.variableValues['counter']
 		self.assert_that('counter =3')
-		self.assert_that(counter.equals(3))
+		assert(counter == 3)
 
-
-	def _test_forever(self):
+	def test_forever(self):
+		skip("we don't have time forever")
 		self.parser.s('beep forever')
 		self.parser.loops()

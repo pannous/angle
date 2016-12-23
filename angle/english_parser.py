@@ -23,7 +23,7 @@ from kast import kast
 from kast.kast import name,store,assign,call,num, zero, Self
 from _ast import *  # VS
 # from kast.kast import * # DANGER: inheritance not handled correctly in all libs!
-
+from tree import operator_equals
 from power_parser import *
 import power_parser
 # from context import * # DOESN'T WORK!!
@@ -599,7 +599,9 @@ def plusPlus(v=None):
 	pre = maybe_token('+') and token('+')
 	v = v or variable()
 	pre or _('+') and token('+')
-	if not interpreting(): return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Add(), kast.Num(1))
+	if not interpreting():
+		# return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Add(), kast.Num(1))  # INcompatible was chained assignment it=b--
+		return Assign([store(v.name)], BinOp(name(v.name), Add(), num(1)))
 	the.result = do_evaluate(v, v.type) + 1
 	the.variableValues[v.name] = v.value = the.result
 	return the.result
@@ -611,7 +613,8 @@ def minusMinus(v=None):
 	v = v or variable()
 	pre or _('-') and token('-')
 	if not interpreting():
-		return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Sub(), kast.Num(1))
+		# return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Sub(), kast.Num(1))  # INcompatible was chained assignment it=b--
+		return Assign([store(v.name)], BinOp(name(v.name), Sub(), num(1)))
 	the.result = do_evaluate(v, v.type) + 1
 	variableValues[v] = v.value = the.result
 	return the.result
@@ -629,11 +632,12 @@ def self_modify(v=None,exp=None):
 	v = v or variable()
 	mod = tokens(self_modifying_operators)
 	exp = exp or expression()  # value
-	arg = do_evaluate(exp, v.type)
 	if not interpreting():
-		op = tree.operator_equals(mod)
-		return kast.AugAssign(kast.Name(v.name, kast.Store()), op, arg)
+		op = operator_equals(mod)
+		# return kast.AugAssign(store(v.name), op, exp) # UNcompatible was chained assignment it=b+=1
+		return Assign([store(v.name)], BinOp(name(v.name), Add(),ast_magic.wrap_value(exp)))
 	else:
+		arg = do_evaluate(exp, v.type)
 		the.result = do_self_modify(v, mod, arg)
 		the.variableValues[v.name] = the.result
 		v.value = the.result
@@ -861,8 +865,9 @@ def post_operations(result):  # see quick_expression !!
 	#     compar=comparation()
 	#     return do_compare(context,compar,expression()) or FALSE
 		# else algebra(context)
-	if the.current_word in operators:  # not quantifier
-		return algebra(result)
+	if the.current_word in operators:
+		# if not the.current_word in quantifiers:
+			return algebra(result)
 	if the.current_word == '[':
 		return evaluate_index(result)
 	if the.current_word in operators + special_chars + ["element", "item"]:
@@ -1358,6 +1363,8 @@ def true_method(obj=None):
 		if isinstance(variable.value, collections.Callable):
 			name = variable.value.__name__
 		else:
+			if not isinstance(variable.value,str):
+				raise_not_matching("not a method: %s"% variable.value)
 			name=findMethod(nil,variable.value)
 			if not name:
 				obj, name = subProperty(variable.value)
@@ -1423,7 +1430,7 @@ def method_call(obj=None):
 			return args
 
 		star(call_args) # args = set above!
-		if not args and not context.use_tree:  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
+		if not args and not context.use_tree and not self_modifying(method):  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
 			if context.use_tree:
 				args = obj
 			else:
@@ -1654,6 +1661,10 @@ def prepare_named_args(args):
 			context_variables[str(arg)] = val  # Variable(name=arg, value=val)
 	return context_variables
 
+def eval_ast(b, args={}):
+	args = prepare_named_args(args)
+	the.result=pyc_emitter.eval_ast(b,args,run=True)
+	return the.result
 
 def do_execute_block(b, args={}):
 	if not interpreting(): return
@@ -1662,21 +1673,16 @@ def do_execute_block(b, args={}):
 	if b == True: return True
 	if isinstance(b, collections.Callable): return do_call(None, b, args)
 	if isinstance(b, FunctionCall): return do_call(b.object, b.name, args or b.arguments)
-	args = prepare_named_args(args)
-	if isinstance(b, kast.AST): return pyc_emitter.eval_ast(b, args)
-	if isinstance(b, list) and isinstance(b[0], kast.AST):
-		# return pyc_emitter.eval_ast(b, args, context='eval')
-		return pyc_emitter.eval_ast(b, args)
-		# return pyc_emitter.eval_ast(b, args)
-		# return pyc_emitter.eval_ast(b, args,fix_body=False)
-	# if isinstance(b, TreeNode): b = b.content
+	if isinstance(b, kast.AST): return eval_ast(b, args)
+	if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
 	if not is_string(b): return b  # OR :. !!!
-	block_parser = the  # EnglishParser()
+	block_parser = EnglishParser()
 	block_parser.variables = variables
 	block_parser.variableValues = variableValues
 	# block_parser.variables+=args
 	try:
-		the.result = block_parser.parse.result
+		print("using old interpretation recursion")
+		the.result = block_parser.parse(b)
 	except:
 		error(traceback.extract_stack())
 	variableValues = block_parser.variableValues
@@ -1752,6 +1758,9 @@ def assure_same_type(var, _type):
 		# var.type = type  # ok: upgrade
 			return # OK
 	# try:
+	if issubclass(_type,_ast.AST):
+		print("skipping type check for AST expressions (for now)!")
+		return
 	if oldType and _type and not issubclass(oldType, _type):  # FAIL:::type <= oldType:
 		raise WrongType(var.name + " has type " + str(oldType) + ", can't set to " + str(_type))
 	if oldType and var.type and not issubclass(oldType, var.type):
@@ -1775,7 +1784,10 @@ def assure_same_type_overwrite(var, val,auto_cast=False):
 				if auto_cast: return do_cast(val,oldType)
 				else: raise wrongType
 		except:
-			raise wrong_type
+			if not issubclass(type(val), _ast.AST):
+				raise wrong_type
+			else:
+				print("skipping type check for AST expressions (for now)!")
 	if var.final and var.value and not val == var.value:
 		raise ImmutableVaribale("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 	var.value = val
@@ -1952,7 +1964,7 @@ def alias(var=None):
 
 def add_variable(var, val, mod=None, _type=None):
 	if not isinstance(var,Variable):
-		print("NOT a Variable: "+var)
+		print("NOT a Variable: %s"%var)
 		return var
 	var.typed = _type or var.typed or 'typed' == mod  # in [mod]
 	if isinstance(val, FunctionCall):
@@ -2709,7 +2721,8 @@ def mapType(x0):
 	if x == "length": return int
 	if x == "label": return str
 	if x == "class": raise NotMatching("class is not a type")#?
-	raise UnkownType(x)
+	raise NotMatching("not a known type:"+x)  # ?
+	# raise UnkownType(x)
 	# if x == "size": return int or tuple
 	return x0
 
@@ -2778,13 +2791,12 @@ def do_evaluate_property(attr, node):
 
 # resolve
 def do_evaluate(x, _type=None):
-	if not x: return None
-
 	#  if not interpreting():   return emitters.kast_emitter.wrap_value(val) # LATER!!
 	if x == ZERO or x == 0: return 0
 	if x == TRUE: return True
 	if x == FALSE: return FALSE  # False NOT HERE! WHERE?
 	if x == NILL: return None
+	if not x: return None
 	# if x == 'pi': return math.pi
 	# if x == 'tau': return 2*math.pi
 	if isinstance(x, collections.Callable): return x  # x()  Whoot
@@ -2821,7 +2833,7 @@ def do_evaluate(x, _type=None):
 
 
 def self_modifying(method):
-	method = method.__name__
+	if callable(method): method = method.__name__
 	return method == 'increase' or method == 'decrease' or method.endswith("!")
 
 
@@ -2919,8 +2931,11 @@ def do_math(a, op, b):
 
 
 def is_bound(method):
+	_is_bound = 'im_self' in dir(method) and method.__self__
+	_is_bound = _is_bound or 'bound' in str(method)  # hack
+	return _is_bound
+	# return method.__self__ is not None   # NO py3
 	# return hasattr(m, '__self__')
-	return method.__self__ is not None
 	# the new synonym for im_self is __self__, and im_func is also available as __func__.
 
 
@@ -3089,10 +3104,12 @@ def call_unbound(method, args, number_of_arguments):
 				bound_method = types.MethodType(method, obj_type, xx(args[0]))
 				# bound_method = method.__get__(args[0], obj_type) # rebind
 				# bound_method.im_self=args[0] # read-only
-				the.result = bound_method()
+				the.result = bound_method(args[1:])
 				#    TypeError: unbound method invert() must be called with xstr instance as first argument (got str instance instead)
 				#    can't solve?
 		else:
+			if is_bound(method) and len(args) >= 1 and method.__self__== args[0]:
+				args= args[1:]
 			the.result = method(*args) or NILL
 			#     the.result = method(args) or NILL
 	else:
@@ -3116,13 +3133,15 @@ def do_call(obj0, method0, args0=[]):
 	if (method == 'of'): return evaluate_property(args0, obj0)
 	# if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
 	is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
-	is_bound = 'im_self' in dir(method) and method.__self__
-	is_bound = is_bound or 'bound' in str(method)  # hack
+	bound = is_bound(method)
 	# if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
-	obj = do_evaluate(obj0)
+	if self_modifying(method):
+		obj = obj0
+	else:
+		obj = do_evaluate(obj0)
 	args = align_args(args, obj, method)
 	number_of_arguments = has_args(method, obj, not not args)
-	first_self = first_is_self(method)
+	is_first_self = first_is_self(method)
 	if isinstance(method, FunctionDef):
 		the.result = do_execute_block(method.body, args)
 		return the.result
@@ -3164,13 +3183,13 @@ def do_call(obj0, method0, args0=[]):
 			the.result = call_unbound(method, args, number_of_arguments)
 		else:
 			the.result = method()
-	elif not args or number_of_arguments==0 or number_of_arguments==1 and first_self:
-		if is_bound or is_builtin:
+	elif not args or number_of_arguments==0 or number_of_arguments==1 and is_first_self:
+		if bound or is_builtin:
 			the.result = method() or NILL
 		else:
 			the.result = method(obj) or NILL
 	elif has_args(method, obj, True):
-		if is_bound or is_builtin:
+		if bound or is_builtin:
 			call_unbound(method, args, number_of_arguments)
 		else:
 			# try:
@@ -3764,11 +3783,9 @@ def looped_action_until():
 def is_number(n):
 	return xstr(n).parse_number() != 0  # hum
 
-	# notodo: LTR parser just here!
-	# say hello 6 times   #=> (say hello 6) times ? give up for now
-	# say hello 6 times 5 #=> hello 30 ??? SyntaxError! say hello (6 times 5)
-
-
+# notodo: LTR parser just here!
+# say hello 6 times   #=> (say hello 6) times ? give up for now
+# say hello 6 times 5 #=> hello 30 ??? SyntaxError! say hello (6 times 5)
 def action_n_times(a=None):
 	must_contain('times')
 	dont_interpret()
@@ -3787,6 +3804,8 @@ def action_n_times(a=None):
 	end_block()
 	if interpreting():
 		int(n).times(lambda: do_evaluate(a))
+	else:
+		todo("action_n_times")
 	return a
 
 
@@ -3814,12 +3833,10 @@ def repeat_n_times():
 	b = action_or_block()
 	adjust_interpret()
 	if interpreting():
-		xint(n).times_do(lambda: do_execute_block(b))
+		the.result=xint(n).times_do(lambda: do_execute_block(b))
 	else:
 		# return Expr(Call(Name('times_do', Load()), [num(n), b], []))
 		return For(store('i'), call('range', [zero, n]), [assign('it', b)])
-
-
 	# todo("repeat_n_times")
 	return the.result
 	# if angel.use_tree: parent_node()

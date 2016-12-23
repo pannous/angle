@@ -19,6 +19,8 @@ class ErrorTest(ParserBaseTest):
 
 	def test_variable_type_safety_no_errors(self):
 		assert_has_no_error('an integer i;i=3')
+
+	def test_variable_type_safety_no_errors2(self):
 		assert_has_no_error('int i=3')
 		assert_has_no_error('int i;i=3')
 

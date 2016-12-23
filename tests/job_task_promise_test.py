@@ -4,12 +4,12 @@ import angle
 #
 from tests.parser_test_helper import *
 
-context.use_tree=False
 
 class JobTest(ParserBaseTest):
 
 		def test_simple(self):
-				assert_equals(parse('do print 3'), 3) # the program waits for the job to finish
+			context.use_tree = False
+			assert_equals(parse('do print 3'), 3) # the program waits for the job to finish
 
 		def test_invariance(self):
 			skip()

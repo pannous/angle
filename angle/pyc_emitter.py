@@ -4,6 +4,8 @@ import sys
 import collections
 from _ast import *
 
+import ast_magic
+from ast_magic import wrap_value
 import context
 
 py3 = sys.version >= '3'
@@ -185,8 +187,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		if isinstance(node.right, nodes.Variable):
 			node.right.context=_ast.Load()
 		#
-		# node.right=wrap_value(node.right) #why here?
-		# node.left=wrap_value(node.left) #why here?
+		node.right= ast_magic.wrap_value(node.right) #why here?
+		node.left= ast_magic.wrap_value(node.left) #why here?
 		return node
 	#     return self.generic_visit(node)
 	#     if not isinstance(self.parent,(ast.Expr,ast.Assign)):
@@ -440,6 +442,7 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 		args.update(to_provide)  # globals
 		namespace = context.variables
 		namespace.update(args) # << GIVE AND RECEIVE GLOBALS!!
+		# resolve_variables(namespace)
 		namespace['it'] = None  # better than ast.global
 		# namespace=Namespace(namespace)
 		exec(code, namespace)  # self contained!
@@ -448,6 +451,10 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 	# verbose("GOT RESULT %s" % ret)
 	return ret
 
+# def resolve_variables(hashy):
+# 	for k, var in hashy.items():
+# 		if isinstance(var, nodes.Variable):
+# 			hashy[k]= var.value
 
 def map_values(val):
 	return list(map(wrap_value, val))
@@ -468,27 +475,6 @@ def map_def_argument_params(val):
 		return _ast.arg(get_id(x), None)
 	# return _ast.arg(get_id(x, _ast.Param()),[])
 	return list(map(assure_arg,val))
-
-
-def wrap_value(val,ctx=_ast.Load()):
-	if not val:
-		return kast.none
-	import nodes
-	if isinstance(val, nodes.Argument):
-		if val.name:
-			return ast.Name(id=val.name, ctx=ctx)  # if FunctionCall
-			# return ast.Name(id=val.name, ctx=_ast.Param()) # if FunctionDef
-		else:
-			return wrap_value(val.value)
-	if isinstance(val, ast.AST): return val
-	if isinstance(val, str): return kast.Str(val)
-	if isinstance(val, int): return kast.Num(val)
-	if isinstance(val, float): return kast.Num(val)
-	if isinstance(val, tuple): return kast.Tuple(list(map(wrap_value, val)), ast.Load())
-	if isinstance(val, list): return kast.List(list(map(wrap_value, val)), ast.Load())
-	if isinstance(val, dict): return kast.Dict(list(map(wrap_value, val)), ast.Load())
-	t = type(val)
-	raise Exception("UNKNOWN TYPE %s : %s !" % (val, t))
 
 
 def emit_pyc(code, fileName='output.pyc'):

@@ -117,6 +117,7 @@ def assert_result_is(a, b, bla=None):
 def assert_equals(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if a == 'False': a = False
+	if isinstance(a, map): a = list(a) # fuck py3!
 	if isinstance(a, ast.List): a = a.elts  # todo remove
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
@@ -137,6 +138,7 @@ class SkippingTest(Exception):
 
 
 def skip(me=0):
+	if me:print("SKIPPED! reason: %s"%me)
 	raise unittest.SkipTest()
 
 
@@ -180,6 +182,7 @@ def update_local(context):
 	variableValues.update(context.variableValues)
 	functions.update(context.methods)
 	methods.update(context.methods)
+	copy_variables()
 
 
 def parse(s):

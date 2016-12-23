@@ -730,8 +730,7 @@ def beginning_of_line():
 def block(multiple=False):  # type):
 	global last_result, original_string
 	from english_parser import statement, end_of_statement, end_block
-	maybe_newline() or not "=>" in the.current_line and maybe_tokens(
-		english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
+	maybe_newline() or not "=>" in the.current_line and maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
 	start = pointer()
 	# maybe(comment_block)
 	statement0 = statement(False)

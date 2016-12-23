@@ -37,7 +37,7 @@ require_types = "javascript script js gcc ruby gem header c cocoa native".split(
 numbers = "1 2 3 4 5 6 7 8 9 0\
       -1 -2 -3 -4 -5 -6 -7 -8 -9 -0 \
           ten nine eight seven six five four three two one zero".split()
-number_selectors=" 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
+number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
       tenth ninth eighth seventh sixth fifth fourth third second first".split()
 
 special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
@@ -76,7 +76,7 @@ import math
 
 constantMap = {"True": TRUE, "false": FALSE, "yes": TRUE, "no": FALSE, "1": 1, "0": ZERO,
                "pi": math.pi, "π": math.pi, "†": 2 * math.pi, "τ": 2 * math.pi, "tau": 2 * math.pi, "e": math.e,
-               "euler": math.e, "½": 1 / 2., "\xc2\xbd": 1 / 2.,}  # tau=twou*pi=2*pi
+               "euler": math.e, "½": 1 / 2., "\xc2\xbd": 1 / 2., }  # tau=twou*pi=2*pi
 
 constants = list(
 	constantMap.keys())  # ["True", "false", "yes", "no", "1", "0", "pi","tau","e","euler"] # tau=twou*pi=2*pi
@@ -199,21 +199,21 @@ once_words = ['whenever', 'wherever', "as soon as", "once"]  # 'on the occasion 
 if_words = ['if']  # , 'in case that', 'provided that', 'assuming that', 'conceding that', 'granted that', \
 # 'on the assumption that', 'supposing that', 'with the condition that']
 
-#  NOT: '0','0.0','0,nix','zero',
-nill_words = ['naught', 'nought', 'aught', 'oh', 'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null',
-              'undefined', \
-              'zilch', 'nada', 'nuttin', 'nutting', 'zip', 'nix', 'cypher', 'cipher', 'leer', 'empty', 'nirvana',
-              'void']  # 'love',
+#  NOT: '0','0.0','0,nix','zero','oh',
+# empty set = no set! []==0 ... hmm but type of ([])==set!?
+nill_words = ['None', 'nil', 'empty', 'void', 'nill', 'nul', 'nothing', 'null', 'undefined', 'naught', 'nought']
+# nill_words_all = ['naught', 'nought', 'aught',  'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null',\
+#               'undefined', 'zilch', 'nada', 'nuttin', 'nutting', 'zip', 'nix', 'cypher', 'cipher', 'leer', 'empty', 'nirvana',
+#               'void']  # 'love',
 
-done_words = ['◊', 'Ω', ';;', '}', 'done', 'Ende', 'end', 'okay', 'ok', 'OK', 'O.K.', 'alright', 'alrighty',
-              'that\'s it', 'thats it',
-              "I'm done", "i'm done", \
+done_words = ['◊', 'Ω', ';;', '}', 'done', 'Ende', 'end', 'okay', 'ok', 'OK', 'O.K.', 'alright',
+              'that\'s it', 'thats it', "I'm done", "i'm done", \
               'fine', 'fi', 'fini', 'finish', 'fin', 'all set', 'finished', 'the end', 'over and out', 'over', 'q.e.d.',
               'qed', "<end>"]  # NL+ # NL verbium?]
 
-false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong', 'no', 'non', 'nix', 'nein', 'njet', 'niet']  # 'negative',
+false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong','No', 'no', 'non', 'nix', 'nein', 'njet', 'niet']  # 'negative',
 
-true_words = ['True', 'yes', 'ja', 'si']  # 'positive'
+true_words = ['True','true', 'yes', 'ja', 'si']  # 'positive'
 
 boolean_words = false_words + true_words
 
@@ -260,7 +260,11 @@ attributes = ['sucks', 'default']
 keywords = prepositions + modifier_words + be_words + comparison_words + fillers + nill_words + done_words + auxiliary_verbs + conjunctions + type_keywords + otherKeywords + numbers + operators
 
 start_block_words = [';', ':', 'do', '{', 'begin', 'start', 'first you ', 'second you', 'then you', 'finally you']
-#  with , then
+#  with , then -> => !!! like erlang/elixir VS hashes!?! http://erlang.org/doc/getting_started/seq_prog.html
+# f(x)->x*x
+# current->time()
+# current:time()
+# current=time()
 
 flow_keywords = ['next', 'continue', 'break', 'stop']
 eval_keywords = ['eval', 'what is', 'evaluate', 'how much', 'what are', 'calculate']
