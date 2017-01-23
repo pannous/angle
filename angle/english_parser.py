@@ -3,8 +3,13 @@
 # encoding=utf8  
 
 import sys
+import os
+
 py2=sys.version < '3'
 py3=sys.version >= '3'
+
+sys.path.append(os.environ['ANGLE_HOME'])
+sys.path.append(os.environ['ANGLE_HOME']+"/angle")
 
 # from exceptions import GivingUp
 # import yappi
@@ -361,7 +366,7 @@ def fix_context(x):
 def apply_op(stack, i, op):
 	right = stack[i + 1]
 	left = stack[i - 1]
-	if interpreting():  # and not angel.use_tree:
+	if interpreting():  # and not context.use_tree:
 		if op == "!" or op == "not":
 			stack[i:i + 2] = [not do_evaluate(right)]
 		else:
@@ -557,7 +562,7 @@ def liste(check=True, first=None):
 	if not start_brace and (context.in_list or in_args): raise NotMatching('not a deep list')
 
 	# all<<expression(start_brace)
-	# angel.verbose=True #debug
+	# context.verbose=True #debug
 	context.in_list = True
 	first = first or maybe(endNode)
 	if not first: context.in_list = False
@@ -1677,7 +1682,7 @@ def do_execute_block(b, args={}):
 	if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
 	if not is_string(b): return b  # OR :. !!!
 	block_parser = EnglishParser()
-	block_parser.variables = variables
+	block_parser.variables = the.variables
 	block_parser.variableValues = variableValues
 	# block_parser.variables+=args
 	try:
@@ -1719,13 +1724,20 @@ def for_i_in_collection():
 	maybe_token('repeat')
 	maybe_tokens(['for', 'with'])
 	maybe_token('all')
-	v = variable()  # selector() !
+	v = variable(ctx=Store())  # or v=it(selector())
 	maybe_tokens(['in', 'from'])
 	c = collection()
+	dont_interpret()
 	b = action_or_block()
-	for i in c:
-		v.value = i
-		the.result = do_execute_block(b)
+	do_interpret()
+	if interpreting():
+		for i in c:
+			v.value = i
+			the.result = do_execute_block(b)
+	else:
+		if isinstance(c,list): c= List(elts=c,ctx=Load())
+		return For(store(v), c, [b], [])
+		# return For(store(v), c, [assign('it', b)], [])
 	return the.result
 
 
@@ -2082,7 +2094,7 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
 		the.result = Variable(name=name, type=typ or None, scope=None, module=current_context(), value=oldVal, ctx=ctx)
 		the.variables[name] = the.result
 		return the.result
-	raise Exception("Unknown variable context " + ctx)
+	raise Exception("Unknown variable context %s" % ctx)
 
 
 word_regex = r'^\s*[a-zA-Z]+[\w_]*'
@@ -2135,6 +2147,23 @@ def todo(x=""):
 
 
 def do_cast(x, typ):
+	if isinstance(typ, float): return xfloat(x)
+	if isinstance(typ, int): return xint(x)
+	if typ == int: return xint(x)  # todo!
+	if typ == xint: return xint(x)  # todo!
+	if typ == "int": return xint(x)
+	if typ == "integer": return xint(x)
+	if typ == str: return xstr(x)
+	if typ == xstr: return xstr(x)
+	if typ == unicode: return xstr(x)
+	if typ == "str": return xstr(x)
+	if typ == "string": return xstr(x)
+	if typ == extensions.xchar and len(str(x))==1:
+		return extensions.xchar(str(x)[0])
+	raise WrongType("CANNOT CAST: %s (%s) TO %s " % (x, type(x), typ))
+
+
+def do_cast_no_x(x, typ):
 	if isinstance(typ, float): return float(x)
 	if isinstance(typ, int): return int(x)
 	if typ == int: return int(x)  # todo!
@@ -2146,8 +2175,8 @@ def do_cast(x, typ):
 	if typ == unicode: return str(x)
 	if typ == "str": return str(x)
 	if typ == "string": return str(x)
-	if typ == extensions.xchar and len(x)==1:
-		return extensions.xchar(x[0])
+	if typ == extensions.xchar and len(str(x)) == 1:
+		return extensions.xchar(str(x)[0])
 	raise WrongType("CANNOT CAST: %s (%s) TO %s " % (x, type(x), typ))
 
 
@@ -2547,7 +2576,7 @@ def condition():
 	context.in_condition = False
 	if not comp: return left
 	negate = negated #(negated or _not) and not (negated and _not) << where did "_not" go???
-	# angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
+	# context.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
 	# 1,2,3 are smaller 4  VS 1,2,4 in 3
 	if isinstance(left, list) and not isinstance(right, list):  # and not maybe(lambda: comp in method_dir(left))
 		quantifier = quantifier or "all"
@@ -2566,8 +2595,8 @@ def condition():
 	else:
 		return cond
 		# return Condition.new left:a,cmp:comp,right:b
-		# if not angel.use_tree: return start - pointer()
-		# if angel.use_tree: return parent_node()
+		# if not context.use_tree: return start - pointer()
+		# if context.use_tree: return parent_node()
 
 
 # @Starttokens('(')
@@ -2585,7 +2614,7 @@ def condition_tree(recurse=True):
 	def lamb():
 		op = tokens(['and', 'or', 'nor', 'xor', 'nand', 'but'])
 		if recurse: c2 = condition_tree(False)
-		if not interpreting(): return current_node  # or angel.use_tree
+		if not interpreting(): return current_node  # or context.use_tree
 		if op == 'or': cs[0] = cs[0] or c2
 		# if op=='or' RUBY BUG!?!?!: NIL c = c or c2
 		# if op=='and'  or  op=='but': c =c and c2
@@ -3839,7 +3868,7 @@ def repeat_n_times():
 		return For(store('i'), call('range', [zero, n]), [assign('it', b)])
 	# todo("repeat_n_times")
 	return the.result
-	# if angel.use_tree: parent_node()
+	# if context.use_tree: parent_node()
 
 
 # if action was (not) parsed before: todo: node cache: skip action(X) -> _'forever'
@@ -3880,21 +3909,24 @@ def start_shell(args=[]):
 	readline.read_history_file(home + '/.english_history')
 	if len(args) > 1:
 		input0 = ' '.join(args)
-	else:
 		# input0 = input('⦠ ')
-		input0 = real_raw_input('⦠ ')
 	while True:#input0:
 		# while input = Readline.readline('angle-script⦠ ', True)
-		readline.write_history_file(home + "/.english_history")
+		try:
+			if len(args) <= 1:
+				input0 = real_raw_input('⦠ ')
+			readline.write_history_file(home + "/.english_history")
 		# while True
 		#   print("> ")
 		#   input = STDIN.gets.strip()
-		try:
 			# interpretation= parser.parse input
 			interpretation = parse(input0, None)
 			if not interpretation: next
+			result=interpretation.result
 			# if context.use_tree: print(interpretation.tree)
-			print((interpretation.result))
+			if isinstance(result,AST):
+				result=pyc_emitter.run_ast(result)
+			print(result)
 		except IgnoreException as e:
 			pass
 		except NotMatching as e:
@@ -3905,11 +3937,15 @@ def start_shell(args=[]):
 			print('Name Error')
 		except SyntaxError as e:
 			print('Syntax Error')
+		except EOFError as e:
+			break
 		except Exception as e:
 			raise
-			# print(e)
+
+		if len(args) > 1:
+			break
+	# print(e)
 		# input0 = input("⦠ ")
-		input0 = real_raw_input('⦠ ')
 	print("Bye.")
 	exit(1)
 

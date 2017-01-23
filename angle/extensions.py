@@ -8,7 +8,11 @@ import sys
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
 
+pi=math.pi 
+E=math.e
 
+# from fractions import Fraction
+# x = Fraction(22, 7) 	# Ruby: 22 / 7r 22r / 7
 
 if py3:
 	class file(io.IOBase):
@@ -28,16 +32,16 @@ if py3:
 	#   class range(xrange):
 	#     pass
 
-else:
+else: # Python 2 needs:
 	class bytes(str):
 		pass
 	class char(str):
 		pass
 # char = char
 
-
 class byte(str):
 	pass
+	
 # byte= byte
 file=file # nice trick: native py2 class or local py3 class
 unicode = unicode
@@ -64,8 +68,9 @@ def type_name(x):
 
 def xx(y):
 	if type_name(y).startswith('x'):   return y
-	if isinstance(y, xstr):   return y
-	if isinstance(y, xlist):   return y
+	# if isinstance(y, xstr):   return y
+	# if isinstance(y, xlist):   return y
+	if isinstance(y, xrange): return xlist(y)
 	if isinstance(y, bool):  return y #xbool(y)
 	if isinstance(y, list):  return xlist(y)
 	if isinstance(y, str):   return xstr(y)
@@ -76,7 +81,6 @@ def xx(y):
 	if isinstance(y, file):   return xfile(y)
 	if isinstance(y, char):  return xchar(y)
 	if isinstance(y, byte):  return xchar(y)
-	if isinstance(y, xrange): return xlist(y)
 	if py3 and isinstance(y, range): return xlist(y)
 	print("No extension for type %s" % type(y))
 	return y
@@ -975,13 +979,13 @@ class xfloat(float):
 	def value(self):
 		return self
 
-	def wrap(self):
-		return "INT2NUM(#{self.to_s})"
-
 	def number(self):
 		return self
 
 	def _and(self, x):
+		return self + x
+
+	def add(self, x):
 		return self + x
 
 	def plus(self, x):
@@ -1012,8 +1016,6 @@ class xfloat(float):
 		if self.isa(clazz): return True
 		return False
 
-	def add(self, x):
-		return self + x
 
 	def increase(self, by=1):
 		return self + by  # Can't change the value of numeric self!!
@@ -1025,6 +1027,12 @@ class xfloat(float):
 		return self > x
 
 	def smaller(self, x):
+		return self < x
+
+	def is_bigger(self, x):
+		return self > x
+
+	def is_smaller(self, x):
 		return self < x
 
 	def to_the_power_of(self, x):

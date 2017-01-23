@@ -14,6 +14,10 @@ import kast.kast
 from power_parser import *  # app_path, verbose
 from extensions import xlist
 
+# python falsey: False None 0 0.0 '' [] {}  GOOD!
+# ruby falsey: false nil BAD
+# js falsey: false null undefined '' 0 NaN GOOD
+
 true = True
 false = False
 TRUE = "True"
@@ -24,6 +28,7 @@ Nil = "None"
 nil = "None"
 # Nill="None"
 ZERO = '0'
+NEWLINE = "\n"
 
 bash_commands = ['ls', 'cd']
 
@@ -42,7 +47,6 @@ number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
 
 special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
-NEWLINE = "NEWLINE"
 
 # TODO : 'a' MESS !
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',

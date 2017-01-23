@@ -4,12 +4,10 @@ from tests.parser_test_helper import *
 from power_parser import WrongType, ImmutableVaribale
 
 
-class VariableTest(ParserBaseTest,unittest.TestCase):
-	#
+class SetterTest(ParserBaseTest,unittest.TestCase):
+
 	def setUp(self):
 		parser.clear()
-	#   pass
-
 
 	def test_a_setter_article_vs_variable(self):
 		skip()
@@ -20,6 +18,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 		assert_equals(variables['dog'], 'green')
 
 	def test_alias(self):
+		skip("aliases sit between methods and variables. do we really want them?")
 		parse('alias x=y*y')
 		parse('z:=y*y')
 		parse('y=8')
@@ -65,6 +64,14 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 		parse("x=nil else return")
 		parse("x=nil else print 'ok'")
 
+	def test_guard_rescue(self):
+		assert_result_is("x=1/0 rescue 2", 2)
+		assert_result_is("x=1 rescue 2/0", 1)
+
+	def test_guard_rescue2(self):
+		assert_result_is("try x=1/0 rescue 2", 2)
+		assert_result_is("x=2;try x=x/0", 2)
+
 	def test_guard_block(self):
 		parse("x=nil else { print 'nevermind' }")
 		parse("guard let x=nil else { print 'nevermind' }")
@@ -73,7 +80,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 	def test_variable_type_syntax2(self):
 		parse("char x='c'")
 		parse("char x;x='c'")
-		parse("char x;x=3 as char")
+		parse("char x;x=3 as char")# ambiguous : x='3' or x=chr(3) == '\x03' ?
 		# all error free
 
 	def test_variable_type_safety_a(self):
