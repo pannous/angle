@@ -5,6 +5,12 @@ The main purpose of this language is to make programming accessible to many more
 
 INSTALL
 -------
+
+`pip install angle`
+<!-- `pip install anglang` -->
+
+OR from source:
+
 `git clone --recursive git@github.com:pannous/angle.git`
 
 `cd angle`
