@@ -95,10 +95,10 @@ class ParserTest(unittest.TestCase):  # PASS ParserBaseTest): #EnglishParser
 		s('to integrate a bug\n      test\nok')
 		assert (method_definition())
 
-	def test_expression(self):
-		context.methods['eat']=lambda x: print("eaten: "+x)
-		s('eat a sandwich;')
-		assert (action())
+	# def test_expression(self):
+	# 	context.methods['eat']=lambda x: print("eaten: "+x) #not ok in py2!
+	# 	s('eat a sandwich;')
+	# 	assert (action())
 
 	def raise_test(self):
 		raise ('test')
