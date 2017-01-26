@@ -182,7 +182,7 @@ def star(lamb, giveUp=False):
 			if not match: break
 			old = current_token
 			good.append(match)
-			if (the.current_word == ')'): break
+			if (the.token == ')'): break
 			max = 20  # no list of >100 ints !?! WOW exclude lists!! TODO OOO!
 			if len(good) > max:
 				raise Exception(" too many occurrences of " + to_source(lamb))
@@ -301,13 +301,13 @@ def tokens(tokenz):
 def maybe_tokens(tokens0):
 	# tokens = flatten(tokens0)
 	for t in tokens0:
-		if t == the.current_word or t.lower() == the.current_word.lower():
+		if t == the.token or t.lower() == the.token.lower():
 			next_token()
 			return t
 		if " " in t:  # EXPENSIVE
 			old = the.current_token
 			for to in t.split(" "):
-				if to != the.current_word:
+				if to != the.token:
 					t = None
 					break
 				else:
@@ -343,7 +343,7 @@ def next_token(check=True):
 		if not check: return EndOfDocument()
 		raise EndOfDocument()
 	token = the.tokenstream[the.token_number]
-	the.previous_word = the.current_word
+	the.previous_word = the.token
 	return set_token(token)
 
 
@@ -351,7 +351,7 @@ def set_token(token):
 	global current_token, current_type, current_word, current_line, token_number
 	the.current_token = current_token = token
 	the.current_type = current_type = token[0]
-	the.current_word = current_word = token[1]
+	the.token = current_word = token[1]
 	the.line_number, the.current_offset = token[2]
 	end_pointer = token[3]
 	the.current_line = current_line = token[4]
@@ -498,7 +498,7 @@ def raiseEnd():
 
 
 def remove_tokens(*tokenz):
-	while (the.current_word in tokenz):
+	while (the.token in tokenz):
 		next_token()
 		# for t in flatten(tokenz):
 		#     the.string = the.string.replace(r' *%s *' % t, " ")
@@ -574,9 +574,9 @@ def starts_with_(param):
 def starts_with(tokenz):
 	if checkEndOfLine(): return False
 	if is_string(tokenz):
-		return tokenz == the.current_word
-	if the.current_word in tokenz:
-		return the.current_word
+		return tokenz == the.token
+	if the.token in tokenz:
+		return the.token
 	# for t in tokenz:
 	#     if t == the.current_word:
 	#         return t
@@ -586,7 +586,7 @@ def starts_with(tokenz):
 # NOT starts_with!!!
 # expect_next token(s)
 def look_1_ahead(expect_next, doraise=False, must_not_be=False, offset=1):
-	if the.current_word == '': return False
+	if the.token == '': return False
 	if the.token_number + 1 >= the.tokens_len:
 		print("BUG: this should not happen")
 		return False
@@ -799,7 +799,7 @@ def maybe(expr):
 		last_node = current_node
 		return result
 	except (NotMatching, EndOfLine) as e:
-		if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.current_word, expr, e))
+		if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.token, expr, e))
 		adjust_interpret()  # remove the border, if above border
 		# if verbose: verbose(e)
 		# if verbose: string_pointer()
@@ -1054,8 +1054,8 @@ def checkNewline():
 def checkEndOfLine():
 	return current_type == _token.NEWLINE or \
 				 current_type == _token.ENDMARKER or \
-				 the.current_word == '\n' or \
-				 the.current_word == '' or \
+	       the.token == '\n' or \
+	       the.token == '' or \
 				 the.token_number >= len(the.tokenstream)
 	# if the.string.blank? # no:try,try,try  see raiseEnd: raise EndOfDocument.new
 	# return not the.string or len(the.string)==0
@@ -1071,7 +1071,7 @@ def maybe_newline():
 
 
 def newline(doraise=False):
-	if checkNewline() == english_tokens.NEWLINE or the.current_word == ';' or the.current_word == '':
+	if checkNewline() == english_tokens.NEWLINE or the.token == ';' or the.token == '':
 		next_token()
 		if (the.current_type == 54):
 			next_token()  # ??? \r\n ? or what is this, python?
@@ -1119,17 +1119,17 @@ def comment_block():
 	token('/')
 	token('*')
 	while True:
-		if the.current_word == '*':
+		if the.token == '*':
 			next_token()
-			if the.current_word == '/':
+			if the.token == '/':
 				return True
 		next_token()
 
 
 @Starttokens(['//', '#', '\'', '--']) # , '/' regex!
 def skip_comments():
-	if the.current_word is None: return
-	l = len(the.current_word)
+	if the.token is None: return
+	l = len(the.token)
 	if l == 0: return
 	if the.current_type == tokenize.COMMENT:
 		next_token()
@@ -1137,8 +1137,8 @@ def skip_comments():
 	#        return rest_of_line()
 	if l > 1:
 		# if current_word[0]=="#": rest_of_line()
-		if the.current_word[0:2] == "--": return rest_of_line()
-		if the.current_word[0:2] == "//": return rest_of_line()
+		if the.token[0:2] == "--": return rest_of_line()
+		if the.token[0:2] == "//": return rest_of_line()
 		# if current_word[0:2]=="' ": rest_of_line() and ...
 		# the.string = the.string.replace(r' -- .*', '')
 		# the.string = the.string.replace(r'\/\/.*', '')  # todo
@@ -1229,7 +1229,7 @@ def complex():
 
 
 def maybe_indent():
-	while the.current_type == _token.INDENT or the.current_word == ' ':
+	while the.current_type == _token.INDENT or the.token == ' ':
 		next_token()
 
 

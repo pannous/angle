@@ -3,8 +3,9 @@
 # encoding=utf8  
 
 import sys
-py2=sys.version < '3'
-py3=sys.version >= '3'
+
+py2 = sys.version < '3'
+py3 = sys.version >= '3'
 
 # from exceptions import GivingUp
 # import yappi
@@ -20,7 +21,7 @@ from english_tokens import *
 import ast_magic
 import _ast
 from kast import kast
-from kast.kast import name,store,assign,call,num, zero, Self
+from kast.kast import name, store, assign, call, num, zero, Self
 from _ast import *  # VS
 # from kast.kast import * # DANGER: inheritance not handled correctly in all libs!
 from tree import operator_equals
@@ -33,20 +34,28 @@ import token as _token
 # from tree import TreeNode
 import nodes
 
-py3=sys.version < '3'
+py3 = sys.version < '3'
+
 
 def get(name):
-	if isinstance(name,Name): name=name.id # make sure to Load() !!
-	if(isinstance(name,nodes.Variable)): name=name.name
-	return _ast.Name(id=name,ctx=Load())
+	if isinstance(name, Name): name = name.id  # make sure to Load() !!
+	if (isinstance(name, nodes.Variable)): name = name.name
+	return _ast.Name(id=name, ctx=Load())
+
+
 from kast.kast import name
+
+
 # def name(x):
 # 	return kast.name()
 
 def parent_node():
 	pass
 
+
 global english_parser_imported
+
+
 # if english_parser_imported:
 # 	return
 
@@ -61,7 +70,7 @@ def do_self_modify(v, mod, arg):
 	if mod == '+=': the.result = val + arg
 	if mod == '-=': the.result = val - arg
 	if mod == '*=': the.result = val * arg
-	if mod == '**=': the.result = val ** arg
+	if mod == '**=': the.result = val**arg
 	if mod == '/=': the.result = val / arg
 	if mod == '%=': the.result = val % arg
 	if mod == '^=': the.result = val ^ arg
@@ -114,6 +123,7 @@ def __(x):
 def nill():
 	if tokens(nill_words): return NILL
 
+
 @Starttokens(['True', 'False', 'true', 'false'])
 def boolean():
 	b = tokens(['True', 'False', 'true', 'false'])
@@ -126,9 +136,12 @@ def should_not_start_with(words):
 	if not bad: return OK
 	if bad:
 		info("should_not_match DID match %s" % bad)
-	if bad: raise NotMatching("should_not_match DID match %s" % bad) #MustNotMatchKeyword(bad))
+	if bad: raise NotMatching("should_not_match DID match %s" % bad)  # MustNotMatchKeyword(bad))
 
-remove_hash={}
+
+remove_hash = {}
+
+
 # remove_from_list_count=0
 def remove_from_list(keywords0, excepty):
 	# if (keywords0,excepty) in remove_hash:
@@ -136,7 +149,7 @@ def remove_from_list(keywords0, excepty):
 	# global remove_from_list_count
 	# remove_from_list_count+=1
 	# info("remove_from_list called "+str(remove_from_list_count)+" times")
-	good = list(keywords0) # clone
+	good = list(keywords0)  # clone
 	for x in excepty:
 		while x in good:
 			good.remove(x)
@@ -176,29 +189,30 @@ def value():
 	# TypeError: unsupported operand type(s) for +: 'dict_keys' and 'list' WTF PY3 8(
 	no_keyword_except(constants + numbers + result_words + nill_words + ['+', '-'])
 	the.result = maybe(bracelet) or \
-							 maybe(quote) or \
-							 maybe(nill) or \
-							 maybe(number) or \
-							 maybe(known_variable) or \
-							 maybe(boolean) or \
-							 maybe(constant) or \
-							 maybe(it) or \
-							 maybe(nod) or \
-							 raise_not_matching("Not a value")
+	             maybe(quote) or \
+	             maybe(nill) or \
+	             maybe(number) or \
+	             maybe(known_variable) or \
+	             maybe(boolean) or \
+	             maybe(constant) or \
+	             maybe(it) or \
+	             maybe(nod) or \
+	             raise_not_matching("Not a value")
 	if maybe_tokens(['as']):
 		typ = typeNameMapped()
 		the.result = call_cast(the.result, typ)
 	return the.result
 
-	# import TreeBuilder
-	# import CoreFunctions
-	# import EnglishParserTokens # module
-	# import LoopsGrammar # while, as long as, :.
-	# import RubyGrammar # def, :.
-	# import Betty # convert a.wav to mp3
-	# import ExternalLibraries
 
-	# property methods, :result, :last_result, :interpretation, :variables, :variableValues,:variableType #remove the later!
+# import TreeBuilder
+# import CoreFunctions
+# import EnglishParserTokens # module
+# import LoopsGrammar # while, as long as, :.
+# import RubyGrammar # def, :.
+# import Betty # convert a.wav to mp3
+# import ExternalLibraries
+
+# property methods, :result, :last_result, :interpretation, :variables, :variableValues,:variableType #remove the later!
 
 
 class Interpretation:
@@ -223,13 +237,14 @@ def interpretation():
 	i.svg = svg
 	return i
 
-	# beep when it rains
-	# listener
+
+# beep when it rains
+# listener
 
 
 
 
-	# todo vs checkNewline() ??
+# todo vs checkNewline() ??
 
 
 def end_expression():
@@ -249,7 +264,9 @@ def rooty():
 	# maybe(condition) or \
 	# maybe(context) or \
 	return the.result
-	# # maybe( ruby_def )or\ # SHOULD BE just as method_definition !!:
+
+
+# # maybe( ruby_def )or\ # SHOULD BE just as method_definition !!:
 
 
 def set_context(_context):
@@ -266,24 +283,29 @@ def javascript_require(dependency):
 	# import javascript_auto_libs
 	dependency = dependency.replace(r'.* ', "")  # require javascript bla.js
 	return dependency
-	# mapped    =$javascript_libs[dependency]
-	# if mapped: dependency=mapped
-	# javascript.append("javascript_require(): #{dependency));")
+
+
+# mapped    =$javascript_libs[dependency]
+# if mapped: dependency=mapped
+# javascript.append("javascript_require(): #{dependency));")
 
 
 def includes(dependency, type, version):
-	if re.search(r'\.js$', the.current_word):
+	if re.search(r'\.js$', the.token):
 		return javascript_require(dependency)
 	if type and type in "javascript script js".split():
 		return javascript_require(dependency)
 
-@Starttokens(["r'",'/',"regex","regexp","regular expression"])
+
+@Starttokens(["r'", '/', "regex", "regexp", "regular expression"])
 def regexp(val=0):
 	if not val:
-		tokens(["regex","regexp","regular expression"])
-		val=the.string
-	if val.startswith("r'"): return re.compile(val[2:-1])
-	elif val.startswith("'"): return re.compile(val[1:-1])
+		tokens(["regex", "regexp", "regular expression"])
+		val = the.string
+	if val.startswith("r'"):
+		return re.compile(val[2:-1])
+	elif val.startswith("'"):
+		return re.compile(val[1:-1])
 	return re.compile(val)
 
 
@@ -293,7 +315,7 @@ def package_version():
 	tokens(['v', 'version'])
 	c = c or maybe_tokens(comparison_words)
 	# current_value=
-	the.result = c + " " + regex_match(r'\d(\.\d)*',the.string)
+	the.result = c + " " + regex_match(r'\d(\.\d)*', the.string)
 	maybe_tokens("or later")
 	return the.result
 
@@ -350,18 +372,20 @@ def isUnary(op):
 
 
 def ast_operator(op):
-	if isinstance(op,(cmpop,BinOp)):
+	if isinstance(op, (cmpop, BinOp)):
 		return op
 	return kast_operator_map[op]
 
+
 def fix_context(x):
-	if isinstance(x, Variable): x=kast.name(x.name)
+	if isinstance(x, Variable): x = kast.name(x.name)
 	return x
+
 
 def apply_op(stack, i, op):
 	right = stack[i + 1]
 	left = stack[i - 1]
-	if interpreting():  # and not angel.use_tree:
+	if interpreting():  # and not context.use_tree:
 		if op == "!" or op == "not":
 			stack[i:i + 2] = [not do_evaluate(right)]
 		else:
@@ -375,12 +399,12 @@ def apply_op(stack, i, op):
 			left = fix_context(left)
 			right = fix_context(right)
 
-			if isinstance(op,_ast.operator):
+			if isinstance(op, _ast.operator):
 				stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
 			elif op in true_operators:
 				stack[i - 1:i + 2] = [kast.BinOp(left, ast_operator(op), right)]
 			elif op in comparison_words:
-				stack[i - 1:i + 2] = [kast.Compare(left, [ast_operator(op)], [right])] # array for multi compare !
+				stack[i - 1:i + 2] = [kast.Compare(left, [ast_operator(op)], [right])]  # array for multi compare !
 			else:
 				stack[i - 1:i + 2] = [kast.Compare(left, [ast_operator(op)], [right])]
 
@@ -400,7 +424,7 @@ def fold_algebra(stack):
 		# if leng == len(stack):
 		# 	raise Exception("OPERATOR NOT CONSUMED: "+op)
 	if len(stack) > 1 and len(used_operators) > 0:
-		raise Exception("NOT ALL OPERATORS CONSUMED IN %s ONLY %s"%(stack, used_operators))
+		raise Exception("NOT ALL OPERATORS CONSUMED IN %s ONLY %s" % (stack, used_operators))
 
 	# if not interpreting():
 	#     return kast.setter("it",stack[0])
@@ -416,11 +440,11 @@ def algebra(val=None):
 	stack.append(val)  # any { maybe( value ) or maybe( bracelet ) )
 
 	def lamb():
-		if the.current_word in be_words and context.in_args:
+		if the.token in be_words and context.in_args:
 			return False  # f x is 0 == f(x) is 0 NOT f(x is 0) !!
 		op = maybe(comparation) or operator()
 		# if in_setter and op == '=': return False # see setter!
-		if op == '=': raise NotMatching#return False # see setter!
+		if op == '=': raise NotMatching  # return False # see setter!
 		n = maybe_token('not')
 		y = maybe(value) or maybe(bracelet)
 		context.in_algebra = True
@@ -482,10 +506,11 @@ def ruby_block():
 def special_blocks():
 	return maybe(html_block) or maybe(ruby_block) or javascript_block()
 
-	# or end_expression #end_block #newlines
 
-	# see read_block for RAW blocks! (</EOF> type)
-	# EXCLUDING start_block & end_block !!!
+# or end_expression #end_block #newlines
+
+# see read_block for RAW blocks! (</EOF> type)
+# EXCLUDING start_block & end_block !!!
 
 
 def is_a(x, type0):
@@ -493,13 +518,14 @@ def is_a(x, type0):
 	debug(_type)
 	if is_string(_type): raise Exception("BAD TYPE %s" % type0)
 	if isinstance(x, _type): return True
-	if isinstance(x,unicode) and _type==types.StringType: return True
-	if isinstance(x,unicode) and _type==xchar and len(x)==1: return True
-	if isinstance(x,unicode) and _type==xstr: return True
+	if isinstance(x, unicode) and _type == types.StringType: return True
+	if isinstance(x, unicode) and _type == xchar and len(x) == 1: return True
+	if isinstance(x, unicode) and _type == xstr: return True
 	if isinstance(xx(x), _type): return True
 	return False
 
-@Starttokens(number_selectors) # other numbers already handled
+
+@Starttokens(number_selectors)  # other numbers already handled
 def nth_item(val=0):  # Also redundant with property evaluation (But okay as a shortcut)):
 	set = maybe_token('set')
 	n = val or tokens(number_selectors + ['first', 'last', 'middle'])
@@ -517,7 +543,7 @@ def nth_item(val=0):  # Also redundant with property evaluation (But okay as a s
 		l = l.split(" ")
 	if isinstance(l, list) and type in type_names:
 		l = [x for x in l if is_a(x, type)]
-	if(n>len(l)):raise IndexError("%d > %d in %s[%d]"%(n,len(l),l,n))
+	if (n > len(l)): raise IndexError("%d > %d in %s[%d]" % (n, len(l), l, n))
 	the.result = l[n]  # .__getitem__(n)
 	if context.in_condition:
 		return the.result
@@ -529,8 +555,9 @@ def nth_item(val=0):  # Also redundant with property evaluation (But okay as a s
 
 
 def listselector():
-	return maybe(nth_item)#
- # or functionalselector() # expensive -> later!
+	return maybe(nth_item)  #
+	# or functionalselector() # expensive -> later!
+
 
 # DANGER: INTERFERES WITH maybe(LIST), NAH, NO COMMA: {x > 3)
 # { optional around standard selector  birds that fly
@@ -546,10 +573,9 @@ def functionalselector():
 	return list(filter(xs, crit))
 
 
-
-@Starttokens(['[', '('])# , '{' vs hash!! -> only in js!
+@Starttokens(['[', '('])  # , '{' vs hash!! -> only in js!
 def liste(check=True, first=None):
-	if not first and the.current_word == ',': raise NotMatching()
+	if not first and the.token == ',': raise NotMatching()
 	if context.in_hash: must_not_contain(":")  # ,before=',')
 	if check: must_contain_before(',', be_words + operators + ['of'])  # - ['and']
 	# +[' '] ???
@@ -582,8 +608,8 @@ def liste(check=True, first=None):
 	if start_brace == '(': _(')')
 	context.in_list = False
 	if context.use_tree:
-		return kast.List(all,ast.Load()) # ast.Load() ??
-		# return xlist(all)  # Important in order to distinguish from list
+		return kast.List(all, ast.Load())  # ast.Load() ??
+	# return xlist(all)  # Important in order to distinguish from list
 	return all
 
 
@@ -627,7 +653,7 @@ def selfModify():
 #
 # @Interpret
 # @Starttokens(self_modifying_operators)
-def self_modify(v=None,exp=None):
+def self_modify(v=None, exp=None):
 	must_contain(self_modifying_operators)
 	v = v or variable()
 	mod = tokens(self_modifying_operators)
@@ -635,7 +661,7 @@ def self_modify(v=None,exp=None):
 	if not interpreting():
 		op = operator_equals(mod)
 		# return kast.AugAssign(store(v.name), op, exp) # UNcompatible was chained assignment it=b+=1
-		return Assign([store(v.name)], BinOp(name(v.name), Add(),ast_magic.wrap_value(exp)))
+		return Assign([store(v.name)], BinOp(name(v.name), Add(), ast_magic.wrap_value(exp)))
 	else:
 		arg = do_evaluate(exp, v.type)
 		the.result = do_self_modify(v, mod, arg)
@@ -648,6 +674,7 @@ def self_modify(v=None,exp=None):
 def swift_hash():
 	_('[')
 	h = {}
+
 	def hashy():
 		if len(h) > 0: _(',')
 		maybe_tokens(['"', "'"])
@@ -672,16 +699,19 @@ def close_bracket():  # for nice GivingUp):
 def empty_map():
 	_("{")
 	_("}")
-	if interpreting():return EMPTY_MAP
+	if interpreting(): return EMPTY_MAP
 	return Expr(Dict([], []))
 
 
-hash_assign = [":", "to", "=>", "->"] # tokenized as = > !?!
+hash_assign = [":", "to", "=>", "->"]  # tokenized as = > !?!
+
+
 def hash_map():
 	must_contain_before(args=hash_assign, before=["}"])
 	# z=maybe(regular_json_hash) or immediate_json_hash RUBY BUG! or and  or  act very differently!
 	z = regular_hash() if starts_with("{") else immediate_hash()
 	return z
+
 
 # colon for types not maybe(Compatible) puts a:int vs puts {a:int) ? maybe egal
 # careful with blocks!! {puts "s") VS {a:"s")
@@ -692,9 +722,10 @@ def regular_hash():
 	context.in_hash = True
 	maybe_tokens(hash_assign) and no_rollback()  # symbol  why "MAYBE
 	h = {}
+
 	def lamb():
 		if len(h) > 0: tokens([';', ','])
-			# context.in_list = True
+		# context.in_list = True
 		key = maybe(quote) or word()
 		# Property versus hash !!
 		maybe_tokens(hash_assign) or starts_with("{")
@@ -707,9 +738,11 @@ def regular_hash():
 	context.in_hash = False
 	# context.context.in_list = False
 	if not interpreting():
-		return Dict(list(h.keys()),list(h.values())) #ORDER OK???
+		return Dict(list(h.keys()), list(h.values()))  # ORDER OK???
 	return h
-	# careful with blocks/closures ! map{puts it} VS data{a:"b")
+
+
+# careful with blocks/closures ! map{puts it} VS data{a:"b")
 
 
 def immediate_hash():  # a:b a:{b} OR a{b:c}):
@@ -725,7 +758,9 @@ def immediate_hash():  # a:b a:{b} OR a{b:c}):
 		raise_not_matching("no immediate_hash")
 	if interpreting():
 		return {str(w): r}  # AH! USEFUL FOR NON-symbols !!!
-	return kast.Dict([w],[r])
+	return kast.Dict([w], [r])
+
+
 # todo PYTHONBUG ^^
 
 def maybe_cast(_context):
@@ -744,77 +779,79 @@ def maybe_algebra(_context):
 def contains(token):
 	return token in the.current_line
 
+
 def contains_any(tokens):
 	for token in tokens:
 		if token in the.current_line:
 			return True
 
+
 def quick_expression():  # bad idea?
 	result = False
 	# end
-	if the.current_word == '': raise EndOfLine()
-	if the.current_word == ';': raise EndOfStatement()
+	if the.token == '': raise EndOfLine()
+	if the.token == ';': raise EndOfStatement()
 	# list
-	if the.current_word == ',': return liste(first=the.result)
+	if the.token == ',': return liste(first=the.result)
 	# hash_map
 	if not context.in_params and look_1_ahead(':'):
-		return immediate_hash() # a:b ~ {a=>b} todo  a:string type etc
+		return immediate_hash()  # a:b ~ {a=>b} todo  a:string type etc
 	# hash_map
-	if the.current_word == '{':
+	if the.token == '{':
 		if look_1_ahead('}'): return empty_map()
 		if contains("=>") or contains(":"): return hash_map()
 	# property
-	if look_1_ahead(['.','\'s',"of"]):
-		return maybe(method_call) or property() #simpleProperty()
+	if look_1_ahead(['.', '\'s', "of"]):
+		return maybe(method_call) or property()  # simpleProperty()
 	# setter
 	if look_1_ahead('='):
 		if not context.in_condition: return setter()
 	# declaration   (map x)
-	if the.current_word in type_names or the.current_word in the.classes.keys():
-		return declaration() # setter case ABOVE!
+	if the.token in type_names or the.token in the.classes.keys():
+		return declaration()  # setter case ABOVE!
 	# NO(?!) algebra
-	if the.current_word in operators + special_chars:
-		if the.current_word!="~": return False # USE ALGEBRA // Fuckup !!  #TODO: if more than one
-		# if context.in_algebra: return False
-		# return algebra(result)
-		# if context.in_condition: return condition()
+	if the.token in operators + special_chars:
+		if the.token != "~": return False  # USE ALGEBRA // Fuckup !!  #TODO: if more than one
+	# if context.in_algebra: return False
+	# return algebra(result)
+	# if context.in_condition: return condition()
 
 	# number
 	if the.current_type == _token.NUMBER:
 		result = number()
 		# n'th item
-		if maybe_tokens(['rd','nd','th']):
+		if maybe_tokens(['rd', 'nd', 'th']):
 			result = nth_item(result)
 	# regexp
-	elif the.current_word.startswith("r'"):# wrongly tokeinzied: : or the.current_word.startswith("/"):
-		result = regexp(the.current_word)
+	elif the.token.startswith("r'"):  # wrongly tokeinzied: : or the.current_word.startswith("/"):
+		result = regexp(the.token)
 		next_token(False)
 	# string
-	elif the.current_type == _token.STRING or the.current_word.startswith("'"):
+	elif the.current_type == _token.STRING or the.token.startswith("'"):
 		result = quote()
 	# <token>
-	elif the.current_word in the.token_map:  # safe, ok!
-		fun = the.token_map[the.current_word]
+	elif the.token in the.token_map:  # safe, ok!
+		fun = the.token_map[the.token]
 		# no_rollback() #! << NEW
-		debug("token_map: %s -> %s" % (the.current_word, fun))
+		debug("token_map: %s -> %s" % (the.token, fun))
 		result = fun()  # already wrapped maybe(fun)
 	# method builtin?
-	elif the.current_word in the.method_token_map:
-		fun = the.method_token_map[the.current_word]
-		debug("method_token_map: %s -> %s" % (the.current_word, fun))
+	elif the.token in the.method_token_map:
+		fun = the.method_token_map[the.token]
+		debug("method_token_map: %s -> %s" % (the.token, fun))
 		result = fun()  # already wrapped maybe(fun)
 	# method dynamic?  <<
-	elif the.current_word in the.method_names:
-		if method_allowed(the.current_word):
+	elif the.token in the.method_names:
+		if method_allowed(the.token):
 			result = method_call()  # already wrapped maybe(method_call)
 	# param
-	elif the.current_word in list(the.params.keys()):
+	elif the.token in list(the.params.keys()):
 		result = true_param()
 	# variable
-	elif the.current_word in list(the.variables.keys()):
-		result = known_variable() #  we don't rise undeclared variable here
+	elif the.token in list(the.variables.keys()):
+		result = known_variable()  # we don't rise undeclared variable here
 	# type TODO
-	elif the.current_word in english_tokens.type_names:
+	elif the.token in english_tokens.type_names:
 		return maybe(setter) or method_definition()  # or ... !!!!!
 
 	# a of b
@@ -837,57 +874,60 @@ def quick_expression():  # bad idea?
 
 
 def post_operations(result):  # see quick_expression !!
-	if the.current_word == '': return result
-	if the.current_word == ';': return result
+	if the.token == '': return result
+	if the.token == ';': return result
 	# if the.current_word in ['not']: return not result
-	if the.current_word == '.': return method_call(result)
-	if the.current_word == ',' and not (context.in_args or context.in_params or context.in_hash):
+	if the.token == '.': return method_call(result)
+	if the.token == ',' and not (context.in_args or context.in_params or context.in_hash):
 		return liste(check=False, first=result)
 	# if the.current_word in operators and look_1_ahead('='):
 	# 	return self_modify(result) # see operator_equals
-	if the.current_word in self_modifying_operators:
+	if the.token in self_modifying_operators:
 		return self_modify(result)
-	if the.current_word == '+' and look_1_ahead('+'):
+	if the.token == '+' and look_1_ahead('+'):
 		return plusPlus(result)
-	if the.current_word == '-' and look_1_ahead('-'):
+	if the.token == '-' and look_1_ahead('-'):
 		return minusMinus(result)
-	if the.current_word in be_words:
+	if the.token in be_words:
 		if not context.in_condition:
-				if isinstance(result, Variable):
-					return setter(result)
+			if isinstance(result, Variable):
+				return setter(result)
 		# else:
 		#     raise_not_matching("better try setter")
-		elif the.current_word == 'are':
+		elif the.token == 'are':
 			return False  # DONT DO algebra here HACK
-	if the.current_word == '|': return piped_actions(result or the.last_result)
+	if the.token == '|': return piped_actions(result or the.last_result)
 	# if the.current_word in comparison_words:
 	#   if not look_ahead(operators):
 	#     compar=comparation()
 	#     return do_compare(context,compar,expression()) or FALSE
-		# else algebra(context)
-	if the.current_word in operators:
+	# else algebra(context)
+	if the.token in operators:
 		# if not the.current_word in quantifiers:
-			return algebra(result)
-	if the.current_word == '[':
+		return algebra(result)
+	if the.token == '[':
 		return evaluate_index(result)
-	if the.current_word in operators + special_chars + ["element", "item"]:
+	if the.token in operators + special_chars + ["element", "item"]:
 		return False
-	if result and the.current_word == 'to': return ranger(result)
-	if result and the.current_word == 'if': return action_if(result)
+	if result and the.token == 'to': return ranger(result)
+	if result and the.token == 'if': return action_if(result)
 	# raise_not_matching("quick_expression too simplistic")
 	if the.current_line.endswith("times"): return action_n_times(result)
-	if the.current_word in be_words: return setter(result)
-	if the.current_word == "if":  # YAY!
+	if the.token in be_words: return setter(result)
+	if the.token == "if":  # YAY!
 		return result if _("if") and condition() else maybe("else") and expression() or None
-	if the.current_word == "as": return maybe_cast(result)
+	if the.token == "as": return maybe_cast(result)
 	return False
-	# or maybe_algebra(context) or context
+
+
+# or maybe_algebra(context) or context
 
 
 @Starttokens(["pass"])  # , ";"
 def passing():
 	ok = tokens(["pass", ";"])
 	return ok if interpreting() else ast.Pass()
+
 
 def space():
 	if (token(' ') or token('')) != None:
@@ -897,21 +937,21 @@ def space():
 
 
 def expression(fallback=None, resolve=True):
-	maybe(space) # why? bug!
-	if the.current_word == '' or len(the.current_word)==0:
+	maybe(space)  # why? bug!
+	if the.token == '' or len(the.token) == 0:
 		raise EndOfLine()
-	if the.current_word == ';': raise EndOfStatement()
+	if the.token == ';': raise EndOfStatement()
 	the.result = ex = maybe(quick_expression) or \
-										maybe(listselector) or \
-										maybe(algebra) or \
-										maybe(hash_map) or \
-										maybe(evaluate_index) or \
-										maybe(liste) or \
-										maybe(evaluate_property) or \
-										maybe(selfModify) or \
-										maybe(endNode) or \
-										maybe(passing) or \
-										raise_not_matching("Not an expression: " + pointer_string())  # and print_pointer(True)
+	                  maybe(listselector) or \
+	                  maybe(algebra) or \
+	                  maybe(hash_map) or \
+	                  maybe(evaluate_index) or \
+	                  maybe(liste) or \
+	                  maybe(evaluate_property) or \
+	                  maybe(selfModify) or \
+	                  maybe(endNode) or \
+	                  maybe(passing) or \
+	                  raise_not_matching("Not an expression: " + pointer_string())  # and print_pointer(True)
 	# maybe(method_call) or \
 	# maybe(swift_hash) or \
 
@@ -925,10 +965,10 @@ def expression(fallback=None, resolve=True):
 
 	if resolve and ex and interpreting():
 		the.last_result = the.result = do_evaluate(ex)
-		# TODO PYTHON except SyntaxError:
+	# TODO PYTHON except SyntaxError:
 	if not the.result or the.result == SyntaxError and not ex == SyntaxError:
 		pass
-		# keep false
+	# keep false
 	else:
 		ex = the.result
 	# NEIN! print('hi' etc etc)
@@ -943,10 +983,10 @@ def expression(fallback=None, resolve=True):
 
 def piped_actions(a=False):
 	if context.in_pipe: return False
-	must_contain(["|",'pipe']) # then
+	must_contain(["|", 'pipe'])  # then
 	context.in_pipe = True
 	a = a or statement()
-	tokens(['|','pipe'])
+	tokens(['|', 'pipe'])
 	no_rollback()
 	xmodule, obj, name = true_method() or bash_action()
 	args = star(call_arg)
@@ -970,22 +1010,22 @@ def statement(doraise=True):
 	if checkNewline(): return NEWLINE
 	maybe_indent()
 	x = maybe(quick_expression) or \
-			maybe(setter) or \
-			maybe(returns) or \
-			maybe(imports) or \
-			maybe(method_definition) or \
-			maybe(assert_that) or \
-			maybe(breaks) or \
-			maybe(loops) or \
-			maybe(if_then_else) or \
-			maybe(once) or \
-			maybe(piped_actions) or \
-			maybe(declaration) or \
-			maybe(nth_item) or \
-			maybe(new) or \
-			maybe(action) or \
-			maybe(expression) or \
-			raise_not_matching("Not a statement %s" % pointer_string())
+	    maybe(setter) or \
+	    maybe(returns) or \
+	    maybe(imports) or \
+	    maybe(method_definition) or \
+	    maybe(assert_that) or \
+	    maybe(breaks) or \
+	    maybe(loops) or \
+	    maybe(if_then_else) or \
+	    maybe(once) or \
+	    maybe(piped_actions) or \
+	    maybe(declaration) or \
+	    maybe(nth_item) or \
+	    maybe(new) or \
+	    maybe(action) or \
+	    maybe(expression) or \
+	    raise_not_matching("Not a statement %s" % pointer_string())
 	# AS RETURN VALUE! DANGER!
 
 	context.in_condition = False  # hack!
@@ -995,8 +1035,9 @@ def statement(doraise=True):
 	adjust_interpret()
 	return the.result
 
-	# one :action, :if_then ,:once , :looper
-	# any{action  or  if_then  or  once  or  looper)
+
+# one :action, :if_then ,:once , :looper
+# any{action  or  if_then  or  once  or  looper)
 
 
 # nice optional return 'as':
@@ -1007,7 +1048,7 @@ def statement(doraise=True):
 def addMethodNames(f):
 	if len(f.arguments) > 0:
 		obj = f.arguments[0]
-		if len(obj.name)==1: return f  # hack against "fibonacci n"
+		if len(obj.name) == 1: return f  # hack against "fibonacci n"
 		if not obj.preposition:
 			name = f.name + " " + obj.name
 			args = f.arguments[1:]
@@ -1020,10 +1061,10 @@ def addMethodNames(f):
 
 
 @Starttokens(method_tokens)
-def method_definition(name=None,return_type=None):
+def method_definition(name=None, return_type=None):
 	if not name:
 		# annotations=maybe(annotations)
-		modifiers=maybe_tokens(modifier_words)
+		modifiers = maybe_tokens(modifier_words)
 		return_type = maybe(typeName)
 		tokens(method_tokens)  # how to
 		no_rollback()
@@ -1032,12 +1073,14 @@ def method_definition(name=None,return_type=None):
 	brace = maybe_token('(')
 	context.in_params = True
 	args = []
+
 	def arguments():
-		if the.current_offset==0: raise_not_matching("BLOCK START")
+		if the.current_offset == 0: raise_not_matching("BLOCK START")
 		a = param(len(args))
 		maybe_token(',')
 		args.append(a)
 		return a
+
 	# obj= maybe( endNode ) # a sine wave  TODO: invariantly get as argument book.close==close(book)
 	star(arguments)  # i.e. 'over an interval i' 'from a to b' 'int x, int y=7'
 
@@ -1045,21 +1088,21 @@ def method_definition(name=None,return_type=None):
 	if brace: token(')')
 
 	return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
-	return_type = maybe_tokens([ 'returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
-	maybe_tokens([ 'return', '=']) # as block starters, NOT as return_type indicators!
+	return_type = maybe_tokens(['returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
+	maybe_tokens(['return', '='])  # as block starters, NOT as return_type indicators!
 
 	dont_interpret()
 
 	f = FunctionDef(name=name, arguments=args, return_type=return_type, body="allow pre-recursion")
 	# ,modifiers:modifiers, annotations:annotations
 	the.methods[name] = f
-	the.method_names.insert(0,name)
+	the.method_names.insert(0, name)
 	f2 = addMethodNames(f)
 	# # with args! only in tree mode!!
 	b = action_or_block()  # define z as 7 allowed !!!
 	look_1_ahead("return", "Return statement out of method {block}, are you missing curlies?", must_not_be=True)
 	if not isinstance(b, list): b = [b]
-	if not isinstance(b[-1], (kast.Print,ast.Return)):
+	if not isinstance(b[-1], (kast.Print, ast.Return)):
 		b[-1] = kast.assign("it", b[-1])
 	# b[-1]=(ast.Expr(b[-1]))
 	f.body = b
@@ -1071,18 +1114,20 @@ def method_definition(name=None,return_type=None):
 def execute(command):
 	import os
 	return os.popen(command).read()
-	# NOT: exec(command) !! == eval
 
 
-@Starttokens(['bash','`','exec'])
+# NOT: exec(command) !! == eval
+
+
+@Starttokens(['bash', '`', 'exec'])
 def bash_action():
 	# import bindingsr'shell'bash-commands
 	if starts_with("`") and beginning_of_line():
 		raise DidYouMean("shell <bash command ...>")
-	ok = starts_with(['bash','exec','`'] + bash_commands)
+	ok = starts_with(['bash', 'exec', '`'] + bash_commands)
 	if not ok: raise_not_matching("no bash commands")
 	no_rollback()
-	maybe_tokens(['execute','exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash'])
+	maybe_tokens(['execute', 'exec', 'command', 'commandline', 'run', 'shell', 'shellscript', 'script', 'bash'])
 	command = maybe(quote)  # danger bash "hi">echo
 	command = command or rest_of_line()
 	# any{ maybe(  ) or   statements )
@@ -1175,7 +1220,7 @@ def if_then():
 
 
 def future_event():
-	if the.current_word.endswith("ed"):  # beeped etc
+	if the.token.endswith("ed"):  # beeped etc
 		return word()
 
 
@@ -1226,7 +1271,9 @@ def verb_node():
 	nod
 	if not v in methods: raise UnknownCommandError('no such method: ' + v)
 	return v
-	# end_expression
+
+
+# end_expression
 
 
 def spo():
@@ -1247,7 +1294,9 @@ def is_object_method(method_name):
 	if not str(method_name) in globals(): return False
 	object_method = globals()[str(method_name)]  # .method(m)
 	return object_method  # 'True' ;)
-	# Object.constants  :IO, :STDIN, :STDOUT, :STDERR :.:Complex, :RUBY_VERSION :.
+
+
+# Object.constants  :IO, :STDIN, :STDOUT, :STDERR :.:Complex, :RUBY_VERSION :.
 
 
 def has_object(m):
@@ -1263,12 +1312,14 @@ def get_module(module):
 		importlib.import_module(module)
 		return sys.modules[module]
 
+
 def first_is_self(method):
 	try:
 		args, varargs, varkw, defaults = inspect.getargspec(method)
 		return args[0] == 'self'
 	except:
 		return False
+
 
 # In Python 2.7, built-in function objects such as print() simply
 # do not have enough information for you to discover what arguments they support!!
@@ -1308,7 +1359,9 @@ def builtin_method():
 	m = is_object_method(w)
 	# m = m or HelperMethods.method(w)
 	return m
-	# m ? m.name : None
+
+
+# m ? m.name : None
 
 
 def is_method(name):
@@ -1346,7 +1399,7 @@ def subProperty(_context):
 
 
 def true_method(obj=None):
-	ex=english_operators #- ['print','add','subtract']
+	ex = english_operators  # - ['print','add','subtract']
 	if 'print' in ex:
 		no_keyword_except(ex)
 	should_not_start_with(auxiliary_verbs)
@@ -1363,9 +1416,9 @@ def true_method(obj=None):
 		if isinstance(variable.value, collections.Callable):
 			name = variable.value.__name__
 		else:
-			if not isinstance(variable.value,str):
-				raise_not_matching("not a method: %s"% variable.value)
-			name=findMethod(nil,variable.value)
+			if not isinstance(variable.value, str):
+				raise_not_matching("not a method: %s" % variable.value)
+			name = findMethod(nil, variable.value)
 			if not name:
 				obj, name = subProperty(variable.value)
 	else:
@@ -1380,15 +1433,12 @@ def true_method(obj=None):
 			name = longName
 		if obj in the.variables:
 			obj = the.variables[obj]
-			# if the.current_word.endswith("ed"):
-			# sorted files -> sort files ?
+		# if the.current_word.endswith("ed"):
+		# sorted files -> sort files ?
 	return xmodule, obj, name  # .to_s
 
 
-
-
-
-	# maybe(ruby_method_call)  or
+# maybe(ruby_method_call)  or
 
 
 # read mail or module read mail or object read mail bla(1) or a.bla(1)  vs ruby_method_call !!
@@ -1404,13 +1454,13 @@ def method_call(obj=None):
 	if module or obj or is_object_method(method_name):  # todo  not has_object(method) is_class_method:
 		obj = obj or None  # globals
 	else:
-		maybe_token('of') # size of class?? << todo
+		maybe_token('of')  # size of class?? << todo
 		obj = maybe(list(the.classes.keys())) or maybe(the.moduleNames)  # exclude vars
 		if not context.in_args:
 			obj = obj or maybe(liste)  # danger: liste vs args below
 		maybe_token(',')
-		# print(sorted files)
-		# if not in_args: obj=maybe( maybe(nod)  or  maybe(list)  or  expression )
+	# print(sorted files)
+	# if not in_args: obj=maybe( maybe(nod)  or  maybe(list)  or  expression )
 
 	method = findMethod(obj, method_name)  # Now we know the object
 	assume_args = True  # not starts_with("of")  # True    #<< Redundant with property eventilation!
@@ -1421,16 +1471,17 @@ def method_call(obj=None):
 
 		def call_args():
 			if len(args) > 0: maybe_tokens([',', 'and'])
-			if starts_with(';'): return False # done
+			if starts_with(';'): return False  # done
 			arg = call_arg()
-			if isinstance(arg,list):
+			if isinstance(arg, list):
 				args.extend(arg)
 			else:
 				args.append(arg)
 			return args
 
-		star(call_args) # args = set above!
-		if not args and not context.use_tree and not self_modifying(method):  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
+		star(call_args)  # args = set above!
+		if not args and not context.use_tree and not self_modifying(
+			method):  # todo! x.y() vs y(x) : call(attribute(x),y) vs call(y,x)
 			if context.use_tree:
 				args = obj
 			else:
@@ -1448,7 +1499,7 @@ def method_call(obj=None):
 	if not interpreting():
 		if method_name == "puts" or method_name == "print":
 			return kast.Print(dest=None, values=args, nl=True)  # call symbolically!
-			# return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
+		# return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
 		return FunctionCall(func=method, arguments=args, object=obj)
 	the.result = do_call(obj or None, method, args or None)
 	return the.result
@@ -1512,7 +1563,7 @@ def arguments():
 
 
 def maybe_token(x):
-	if x == the.current_word:
+	if x == the.token:
 		next_token()
 		return x
 	return False
@@ -1520,7 +1571,9 @@ def maybe_token(x):
 
 def constructor():
 	pass  # see class!
-	# class Color(shared Integer rgba) {
+
+
+# class Color(shared Integer rgba) {
 
 
 @Starttokens(['create', 'new', 'init'])
@@ -1531,9 +1584,11 @@ def new():
 	# clazz=word #allow data
 	clazz = class_constant()
 	return do_call(clazz, "__init__", arguments())
-	# clazz=Class.new
-	# variables[clazz]=
-	# clazz(arguments)
+
+
+# clazz=Class.new
+# variables[clazz]=
+# clazz(arguments)
 
 
 @Starttokens(['return', 'returns'])
@@ -1558,15 +1613,15 @@ def action():  # NOT THE SAME AS EXPRESSION!?
 	start = pointer()
 	maybe(bla)
 	the.result = maybe(quick_expression) or \
-							 maybe(special_blocks) or \
-							 maybe(applescript) or \
-							 maybe(bash_action) or \
-							 maybe(evaluate) or \
-							 maybe(returns) or \
-							 maybe(selfModify) or \
-							 maybe(method_call) or \
-							 maybe(spo) or \
-							 raise_not_matching("Not an action")
+	             maybe(special_blocks) or \
+	             maybe(applescript) or \
+	             maybe(bash_action) or \
+	             maybe(evaluate) or \
+	             maybe(returns) or \
+	             maybe(selfModify) or \
+	             maybe(method_call) or \
+	             maybe(spo) or \
+	             raise_not_matching("Not an action")
 	# maybe( verb_node ) or
 	# maybe( verb )
 	# if not interpreting():
@@ -1595,7 +1650,7 @@ def action_or_block(started=False):  # expression_or_block
 		else:
 			# 2) def x do action (end)
 			ab = action_or_expression()
-			# ab = action()
+		# ab = action()
 	else:
 		if maybe_newline():
 			# allow_rollback()
@@ -1605,8 +1660,8 @@ def action_or_block(started=False):  # expression_or_block
 			# 4) generous!! if 1>0 beep
 			maybe_indent()
 			ab = action_or_expression()
-			# raise_not_matching("expecting action or block start")
-	if _start == "then" and the.current_word == "else": return ab
+		# raise_not_matching("expecting action or block start")
+	if _start == "then" and the.token == "else": return ab
 	maybe_newline() or end_block(_start)
 	return ab
 
@@ -1654,17 +1709,19 @@ def prepare_named_args(args):
 		if arg in context_variables:
 			v = context_variables[arg]
 			# v = v.clone
-			if isinstance(v,Variable):
+			if isinstance(v, Variable):
 				v.value = val
 			context_variables[str(arg)] = val  # v  # to_sym todo NORM in hash!!!
 		else:
 			context_variables[str(arg)] = val  # Variable(name=arg, value=val)
 	return context_variables
 
+
 def eval_ast(b, args={}):
 	args = prepare_named_args(args)
-	the.result=pyc_emitter.eval_ast(b,args,run=True)
+	the.result = pyc_emitter.eval_ast(b, args, run=True)
 	return the.result
+
 
 def do_execute_block(b, args={}):
 	if not interpreting(): return
@@ -1704,13 +1761,15 @@ def datetime():
 	_unit = tokens(time_words)  # +["am"]
 	_to = _to or maybe_tokens(['to', 'and'])
 	if _to: _to = _to or maybe(number)
-	# return events.Interval(_kind, n, _to, _unit)
+
+
+# return events.Interval(_kind, n, _to, _unit)
 
 
 def collection():
 	return maybe(ranger) or \
-				 maybe(known_variable) or \
-				 action_or_expression()
+	       maybe(known_variable) or \
+	       action_or_expression()
 
 
 @Starttokens('for')
@@ -1746,19 +1805,19 @@ def assure_same_type(var, _type):
 		return
 
 	if not isType(oldType):
-		warn("NOT A TYPE %s"%oldType) #todo?
+		warn("NOT A TYPE %s" % oldType)  # todo?
 		return
 
 	# if isinstance(oldType,str):
 	#   oldType=eval(oldType)
-		# oldType =getattr(sys.modules[__name__], oldType)
+	# oldType =getattr(sys.modules[__name__], oldType)
 
-	if oldType and issubclass(oldType,str):
+	if oldType and issubclass(oldType, str):
 		if issubclass(_type, extensions.xchar):
-		# var.type = type  # ok: upgrade
-			return # OK
+			# var.type = type  # ok: upgrade
+			return  # OK
 	# try:
-	if issubclass(_type,_ast.AST):
+	if issubclass(_type, _ast.AST):
 		print("skipping type check for AST expressions (for now)!")
 		return
 	if oldType and _type and not issubclass(oldType, _type):  # FAIL:::type <= oldType:
@@ -1770,7 +1829,7 @@ def assure_same_type(var, _type):
 	var.type = _type  # ok: set
 
 
-def assure_same_type_overwrite(var, val,auto_cast=False):
+def assure_same_type_overwrite(var, val, auto_cast=False):
 	if not val: return
 	oldType = var.type
 	oldValue = var.value
@@ -1781,8 +1840,10 @@ def assure_same_type_overwrite(var, val,auto_cast=False):
 		try:
 			wrong_type = WrongType("OLD: %s %s VS %s %s" % (oldType, oldValue, type(val), val))
 			if not isinstance(val, oldType) and not issubclass(oldType, type(val)):
-				if auto_cast: return do_cast(val,oldType)
-				else: raise wrongType
+				if auto_cast:
+					return do_cast(val, oldType)
+				else:
+					raise wrongType
 		except:
 			if not issubclass(type(val), _ast.AST):
 				raise wrong_type
@@ -1806,14 +1867,17 @@ def do_get_class_constant(c):
 def class_constant():
 	c = word
 	return do_get_class_constant(c)
-	# if not Object.maybe(const_defined) c: raise NameError "uninitialized constant #{c)"
+
+
+# if not Object.maybe(const_defined) c: raise NameError "uninitialized constant #{c)"
 
 
 def get_obj(o):
 	if not o: return False
 	eval(o)  # except variables[o]
 
-	# Object.property  or  object.property
+
+# Object.property  or  object.property
 
 
 
@@ -1828,32 +1892,40 @@ def simpleProperty():
 		x = getattr(module, prop)
 		return x
 	return kast.Attribute(kast.Name(module, kast.Load()), prop, kast.Load())
+
+
 #       maybe_tokens(['every', 'all', 'those'])
 
 # see method_call!!
-def property():#sett=False,delay_eval=True):
+def property():  # sett=False,delay_eval=True):
 	must_contain_before([".", "'s", "of"], special_chars)
-	var = variable() # todo or word() # or type/class!
+	var = variable()  # todo or word() # or type/class!
 	container = var.value
-	of=__(['.',"'s","of"]) # todo ,"of" don't work if var is unknown
+	of = __(['.', "'s", "of"])  # todo ,"of" don't work if var is unknown
 	no_rollback()
 	properti = word()
-	if of=="of": container,properti= properti,container # flip!
+	if of == "of": container, properti = properti, container  # flip!
 
 	# if sett:
-	sett= maybe_token('=') and expression()
+	sett = maybe_token('=') and expression()
 	if sett:
 		if interpreting():
-			if isinstance(container,dict): container[properti]=sett
-			else: setattr(container, properti, sett)
+			if isinstance(container, dict):
+				container[properti] = sett
+			else:
+				setattr(container, properti, sett)
 			return sett
 		return Assign([Attribute(container, properti, sett and Store() or Load()), sett])
 	if interpreting():
 		# if delay_eval: return Attribute(container, properti, sett and Store() or Load())
-		if isinstance(container, dict): return container[properti]
-		else: return getattr(container, properti)
+		if isinstance(container, dict):
+			return container[properti]
+		else:
+			return getattr(container, properti)
 	return Attribute(container, properti, sett and Store() or Load())
-	# return Property(name=properti, owner=owner)
+
+
+# return Property(name=properti, owner=owner)
 
 
 # difference to setter? just public int var const test # no be_words
@@ -1867,10 +1939,10 @@ def declaration():
 	mod = mod or maybe_tokens(modifier_words)  # public static :.
 	var = maybe(known_variable) or variable(a, ctx=kast.Store())
 	try:
-		val= type() # DEFAULT CONSTRUCTOR!?
+		val = type()  # DEFAULT CONSTRUCTOR!?
 	except:
-		val=None
-	var=add_variable(var,val,mod,_type=type)
+		val = None
+	var = add_variable(var, val, mod, _type=type)
 	if var.type:
 		assure_same_type(var, type)
 	else:
@@ -1884,7 +1956,7 @@ def declaration():
 @Starttokens(let_words)
 def setter(var=None):
 	# if not var:
-	must_contain_before(args=['is','be','are',':=','=','set','to'], before=['>', '<', '+', '-', '|', '/', '*',';'])
+	must_contain_before(args=['is', 'be', 'are', ':=', '=', 'set', 'to'], before=['>', '<', '+', '-', '|', '/', '*', ';'])
 	_let = maybe_tokens(let_words)
 	if _let: no_rollback()
 	a = maybe(_the)
@@ -1895,17 +1967,17 @@ def setter(var=None):
 	# else:
 	#     _type=var.type
 	#     mod=var.modifier
-	var = var or variable(a, ctx=kast.Store()) # property now has own method with setter
-	if current_word=="[":
+	var = var or variable(a, ctx=kast.Store())  # property now has own method with setter
+	if token == "[":
 		return evaluate_index(var)
 	# if use_tree: var.ctx=Store()
 	setta = maybe_tokens(['to']) or be()  # or not_to_be 	contain -> add or create
-	if not setta: raise NotMatching("BE!?") # bug ^^
+	if not setta: raise NotMatching("BE!?")  # bug ^^
 	if (setta == ':=' or _let == 'alias'): return alias(var);
 	# val = maybe(adjective) or expressions()
-	if maybe_tokens(['a','an']) and not _type: # todo x is a list of ... !?
+	if maybe_tokens(['a', 'an']) and not _type:  # todo x is a list of ... !?
 		_type = typeNameMapped()
-		val=_type() # default constructor!!!
+		val = _type()  # default constructor!!!
 		return add_variable(var, val, mod, _type)
 	else:
 		val = expression()
@@ -1918,7 +1990,7 @@ def setter(var=None):
 			val = do_cast(val, _cast)
 		else:
 			_type = _cast  # todo
-	val = do_evaluate(val ) or do_evaluate(guard)
+	val = do_evaluate(val) or do_evaluate(guard)
 	# allow_rollback()
 	if setta in ['are', 'consist of', 'consists of']:
 		val = flatten(val)
@@ -1927,7 +1999,7 @@ def setter(var=None):
 		add_variable(var, val, mod, _type)
 	except Exception as e:
 		if guard:
-			val=guard
+			val = guard
 			add_variable(var, guard, mod, _type)
 		else:
 			raise
@@ -1937,7 +2009,9 @@ def setter(var=None):
 		return kast.Assign([kast.Name(var.name, kast.Store())], val)
 	if interpreting() and val != 0: return val
 	return var
-	# 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
+
+
+# 'initial'?	maybe(let) maybe(_the) ('initial' or 'var' or 'val' or 'value of')? variable (be or 'to') value
 
 
 # alias l=ls x:=y*y x(y):=y*y
@@ -1954,7 +2028,7 @@ def alias(var=None):
 	a = rest_of_line()  # can't parse yet (i.e. x:= y*y )
 	# a=maybe(action_or_block) or rest_of_line()
 	add_variable(var, a)
-	var.type="alias"
+	var.type = "alias"
 	if context.use_tree:
 		f = FunctionDef(name=var.name, body=a)
 		addMethodNames(f)
@@ -1963,8 +2037,8 @@ def alias(var=None):
 
 
 def add_variable(var, val, mod=None, _type=None):
-	if not isinstance(var,Variable):
-		print("NOT a Variable: %s"%var)
+	if not isinstance(var, Variable):
+		print("NOT a Variable: %s" % var)
 		return var
 	var.typed = _type or var.typed or 'typed' == mod  # in [mod]
 	if isinstance(val, FunctionCall):
@@ -1980,7 +2054,7 @@ def add_variable(var, val, mod=None, _type=None):
 		the.variables[var.name] = var
 		var.value = val
 	the.token_map[var.name] = known_variable
-	var.type= _type or type(val)
+	var.type = _type or type(val)
 	var.final = mod in const_words
 	var.modifier = mod
 	the.variableTypes[var.name] = var.type
@@ -2023,7 +2097,8 @@ def isType(x):
 	if x in type_names: return True
 	return False
 
-	# already existing
+
+# already existing
 
 
 def current_node():
@@ -2099,27 +2174,28 @@ def word(include=None):
 	# if not the.string: raise EndOfDocument.new
 	# if maybe(starts_with) keywords: return false
 	# match = re.search(r'^\s*[a-zA-Z]+[\w_]*',the.string)
-	match = re.search(word_regex, the.current_word)
+	match = re.search(word_regex, the.token)
 	if (match):
-		current_value = the.current_word  # the.string[:match.end()]
+		current_value = the.token  # the.string[:match.end()]
 		# the.string = the.string[match.end():].strip()
 		next_token()
 		return current_value
 	raise_not_matching("word")
 
-	# fad35
-	# unknown
-	# noun
 
-	# NOT SAME AS should_not_start_with!!!
+# fad35
+# unknown
+# noun
+
+# NOT SAME AS should_not_start_with!!!
 
 
 def must_not_contain(words, before=";"):
 	old = the.current_token
 	words = flatten(words)
-	while not checkEndOfLine() and the.current_word != ';' and the.current_word != before:
+	while not checkEndOfLine() and the.token != ';' and the.token != before:
 		for w in words:
-			if w == the.current_word:
+			if w == the.token:
 				raise MustNotMatchKeyword(w)
 		next_token()
 	set_token(old)
@@ -2146,7 +2222,7 @@ def do_cast(x, typ):
 	if typ == unicode: return str(x)
 	if typ == "str": return str(x)
 	if typ == "string": return str(x)
-	if typ == extensions.xchar and len(x)==1:
+	if typ == extensions.xchar and len(x) == 1:
 		return extensions.xchar(x[0])
 	raise WrongType("CANNOT CAST: %s (%s) TO %s " % (x, type(x), typ))
 
@@ -2160,13 +2236,15 @@ def call_cast(x, typ):
 
 def nod():  # options{generateAmbigWarnings=false)):
 	return maybe(number) or \
-				 maybe(quote) or \
-				 maybe(regexp) or \
-				 maybe(known_variable) or \
-				 maybe(true_param) or \
-				 the_noun_that()
-	# maybe(the_noun_that)  # or
-	# maybe( variables_that ) # see selectable
+	       maybe(quote) or \
+	       maybe(regexp) or \
+	       maybe(known_variable) or \
+	       maybe(true_param) or \
+	       the_noun_that()
+
+
+# maybe(the_noun_that)  # or
+# maybe( variables_that ) # see selectable
 
 
 def article():
@@ -2282,8 +2360,9 @@ def than_comparative():
 	_('than')
 	return maybe(adverb) or endNode()
 
+
 # more bigger
-def comparative(): # partial
+def comparative():  # partial
 	c = maybe(more_comparative) or adverb
 	if c.startswith('more') or maybe(lambda: c.ends_with('er')):
 		comp = c
@@ -2327,10 +2406,10 @@ def where():
 def selector():
 	if checkEndOfLine(): return
 	x = maybe(compareNode) or \
-			maybe(where) or \
-			maybe(that) or \
-			maybe(token('of') and endNode) or \
-			preposition and nod  # friends in africa
+	    maybe(where) or \
+	    maybe(that) or \
+	    maybe(token('of') and endNode) or \
+	    preposition and nod  # friends in africa
 	if context.use_tree:
 		return parent_node()
 	return x
@@ -2383,7 +2462,7 @@ def comparation():
 	maybe_token('than')  # , 'then' #_22'then' ;) danger:
 	comp = comp or eq
 	if context.use_tree:
-		comp=kast_operator_map[comp] # todo: hacky _min LATER
+		comp = kast_operator_map[comp]  # todo: hacky _min LATER
 	return comp
 
 
@@ -2446,11 +2525,11 @@ def check_condition(cond=None, negate=False):
 	if cond == True or cond == 'True': return True
 	if cond == False or cond == 'False': return False
 	if isinstance(cond, ast.BinOp): cond = Compare(left=cond.left, comp=cond.op, right=cond.right)
-	if isinstance(cond, Variable):return cond.value
+	if isinstance(cond, Variable): return cond.value
 	if cond == None or not isinstance(cond, Compare):
 		raise InternalError("NO Condition given! %s" % cond)
 
-		# return cond
+	# return cond
 	try:
 		left = cond.left
 		right = cond.right
@@ -2482,9 +2561,9 @@ def check_condition(cond=None, negate=False):
 	return False
 
 
-	# all of 1,2,3
-	# all even numbers in [1,2,3,4]
-	# one element in 1,2,3
+# all of 1,2,3
+# all even numbers in [1,2,3,4]
+# one element in 1,2,3
 
 
 def element_in():
@@ -2497,7 +2576,9 @@ def element_in():
 
 def get_type(object1):
 	todo("get_type")
-	# return object
+
+
+# return object
 
 
 def method_dir(left):
@@ -2546,7 +2627,7 @@ def condition():
 	if brace: _(')')
 	context.in_condition = False
 	if not comp: return left
-	negate = negated #(negated or _not) and not (negated and _not) << where did "_not" go???
+	negate = negated  # (negated or _not) and not (negated and _not) << where did "_not" go???
 	# angel.in_condition=False # WHAT IF raised !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????!
 	# 1,2,3 are smaller 4  VS 1,2,4 in 3
 	if isinstance(left, list) and not isinstance(right, list):  # and not maybe(lambda: comp in method_dir(left))
@@ -2565,9 +2646,9 @@ def condition():
 			return check_condition(cond)  # None
 	else:
 		return cond
-		# return Condition.new left:a,cmp:comp,right:b
-		# if not angel.use_tree: return start - pointer()
-		# if angel.use_tree: return parent_node()
+	# return Condition.new left:a,cmp:comp,right:b
+	# if not context.use_tree: return start - pointer()
+	# if context.use_tree: return parent_node()
 
 
 # @Starttokens('(')
@@ -2585,7 +2666,7 @@ def condition_tree(recurse=True):
 	def lamb():
 		op = tokens(['and', 'or', 'nor', 'xor', 'nand', 'but'])
 		if recurse: c2 = condition_tree(False)
-		if not interpreting(): return current_node  # or angel.use_tree
+		if not interpreting(): return current_node  # or context.use_tree
 		if op == 'or': cs[0] = cs[0] or c2
 		# if op=='or' RUBY BUG!?!?!: NIL c = c or c2
 		# if op=='and'  or  op=='but': c =c and c2
@@ -2617,9 +2698,11 @@ def loveHateTo():
 
 
 def gerundium():
-	return the.current_word.endswith("ing")
-	# verb()
-	# return token('ing')
+	return the.token.endswith("ing")
+
+
+# verb()
+# return token('ing')
 
 
 def verbium():
@@ -2634,7 +2717,7 @@ def the_noun_that():
 	maybe(_the)
 	n = noun()
 	if not n: raise_not_matching("no noun")
-	if the.current_word == "that":
+	if the.token == "that":
 		criterium = star(selector)  # todo: apply ;)
 		if criterium and interpreting():
 			n = list(filter(n, criterium))
@@ -2709,7 +2792,7 @@ def mapType(x0):
 	if x == "dict": return dict
 	if x == "dictionary": return dict
 	if x == "map": return dict
-	if x == "object": return object # vs dict See JS for goodness!
+	if x == "object": return object  # vs dict See JS for goodness!
 	if x == "array": return list
 	if x == "set": return set
 	if x == "list": return list
@@ -2720,8 +2803,8 @@ def mapType(x0):
 	if x == "label": return str
 	if x == "length": return int
 	if x == "label": return str
-	if x == "class": raise NotMatching("class is not a type")#?
-	raise NotMatching("not a known type:"+x)  # ?
+	if x == "class": raise NotMatching("class is not a type")  # ?
+	raise NotMatching("not a known type:" + x)  # ?
 	# raise UnkownType(x)
 	# if x == "size": return int or tuple
 	return x0
@@ -2760,8 +2843,9 @@ def postjective():  # 4 squared , 'bla' inverted, buttons pushed in, mail read b
 	current_value = match.group(1)
 	return current_value
 
-	# TODO: big cleanup!
-	# see resolve, eval_string,  do_evaluate, do_evaluate_property, do_s
+
+# TODO: big cleanup!
+# see resolve, eval_string,  do_evaluate, do_evaluate_property, do_s
 
 
 def get_class(x):
@@ -2826,16 +2910,19 @@ def do_evaluate(x, _type=None):
 	if isinstance(x, list) and isinstance(x[0], kast.AST): return pyc_emitter.eval_ast(x)
 	# if x == True or x == False: return x
 	return x  # DEFAULT!
-	# except (TypeError, SyntaxError)as e:
-	#     print("ERROR #{e) in do_evaluate #{x)")
-	#     raise e, None, sys.exc_info()[2]
-	#     # return x
+
+
+# except (TypeError, SyntaxError)as e:
+#     print("ERROR #{e) in do_evaluate #{x)")
+#     raise e, None, sys.exc_info()[2]
+#     # return x
 
 
 def self_modifying(method):
 	if callable(method): method = method.__name__
 	if is_string(method): return method == 'increase' or method == 'decrease' or method.endswith("!")
 	return False
+
 
 #
 # def self_modifying(method):
@@ -2853,8 +2940,8 @@ def do_math(a, op, b):
 		a = a.value
 	if isinstance(b, Variable):
 		b = b.value
-	a=xx(a)
-	b=xx(b)
+	a = xx(a)
+	b = xx(b)
 	# a = float(a)
 	# b = float(b)
 	if op == '+': return a + b
@@ -2872,22 +2959,22 @@ def do_math(a, op, b):
 	if op == 'times': return a * b
 	if op == 'multiplied by': return a * b
 
-	if op == '**': return a ** b
-	if op == 'to the power of': return a ** b
-	if op == 'to the power': return a ** b
-	if op == 'to the': return a ** b
-	if op == 'power': return a ** b
-	if op == 'pow': return a ** b
-	if op == '^^': return a ** b
-	if op == '^': return a ** b
+	if op == '**': return a**b
+	if op == 'to the power of': return a**b
+	if op == 'to the power': return a**b
+	if op == 'to the': return a**b
+	if op == 'power': return a**b
+	if op == 'pow': return a**b
+	if op == '^^': return a**b
+	if op == '^': return a**b
 	# if op == '^': return a ^ b
 	if op == 'xor': return a ^ b
 	if op == 'and': return a and b or FALSE
 	if op == '&&': return a and b
 	if op == 'but not':
-			return a and not b
+		return a and not b
 	if op == 'nor':
-			return not a and not b
+		return not a and not b
 	if op == 'neither':
 		return not a and not b
 	if op == 'but':
@@ -2908,10 +2995,10 @@ def do_math(a, op, b):
 	if op == '>=': return a >= b
 	if op == '==': return a == b
 	if op == '=': return a == b
-	if op == '~': return regex_match(a,b)
-	if op == '~=': return regex_match(a,b)
-	if op == '=~': return regex_match(a,b)
-	if op == '~~': return regex_match(a,b)
+	if op == '~': return regex_match(a, b)
+	if op == '~=': return regex_match(a, b)
+	if op == '=~': return regex_match(a, b)
+	if op == '~~': return regex_match(a, b)
 	if op == 'is': return a == b  # NOT the same as python a is b:
 	if op == 'be': return a == b
 	if op == 'equal to': return a == b
@@ -2934,9 +3021,11 @@ def is_bound(method):
 	_is_bound = 'im_self' in dir(method) and method.__self__
 	_is_bound = _is_bound or 'bound' in str(method)  # hack
 	return _is_bound
-	# return method.__self__ is not None   # NO py3
-	# return hasattr(m, '__self__')
-	# the new synonym for im_self is __self__, and im_func is also available as __func__.
+
+
+# return method.__self__ is not None   # NO py3
+# return hasattr(m, '__self__')
+# the new synonym for im_self is __self__, and im_func is also available as __func__.
 
 
 def is_unbound(method):
@@ -2985,14 +3074,15 @@ def findMethod(obj0, method0, args0=None, bind=True):
 		if bind:
 			method.__get__(None, obj0)  # The staticmethod decorator wraps your class and implements a dummy __get__
 		return method
-		# elif "im_class" in
-		#     method = method.__get__(args[0],method.im_class)
-		# that returns the wrapped function as function and not as a method
+	# elif "im_class" in
+	#     method = method.__get__(args[0],method.im_class)
+	# that returns the wrapped function as function and not as a method
 	# if is_string(method):
 	#     raise_not_matching("NO such METHOD %s" % method)
 	# if not is_string(method):
 	#     raise_not_matching("NO such METHOD %s" % method)
-	if not isinstance(method, collections.Callable) and isinstance(args0, list) and len(args0)>0:  # TRY TO WORK ARGUMENT WISE!
+	if not isinstance(method, collections.Callable) and isinstance(args0, list) and len(
+		args0) > 0:  # TRY TO WORK ARGUMENT WISE!
 		function = findMethod(obj0 or args0[0], method0, args0[0], bind=False)
 		return function
 	# def map_list(xs,*xss):
@@ -3001,7 +3091,9 @@ def findMethod(obj0, method0, args0=None, bind=True):
 	#         return map(function,xs)
 	#     return map_list
 	return method
-	# if callable(method):method(args)
+
+
+# if callable(method):method(args)
 
 
 def align_function_args(args, clazz, method):
@@ -3028,7 +3120,9 @@ def align_function_args(args, clazz, method):
 				raise Exception("MISSING ARGUMENT %s" % param.name)
 		newArgs[param.name] = param.value
 	return newArgs
-	# return method.arguments
+
+
+# return method.arguments
 
 
 def eval_args(args):
@@ -3057,14 +3151,14 @@ def align_args(args, clazz, method):
 	try:
 		if isinstance(method, FunctionDef):
 			expect = len(method.args)
-			#     method = findMethod(clazz, method)
+		#     method = findMethod(clazz, method)
 		else:
 			margs, varargs, varkw, defaults = inspect.getargspec(method)
 			expect = len(margs) - (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
 		if not isinstance(args, (xlist, list, dict)):
 			args = [args]
 		if isinstance(args, list):
-			if (len(args) > expect and len(args)>1 ):
+			if (len(args) > expect and len(args) > 1):
 				args = [args]
 		if isinstance(method, FunctionDef):
 			for i in range(expect):
@@ -3105,13 +3199,13 @@ def call_unbound(method, args, number_of_arguments):
 				# bound_method = method.__get__(args[0], obj_type) # rebind
 				# bound_method.im_self=args[0] # read-only
 				the.result = bound_method(args[1:])
-				#    TypeError: unbound method invert() must be called with xstr instance as first argument (got str instance instead)
-				#    can't solve?
+			#    TypeError: unbound method invert() must be called with xstr instance as first argument (got str instance instead)
+			#    can't solve?
 		else:
-			if is_bound(method) and len(args) >= 1 and method.__self__== args[0]:
-				args= args[1:]
+			if is_bound(method) and len(args) >= 1 and method.__self__ == args[0]:
+				args = args[1:]
 			the.result = method(*args) or NILL
-			#     the.result = method(args) or NILL
+		#     the.result = method(args) or NILL
 	else:
 		the.result = method(args) or NILL
 	return the.result
@@ -3150,7 +3244,7 @@ def do_call(obj0, method0, args0=[]):
 	#         return obj.__getattribute__(method)
 	#     else:
 	#         method(args[1])  # square of 7
-	print(("CALLING %s %s with %s" % (obj or "", method, args)))#, file=sys.stderr)
+	print(("CALLING %s %s with %s" % (obj or "", method, args)))  # , file=sys.stderr)
 
 	if not args and not isinstance(method, collections.Callable) and method in dir(obj):
 		return obj.__getattribute__(method)
@@ -3183,7 +3277,7 @@ def do_call(obj0, method0, args0=[]):
 			the.result = call_unbound(method, args, number_of_arguments)
 		else:
 			the.result = method()
-	elif not args or number_of_arguments==0 or number_of_arguments==1 and is_first_self:
+	elif not args or number_of_arguments == 0 or number_of_arguments == 1 and is_first_self:
 		if bound or is_builtin:
 			the.result = method() or NILL
 		else:
@@ -3193,13 +3287,13 @@ def do_call(obj0, method0, args0=[]):
 			call_unbound(method, args, number_of_arguments)
 		else:
 			# try:
-			if(isinstance(args,list) and len(args)==1):
-				args=args[0]
+			if (isinstance(args, list) and len(args) == 1):
+				args = args[0]
 			the.result = method(obj, args) or NILL
-			# except: the.result = method(args) or NILL
+		# except: the.result = method(args) or NILL
 
-			# the.result = method(obj, *args) or NILL
-			# the.result = method([obj]+args) or NILL try!
+		# the.result = method(obj, *args) or NILL
+		# the.result = method([obj]+args) or NILL try!
 	else:
 		the.result = MethodMissingError
 
@@ -3232,7 +3326,7 @@ def do_compare(a, comp, b):
 	if comp == 'smaller' or comp == 'tinier' or comp == 'comes before' or comp == '<' or isinstance(comp, ast.Lt):
 		return a < b
 	elif comp == 'bigger' or comp == 'larger' or comp == 'greater' or comp == 'comes after' or comp == '>' or isinstance(
-					comp, ast.Gt):
+		comp, ast.Gt):
 		return a > b
 	elif comp == 'smaller or equal' or comp == '<=' or isinstance(comp, ast.LtE):
 		return a <= b
@@ -3253,32 +3347,33 @@ def do_compare(a, comp, b):
 		return a == b  # Redundant
 	elif comp == 'not equal' or comp == 'not the same' or comp == 'different' or comp == '!=' or comp == '≠':
 		return a != b  # Redundant
-	elif comp in be_words or isinstance(comp, (ast.Eq,kast.Eq)) or 'same' in comp:
+	elif comp in be_words or isinstance(comp, (ast.Eq, kast.Eq)) or 'same' in comp:
 		return a == b or isinstance(b, type) and isinstance(a, b)
 	else:
 		try:
 			return a.send(comp, b)  # raises!
 		except:
 			error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
-			# return a.send(comp + '?', b)
+		# return a.send(comp + '?', b)
 
 
 def drop_plural(x):
 	if x.endswith("s"): return x[:-1]
 	return x
 
+
 # all floats in xs
 @Starttokens(['every', 'all', 'those'])
 def liste_selector():
 	if context.in_list: return False
 	tokens(['every', 'all', 'those'])
-	typ=typeName()
-	tokens(['in','of'])
-	xs=maybe(variable) or liste()
+	typ = typeName()
+	tokens(['in', 'of'])
+	xs = maybe(variable) or liste()
 	if interpreting():
-		if isinstance(xs,Variable): xs=xs.value
-		print("FILTERING %s in %s"%(typ,xs))
-		xs = list(filter(lambda x:is_a(x,typ),xs))  # except xs
+		if isinstance(xs, Variable): xs = xs.value
+		print("FILTERING %s in %s" % (typ, xs))
+		xs = list(filter(lambda x: is_a(x, typ), xs))  # except xs
 		print(xs)
 		return xs
 	return todo("filter list")
@@ -3303,21 +3398,21 @@ def filters(liste, criterion):
 		method = criterion['comparative'] or criterion['comparison'] or criterion['adjective']
 		args = criterion['endNode'] or criterion['endNoun'] or criterion['expressions']
 	else:
-		method = criterion() # comp or ??
+		method = criterion()  # comp or ??
 		args = right
 	return mylist.select(lambda i: do_compare(i, method, args))  # REPORT BUGS!!! except False
 
 
 def ranger(a=None):
 	if context.in_params or context.in_args:
-		return False # add 1 to 3 != add [1,2,3]
+		return False  # add 1 to 3 != add [1,2,3]
 	must_contain('to')
 	maybe_token('from')
 	a = a or number()
 	_('to')
 	b = number()
 	if context.use_tree:
-		return kast.call('range',[a,ast.Num(b+1)])
+		return kast.call('range', [a, ast.Num(b + 1)])
 	return list(range(a, b + 1))  # count from 1 to 10 => 10 INCLUDED, thus +1!
 
 
@@ -3326,23 +3421,23 @@ def endNode():
 	raiseEnd()
 	# maybe( plural) or
 	x = maybe(liste) or \
-			maybe(fileName) or \
-			maybe(linuxPath) or \
-			maybe(quote) or \
-			maybe(regexp) or \
-			maybe(lambda: maybe(article) and typeNameMapped()) or \
-			maybe(simpleProperty) or \
-			maybe(evaluate_property) or \
-			maybe(selectable) or \
-			maybe(liste_selector) or \
-			maybe(known_variable) or \
-			maybe(article) and word() or \
-			maybe(ranger) or \
-			maybe(value) or \
-			maybe(typeNameMapped) or \
-			maybe(variable) or \
-			maybe_token('a') or \
-			raise_not_matching("Not an endNode")  # "+pointer_string())
+	    maybe(fileName) or \
+	    maybe(linuxPath) or \
+	    maybe(quote) or \
+	    maybe(regexp) or \
+	    maybe(lambda: maybe(article) and typeNameMapped()) or \
+	    maybe(simpleProperty) or \
+	    maybe(evaluate_property) or \
+	    maybe(selectable) or \
+	    maybe(liste_selector) or \
+	    maybe(known_variable) or \
+	    maybe(article) and word() or \
+	    maybe(ranger) or \
+	    maybe(value) or \
+	    maybe(typeNameMapped) or \
+	    maybe(variable) or \
+	    maybe_token('a') or \
+	    raise_not_matching("Not an endNode")  # "+pointer_string())
 	po = maybe(postjective)  # inverted
 	if po and interpreting(): x = do_call(x, po, None)
 	return x
@@ -3379,14 +3474,17 @@ def start_xml_block(type):
 
 
 def check_end_of_statement():
-	return checkEndOfLine() or the.current_word == ";" or maybe_tokens(done_words)
+	return checkEndOfLine() or the.token == ";" or maybe_tokens(done_words)
 
 
 # End of block also acts as end of statement but not the other way around!!
 def end_of_statement():
 	return beginning_of_line() or maybe_newline() or starts_with(done_words) \
-			or the.current_offset==0 or the.previous_word == ';' or the.previous_word == '\n' or token(';', 'end_of_statement')
-	# consume ";", but DON'T consume done_words here!
+	       or the.current_offset == 0 or the.previous_word == ';' or the.previous_word == '\n' or token(';',
+	                                                                                                    'end_of_statement')
+
+
+# consume ";", but DON'T consume done_words here!
 
 
 def english_to_math(s):
@@ -3437,9 +3535,8 @@ def evaluate_index(obj=None):
 	else:
 		the.result = Subscript(value=get(obj), slice=Index(index), ctx=Load())
 		if set != None:  # and interpreting():
-			the.result = Assign([Subscript(get(obj), Index(index), Store())],set)
+			the.result = Assign([Subscript(get(obj), Index(index), Store())], set)
 	return the.result
-
 
 
 def evaluate_property(x=None):
@@ -3454,13 +3551,13 @@ def evaluate_property(x=None):
 		the.result = do_evaluate_property(x, y)
 	except SyntaxError as e:
 		verbose("ERROR do_evaluate_property")
-		# if not the.result: the.result=jeannie all
-		# except Exception as e:
-		#     verbose("ERROR do_evaluate_property")
-		#     verbose(e)
-		#     error(e)
-		#     error(traceback.extract_stack())
-		# if not the.result: the.result=jeannie all
+	# if not the.result: the.result=jeannie all
+	# except Exception as e:
+	#     verbose("ERROR do_evaluate_property")
+	#     verbose(e)
+	#     error(e)
+	#     error(traceback.extract_stack())
+	# if not the.result: the.result=jeannie all
 
 	return the.result
 
@@ -3468,8 +3565,10 @@ def evaluate_property(x=None):
 def jeannie(request):
 	jeannie_api = 'https://weannie.pannous.com/api'
 	params = 'login=test-user&out=simple&input='
-	# if not current_value: raise "empty evaluation"
-	# download(jeannie_api+params+URI.encode(request))
+
+
+# if not current_value: raise "empty evaluation"
+# download(jeannie_api+params+URI.encode(request))
 
 
 @Starttokens(eval_keywords)
@@ -3512,18 +3611,19 @@ def be():
 	return tokens(be_words)
 
 
-def modifier():return tokens(modifier_words)
-
-def attribute():return tokens(attributes)
+def modifier(): return tokens(modifier_words)
 
 
-def preposition():return tokens(prepositions)
+def attribute(): return tokens(attributes)
 
 
-def pronoun():return tokens(pronouns)
+def preposition(): return tokens(prepositions)
 
 
-def nonzero():return tokens(nonzero_keywords)
+def pronoun(): return tokens(pronouns)
+
+
+def nonzero(): return tokens(nonzero_keywords)
 
 
 def wordnet_is_adverb():
@@ -3546,13 +3646,15 @@ def verb():
 
 def adjective():
 	return tokens(the.adjectives)
-	# if not found_verb: raise_not_matching("no verb")
+
+
+# if not found_verb: raise_not_matching("no verb")
 
 
 def quote():
 	raiseEnd()
-	if the.current_type == _token.STRING or the.current_word[0] == "'" or the.current_word[0] == '"':
-		the.result = the.current_word[1:-1]
+	if the.current_type == _token.STRING or the.token[0] == "'" or the.token[0] == '"':
+		the.result = the.token[1:-1]
 		if not interpreting():
 			the.result = kast.Str(s=the.result)
 		next_token()
@@ -3591,13 +3693,15 @@ def known_variable(node=True):
 	# if interpret #LATER!: variableValues[v]
 	# if node and not interpreting(): return kast.name(v)
 	return v
-	# for v in the.variables.keys:
-	#  if the.string.maybe(start_with) v:
-	#    var=token(v)
-	#    return var
-	#
-	#
-	# tokens(the.variables_list # todo: remove (in endNodes, selectors,:.))
+
+
+# for v in the.variables.keys:
+#  if the.string.maybe(start_with) v:
+#    var=token(v)
+#    return var
+#
+#
+# tokens(the.variables_list # todo: remove (in endNodes, selectors,:.))
 
 
 def noun(include=[]):
@@ -3605,8 +3709,8 @@ def noun(include=[]):
 	if not a: should_not_start_with(xlist(keywords) - include)
 	if not context.use_wordnet:
 		return word(include)
-	if the.current_word in the.nouns:
-		return the.current_word
+	if the.token in the.nouns:
+		return the.token
 	raise_not_matching("noun")
 
 
@@ -3650,18 +3754,18 @@ def linuxPath():
 
 def loops():
 	return maybe(repeat_every_times) or \
-				 maybe(repeat_n_times) or \
-				 maybe(n_times_action) or \
-				 maybe(action_n_times) or \
-				 maybe(for_i_in_collection) or \
-				 maybe(repeat_with) or \
-				 maybe(while_loop) or \
-				 maybe(looped_action) or \
-				 maybe(looped_action_until) or \
-				 maybe(repeat_action_while) or \
-				 maybe(as_long_condition_block) or \
-				 maybe(forever) or \
-				 raise_not_matching("Not a loop")
+	       maybe(repeat_n_times) or \
+	       maybe(n_times_action) or \
+	       maybe(action_n_times) or \
+	       maybe(for_i_in_collection) or \
+	       maybe(repeat_with) or \
+	       maybe(while_loop) or \
+	       maybe(looped_action) or \
+	       maybe(looped_action_until) or \
+	       maybe(repeat_action_while) or \
+	       maybe(as_long_condition_block) or \
+	       maybe(forever) or \
+	       raise_not_matching("Not a loop")
 
 
 # todo merge for_i_in_collection
@@ -3678,9 +3782,11 @@ def repeat_with():
 			do_execute_block(b, {v: i})
 		return the.result
 	return kast.For(target=v, iter=c, body=b)
-	#     'iter',
-	#     'body',
-	#     'orelse',)
+
+
+#     'iter',
+#     'body',
+#     'orelse',)
 
 
 @Starttokens(['while', 'as long as'])
@@ -3731,12 +3837,14 @@ def repeat_every_times():
 	maybe_tokens(['repeat'])
 	action_or_block()
 	interval = datetime()
-	# event=Event(interval:interval,event:b)
+
+
+# event=Event(interval:interval,event:b)
 
 
 def repeat_action_while():
 	_('repeat')  # ,'do'
-	if re.search(r'\s*while', the.current_word):
+	if re.search(r'\s*while', the.token):
 		raise_not_matching("repeat_action_while != repeat_while_action", the.string)
 	b = action_or_block()
 	_('while')
@@ -3782,6 +3890,7 @@ def looped_action_until():
 
 def is_number(n):
 	return xstr(n).parse_number() != 0  # hum
+
 
 # notodo: LTR parser just here!
 # say hello 6 times   #=> (say hello 6) times ? give up for now
@@ -3833,13 +3942,15 @@ def repeat_n_times():
 	b = action_or_block()
 	adjust_interpret()
 	if interpreting():
-		the.result=xint(n).times_do(lambda: do_execute_block(b))
+		the.result = xint(n).times_do(lambda: do_execute_block(b))
 	else:
 		# return Expr(Call(Name('times_do', Load()), [num(n), b], []))
 		return For(store('i'), call('range', [zero, n]), [assign('it', b)])
 	# todo("repeat_n_times")
 	return the.result
-	# if angel.use_tree: parent_node()
+
+
+# if context.use_tree: parent_node()
 
 
 # if action was (not) parsed before: todo: node cache: skip action(X) -> _'forever'
@@ -3864,12 +3975,13 @@ def as_long_condition_block():
 
 def ruby_action():
 	_('ruby')
-	exec (action or quote)
+	exec(action or quote)
 
 
 # Thank you, python3 d****s, for making such a fantastic mess with input/raw_input
 # real_raw_input = vars(__builtins__).get('raw_input', input)
 from six.moves import input as real_raw_input
+
 
 def start_shell(args=[]):
 	import readline
@@ -3883,7 +3995,7 @@ def start_shell(args=[]):
 	else:
 		# input0 = input('⦠ ')
 		input0 = real_raw_input('⦠ ')
-	while True:#input0:
+	while True:  # input0:
 		# while input = Readline.readline('angle-script⦠ ', True)
 		readline.write_history_file(home + "/.english_history")
 		# while True
@@ -3907,7 +4019,7 @@ def start_shell(args=[]):
 			print('Syntax Error')
 		except Exception as e:
 			raise
-			# print(e)
+		# print(e)
 		# input0 = input("⦠ ")
 		input0 = real_raw_input('⦠ ')
 	print("Bye.")
@@ -3917,7 +4029,7 @@ def start_shell(args=[]):
 def main():
 	the._verbose = False
 	ARGV = sys.argv
-	context.home=os.environ['ANGLE_HOME']
+	context.home = os.environ['ANGLE_HOME']
 	# version=`git rev-list --all --count`
 	# ARGF=sys.argv
 	if len(ARGV) == 1:
@@ -3959,5 +4071,5 @@ def main():
 if __name__ == '__main__':
 	main()
 
-english_parser_imported=True
-context.starttokens_done=True
+english_parser_imported = True
+context.starttokens_done = True

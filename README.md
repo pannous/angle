@@ -3,6 +3,22 @@
 **[Angle](https://github.com/pannous/angle/)** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to make programming accessible to many more people, more fun and to facilitate programming computers via voice.
 
+INSTALL
+-------
+
+`pip install angle`
+<!-- `pip install anglang` -->
+
+OR from source:
+
+`git clone --recursive git@github.com:pannous/angle.git`
+
+`cd angle`
+
+`./install.sh`
+
+Start the shell : `./bin/angle` 
+
 Examples
 --------
 Here are some of our favorite working examples from the [tests](tests):
@@ -38,10 +54,16 @@ To check if person is online on Skype:
 End
 ```
 
+Status:
+-----------
+
+ALPHA, partly usable, some [tests](tests) not yet passing: 
+[![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
+
 In progress
 -----------
-`add one to every odd number in 1,2,3 == 2,2,4`
 
+`add one to every odd number in 1,2,3 == 2,2,4`
 
 The implicit list filter '**that**' applies a selection criterion to all elements. 
 
@@ -70,18 +92,6 @@ End
 Here 'mail' acts as argument name and argument type at once.
 No more Java style Mail mail=new Mail().getMail();
 
-INSTALL
--------
-`git clone --recursive git@github.com:pannous/angle.git`
-
-`cd angle`
-
-`./install.sh`
-
-ALPHA, partly usable, some [tests](tests) not yet passing: 
-[![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
-
-Start the shell : `./bin/angle` 
 
 EXPERIMENT
 ----------
