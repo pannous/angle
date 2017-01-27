@@ -2239,6 +2239,23 @@ def do_cast_x(x, typ): #todo
 
 
 def do_cast(x, typ):
+	if isinstance(typ, float): return xfloat(x)
+	if isinstance(typ, int): return xint(x)
+	if typ == int: return xint(x)  # todo!
+	if typ == xint: return xint(x)  # todo!
+	if typ == "int": return xint(x)
+	if typ == "integer": return xint(x)
+	if typ == str: return xstr(x)
+	if typ == xstr: return xstr(x)
+	if typ == unicode: return xstr(x)
+	if typ == "str": return xstr(x)
+	if typ == "string": return xstr(x)
+	if typ == extensions.xchar and len(str(x)) == 1:
+		return extensions.xchar(str(x)[0])
+	raise WrongType("CANNOT CAST: %s (%s) TO %s " % (x, type(x), typ))
+
+
+def do_cast_no_x(x, typ):
 	if isinstance(typ, float): return float(x)
 	if isinstance(typ, int): return int(x)
 	if typ == int: return int(x)  # todo!
@@ -4020,21 +4037,30 @@ def start_shell(args=[]):
 	readline.read_history_file(home + '/.english_history')
 	if len(args) > 1:
 		input0 = ' '.join(args)
+<<<<<<< HEAD
 	else:
 		# input0 = input('⦠ ')
 		input0 = real_raw_input('⦠ ')
+=======
+	# input0 = input('⦠ ')
+>>>>>>> 0bbc2ef9791d17be808aee931a9289f165c47bce
 	while True:  # input0:
 		# while input = Readline.readline('angle-script⦠ ', True)
-		readline.write_history_file(home + "/.english_history")
-		# while True
-		#   print("> ")
-		#   input = STDIN.gets.strip()
 		try:
+			if len(args) <= 1:
+				input0 = real_raw_input('⦠ ')
+			readline.write_history_file(home + "/.english_history")
+			# while True
+			#   print("> ")
+			#   input = STDIN.gets.strip()
 			# interpretation= parser.parse input
 			interpretation = parse(input0, None)
 			if not interpretation: next
+			result = interpretation.result
 			# if context.use_tree: print(interpretation.tree)
-			print((interpretation.result))
+			if isinstance(result, AST):
+				result = pyc_emitter.run_ast(result)
+			print(result)
 		except IgnoreException as e:
 			pass
 		except NotMatching as e:
@@ -4049,9 +4075,14 @@ def start_shell(args=[]):
 			break
 		except Exception as e:
 			raise
+<<<<<<< HEAD
+=======
+
+		if len(args) > 1:
+			break
+>>>>>>> 0bbc2ef9791d17be808aee931a9289f165c47bce
 		# print(e)
 		# input0 = input("⦠ ")
-		input0 = real_raw_input('⦠ ')
 	print("Bye.")
 	exit(1)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import exceptionz
 from tests.parser_test_helper import *
 
 import tests.parser_test_helper
@@ -70,13 +70,17 @@ class EmitterTest(tests.parser_test_helper.ParserBaseTest):
 		try:
 			assert_result_emitted('int z is 2.3 as string', 2)
 			raise Exception("SHOULD RAISE WrongType: OLD: <type 'int'> None VS str [2.3] return_type: <type 'str'> ")
-		except power_parser.WrongType:
+		except exceptionz.WrongType:
 			pass  # all good, did raise
+
+	def test_print(self):
+		assert_result_is("print 'hello world'", 'hello world')
+		assert_result_is("puts 'hello world'", 'hello world')
 
 	def test_printf(self):
 		# skip()
 		self.parser.dont_interpret()
-		parse("printf 'hello world'", False)
+		parse("printf 'hello world'")
 		self.parser.full_tree()
 
 	# result = emit(interpretation, {'run': True, }, NativeCEmitter())

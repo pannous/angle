@@ -39,7 +39,6 @@ class StringTest(ParserBaseTest,unittest.TestCase):
         x = self.parser.gerund()
         init('gerunded')
         x = self.parser.postjective()
-        x
 
     def test_concatenation(self):
         self.parser.do_interpret()

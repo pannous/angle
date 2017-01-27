@@ -12,4 +12,5 @@ tests.sh
 tests/inline
 tests/inline.py
 out
-tests/out
+tests/outangle.js/
+coconut

@@ -47,6 +47,10 @@ number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
 
 special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0bbc2ef9791d17be808aee931a9289f165c47bce
 # TODO : 'a' MESS !
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
             'this']  # 'that' * 2 !!!

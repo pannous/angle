@@ -980,7 +980,7 @@ def parse(s, target_file=None):
 		got_ast = isinstance(the.result, ast.AST)
 		if isinstance(the.result, list) and len(the.result) > 0:
 			got_ast = isinstance(the.result[0], ast.AST)
-		if context.use_tree and got_ast:
+		if got_ast: # context.use_tree and
 			import pyc_emitter
 			the.result = pyc_emitter.eval_ast(the.result, {}, source_file, target_file, run=True)
 		else:
