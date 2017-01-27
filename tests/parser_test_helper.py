@@ -89,10 +89,9 @@ def last_result():
 # 	angle_ast = ast.fix_missing_locations(angle_ast)
 # 	return angle_ast
 
-#
-# def puts(x):
-# 	print(x)
-# 	return x
+
+def puts(x):
+	print(x)
 
 
 def assert_result_emitted(a, b, bla=None):
@@ -107,10 +106,6 @@ def assert_result_is(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	# print(inspect.stack()[1][3])
 	x = parse(a)
-	if isinstance(x, ast.AST):
-		x = pyc_emitter.run_ast(x)
-	if isinstance(x, kast.kast.Print):
-		x = pyc_emitter.run_ast(x)
 	# y=parse(b)
 	y = b
 	if bla:

@@ -6,9 +6,7 @@ context.use_tree = False
 
 
 class ListTest(ParserBaseTest, unittest.TestCase):
-	def setUp(self):
-		parser.clear()
-
+	# def setUp(self):
 	# 	# context.use_tree=False
 	# 	self.parser.do_interpret()
 	# 	super(ListTest, self).setUp()
@@ -55,9 +53,7 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		assert_equals(self.parser.liste(), [1, 2, 3])
 
 	def test_list_methods(self):
-		context.use_tree = True
-		x = parse('invert [1,2,3]')
-		assert_equals(x, [3, 2, 1])
+		parse('invert [1,2,3]')
 		assert_equals(result(), [3, 2, 1])
 
 	def test_error(self):
@@ -114,7 +110,7 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		init('x + y')
 		z = self.parser.algebra()
 		if context.use_tree:
-			z = parser.eval_ast(z)
+			z=parser.eval_ast(z)
 		assert_equals(len(z), 6)
 		z = parse('x + y')
 		assert_equals(len(z), 6)
@@ -252,14 +248,13 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 	def test_map3(self):
 		skip()
 		self.assert_that('square every number in 1,"a",2,3 == 1,4,9')
-
-	# wrong operator precedence:
-	# square(number, [1,"a",2,3])  vs
-	# square(numbers in [1,"a",2,3])
+		# wrong operator precedence:
+		# square(number, [1,"a",2,3])  vs
+		# square(numbers in [1,"a",2,3])
 
 
 	def test_map4(self):
-		skip()  # too hard
+		skip() # too hard
 		self.assert_that('add one to every number in 1,2,3 ==2,3,4')
 		self.assert_that("square every number in 1,'a',3 ==1,9")
 

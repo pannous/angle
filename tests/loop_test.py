@@ -20,13 +20,6 @@ class LoopTest(ParserBaseTest, unittest.TestCase):
 		parse('c=0;while c<3:c++;beep;done')
 		assert_equals(3, the.variables['c'].value)
 
-	def test_for_loop(self):
-		assert_result_is("c=0;for x in 1 to 10: c+=x;c", 55)
-		# assert_result_is("c=0;for x in 1 to 10: c+=x;print c", 55)
-
-	def test_for_loop2(self):
-		assert_result_is(" for x in 1 to 10: print x",10)
-
 	def test_increment_expressions(self):
 		parse('counter=1')
 		assert_equals(1, parse('counter'))

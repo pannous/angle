@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+import angle
+
 
 from tests.parser_test_helper import *
-
 
 class ErrorTest(ParserBaseTest):
 
@@ -34,7 +35,7 @@ class ErrorTest(ParserBaseTest):
 
 	def test_assert_has_error(self):
 		try:
-			assert_has_no_error('dfsafdsa ewdfsa}{P}{P;@#%')
+				assert_has_no_error('dfsafdsa ewdfsa}{P}{P;@#%')
 		except:
 			puts("OK")
 
@@ -54,8 +55,7 @@ class ErrorTest(ParserBaseTest):
 		init('as')
 		try:
 			self.parser.arg()
-		except:
-			assert_has_error("as")
+		except: assert_has_error("as")
 
 	def test_rollback(self):
 		assert_has_error('if 1>0 then else')
@@ -69,3 +69,4 @@ class ErrorTest(ParserBaseTest):
 		variables['x'] = ['hi', ]
 		variables['y'] = ['world', ]
 		assert_has_error("z=x ' ' w")
+

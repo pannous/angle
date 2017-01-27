@@ -7,11 +7,7 @@ extensionMap ={} # str->xstr
 global string, last_node, current_value, nodes, depth,rollback_depths,OK
 global _verbose,use_wordnet,result,last_result
 global tokenstream,current_token,current_type,token,current_line
-<<<<<<< HEAD
 global in_condition,in_pipe,in_args,line_number, in_list
-=======
-global in_condition,in_pipe,in_args,line_number, in_list, use_tree
->>>>>>> 0bbc2ef9791d17be808aee931a9289f165c47bce
 
 EMPTY_MAP = {'EMPTY_MAP': 1}
 

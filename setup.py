@@ -18,15 +18,15 @@ setup(
     cmdclass=cmdclass,
     ext_modules=ext_modules,
     name='angle',
-    version='0.1.dev0',
+    version='0.1dev',
     packages=find_packages(),
-    description='Angle programming language compiling to python bytecode (pyc)',
+    description='Angle programming language compiling to python bytecode(pyc).',
     license='Apache2 license',
     long_description=open('README.md', 'rb').read().decode('utf8'),
     dependency_links=['git+http://github.com/pannous/context.git#egg=angle'],
     install_requires=['astor', 'pyyaml', 'argparse', "stem"],
     scripts=['bin/angle'],
     package_data={
-        'angle': ['*.py'], #src
+        # '': ['*.cu', '*.cuh', '*.h'],
     },
 )

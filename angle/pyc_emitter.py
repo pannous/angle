@@ -16,6 +16,36 @@ if py3:
 else:
 	import __builtin__  # py2
 
+# https://github.com/flier/pyv8
+
+# truffle on graal JVM has faster runs, but sloooooow startup 6SECONDS for HELLOWTF
+# https://stackoverflow.com/questions/31901940/why-is-ruby-irb-iteration-so-slow/31906922#31906922
+
+# python+truffle = zippy
+
+# talk at PyCon 2015 about Jython 2.7, including new features: https://www.youtube.com/watch?v=hLm3garVQFo
+
+# PyV8 is a python wrapper for Google V8 engine, it act as a bridge between the Python and JavaScript objects, and support to hosting Google's v8 engine in a python script.
+#
+# >>> import PyV8
+# >>> js = PyV8.JSContext()          # create a context with an implicit global object
+# >>> js.enter()                     # enter the context (also support with statement)
+# >>> js.eval("1+2")                 # evalute the javascript expression
+# 3                                    # return a native python int
+# >>> class Global(PyV8.JSClass):      # define a compatible javascript class
+# ...   def hello(self):               # define a method
+# ...     print "Hello World"
+# ...
+# >>> js2 = PyV8.JSContext(Global()) # create another context with the global object
+# >>> js2.enter()
+# >>> js2.eval("hello()")            # call the global object from javascript
+# Hello World                          # the output from python script
+
+
+
+# import __builtin__
+
+# import codegen
 import astor as codegen  # https://pypi.python.org/pypi/astor
 from astor.codegen import SourceGenerator as sourcegen
 
@@ -25,27 +55,15 @@ sourcegen.visit_FunctionCall = sourcegen.visit_Call
 sourcegen.visit_Variable = sourcegen.visit_Name
 sourcegen.visit_Argument = sourcegen.visit_Name
 sourcegen.visit_Condition = sourcegen.visit_Compare
-sourcegen.visit_PrintExpr = sourcegen.visit_Expr
 # import english_parser
 from kast.kast import Print, assign, name
-# Be careful distinguishing ast.Expr, Expression, and expr ! expected some sort of expr, but got <_ast.Expr WTH
 from kast import kast
 import nodes
 import context as the
 
 to_inject = []
 to_provide = {}  # 'global' params for exec
-provided = {}
-
-_print_ = Name('print', Load()) # const for py3 call vs py2 ast.Print
-
-class PrintExpr(Expr):
-	def __init__(self, arguments):
-		call = Call(_print_, arguments, [])
-		super(PrintExpr, self).__init__(call)
-		call.starargs = None  # hack for astor
-		call.kwargs = None
-
+provided={}
 
 class Reflector(object):  # Implements list interface is
 	def __getitem__(self, name):
@@ -74,7 +92,7 @@ class Reflector(object):  # Implements list interface is
 		else:
 			print(("UNKNOWN ITEM %s" % name))
 			return name  # kast.name(name)
-		# raise Exception("UNKNOWN ITEM %s" % name)
+			# raise Exception("UNKNOWN ITEM %s" % name)
 		return the.result
 
 	def __setitem__(self, key, value):
@@ -96,7 +114,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def generic_visit(self, node, wrap=False):
 		self.parents.append(node)
 		self.current = node
-		if not isinstance(node, (ast.AST, _ast.AST)):
+		if not isinstance(node, (ast.AST,_ast.AST)):
 			if wrap:
 				return wrap_value(node)
 			else:
@@ -116,6 +134,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def parent(self):
 		return self.parents[-1]
 
+
 	# def visit_list(self, x):
 	# 	if len(x) == 1: return [self.generic_visit(x[0])]  # bad workaround!
 	# 	print("WHAT to do about lists? " + str(x))
@@ -133,12 +152,11 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 			new_values.append(value)
 		# new_nodes[:] = new_values
 		return new_values
-
-	# parent = self.parent()
-	# if isinstance(parent, ast.Module):
-	#     return xs
-	# else:
-	#     return ast.List(xs, ast.Load())
+		# parent = self.parent()
+		# if isinstance(parent, ast.Module):
+		#     return xs
+		# else:
+		#     return ast.List(xs, ast.Load())
 
 	def visit_xlist(self, x):
 		# return kast.List(x,ast.Load())
@@ -156,11 +174,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def visit_Name(self, x):
 		return x  # and done!
 
-	def visit_Print(self, x):
-		x.values=arguments = map_arguments(x.values)
-		if py3: return PrintExpr(arguments)
-		return x
-
+	def visit_Print(self,x):
+		return None# _ast.Pass()
 	# def visit_Print(self, x):
 	#     return ast.Expr(x)
 
@@ -168,16 +183,15 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		return x  # and done!
 
 	def visit_BinOp(self, node):
-		if isinstance(node.left, nodes.Variable):
+		if isinstance(node.left , nodes.Variable):
 			# node.left.context =_ast.Load()
-			node.left = kast.name(node.left.name)
+			node.left=kast.name(node.left.name)
 		if isinstance(node.right, nodes.Variable):
-			node.right.context = _ast.Load()
+			node.right.context=_ast.Load()
 		#
-		node.right = ast_magic.wrap_value(node.right)  # why here?
-		node.left = ast_magic.wrap_value(node.left)  # why here?
+		node.right= ast_magic.wrap_value(node.right) #why here?
+		node.left= ast_magic.wrap_value(node.left) #why here?
 		return node
-
 	#     return self.generic_visit(node)
 	#     if not isinstance(self.parent,(ast.Expr,ast.Assign)):
 	#         return ast.Expr(value=self.generic_visit(node)) #
@@ -203,11 +217,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 
 	def visit_Variable(self, x):  # codegen doesn't like inheritance
 		return ast.Name(x.name, x.ctx)
-
-	# return ast.Name(x.name,ast.Load())
+		# return ast.Name(x.name,ast.Load())
 
 	def visit_arguments(self, x):
-		x.ctx = _ast.Param()  # never reached!
+		x.ctx=_ast.Param() # never reached!
 		return x  # WHY???
 
 	def visit_Function(self, x):  # old:
@@ -222,17 +235,16 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		x.args = ast.arguments(args=argList, vararg=None, kwarg=None, defaults=[], kwonlyargs=[], kw_defaults=[])
 		x.decorator_list = x.decorators or []  # for now!!
 		x.vararg = None
-		provided[x.name] = x
+		provided[x.name]=x
 		return x
 
 	def visit_Argument(self, x):
 		if isinstance(x.value, nodes.Variable):
 			return self.visit_Variable(x)
 		return self.generic_visit(x.value)
-
-	# x.ctx=ast.Load()
-	# return x
-	# def generic_visit(self, node):
+		# x.ctx=ast.Load()
+		# return x
+		# def generic_visit(self, node):
 
 	def visit_FunctionCall(self, node):
 		if node.name in the.methods:
@@ -242,16 +254,16 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 			elif isinstance(function_def, collections.Callable):
 				to_provide[node.name] = function_def
 			elif provided[node.name]:
-				print("OK, already provided " + node.name)
+				print("OK, already provided "+ node.name)
 			else:
 				print("HUH")
 			print(("NEED TO IMPORT %s ??" % function_def))
 		node.value.args = map_arguments(node.value.args)
 		# node.args= node.value.args
 		skip_assign = True
-		if skip_assign:  #
+		if skip_assign: #
 			return self.generic_visit(node.value)  # skip_assign
-		# return node.value
+			# return node.value
 		# else: #WHATS THAT??
 		# 	node.name = kast.name(node)
 		# 	node.value = wrap_value(node.value)
@@ -307,16 +319,8 @@ def fix_block(body, returns=True, prints=False):
 	if isinstance(last_statement, list) and len(last_statement) == 1:
 		last_statement = last_statement[0]
 		print("HOW??")
-	if not isinstance(last_statement, (ast.Assign, ast.If, ast.Global, ast.For, nodes.FunctionDef, ast.Return, ast.Assert)):
-		if isinstance(last_statement, Call) and last_statement.func == _print_:  # py3 Print
-			body[-1] = (assign("it", last_statement.args[0]))
-			last_statement.args[0] = name("it")
-			body.append(last_statement)
-		elif isinstance(last_statement, PrintExpr):
-			body[-1] = (assign("it", last_statement.value.args[0]))
-			last_statement.value.args[0] = name("it")
-			body.append(last_statement)
-		elif isinstance(last_statement, kast.Print):
+	if not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert)):
+		if isinstance(last_statement, kast.Print):
 			body[-1] = (assign("it", last_statement.values[0]))
 			last_statement.values[0] = name("it")
 			body.append(last_statement)
@@ -324,12 +328,12 @@ def fix_block(body, returns=True, prints=False):
 			body[-1] = (assign("it", last_statement))
 	if isinstance(last_statement, ast.Assign):
 		if not "it" in [x.id for x in last_statement.targets]:
-			last_statement.targets.append(Name(id="it", ctx=Store()))
+			last_statement.targets.append(Name(id="it",ctx=Store()))
 	if returns and not isinstance(body[-1], ast.Return):
 		body.append(ast.Return(name("it")))
 	# if prints:
 	# 	if py3:pass#body.append(kast.call("print", name("it")))
-	# else:body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
+		# else:body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
 	return body
 
 
@@ -352,8 +356,8 @@ def get_ast(python, source='out/inline.py', _context='exec'):
 	return py_ast
 
 
-def print_ast(my_ast, source_file='out/inline', with_line_numbers=False):
-	if not os.path.exists('out'): return
+def print_ast(my_ast, source_file='out/inline',with_line_numbers=False):
+	if not os.path.exists('out'):return
 	try:
 		x = ast.dump(my_ast, annotate_fields=True, include_attributes=with_line_numbers)
 		open(source_file + ".ast", 'wt').write("from ast import *\ninline_ast=" + x.replace('(', '(\n'))
@@ -383,40 +387,14 @@ def print_source(my_ast, source_file='out/inline'):
 		traceback.print_exc()  # backtrace
 
 
-# VS eval_ast (save to file)
-def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', code=None):
-	if not args: args = {}
-	if fix: my_ast = fix_ast_module(my_ast)
-	if not code: code = compile(my_ast, source_file, 'exec')
-	# TypeError: required field "lineno" missing from expr:
-	# NONONO this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
-
-	# eval can't handle arbitrary python code (eval("import math") ), and
-	# exec() doesn't return the results directly, BUT via namespace YAY!
-	if _context == 'eval':
-		my_globals = get_globals(args)
-		ret = eval(code, my_globals, Reflector())  # in _context
-	else:
-		# http://lucumr.pocoo.org/2011/2/1/exec-in-python/
-		args.update(to_provide)  # globals
-		namespace = context.variables  # .copy()
-		namespace.update(args)  # << GIVE AND RECEIVE GLOBALS!!
-		namespace['it'] = it = None  # better than ast.global
-		namespace = Namespace(namespace)  # for inline evaluation of Variables! (?)
-		exec(code, namespace)  # self contained!
-		ret = namespace['it'] or namespace.getit() # set internally via dict_set_item_by_hash_or_entry # crash !?
-	if not isinstance(the.result,AST):
-		ret = ret or the.result or "None"
-	# verbose("GOT RESULT %s" % ret)
-	return ret
-
-# save to file, then run_ast
 def eval_ast(my_ast, args={}, source_file='out/inline', target_file=None, run=False, fix_body=True, _context='exec'):
 	try:  # todo args =-> SETTERS!
 		while len(to_inject) > 0: to_inject.pop()  # clear
 		my_ast = fix_ast_module(my_ast, fix_body=fix_body)
 		# The mode must be 'exec' to compile a module, 'single' to compile a
 		# single (interactive) statement, or 'eval' to compile a SINGLE expression.
+		print("///////////////")
+		print(my_ast)
 		code = compile(my_ast, source_file, 'exec')  # regardless!
 		# TypeError: required field "lineno" missing from expr NONONO!
 		# this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
@@ -443,77 +421,72 @@ def eval_ast(my_ast, args={}, source_file='out/inline', target_file=None, run=Fa
 		print_source(my_ast, source_file)
 		info_ = sys.exc_info()[2]
 		# if py3: raise e from e # py3 WTF WTF , how to do both??
-		raise  # e.with_traceback(info_)
+		raise# e.with_traceback(info_)
 
 
-class Namespace(dict):
-	def __init__(self, variables, **kwargs):
-		super().__init__(**kwargs)
+class Namespace():
+	def __init__(self, variables):
 		self.variables = variables
 
-	def getit(self):
-		if 'it' in dir(self): return self.it
-		return self['it'] or self.variables['it'] or None
-	#
-	def __getitem__(self, item):
-		val = self.variables[item] or super().__getitem__(item)
-		if isinstance(val, nodes.Variable):
-			val=val.value
-		if item=='it':
-			val= super().__getitem__('it')
-		else:
-			print("getvalue " + str(item) + " : " + str(val))
-		return val
 
-	# def __setattr__(self, item, val):
-	# 	print("__setattr__ " + str(item) + " : " + str(val))
-	# 	self.variables[item] = val
-	# 	return val
+def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', code=None):
+	if not args: args = {}
+	if fix: my_ast = fix_ast_module(my_ast)
+	if not code: code = compile(my_ast, source_file, 'exec')
+	# TypeError: required field "lineno" missing from expr:
+	# NONONO this as a documentation bug, this error can mean >>anything<< except missing line number!!! :) :( :( :(
 
-	def __setitem__(self, item,val):
-		print("setvalue " + str(item) + " : " + str(val))
-		self.variables[item]=val
-		return val
+	# eval can't handle arbitrary python code (eval("import math") ), and
+	# exec() doesn't return the results directly, BUT via namespace YAY!
+	if _context == 'eval':
+		my_globals = get_globals(args)
+		ret = eval(code, my_globals, Reflector())  # in _context
+	else:
+		# http://lucumr.pocoo.org/2011/2/1/exec-in-python/
+		args.update(to_provide)  # globals
+		namespace = context.variables
+		namespace.update(args) # << GIVE AND RECEIVE GLOBALS!!
+		# resolve_variables(namespace)
+		namespace['it'] = None  # better than ast.global
+		# namespace=Namespace(namespace)
+		exec(code, namespace)  # self contained!
+		ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
+	ret = ret or the.result
+	# verbose("GOT RESULT %s" % ret)
+	return ret
 
-
-def resolve_variables(hashy):
-	for k, var in hashy.items():
-		if isinstance(var, nodes.Variable):
-			hashy[k] = var.value
-		# hashy[k] = name(var)
-
+# def resolve_variables(hashy):
+# 	for k, var in hashy.items():
+# 		if isinstance(var, nodes.Variable):
+# 			hashy[k]= var.value
 
 def map_values(val):
 	return list(map(wrap_value, val))
 
 
-def map_arguments(val):  # todo: different ^^?
+def map_arguments(val): # todo: different ^^?
 	return list(map(wrap_value, val))
-
-
-# return list(map(_ast.arg, map(wrap_value, val)))
-# return _ast.arguments(list(map(wrap_value, val)))
+	# return list(map(_ast.arg, map(wrap_value, val)))
+	# return _ast.arguments(list(map(wrap_value, val)))
 
 
 def get_id(x):
-	if isinstance(x, Name): return x.id
+	if isinstance(x,Name):return x.id
 	return x
-
 
 def map_def_argument_params(val):
 	def assure_arg(x):
 		return _ast.arg(get_id(x), None)
-
 	# return _ast.arg(get_id(x, _ast.Param()),[])
-	return list(map(assure_arg, val))
+	return list(map(assure_arg,val))
 
 
 def emit_pyc(code, fileName='output.pyc'):
 	import marshal
 	import py_compile
 	import time
-	if fileName == 'out/inline.pyc':
-		return  # don't cache inline.pyc bytecode
+	if fileName=='out/inline.pyc':
+		return # don't cache inline.pyc bytecode
 	with open(fileName, 'wb') as fc:
 		fc.write(b'\0\0\0\0')
 		# py_compile.wr_long(fc, int(time.time()))
