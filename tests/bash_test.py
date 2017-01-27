@@ -11,6 +11,9 @@ class BashTest(ParserBaseTest):
 		assert_equals(g, f)
 		assert_contains(f, '.')
 
+	def test_ls_type(self):
+		x = parse("bash 'ls -al' | column 1")
+		assert_equals(type(x),xlist)
 
 	def test_pipe(self):
 		x = parse("bash 'ls -al' | column 1| row 2")

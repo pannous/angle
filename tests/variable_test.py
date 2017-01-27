@@ -9,8 +9,8 @@ context.use_tree = False
 
 class VariableTest(ParserBaseTest,unittest.TestCase):
 
-	# def setUp(self):
-	# 	parser.clear()
+	def setUp(self):
+		parser.clear()
 
 	def test_a_setter_article_vs_variable(self):
 		skip()
@@ -84,12 +84,22 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 		assert_result_is("auto int i='hi'", 0)
 		assert_result_is("auto integer i='hi'", 0)
 
-	def test_variable_type_as(self):
+	def test_variable_type_as_overwrite(self):
 		assert_result_is('i=3 as string', '3')
 		assert_result_is("i=4.3 as int", 4)
-		assert_result_is("i='hi' as int", 0)
+
+	def test_variable_type_as1(self):
+		assert_result_is('i=3 as string', '3')
 		assert_result_is('i=3 as string;i.type', str)
-		assert_result_is("i=4.3 as int;i.type", int)
+		assert_result_is('i=3 as string;type of i', str)
+
+	def test_variable_type_as(self):
+		assert_result_is("i=4.3 as int", 4)
+		assert_result_is("i=4.3 as int;type of i", int)
+		# assert_result_is("i=4.3 as int;i.type", int)
+
+	def test_variable_type_as_bad_cast(self):
+		assert_result_is("i='hi' as int", 0)
 		assert_result_is("i='hi' as int;i.type", int)
 
 	def test_variable_type_safety1(self):

@@ -47,7 +47,6 @@ number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
 
 special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 
-
 # TODO : 'a' MESS !
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
             'this']  # 'that' * 2 !!!
@@ -89,72 +88,69 @@ question_words = ["when", "why", "where", "what", "who", "which", "whose", "whom
                   "how"]  # ,"what's","how's","why's", "when's","who's",
 
 prepositions = ["of", 'above', 'with or without', 'after', 'against', 'apart from', 'around', 'as', 'aside from', 'at',
-                'before', 'behind', \
-                'below', \
-                'beneath', 'beside', 'between', 'beyond', 'by', 'considering', 'down', 'during', 'for', 'from', 'in', \
-                'instead of', 'inside of', 'inside', 'into', 'like', 'near', 'on', 'onto', 'out of', 'over', 'outside', \
+                'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'by', 'considering', 'down', 'during', 'for', 'from', 'in',
+                'instead of', 'inside of', 'inside', 'into', 'like', 'near', 'on', 'onto', 'out of', 'over', 'outside',
                 'since', 'through', 'thru', 'to', 'till', 'with', 'up', 'upon', 'under', 'underneath', 'versus', 'via',
-                'with', \
-                'within', 'without', 'toward', 'towards', 'with_or_without']  # wow
+                'with', 'within', 'without', 'toward', 'towards', 'with_or_without']  # wow
 
 # 'but',
 all_prepositions = ['aboard', 'about', 'above', 'across', 'after', 'against', 'along', 'amid', 'among', 'anti',
-                    'around', 'as', \
-                    'at', 'before', 'behind', 'below', 'beneath', 'beside', 'besides', 'between', 'beyond', 'by', \
+                    'around', 'as',
+                    'at', 'before', 'behind', 'below', 'beneath', 'beside', 'besides', 'between', 'beyond', 'by',
                     'concerning', 'considering', 'despite', 'down', 'during', 'except', 'excepting', 'excluding',
-                    'following', \
+                    'following',
                     'for', 'from', 'in', 'inside', 'into', 'like', 'minus', 'near', 'of', 'off', 'on', 'onto',
-                    'opposite', \
+                    'opposite',
                     'outside', 'over', 'past', 'per', 'pro', 'plus', 're', 'regarding', 'round', 'save', 'sans',
-                    'since', 'than', \
-                    'through', 'thru', 'thruout', 'throughout', 'to', 'till', \
+                    'since', 'than',
+                    'through', 'thru', 'thruout', 'throughout', 'to', 'till',
                     'toward', 'towards', 'under', 'underneath', 'unlike', 'until', 'up', 'upon', 'versus', 'via',
-                    'with', \
+                    'with',
                     'within', 'without']
 
-long_prepositions = ['by means of', 'for the sake of', 'in accordance with', 'in addition to', 'in case of', \
-                     'in front of', \
-                     'in lieu of', 'in order to', 'in place of', 'in point of', 'in spite of', 'on account of', \
-                     'on behalf of', 'on top of', 'with regard to', 'with respect to', 'with a view to', 'as far as', \
+long_prepositions = ['by means of', 'for the sake of', 'in accordance with', 'in addition to', 'in case of',
+                     'in front of',
+                     'in lieu of', 'in order to', 'in place of', 'in point of', 'in spite of', 'on account of',
+                     'on behalf of', 'on top of', 'with regard to', 'with respect to', 'with a view to', 'as far as',
                      'as long as', 'as opposed to', 'as soon as', 'as well as', 'by virtue of']
 
-pair_prepositions = ['according to', 'ahead of', 'apart from', 'as for', 'as of', 'as per', 'as regards', 'aside from', \
-                     'back to', 'because of', 'close to', 'due to', 'except for', 'far from', \
+pair_prepositions = ['according to', 'ahead of', 'apart from', 'as for', 'as of', 'as per', 'as regards', 'aside from',
+                     'back to', 'because of', 'close to', 'due to', 'except for', 'far from',
                      'in to', '(contracted as into)', 'inside of',
-                     '(note that inside out is an adverb and not a preposition)', \
+                     '(note that inside out is an adverb and not a preposition)',
                      'instead of', 'left of', 'near to', 'next to', 'on to', '(contracted as onto)', 'out from',
-                     'out of', 'outside of', \
+                     'out of', 'outside of',
                      'owing to', 'prior to', 'pursuant to', 'regardless of', 'right of', 'subsequent to', 'thanks to',
-                     'that of', 'up to', \
+                     'that of', 'up to',
                      'where as']  # ,'whereas'
 
 postpositions = ['ago', 'apart', 'aside', 'away', 'hence', 'notwithstanding', 'on', 'through', 'withal', 'again']
 
 conjunctions = ['and', 'or', 'but', 'yet', 'xor', 'nand']  # so for nor
 
-correlative_conjunctions = ['either...or', 'not only...but (also)', 'neither...nor', 'neither...or', \
+correlative_conjunctions = ['either...or', 'not only...but (also)', 'neither...nor', 'neither...or',
                             'both...and', 'whether...or', 'just as...so']
 
 # ['isnt','isn\'t','is not','wasn\'t','was not',]
 auxiliary_verbs = ['is', 'be', 'was', 'cannot', 'can not', 'can', 'could', 'has', 'have', 'had', 'may', 'might', 'must',
-                   'shall', 'should', \
+                   'shall', 'should',
                    'will', 'would', 'do']
 
 possessive_pronouns = ['my', 'your', 'their', 'his', 'her', 'hers', 'theirs']
 
 pronouns = ['I', 'i', 'me', 'my', 'mine', 'myself', 'we', 'us', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
-            'yourself', 'you', \
+            'yourself', 'you',
             'your', 'yours', 'yourselves', 'he', 'him', 'his', 'himself', 'they', 'them', 'their', 'theirs',
-            'themselves', 'she', \
+            'themselves', 'she',
             'her', 'hers', 'herself', 'it', 'its', 'itself', 'ye', 'thou', 'thee', 'thy', 'thine', 'thyself']
 
-interjections = ['ah', 'aah', 'aha', 'ahem', 'ahh', 'argh', 'aw', 'bah', 'boo', 'brr', 'eek', 'eep', 'eh', 'eww', \
-                 'gah', 'grr', 'hmm', 'huh', 'hurrah', 'meh', 'mhm', 'mm', 'muahaha', 'nah', 'nuh-uh', 'oh', 'ooh', \
+interjections = ['ah', 'aah', 'aha', 'ahem', 'ahh', 'argh', 'aw', 'bah', 'boo', 'brr', 'eek', 'eep', 'eh', 'eww',
+                 'gah', 'grr', 'hmm', 'huh', 'hurrah', 'meh', 'mhm', 'mm', 'muahaha', 'nah', 'nuh-uh', 'oh', 'ooh',
                  'ooh-la-la', 'oomph', 'oops', 'ow', 'oy', 'oy', 'pff', 'phew', 'psst', 'sheesh', 'shh', 'tsk-tsk',
-                 'uh-hu', \
+                 'uh-hu',
                  'uh-uh', 'uh-oh', 'uhh', 'wee', 'whoa', 'wow', 'yeah', 'yahoo', 'yoo-hoo', 'yuh-uh', 'yuk', 'zing']
 
-fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right", "I'm tellin' ya", \
+fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right", "I'm tellin' ya",
            "you know what I mean?", "ehm", "uh", "er"]
 
 # danger: so,like,right!!
@@ -168,30 +164,30 @@ subtype_words = ['inherits', 'inherits from', 'extends', 'is subtype of', 'is su
 
 to_be_words = ['is', 'be', 'are', ':=', '=']
 be_words = ['is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
-            '=', '==', 'equals', 'equal', \
+            '=', '==', 'equals', 'equal',
             'is equal to', "consist of", "consists of", "is made up of", 'equal to', 'same', 'the same as', 'same as',
             'the same']
 class_be_words = ['is an', 'is a', ]  # different!
 
 # nicer, sweeter, ....
-#  '=>' '<=', DANGER
+#  '=>' '<=', DANGER  '¬', not ! alone?  if a¬b: if a ! b    if a not b
 # OR class_words
-comparison_words = ['be', 'is of', 'is in', 'is a', 'is', \
-                    'subset of', 'in', 'are', 'were', \
-                    '>=', '==', '!=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', '~', '~=', '=~', '~~', 'gt', 'lt', 'eq', \
-                    'identical to', 'smaller or equal', 'greater or equal', 'equal to', \
-                    'bigger', 'greater', 'equals', 'smaller', 'less', 'more', 'the same as', \
-                    'same as', 'similar', 'comes after', 'inherits from', 'implements' \
-                                                                          'comes before', 'exact', 'exactly', '~>',
+comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'are', 'were',
+                    '>=', '==', '!=', '¬=', '<=', '=<', '=', '>', '<', '≠', '≤', '≥', '~', '~=', '=~', '~~', '~>',
+                    'gt', 'lt', 'identical to', 'smaller or equal', 'greater or equal', 'equal to', 'bigger', 'greater',
+                    'eq', 'equals', 'smaller', 'less', 'more', 'the same as', 'same as', 'similar', 'comes after',
+                    'inherits from', 'implements''comes before', 'exact', 'exactly',
                     'at least', 'at most']
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
 math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
-english_operators = xlist(
-	["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod",
-	 "modulo", "print", ])
+english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
+                           "subtract", "mod", "modulo", "print", ])
+
 true_operators = math_operators + english_operators + logic_operators  # minus comparison_words
+
 operators = math_operators + english_operators + comparison_words + logic_operators
+
 # todo sorted by decreasing precedence
 # DANGER! ambivalent!!   ,"and" 4 and 5 == TROUBLE!!! really? 4 and 5 == 9 ~= True OK lol
 # just make sure that 4 and False = False  4 and True == True
@@ -211,28 +207,25 @@ nill_words = ['None', 'nil', 'empty', 'void', 'nill', 'nul', 'nothing', 'null', 
 #               'void']  # 'love',
 
 done_words = ['◊', 'Ω', ';;', '}', 'done', 'Ende', 'end', 'okay', 'ok', 'OK', 'O.K.', 'alright',
-              'that\'s it', 'thats it', "I'm done", "i'm done", \
-              'fine', 'fi', 'fini', 'finish', 'fin', 'all set', 'finished', 'the end', 'over and out', 'over', 'q.e.d.',
-              'qed', "<end>"]  # NL+ # NL verbium?]
+              'that\'s it', 'thats it', "I'm done", "i'm done", 'fine', 'fi', 'fini', 'finish', 'fin', 'all set',
+              'finished', 'the end', 'over and out', 'over', 'q.e.d.', 'qed', "<end>"]  # NL+ # NL verbium?]
 
-false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong','No', 'no', 'non', 'nix', 'nein', 'njet', 'niet']  # 'negative',
+false_words = ['false', 'FALSE', 'False', 'falsch', 'wrong', 'No', 'no', 'non', 'nix', 'nein', 'njet',
+               'niet']  # 'negative',
 
-true_words = ['True','true', 'yes', 'ja', 'si']  # 'positive'
+true_words = ['True', 'true', 'yes', 'ja', 'si']  # 'positive'
 
 boolean_words = false_words + true_words
 
 otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains', 'copy', 'def', 'div',
-                 'does',
-                 'eighth', 'else', \
-                 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for', 'fourth', 'even',
-                 'front', 'get', \
-                 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that', 'result', 'last', 'local', 'me',
-                 'middle', 'mod', 'my', \
-                 'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout', 'times', \
+                 'does', 'eighth', 'else', 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for',
+                 'fourth', 'even',
+                 'front', 'get', 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that', 'result', 'last',
+                 'local', 'me',
+                 'middle', 'mod', 'my', 'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout',
+                 'times',
                  'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'print', 'prop', 'property', 'put',
-                 'ref',
-                 'reference', \
-                 'repeat', 'return', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
+                 'ref', 'reference', 'repeat', 'return', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
 const_words = ['constant', 'const', 'final', 'immutable', 'unchangeable']  # not: static
 
@@ -250,13 +243,11 @@ time_words = ['seconds', 'second', 'minutes', 'minute', 'a.m.', 'p.m.', 'pm', "o
 
 event_kinds = ['in', 'at', 'every', 'from', 'between', 'after', 'before', 'until', 'till']
 
-bla_words = ['tell me', 'hey', 'could you', 'give me', \
-             'i would like to', 'can you', 'please', 'let us', "let's", 'can i', \
-             'would you', 'i would', 'i ask you to', "i'd", \
-             'love to', 'like to', 'i asked you to', 'could i', \
-             'i tell you to', 'i told you to', 'come on', \
-             'i wanna', 'i want to', 'i want', 'i need to', \
-             'i need', 'either']
+bla_words = ['tell me', 'hey', 'could you', 'give me', 'i would like to', 'can you', 'please', 'let us', "let's",
+             'can i',
+             'would you', 'i would', 'i ask you to', "i'd", 'love to', 'like to', 'i asked you to', 'could i',
+             'i tell you to', 'i told you to', 'come on', 'i wanna', 'i want to', 'i want', 'i need to', 'i need',
+             'either']
 # either HAS MEANING! if x is either 3 or 4 != if x is 3 or 4 == if x is 3
 
 attributes = ['sucks', 'default']
@@ -407,7 +398,6 @@ kast_operator_map_min = {
 	"==": ast.Eq(),
 	"===": ast.Eq(),
 	"~=": ast.Eq(),
-	"is": ast.Eq(),
 	"eq": ast.Eq(),
 	">": ast.Gt(),
 	">=": ast.GtE(),

@@ -627,6 +627,7 @@ def adjust_interpret():
 
 
 def do_interpret():
+	if context.use_tree: return
 	if (context.did_interpret != context.interpret):
 		context.did_interpret = context.interpret
 	context.interpret = True
