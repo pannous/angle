@@ -9,6 +9,9 @@ class SetterTest(ParserBaseTest,unittest.TestCase):
 	def setUp(self):
 		parser.clear()
 
+	def test_samples(self):
+		parse("samples/basics.e")
+
 	def test_a_setter_article_vs_variable(self):
 		skip()
 		# dont_

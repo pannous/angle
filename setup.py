@@ -20,7 +20,7 @@ setup(
     name='angle',
     version='0.1dev',
     packages=find_packages(),
-    description='Angle programming language compiling to python bytecode(pyc).',
+    description='Angle speakable programming language compiling to python bytecode',
     license='Apache2 license',
     long_description=open('README.md', 'rb').read().decode('utf8'),
     dependency_links=['git+http://github.com/pannous/context.git#egg=angle'],

@@ -93,6 +93,8 @@ Here 'mail' acts as argument name and argument type at once.
 No more Java style Mail mail=new Mail().getMail();
 
 
+<!-- Self documenting code is not about the "how", it's about the "what". Ex: A method name should be FilterOutOddNumbers(). Not MapModulo2Predicate(). -->
+
 EXPERIMENT
 ----------
 Run it and see yourself!

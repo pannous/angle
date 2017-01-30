@@ -1550,8 +1550,8 @@ def assert_that():
 	# s=statement()
 	do_interpret()
 	# s = condition_old()
-	# s = condition()
-	s = expression()
+	s = condition()
+	# s = expression()
 	if interpreting():
 		assert check_condition(s), s
 	if context.use_tree:
@@ -1816,7 +1816,8 @@ def assure_same_type(var, _type):
 		return
 
 	if not isType(oldType):
-		warn("NOT A TYPE %s" % oldType)  # todo?
+		if oldType:
+			warn("NOT A TYPE %s" % oldType)  # todo?
 		return
 
 	# if isinstance(oldType,str):
@@ -2554,8 +2555,11 @@ def check_condition(cond=None, negate=False):
 	if cond == False or cond == 'False': return False
 	if isinstance(cond, ast.BinOp): cond = Compare(left=cond.left, comp=cond.op, right=cond.right)
 	if isinstance(cond, Variable): return cond.value
-	if cond == None or not isinstance(cond, Compare):
+	if cond == None: #or
 		raise InternalError("NO Condition given! %s" % cond)
+	if not isinstance(cond, Compare):
+		warn("truthy: %s"%cond)
+		return True #  everything this truthy
 
 	# return cond
 	try:

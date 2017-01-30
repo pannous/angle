@@ -198,7 +198,9 @@ def parse(s):
 	if isinstance(r, ast.AST) or isinstance(r, list) and isinstance(r[0], ast.AST):
 		r = pyc_emitter.run_ast(r)
 	update_local(context)
-	print(("DONE PARSING %s\n\n" % s))
+	print("DONE PARSING :")
+	print("  File \"%s\", line %d\n\n" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+
 	return r
 
 

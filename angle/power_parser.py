@@ -1001,7 +1001,9 @@ def parse(s, target_file=None):
 	except IgnoreException as e:
 		pass
 
-	verbose("PARSED SUCCESSFULLY!!")
+	verbose("PARSED SUCCESSFULLY!")
+	if context._debug:
+		print("  File \"%s\", line 1" % source_file)
 	# show_tree()
 	# puts svg
 	return english_parser.interpretation()  # # result
