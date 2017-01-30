@@ -3276,7 +3276,7 @@ def do_call(obj0, method0, args0=[]):
 	#         return obj.__getattribute__(method)
 	#     else:
 	#         method(args[1])  # square of 7
-	print(("CALLING %s %s with %s" % (obj or "", method, args)))  # , file=sys.stderr)
+	debug("CALLING %s %s with %s" % (obj or "", method, args))  # , file=sys.stderr)
 
 	if not args and not isinstance(method, collections.Callable) and method in dir(obj):
 		return obj.__getattribute__(method)

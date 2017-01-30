@@ -11,7 +11,7 @@ py3 = sys.version >= '3'
 import angle.english_parser 
 
 def compile(file):
-	english_parser.parse(file)
+	return english_parser.parse(file).result
 
 def eval(code):
-	english_parser.parse(code)
+	return english_parser.parse(code).result

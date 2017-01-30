@@ -5,3 +5,4 @@ export TESTING=1
 # py.test ../tests
 # python3 -m pytest ../tests
 python3 -m pytest tests
+# python2 -m pytest tests

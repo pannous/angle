@@ -10,7 +10,8 @@ class SetterTest(ParserBaseTest,unittest.TestCase):
 		parser.clear()
 
 	def test_samples(self):
-		parse("samples/basics.e")
+		x=parse("samples/basics.e")
+		assert x==6
 
 	def test_a_setter_article_vs_variable(self):
 		skip()

@@ -1164,7 +1164,7 @@ def number_word():
 	n = tokens(english_tokens.numbers)
 	return extensions.xstr(n).parse_number()  # except NotMatching.new "no number"
 
-
+@Starttokens(u'\xbd') # todo python2 wtf
 def fraction():
 	f = maybe(integer) or 0
 	m = starts_with(["¼", "½", "¾", "⅓", "⅔", "⅕", "⅖", "⅗", "⅘", "⅙", "⅚", "⅛", "⅜", "⅝", "⅞"])

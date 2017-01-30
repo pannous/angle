@@ -1,16 +1,12 @@
 #!/usr/bin/env python
-import angle
-import english_parser
 import interpretation
-import tests.parser_test_helper
-from tests.parser_test_helper import *
-
-# from test_helper import *
 from english_parser import *
+from tests.parser_test_helper import *
 
 
 def s(param):
-	pass
+	print(param)
+	parser.init(param)
 
 
 class ParserTest(unittest.TestCase):  # PASS ParserBaseTest): #EnglishParser
@@ -38,13 +34,13 @@ class ParserTest(unittest.TestCase):  # PASS ParserBaseTest): #EnglishParser
 		assert_result_is('x=13 //ok', 13)
 		assert_result_is('# a b \n # c d\nx=12# ok', 12)
 
-		# assert_result_is('x=12 -- ok',12)
+	# assert_result_is('x=12 -- ok',12)
 
 	def test_comment2(self):
 		parse('#ok')
 
-		# def initialize(self):
-		# super()
+	# def initialize(self):
+	# super()
 
 	# def NOmethod_missing(self, sym, args, block):
 	#     syms = sym.to_s()
@@ -96,7 +92,11 @@ class ParserTest(unittest.TestCase):  # PASS ParserBaseTest): #EnglishParser
 		assert (method_definition())
 
 	def test_expression(self):
-		context.methods['eat']=lambda x: print("eaten: "+x)
+		# if py2:skip("print lambda not legal in python2!")
+		def eat(x):
+			print("eaten: " + x)  #
+
+		context.methods['eat'] = eat
 		s('eat a sandwich;')
 		assert (action())
 
@@ -165,7 +165,8 @@ class ParserTest(unittest.TestCase):  # PASS ParserBaseTest): #EnglishParser
 	def test_ruby_method_call(self):
 		parse('NOW CALL via english')
 		s("call ruby_block_test 'yeah'")
-		# assert(extern_method_call())
+
+	# assert(extern_method_call())
 
 	def test_ruby_def(self):
 		s("def ruby_block_test x='yuhu'\n  puts x\n  return x+'yay'\nend")

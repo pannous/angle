@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from tests.parser_test_helper import *
 import sys
 sys.path.append('/Users/me/angle/')
 sys.path.append('/Users/me/angle/core/')
-
-import angle
-
-#
-from tests.parser_test_helper import *
 
 
 class AlgebraTest(ParserBaseTest):
@@ -111,7 +107,6 @@ class AlgebraTest(ParserBaseTest):
 
     def test_tau_pi(self):
 
-        import math
         assert_that('tau / 2 = pi')
         # assert_result_is('tau / 2 ', math.pi)
         # assert_result_is('†/2', math.pi)# alt+t on mac

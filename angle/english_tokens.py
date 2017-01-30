@@ -182,7 +182,7 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'ar
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
 math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
 english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
-                           "subtract", "mod", "modulo", "print", ])
+                           "subtract", "mod", "modulo", ])
 
 true_operators = math_operators + english_operators + logic_operators  # minus comparison_words
 
