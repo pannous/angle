@@ -1,5 +1,7 @@
 import sys
 
+__version__="0.1.10",
+
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
 

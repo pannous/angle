@@ -7,7 +7,7 @@ class SamplesTest(ParserBaseTest):
       super(SamplesTest, self).setUp()
 
       # context._verbose = True
-      self.parser.clear()
+      parser.clear()
 
     def test_addition(self):
       x=parse("samples/addition.e")

@@ -18,7 +18,7 @@ setup(
     cmdclass=cmdclass,
     ext_modules=ext_modules,
     name='angle',
-    version='0.1.4',
+    version="0.1.10",
     author="Pannous",
     author_email="info@pannous.com",
     packages=find_packages(),

@@ -25,10 +25,10 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
 
 		def test_class11(self):
 			init('class of 1,2,3')
-			self.parser.evaluate_property()
+			parser.evaluate_property()
 			assert_equals(result(), list)
 			init('class of [1,2,3]')
-			self.parser.expression()
+			parser.expression()
 			assert_equals(result(), list)
 
 		def test_class1(self):
@@ -46,10 +46,10 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
 
 		def test_type11(self):
 			init('type of 1,2,3')
-			self.parser.evaluate_property()
+			parser.evaluate_property()
 			assert_equals(result(), list)
 			init('type of [1,2,3]')
-			self.parser.expression()
+			parser.expression()
 			assert_equals(result(), list)
 
 		def test_type1(self):

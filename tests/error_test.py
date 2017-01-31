@@ -54,7 +54,7 @@ class ErrorTest(ParserBaseTest):
 	def test_endNode_as(self):
 		init('as')
 		try:
-			self.parser.arg()
+			parser.arg()
 		except: assert_has_error("as")
 
 	def test_rollback(self):

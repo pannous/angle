@@ -75,9 +75,9 @@ class EmitterTest(tests.parser_test_helper.ParserBaseTest):
 
 	def test_printf(self):
 		# skip()
-		self.parser.dont_interpret()
+		parser.dont_interpret()
 		parse("printf 'hello world'", False)
-		self.parser.full_tree()
+		parser.full_tree()
 
 	# result = emit(interpretation, {'run': True, }, NativeCEmitter())
 	# assert_equals(result, 'hello world')
@@ -97,11 +97,11 @@ class EmitterTest(tests.parser_test_helper.ParserBaseTest):
 
 	def test_setter2(self):
 		# skip()
-		self.parser.dont_interpret()
+		parser.dont_interpret()
 		assert_result_emitted("x='ho';puts x", 'ho')
 
-	# interpretation = (self.parser.interpretation() or Interpretation())
-	# self.parser.show_tree()
+	# interpretation = (parser.interpretation() or Interpretation())
+	# parser.show_tree()
 	# emit(interpretation, {'run': True, }, NativeCEmitter())
 
 	def test_function_call(self):

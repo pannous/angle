@@ -22,7 +22,7 @@ class HashTest(ParserBaseTest):
 
 	def test_simple0(self):
 		init('{a:1}')
-		val=self.parser.hash_map()
+		val=parser.hash_map()
 		assert_equals(val, {'a': 1})
 
 	def test_simple(self):
@@ -75,4 +75,4 @@ class HashTest(ParserBaseTest):
 
 	def test_json_data(self):
 		init('{a{b:"b";c:"c"}}')
-		self.parser.hash_map()
+		parser.hash_map()

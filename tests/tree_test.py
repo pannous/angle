@@ -13,12 +13,12 @@ class TreeTest(ParserBaseTest, unittest.TestCase):
 	def test_method4(self):
 		# init('how to integrate a bug\n      test\n    ok')
 		init('how to integrate a bug\n      test\nok')
-		assert (self.parser.method_definition())
+		assert (parser.method_definition())
 
 	def _test_block(self):
 		init(
 			'let the initial value of I be x;\n\n      step size is the length of the interval,\n      divided by the number of steps\n\n      var x = 8;')
-		self.parser.block()
+		parser.block()
 
 	def _test_while(self):
 		parse('i=0;y=5;while i is smaller or less then y do\n        increase i by 4;\n      done')
@@ -27,19 +27,19 @@ class TreeTest(ParserBaseTest, unittest.TestCase):
 	def _test_while2(self):
 		init(
 			'while i is smaller or less then y do\n evaluate the function at point I\n add the result to the sum\n increase I by the step size\ndone')
-		self.parser.looper()
+		parser.looper()
 
 	def _test_setter3(self):
 		init('step size is the length of the interval, divided by the number of steps')
-		self.parser.setter()
+		parser.setter()
 
 	def test_looper(self):
 		skip()
 		parse('i=1;y=2;')
 		init('while i is smaller or equal y do\ni++\nend')
-		self.parser.loops()
+		parser.loops()
 		init('while i is smaller or equal than y do\ni++\nend')
-		self.parser.loops()
+		parser.loops()
 
 	def test_then_typo(self):
 		skip()
@@ -64,6 +64,6 @@ class TreeTest(ParserBaseTest, unittest.TestCase):
 
 	def test_algebra(self):
 		init('2*(3+10)')
-		ok = self.parser.algebra()
+		ok = parser.algebra()
 		print(('Parsed input as %s !' % ok))
 		assert_equals(ok, 26)

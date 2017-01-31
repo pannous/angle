@@ -117,7 +117,7 @@ def assert_result_is(a, b, bla=None):
 def assert_equals(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if a == 'False': a = False
-	if isinstance(a, map): a = list(a) # fuck py3!
+	if py3 and isinstance(a, map): a = list(a) # fuck py3!
 	if isinstance(a, ast.List): a = a.elts  # todo remove
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
@@ -238,13 +238,13 @@ class ParserBaseTest(unittest.TestCase):
 	#     super(ParserBaseTest, self).__init__()
 	#     if ENV['TEST_SUITE'] or ENV['DEBUG_ANGLE']or ENV['ANGLE_DEBUG']or ENV['DEBUG']:
 	#
-	#     self.parser = _parser = english_parser#.EnglishParser()
+	#     parser = _parser = english_parser#.EnglishParser()
 
 	def setUp(self):
-		self.parser = english_parser
+		parser = english_parser
 		global base_test
 		base_test = self
-		self.parser.clear()  # OK Between test, just not between parses!
+		parser.clear()  # OK Between test, just not between parses!
 		if 'use_tree' in os.environ: context.use_tree = True
 		if 'no_tree' in os.environ: context.use_tree = False
 		if not context.use_tree:
@@ -284,7 +284,7 @@ class ParserBaseTest(unittest.TestCase):
 
 	def assert_equals(self, a, b):
 		if a == b or str(a) == str(b):
-			print(('TEST PASSED! %s      %s == %s' % (self.parser.original_string, a, b)))
+			print(('TEST PASSED! %s      %s == %s' % (parser.original_string, a, b)))
 		else:
 			assert a == b, "%s should equal %s" % (a, b)
 		# print(filter_stack(caller()))
@@ -302,7 +302,7 @@ class ParserBaseTest(unittest.TestCase):
 		if isinstance(msg, collections.Callable):
 			msg = msg.call()
 		if block:
-			msg = (msg or self.parser.to_source(block))
+			msg = (msg or parser.to_source(block))
 		if x == False and block:
 			x = block()
 		if x == False:
@@ -310,14 +310,14 @@ class ParserBaseTest(unittest.TestCase):
 		if isinstance(x, str):
 			print(('Testing ' + x))
 			init(x)
-			ok = self.parser.condition()
+			ok = parser.condition()
 			if ok == False or ok == FALSE or ok == NONE:  # no match etc
 				assert False, 'NOT PASSING: ' + str(msg)
 		print(('TEST PASSED!  ' + str(msg) + ' \t VALUE ' + str(ok)))
 
 	# def NOmethod_missing(self, sym, args, block):
 	#     syms = sym.to_s()
-	#     if self.parser and contains(sym, self.parser.methods()):
+	#     if parser and contains(sym, parser.methods()):
 	#         [
 	#         if equals(0, args.len()):
 	#             x = maybe(),
@@ -329,8 +329,8 @@ class ParserBaseTest(unittest.TestCase):
 	#     super([sym], args, [sym], args)
 
 	def init(self, string):
-		self.parser.allow_rollback((-1))
-		self.parser.init(string)
+		parser.allow_rollback((-1))
+		parser.init(string)
 
 	def variables(self):
 		return context.variables
@@ -350,14 +350,14 @@ class ParserBaseTest(unittest.TestCase):
 	def result(self):
 		return context.result
 
-	# self.parser.result
+	# parser.result
 
 	def parse_tree(self, x):
 		if isinstance(x, str):
 			return x
-		self.parser.dont_interpret()
-		interpretation = self.parser.parse(x)
-		self.parser.full_tree()
+		parser.dont_interpret()
+		interpretation = parser.parse(x)
+		parser.full_tree()
 		if context.emit:
 			return parser.emit(interpretation, interpretation.root())
 		else:
@@ -369,11 +369,11 @@ class ParserBaseTest(unittest.TestCase):
 
 	def parse(self, x):
 		if context.interpret:
-			self.parser.do_interpret()
+			parser.do_interpret()
 		if context.emit:
 			self.result = parse_tree(x)
 		else:
-			self.result = self.parser.parse(x).result
+			self.result = parser.parse(x).result
 		return self.result
 
 	def variableTypes(self, v):
@@ -382,7 +382,7 @@ class ParserBaseTest(unittest.TestCase):
 	# def verbose(self):
 	#     if context.raking:
 	#         return None
-	#     self.parser.verbose = True
+	#     parser.verbose = True
 
 # class Function:
 #     pass

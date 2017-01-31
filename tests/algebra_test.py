@@ -17,10 +17,10 @@ class AlgebraTest(ParserBaseTest):
     assert_result_is('two minus 1', 1)
     assert_result_is('3 minus one', 2)
     init('4.0')
-    assert_equals(self.parser.fraction(), 4)
+    assert_equals(parser.fraction(), 4)
     init('4.0+3.0')
-    self.parser.do_interpret()
-    assert_equals(self.parser.algebra(), 7)
+    parser.do_interpret()
+    assert_equals(parser.algebra(), 7)
     assert_result_is('4.0+3.0', 7.0)
 
   def test_algebra_POW(self):
@@ -61,8 +61,8 @@ class AlgebraTest(ParserBaseTest):
 
 
     # def setUp(self):
-    #     self.parser=parser(self) #HYH>?
-    #     self.parser.do_interpret()
+    #     parser=parser(self) #HYH>?
+    #     parser.do_interpret()
     #     context.use_tree=False
     #     super(AlgebraTest, self).setUp()
 
@@ -70,11 +70,11 @@ class AlgebraTest(ParserBaseTest):
         assert_result_is('two minus 1', 1)
         assert_result_is('3 minus one', 2)
         init('4.0')
-        assert_equals(self.parser.fraction(), 4)
+        assert_equals(parser.fraction(), 4)
         init('4.0+3.0')
-        self.parser.do_interpret()
+        parser.do_interpret()
 
-        assert_equals(self.parser.algebra(), 7)
+        assert_equals(parser.algebra(), 7)
         assert_result_is('4.0+3.0', 7.0)
 
         def test_algebra_NOW(self):

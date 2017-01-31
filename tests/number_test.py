@@ -53,6 +53,6 @@ class NumberTest(ParserBaseTest, unittest.TestCase):
 
 	def test_parse_float(self):
 		init('5.0')
-		x = self.parser.real()
+		x = parser.real()
 		parse('20/5.0')
 		assert_equals(result(), 4)

@@ -13,7 +13,7 @@ class FutureTest:
 
     def test_if_statement(self):
         init('if x is smaller than three then everything is fine;')
-        self.parser.if_then()
+        parser.if_then()
         assert_equals(variables['everything'], 'fine')
         parse('x=2;if x is smaller than three then everything is good;')
         print((variables['everything']))
@@ -42,7 +42,7 @@ class FutureTest:
     def test_local_variables_changed_by_subblocks(self):
         parse('x=2;def test\nx=1\nend\ntest')
         init('x=2 or x=1')
-        assert(self.parser.condition_tree())
+        assert(parser.condition_tree())
         assert('x=2')
         parse('x=1;x=2;')
         assert('x=2')

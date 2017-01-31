@@ -21,7 +21,7 @@ class SelectorTest(ParserBaseTest,unittest.TestCase):
     def test_selector0(self):
         parse('xs= 2,3,8,9')
         init('xs that are smaller than 7')
-        z = self.parser.selectable()
+        z = parser.selectable()
         assert_equals(z, [2, 3])
         z = parse('let z be all xs that are smaller than 7 ')
         assert_equals(z, [2, 3])
@@ -31,7 +31,7 @@ class SelectorTest(ParserBaseTest,unittest.TestCase):
     def test_selector1(self):
         parse('xs= 1,2,3')
         init(' xs that are bigger than one')
-        z = self.parser.selectable()
+        z = parser.selectable()
         assert_equals(z, [2, 3])
         assert('xs that are bigger than one == [2,3]')
 

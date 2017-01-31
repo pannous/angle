@@ -8,7 +8,7 @@ context.use_tree = False
 class ListTest(ParserBaseTest, unittest.TestCase):
 	# def setUp(self):
 	# 	# context.use_tree=False
-	# 	self.parser.do_interpret()
+	# 	parser.do_interpret()
 	# 	super(ListTest, self).setUp()
 	# 	super(ParserBaseTest, self).setUp()
 
@@ -38,19 +38,19 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 
 	def test_type0(self):
 		init('1 , 2 , 3')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('1,2,3')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('[1,2,3]')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('{1,2,3}')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('1,2 and 3')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('[1,2 and 3]')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('{1,2 and 3}')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 
 	def test_list_methods(self):
 		parse('invert [1,2,3]')
@@ -108,7 +108,7 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		assert (equals([1, 2, 3], the.variableValues['x'], ))
 		assert (equals(3, len(the.variableValues['y'], ), ))
 		init('x + y')
-		z = self.parser.algebra()
+		z = parser.algebra()
 		if context.use_tree:
 			z=parser.eval_ast(z)
 		assert_equals(len(z), 6)
@@ -140,7 +140,7 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		variables['x'] = [1, 2]
 		variables['y'] = [3, 4]
 		init('x + y == 1,2,3,4')
-		self.parser.condition()
+		parser.condition()
 		assert ('x + y == 1,2,3,4')
 		assert_equals(parse('x plus y'), [1, 2, 3, 4])
 		assert ('x plus y == [1,2,3,4]')
@@ -151,10 +151,10 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 
 	def test_type1(self):
 		init('class of 1,2,3')
-		self.parser.evaluate_property()
+		parser.evaluate_property()
 		assert_equals(result(), list)
 		init('class of [1,2,3]')
-		self.parser.expression()
+		parser.expression()
 		assert_equals(result(), list)
 		skip()
 		parse('class of 1,2,3')
@@ -260,6 +260,6 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 
 	def test_hasht(self):
 		init('{1,2,3}')
-		assert_equals(self.parser.liste(), [1, 2, 3])
+		assert_equals(parser.liste(), [1, 2, 3])
 		init('{a:1,b:2,c:3}')
-		assert_equals(self.parser.hash_map(), {'b': 2, 'a': 1, 'c': 3, })
+		assert_equals(parser.hash_map(), {'b': 2, 'a': 1, 'c': 3, })

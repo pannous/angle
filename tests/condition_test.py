@@ -10,7 +10,7 @@ class ConditionTest(ParserBaseTest):
 		super(ParserBaseTest, self).setUp()
 		context.use_tree = False
 		context.interpret = True
-		# self.parser.do_interpret()
+		# parser.do_interpret()
 		english_parser.clear()
 
 	@staticmethod
@@ -39,7 +39,7 @@ class ConditionTest(ParserBaseTest):
 		assert self.parse('counter == 3')
 		assert self.parse('counter = 3')
 		init('counter = 3')
-		self.parser.condition()
+		parser.condition()
 		assert self.parse('counter = 3')
 		assert self.parse('counter =3')
 		assert self.parse('counter is 3')
@@ -48,7 +48,7 @@ class ConditionTest(ParserBaseTest):
 
 	def test_root_comparisons_eq(self):
 		self.doCleanups()
-		self.parser.clear()
+		parser.clear()
 		assert_has_error('x==2')
 		# assert_has_error('x==2',UndeclaredVariable)
 		assert_result_is('x=2;x==2', True)
@@ -95,9 +95,9 @@ class ConditionTest(ParserBaseTest):
 
 	def dont_test_everything_is_fine(self):
 		init('everything is fine;')
-		ok = self.parser.block()
+		ok = parser.block()
 		init('everything is fine')
-		self.parser.condition()
+		parser.condition()
 		assert self.parse('everything is fine')
 
 	def test_if_math(self):
@@ -247,24 +247,24 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(z, 'beeped')
 		z = parse('c++;if c>1 then beep;')
 		assert_equals(z, False)
-		self.parser.do_interpret()
+		parser.do_interpret()
 		z = parse('c++;if c>1 then beep;')
 		assert_equals(z, 'beeped')
 		init('c++')
-		self.parser.do_interpret()
-		c2 = self.parser.block()
+		parser.do_interpret()
+		c2 = parser.block()
 		assert_equals(c2, 3)
 		assert_equals(the.variables['c'], 3)
 
 	def test_comparisons(self):
 		init('two is bigger than zero')
-		ok = self.parser.condition()
+		ok = parser.condition()
 		assert_equals(ok, True)
 
 	def test_if_then2(self):
-		self.parser.do_interpret()
+		parser.do_interpret()
 		# init('if 1>0 then: beep;')
-		# self.parser.if_then()
+		# parser.if_then()
 		parse('if 1>0 then: beep;')
 		assert_equals(self.result(), 'beeped')
 
@@ -274,7 +274,7 @@ class ConditionTest(ParserBaseTest):
 		assert_equals(self.result(), 'beeped')
 
 	def test_if_then4(self):
-		self.parser.do_interpret()
+		parser.do_interpret()
 		parse('if 1>0 then: beep;end')
 		assert_equals(self.result(), 'beeped')
 

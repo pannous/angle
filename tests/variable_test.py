@@ -36,7 +36,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 
 	def test_variableTypes(self):
 		init('an integer i')
-		self.parser.variable(None, ast.Store())
+		parser.variable(None, ast.Store())
 
 	def test_variable_type_syntax(self):
 		parse('int i=3')
@@ -131,7 +131,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
 	def test_var_condition_unmodified(self):
 		the.variables['counter'] = Variable({'name': 'counter', 'value': 3,})
 		init('counter=2')
-		assert_equals(self.parser.condition(), False)
+		assert_equals(parser.condition(), False)
 		self.do_assert('counter=3')
 
 	def test_vars(self):

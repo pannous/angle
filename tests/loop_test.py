@@ -60,5 +60,5 @@ class LoopTest(ParserBaseTest, unittest.TestCase):
 
 	def test_forever(self):
 		skip("we don't have time forever")
-		self.parser.s('beep forever')
-		self.parser.loops()
+		parser.s('beep forever')
+		parser.loops()

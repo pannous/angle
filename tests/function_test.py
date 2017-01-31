@@ -103,7 +103,7 @@ class FunctionTest(ParserBaseTest):
 		the.variables['x'] = Variable(name='x', value=1)
 		the.variables['y'] = Variable(name='x', value=2)
 		z = parse('x+y;')
-		assert_equals(len(self.parser.variables), 2)
+		assert_equals(len(parser.variables), 2)
 		assert_equals(z, 3)
 
 	def test_go_threads(self):
@@ -128,7 +128,7 @@ class FunctionTest(ParserBaseTest):
 
 	def test_params_call(self):
 		f = self.test_params()
-		assert_equals(self.parser.do_send(f, {'x': 1, 'y': 2, }), 3)
+		assert_equals(parser.do_send(f, {'x': 1, 'y': 2, }), 3)
 
 	def test_function_object(self):
 		parse('how to increase a number x by y: x+y;')
@@ -139,10 +139,10 @@ class FunctionTest(ParserBaseTest):
 		body = ast.BinOp(left=ast.Name('x'), op=ast.Add, right=ast.Name('y'))
 		f = FunctionDef({'arguments': arg2, 'name': 'increase', 'body': body, 'object': arg1, })
 		assert_equals(f, g)
-		assert_equals(self.parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
+		assert_equals(parser.do_call_function(f, {'x': 1, 'y': 2, }), 3)
 
 	def test_blue_yay(self):
-		self.parser.do_interpret()
+		parser.do_interpret()
 		assert_result_is("def test{puts 'yay'};test", 'yay')
 		assert_result_is("def test{puts 'yay'};test", 'yay')
 
@@ -154,7 +154,7 @@ class FunctionTest(ParserBaseTest):
 		# g = the.methods['get numbers smaller eeek']
 		f = FunctionDef({'body': '[1..x]', 'name': 'list'})  # , 'arguments': arg2(), 'object': arg1(), })
 		assert_equals(f, g)
-		assert_equals(self.parser.call_function(f, 4), [1, 2, 3])
+		assert_equals(parser.call_function(f, 4), [1, 2, 3])
 
 	def test_simple_parameters(self):
 		parse("puts 'hi'")
@@ -188,7 +188,7 @@ class FunctionTest(ParserBaseTest):
 	def test_x_name(self):
 		variables['x'] = nodes.Variable(name='x', value=7)
 		init('x')
-		assert_equals(name(self.parser.nod(), ), 'x')
+		assert_equals(name(parser.nod(), ), 'x')
 
 	def test_add_to_zero(self):
 		context.use_tree = False  # not yet
@@ -233,7 +233,7 @@ class FunctionTest(ParserBaseTest):
 
 	def _test_svg_dom(self):
 		init('<svg><circle cx="$x" cy="50" r="$radius" stroke="black" fill="$color" id="circle"/></svg>')
-		# print(svg(self.parser.interpretation(), ))
+		# print(svg(parser.interpretation(), ))
 		parse('circle.color=green')
 		assert_equals('circle.color', 'green')
 
