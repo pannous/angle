@@ -6,7 +6,8 @@ context.use_tree = False
 
 
 class ListTest(ParserBaseTest, unittest.TestCase):
-	# def setUp(self):
+	def setUp(self):
+		parser.clear()
 	# 	# context.use_tree=False
 	# 	parser.do_interpret()
 	# 	super(ListTest, self).setUp()
