@@ -4,5 +4,8 @@ export TESTING=1
 # cd angle
 # py.test ../tests
 # python3 -m pytest ../tests
-python3 -m pytest tests
-# python2 -m pytest tests
+if [ "$@" = '2' ]; then
+	python2 -m pytest tests
+else
+	python3 -m pytest tests
+fi

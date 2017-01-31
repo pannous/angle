@@ -3236,8 +3236,11 @@ def call_unbound(method, args, number_of_arguments):
 		else:
 			if is_bound(method) and len(args) >= 1 and method.__self__ == args[0]:
 				args = args[1:]
-			the.result = method(*args) or NILL
-		#     the.result = method(args) or NILL
+			try:
+				the.result = method(*args) or NILL
+			except:
+				the.result = method() or NILL
+			#     the.result = method(args) or NILL
 	else:
 		the.result = method(args) or NILL
 	return the.result
