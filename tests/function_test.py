@@ -8,6 +8,7 @@ class FunctionTest(ParserBaseTest):
 	# TURNED INTO EMITTER TEST, cause BODY is better done via AST!!
 
 	def setUp(self):
+		parser.clear()
 		if 'use_tree' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")
 			skip()
@@ -101,10 +102,11 @@ class FunctionTest(ParserBaseTest):
 
 	def test_block(self):
 		the.variables['x'] = Variable(name='x', value=1)
-		the.variables['y'] = Variable(name='x', value=2)
+		the.variables['y'] = Variable(name='y', value=2)
 		z = parse('x+y;')
-		assert_equals(len(parser.variables), 2)
 		assert_equals(z, 3)
+		print(parser.variables)
+		assert_equals(len(parser.variables), 2+2) # it,__builtins__ !?
 
 	def test_go_threads(self):
 		parse('go print "hi"')

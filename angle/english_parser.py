@@ -2153,7 +2153,8 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
 		if name in the.params:
 			return the.params[name]
 		else:
-			raise UndeclaredVariable("Unknown variable " + name)
+			raise NotMatching("Unknown variable " + name)
+	# raise UndeclaredVariable("Unknown variable " + name)
 	# typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
 	if isinstance(ctx, kast.Store):  # why not return existing variable?

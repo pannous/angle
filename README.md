@@ -136,8 +136,8 @@ To check out the current capabilities of English Script have a look at the [test
 English Script / Angle is currently running in the 
 * [ruby](https://github.com/pannous/english-script) and [python](https://github.com/pannous/angle) environment, but will soon compile to the 
 * WEB(!!) thanks to [WebAssembly](https://github.com/WebAssembly/design)
-* JVM thanks to [Mirah](https://github.com/mirah/mirah), [zippy](https://bitbucket.org/ssllab/zippy/overview) and [truffle](https://github.com/OracleLabs/Truffle)
-* [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe Mirah too), 
+* JVM thanks to [Mirah](https://github.com/mirah/mirah), [zippy](https://bitbucket.org/ssllab/zippy/overview) and [truffle](https://github.com/graalvm/truffle)
+* [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe [Mirah](https://github.com/mirah/mirah) too), 
 * As a final aim: run **natively**, maybe similar to [Crystal](https://github.com/manastech/crystal), [Vala](https://en.wikipedia.org/wiki/Vala_%28programming_language%29) or RPython
 
 Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Bootstrapping_%28compilers%29) is an important mid-term goal.
