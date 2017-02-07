@@ -14,9 +14,9 @@ import kast.kast
 from power_parser import *  # app_path, verbose
 from extensions import xlist
 
-# python falsey: False None 0 0.0 '' [] {}  GOOD!
-# ruby falsey: false nil BAD
+# python falsey: False None 0 0.0 '' [] {}  VERY GOOD!
 # js falsey: false null undefined '' 0 NaN GOOD
+# ruby falsey: false nil BAD
 
 true = True
 false = False
@@ -403,7 +403,7 @@ kast_operator_map_min = {
 	">=": ast.GtE(),
 	"<": ast.Lt(),
 	"<=": ast.Lt(),
-	"in": ast.In(),
+	"in": ast.In(), # ∊ ∉ ∈ just use in!
 	"contains": ast.In(),  # ^-1
 	"element of": ast.In(),
 }

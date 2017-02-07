@@ -31,3 +31,5 @@ neo/
 test.py
 tox.ini
 upload_to_pip.shWISHLIST.txt
+WISHLIST.txt
+upload_to_pip.sh
