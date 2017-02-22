@@ -12,6 +12,7 @@ import numpy as np
 from random import randint
 from random import random as _random
 import shutil
+
 # from extension_functions import * MERGED BACK!
 
 py2 = sys.version < '3'
@@ -85,7 +86,7 @@ def Pow(x, y):
 
 
 def is_string(s):
-	return isinstance(s, str) or isinstance(s, extensions.xstr) or isinstance(s, extensions.unicode)
+	return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, unicode)
 
 
 # or issubclass(s,str) or issubclass(s,unicode)
@@ -124,6 +125,7 @@ def increase(x):
 
 def grep(xs, x):
 	# filter(lambda y: re.match(x,y),xs)
+	# return filter(pattern, xs)
 	if isinstance(x, list):
 		return filter(lambda y: x[0] in str(y), xs)
 	return filter(lambda y: x in str(y), xs)
@@ -161,9 +163,9 @@ def beep(bug=True):
 
 
 def match_path(p):
-	if (not isinstance(p, str)): return False
-	m = re.search(r'^(\/[\w\'\.]+)', p)
-	if not m: return False
+	if not isinstance(p, str): return False
+	m = re.search(r'^(/[\w\'.]+)', p)
+	if not m: return []
 	return m
 
 
@@ -180,7 +182,9 @@ def regex_match(a, b):
 
 # RegexType= _sre.SRE_Pattern#type(r'')
 MatchObjectType = type(re.search('', ''))
-
+def typeof(x):
+	print("type(x)")
+	return type(x)
 
 def regex_matches(a, b):
 	if isinstance(a, re._pattern_type):
@@ -208,7 +212,7 @@ def regex_matches(a, b):
 
 
 def is_file(p, must_exist=True):
-	if (not isinstance(p, str)): return False
+	if not isinstance(p, str): return False
 	if re.search(r'^\d*\.\d+', p): return False
 	if re.match(r'^\d*\.\d+', str(p)): return False
 	m = re.search(r'^(\/[\w\'\.]+)', p)
@@ -220,7 +224,7 @@ def is_file(p, must_exist=True):
 def is_dir(x, must_exist=True):
 	# (the.string+" ").match(r'^(\')?([^\/\\0]+(\')?)+ ')
 	m = match_path(x)
-	return must_exist and m and os.path.isdirectory(m[0]) or m
+	return must_exist and m and (py3 and os.path.isdir(m[0])) or (py2 and os.path.isdirectory(m[0]))
 
 
 # def print(x # debug!):
@@ -241,10 +245,6 @@ def is_a(self, clazz):
 
 	if self.is_(clazz): return True
 	return False
-
-
-def grep(xs, pattern):
-	return filter(pattern, xs)
 
 
 # print("extension functions loaded")
@@ -298,6 +298,7 @@ if py2:
 	import cPickle as pickle
 else:
 	import dill as pickle
+
 
 # try: # py2
 #   import sys
@@ -1092,7 +1093,7 @@ class xchar(unicode):  # unicode: multiple bases have instance lay-out conflict
 			other = chr(other)
 		# if isinstance(other,str):
 		#     other=chr(other)
-		return (type(other)(self), other)
+		return type(other)(self), other
 
 
 # class Fixnum Float
@@ -1135,7 +1136,7 @@ class xint(int):
 		return self - x
 
 	def times(self, x):
-		if (callable(x)):
+		if callable(x):
 			return [x() for i in xrange(self)]
 		else:
 			return self * x
@@ -1483,4 +1484,3 @@ def find_class(match=""):  # all
 #     return False
 
 print("extensions loaded")
-
