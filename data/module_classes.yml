@@ -1647,7 +1647,7 @@ dictitems:
     TypeError, UnboundLocalError, UndefinedRubyMethod, UnicodeDecodeError, UnicodeEncodeError,
     UnicodeError, UnicodeTranslateError, UnicodeWarning, UnknownCommandError, UserWarning,
     ValueError, Variable, Warning, WrongType, ZeroDivisionError, xchar, xdict, xfloat,
-    xint, xlist, xstr]
+    xint, list, xstr]
   english_tokens: [ArithmeticError, AssertionError, AttributeError, BaseException,
     BufferError, BytesIO, BytesWarning, DeprecationWarning, EOFError, EnvironmentError,
     Exception, FloatingPointError, FutureWarning, GeneratorExit, IOError, ImportError,
@@ -1686,7 +1686,7 @@ dictitems:
   expr: [ast, codegen]
   expr_context: [ast, codegen]
   extensions: [Class, Dir, Directory, Encoding, FalseClass, File, Integer, Numeric,
-    Object, xchar, xdict, xfloat, xint, xlist, xstr]
+    Object, xchar, xdict, xfloat, xint, list, xstr]
   ffruit: [Dummy]
   fifo: [asynchat]
   file_dispatcher: [asyncore]
@@ -2281,7 +2281,7 @@ dictitems:
   xdrlib: [ConversionError, Error, Packer, Unpacker]
   xfloat: [english_parser, extensions]
   xint: [english_parser, extensions]
-  xlist: [english_parser, extensions]
+  list: [english_parser, extensions]
   xstr: [english_parser, extensions]
   xxsubtype: [spamdict, spamlist]
   yaml: [AliasEvent, AliasToken, AnchorToken, BaseDumper, BaseLoader, BlockEndToken,

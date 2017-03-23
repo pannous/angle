@@ -687,7 +687,9 @@ def adjust_rollback(depth=-1):
 		if depth == -1: depth = caller_depth()
 		if depth <= the.no_rollback_depth:
 			allow_rollback(1)  # 1 extra depth for this method!
-	except (Exception, Error) as e:
+	except Exception as e:
+			error(e)
+	except Error as e:
 		error(e)
 
 
@@ -799,7 +801,8 @@ def maybe(expr):
 			# the.string = old
 		last_node = current_node
 		return result
-	except (NotMatching, EndOfLine) as e:
+		# except (NotMatching, EndOfLine) as e:
+	except EndOfLine as e:
 		if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.token, expr, e))
 		adjust_interpret()  # remove the border, if above border
 		# if verbose: verbose(e)
