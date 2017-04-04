@@ -19,6 +19,12 @@ import stem.util.system
 # import interpretation
 import inspect
 import pyc_emitter
+
+# Thank you, python3 di*k*s, for making such a fantastic mess with input/raw_input
+# real_raw_input = vars(__builtins__).get('raw_input', input)
+from six.moves import input as real_raw_input
+
+
 # from exceptions.exceptions import GivingUp
 #
 from english_tokens import *
@@ -4013,10 +4019,6 @@ def ruby_action():
 	_('ruby')
 	exec(action or quote)
 
-
-# Thank you, python3 d****s, for making such a fantastic mess with input/raw_input
-# real_raw_input = vars(__builtins__).get('raw_input', input)
-from six.moves import input as real_raw_input
 
 
 def start_shell(args=[]):

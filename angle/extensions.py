@@ -9,9 +9,18 @@ import re  # for 'is_file'
 import os
 # import __builtin__
 import numpy as np
+from os.path import expanduser  # "~" wth
 from random import randint
 from random import random as _random
 import shutil
+
+from os.path import expanduser
+
+try:  # pathetic python3 !
+	from urllib2 import urlopen
+	from urllib import urlretrieve
+except ImportError:
+	from urllib.request import urlopen, urlretrieve  # py3 library HELL
 
 # from extension_functions import * MERGED BACK!
 
@@ -77,6 +86,7 @@ def fold(self, x, fun):
 	return reduce(fun, self, x)
 
 
+
 def last(xs):
 	return xs[-1]
 
@@ -88,6 +98,23 @@ def Pow(x, y):
 def is_string(s):
 	return isinstance(s, str) or isinstance(s, xstr) or isinstance(s, unicode)
 
+
+def is_number(o):
+	return isinstance(o, int) or isinstance(o, float)
+
+
+def is_number_string(s):
+	if isinstance(s, int) or isinstance(s, float): return True
+	if not isinstance(s, str): return False
+	m = re.search(r'^-?\d+$', s)
+	if not m: return False
+	return m
+
+def sort_hash(string):
+	a = 0
+	for i in range(len(string)):
+		a += ord(string[i]) / 256.**i # 10**6**i for utf8!
+	return int(a*10**10)
 
 # or issubclass(s,str) or issubclass(s,unicode)
 
@@ -127,16 +154,20 @@ def grep(xs, x):
 	# filter(lambda y: re.match(x,y),xs)
 	# return filter(pattern, xs)
 	if isinstance(x, list):
-		return filter(lambda y: x[0] in str(y), xs)
-	return filter(lambda y: x in str(y), xs)
+		return xlist(filter(lambda y: x[0] in str(y), xs))
+	return xlist(filter(lambda y: x in str(y), xs))
 
 
 def ls(mypath="."):
 	from extensions import xlist
-	return xlist(os.listdir(mypath))
+	return xlist(os.listdir(expanduser(mypath)))
 
 
 def length(self):
+	return len(self)
+
+
+def count(self):
 	return len(self)
 
 
@@ -182,9 +213,12 @@ def regex_match(a, b):
 
 # RegexType= _sre.SRE_Pattern#type(r'')
 MatchObjectType = type(re.search('', ''))
+
+
 def typeof(x):
 	print("type(x)")
 	return type(x)
+
 
 def regex_matches(a, b):
 	if isinstance(a, re._pattern_type):
@@ -549,22 +583,22 @@ class Class:
 from functools import partial  # for method_missing
 
 
+def unique(xs):
+	return xlist(set(xs))
+
 @extension
 class xlist(list):
-	def unique(xs):
-		return xlist(set(xs))
 
-	#
-	# def list(xs):
-	# 	for x in xs:
-	# 		print(x)
-	# 	return xs
+	def print_list(xs):
+		for x in xs:
+			print(x)
+		return xs
 
 	def uniq(xs):
 		return xlist(set(xs))
 
 	def unique(xs):
-		return xlist(set(xs))
+			return xlist(set(xs)) # TypeError: 'NoneType' object is not callable WTF my netbase hack or python bug;)
 
 	def add(self, x):
 		self.insert(len(self), x)
@@ -594,11 +628,22 @@ class xlist(list):
 				xlist(map(method, self))
 		return self.method_missing(name)
 
-	# return partial(self.method_missing, name)
-
-	def select(xs, func):  # VS MAP!!
+	def filter(xs, func):  # VS MAP!!
 		# return [x for x in xs if func(x)]
 		return filter(func, xs)
+
+	def select(xs, func):  # VS MAP!!
+		return filter(func, xs)
+
+	def where(xs, func):
+		return filter(func, xs)
+
+	def grep(xs, x):
+		return xlist(filter(lambda y: xstr(y).match(x), xs))
+
+	def like(xs, x):
+		return xlist(filter(lambda y: xstr(y).match(x), xs))
+
 
 	def map(xs, func):
 		return xlist(map(func, xs))
@@ -627,6 +672,9 @@ class xlist(list):
 	# c=self[n]
 
 	def length(self):
+		return len(self)
+
+	def count(self):
 		return len(self)
 
 	def clone(self):
@@ -715,9 +763,7 @@ class xlist(list):
 	# def = x  unexpected '=':
 	#  is x
 	#
-	# def grep(x):
-	#  select{|y|y.to_s.match(x)}
-	#
+
 	def names(self):
 		return xlist(map(str, self))
 
@@ -752,6 +798,9 @@ class xlist(list):
 	def has(self, x):
 		return self.index(x)
 
+	def __dir__(self):
+		return ['XXXXXXXXXXXXX']#+ self
+
 	def contains(self, x):
 		ok = self.index(x)
 		if ok:
@@ -768,6 +817,9 @@ class xlist(list):
 		#   not def(self):
 		#     False
 
+
+# xlist.__dir__= lambda : xlist.__dir__()+xlist # autocomplete hack DANGER!
+# xlist.__dir__ =lambda : ["OK"]
 
 class FalseClass:
 	# not def(self):
@@ -833,13 +885,16 @@ class xstr(str):
 	def cut_to(self, pattern):
 		return self.sub(0, self.indexOf(pattern))
 
+	def match(self, regex):
+		return re.match(regex,self)
+
 	def matches(self, regex):
 		if isinstance(regex, list):
 			for x in regex:
-				if re.match(x):
+				if re.match(x, self):
 					return x
 		else:
-			return re.match(regex)
+			return re.match(regex, self)
 		return False
 
 	def strip_newline(self):
@@ -848,6 +903,9 @@ class xstr(str):
 	def join(self, x):
 		return self + x
 
+
+	def up_first(self):
+		return self.capitalize()
 	# def < x:
 	#   i=x.is_a?Numeric
 	#   if i:
@@ -865,6 +923,11 @@ class xstr(str):
 	# def show(self, x=None):
 	#     print(x or self)
 	#     return x or self
+	def sort_hash(self):
+		a=0
+		for i in range(len(self)):
+			a+=ord(self[i])/256.**i
+		return a
 
 	def contains(self, *things):
 		for t in flatten(things):
@@ -1483,4 +1546,14 @@ def find_class(match=""):  # all
 #         if name==attr: return obj
 #     return False
 
+
+
+def download(url):  # to memory
+	return urlopen(url).read()
+
+def wget(url):  # to memory
+	return urlopen(url).read()
+
+
 print("extensions loaded")
+extensions_loaded=True

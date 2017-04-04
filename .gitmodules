@@ -4,3 +4,7 @@
 [submodule "kast"]
 	path = kast
 	url = git@github.com:pannous/kast.git
+[submodule "netbase-python"]
+	path = netbase-python
+	url = https://github.com/pannous/netbase-python
+	branch = master
