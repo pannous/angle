@@ -14,8 +14,10 @@ sudo ln -s $ANGLE_HOME/bin/angle /usr/local/bin/angle
 echo "Installing Python requirements"
 pip install -r requirements.txt
 
-echo "Adding TextMate support, like syntax highlighting"
-git clone git@github.com:pannous/EnglishScript.tmbundle.git ~/Library/Application\ Support/TextMate/Bundles/EnglishScript.tmbundle/ 2>/dev/null
+if [[ "$OSTYPE" == 'darwin' ]]; then
+	echo "Adding TextMate support, like syntax highlighting"
+	git clone git@github.com:pannous/EnglishScript.tmbundle.git ~/Library/Application\ Support/TextMate/Bundles/EnglishScript.tmbundle/ 2>/dev/null
+fi
 
 echo "OK, now run ./bin/angle"
 ./bin/angle
