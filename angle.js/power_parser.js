@@ -15,7 +15,7 @@
 // import * as io from 'io';
 
 the = require("./context")
-console.log(the);
+// console.log(the);
 require("./context.js")
 require("./english_tokens.js")
 require("./ast.js")
@@ -39,12 +39,14 @@ class Starttokens {
         this.starttokens = starttokens;
     }
     __call__(original_func) {
-        var decorator_self;
+        let decorator_self;
         decorator_self = this;
         if (context.starttokens_done) {
             return original_func;
         }
-        for (var t, c = 0, a = this.starttokens, b = a.length;
+        let t, c = 0;
+        const a = this.starttokens, b = a.length;
+        for (;
             (c < b); c += 1) {
             t = a[c];
             if (_in(t, the.token_map)) {
@@ -69,7 +71,7 @@ function isnumeric(start) {
 }
 
 function star(lamb, giveUp = false) {
-    var good, match, max, old, old_state;
+    let good, match, max, old, old_state;
     if ((depth > max_depth)) {
         throw new SystemStackError("if(len(nodes)>max_depth)");
     }
@@ -137,7 +139,7 @@ function ignore_rest_of_line() {
 }
 
 function pointer_string() {
-    var filep, l, lineNo, offset;
+    let filep, l, lineNo, offset;
     if ((!the.current_token)) {
         offset = the.current_line.length;
         l = 3;
@@ -208,7 +210,7 @@ function filter_backtrace(e) {
 }
 
 function tokens(tokenz) {
-    var ok;
+    let ok;
     raiseEnd();
     ok = maybe_tokens(tokenz);
     if (ok) {
@@ -228,7 +230,9 @@ function maybe_tokens(tokens0) {
         }
         if (_in(" ", t)) {
             old = the.current_token;
-            for (var to, f = 0, d = t.split(" "), e = d.length;
+            let to, f = 0;
+            const d = t.split(" "), e = d.length;
+            for (;
                 (f < e); f += 1) {
                 to = d[f];
                 if ((to !== the.current_word)) {
@@ -253,7 +257,7 @@ function __(x) {
 }
 
 function next_token(check = true) {
-    var token;
+    let token;
     the.token_number = (the.token_number + 1);
     if ((the.token_number >= the.tokenstream.length)) {
         if ((!check)) {
@@ -267,7 +271,7 @@ function next_token(check = true) {
 }
 
 function set_token(token) {
-    var current_line, current_token, current_type, current_word, end_pointer, token_number;
+    let current_line, current_token, current_type, current_word, end_pointer, token_number;
     the.current_token = current_token = token;
     the.current_type = current_type = token[0];
     the.current_word = current_word = token[1];
@@ -279,11 +283,11 @@ function set_token(token) {
     return token[1];
 }
 
-var Tokenizer = require('tokenizer');
+const Tokenizer = require('tokenizer');
 
 function parse_tokens(s) {
     // import * as tokenize from 'tokenize';
-    var _lines, i;
+    let _lines, i;
     the.tokenstream = [];
 
     function token_eater(token_type, token_str, start_row_col, end_row_col, line) {
@@ -305,14 +309,14 @@ function parse_tokens(s) {
         }
     }
 
-    var tokenizer = new Tokenizer(token_eater);
+    const tokenizer = new Tokenizer(token_eater);
     tokenizer.write(s)
     // tokenize.tokenize(readlines, token_eater);
     return the.tokenstream;
 }
 
 function x_comment(token) {
-    var drop;
+    let drop;
     drop = true;
     if (drop) {
         the.tokenstream.remove(token);
@@ -322,12 +326,14 @@ function x_comment(token) {
 }
 
 function drop_comments() {
-    var i, in_comment_block, in_comment_line, is_beginning_of_line, prev, prev_token, str, token_type;
+    let i, in_comment_block, in_comment_line, is_beginning_of_line, prev, prev_token, str, token_type;
     in_comment_block = false;
     in_comment_line = false;
     i = 0;
     prev = "";
-    for (var token, c = 0, a = the.tokenstream, b = a.length;
+    let token, c = 0;
+    const a = the.tokenstream, b = a.length;
+    for (;
         (c < b); c += 1) {
         token = a[c];
         is_beginning_of_line = (token[2][1] === 0);
@@ -366,7 +372,7 @@ function drop_comments() {
 }
 
 function init(strings) {
-    var comp, left, right;
+    let comp, left, right;
     if ((!the.moduleMethods)) {
         load_module_methods();
     }
@@ -388,14 +394,16 @@ function init(strings) {
     drop_comments();
     the.tokens_len = the.tokenstream.length;
     the.token_number = (-1);
-    next_token();
+    next_token(false);
     the.string = the.lines[0].strip();
     the.original_string = the.string;
     the.root = null;
     the.nodes = [];
     the.depth = 0;
     left = right = comp = null;
-    for (var nr, c = 0, a = english_tokens.numbers, b = a.length;
+    let nr, c = 0;
+    const a = english_tokens.numbers, b = a.length;
+    for (;
         (c < b); c += 1) {
         nr = a[c];
         the.token_map[nr] = number;
@@ -420,7 +428,7 @@ function remove_tokens(...tokenz) {
 }
 
 function must_contain(args, do_raise = true) {
-    var old, pre;
+    let old, pre;
     if ((args.slice((-1))[0] instanceof dict)) {
         return must_contain_before(args.slice(0, (-2)), args.slice((-1))[0]["before"]);
     }
@@ -430,7 +438,9 @@ function must_contain(args, do_raise = true) {
     old = current_token;
     pre = the.previous_word;
     while ((!checkEndOfLine())) {
-        for (var x, c = 0, a = args, b = a.length;
+        let x, c = 0;
+        const a = args, b = a.length;
+        for (;
             (c < b); c += 1) {
             x = a[c];
             if ((current_word === x)) {
@@ -452,7 +462,7 @@ function must_contain(args, do_raise = true) {
 }
 
 function must_contain_before(args, before) {
-    var good, old;
+    let good, old;
     old = current_token;
     good = null;
     while ((!(checkEndOfLine() || (_in(current_word, before) && (!_in(current_word, args)))))) {
@@ -538,7 +548,7 @@ function starts_with(tokenz) {
 }
 
 function look_1_ahead(expect_next, doraise = false, must_not_be = false, offset = 1) {
-    var token;
+    let token;
     if ((the.current_word === "")) {
         return false;
     }
@@ -569,7 +579,9 @@ function _(x) {
 }
 
 function lastmaybe(stack) {
-    for (var s, c = 0, a = stack, b = a.length;
+    let s, c = 0;
+    const a = stack, b = a.length;
+    for (;
         (c < b); c += 1) {
         s = a[c];
         if (re.search("try", s)) {
@@ -583,7 +595,7 @@ function caller_name() {
 }
 
 function adjust_interpret() {
-    var depth;
+    let depth;
     depth = caller_depth();
     if ((context.interpret_border > (depth - 2))) {
         context.interpret = context.did_interpret;
@@ -600,7 +612,7 @@ function do_interpret() {
 }
 
 function dont_interpret() {
-    var depth;
+    let depth;
     depth = caller_depth();
     if ((context.interpret_border < 0)) {
         context.interpret_border = depth;
@@ -617,7 +629,7 @@ function interpreting() {
 }
 
 function check_rollback_allowed() {
-    var c, level, throwing;
+    let c, level, throwing;
     c = caller_depth;
     throwing = true;
     level = 0;
@@ -625,7 +637,7 @@ function check_rollback_allowed() {
 }
 
 function read_source(x) {
-    var i, lines, res;
+    let i, lines, res;
     if ((last_pattern || (!x))) {
         return last_pattern;
     }
@@ -643,7 +655,7 @@ function read_source(x) {
 }
 
 function caller_depth() {
-    var c;
+    let c;
     c = caller().length;
     if ((c > max_depth)) {
         throw new SystemStackError("depth overflow");
@@ -652,7 +664,7 @@ function caller_depth() {
 }
 
 function no_rollback() {
-    var depth;
+    let depth;
     depth = (caller_depth() - 1);
     the.no_rollback_depth = depth;
     the.rollback_depths.append(depth);
@@ -672,7 +684,7 @@ function adjust_rollback(depth = (-1)) {
 }
 
 function allow_rollback(n = 0) {
-    var depth;
+    let depth;
     if ((n < 0)) {
         the.rollback_depths = [];
     }
@@ -710,7 +722,7 @@ function invalidate_obsolete(old_nodes) {
 }
 
 function beginning_of_line() {
-    var previous_offset;
+    let previous_offset;
     if ((the.token_number > 1)) {
         previous_offset = the.tokenstream[(the.token_number - 1)][2][1];
         if ((previous_offset > the.current_offset)) {
@@ -726,7 +738,7 @@ function block(multiple = false) {
     //     end_of_statement,
     //     end_block
     // } from 'english_parser';
-    var end_of_block, start, statement0, statements;
+    let end_of_block, start, statement0, statements;
     (maybe_newline() || ((!_in("=>", the.current_line)) && maybe_tokens(english_tokens.start_block_words)));
     start = pointer();
     statement0 = statement(false);
@@ -740,7 +752,7 @@ function block(multiple = false) {
         }
 
         function lamb() {
-            var s;
+            let s;
             try {
                 maybe_indent();
                 s = statement();
@@ -781,7 +793,7 @@ function block(multiple = false) {
 }
 
 function maybe(expr) {
-    var cc, current_value, depth, ex, last_node, old, rb, result;
+    let cc, current_value, depth, ex, last_node, old, rb, result;
     if ((!(expr instanceof collections.Callable))) {
         return maybe_tokens(expr);
     }
@@ -848,7 +860,7 @@ function maybe(expr) {
 }
 
 function one_or_more(expressions) {
-    var all, more;
+    let all, more;
     all = [expressions()];
     more = (the.current_offset && star(expressions));
     if (more) {
@@ -872,7 +884,7 @@ function isnumeric(start) {
 function app_path() {}
 
 function clear() {
-    var variableValues, variables;
+    let variableValues, variables;
     verbose("clear all variables, methods, ...");
     variables = {};
     variableValues = {};
@@ -901,7 +913,7 @@ function clear() {
 // }
 
 parse = function parse(s, target_file = null) {
-    var got_ast, source_file;
+    let got_ast, source_file;
     if ((!s)) {
         return;
     }
@@ -994,7 +1006,7 @@ function token(t, expected = "") {
 }
 
 function tokens(tokenz) {
-    var ok;
+    let ok;
     raiseEnd();
     ok = maybe_tokens(tokenz);
     if (ok) {
@@ -1004,7 +1016,7 @@ function tokens(tokenz) {
 }
 
 function escape_token(t) {
-    var z;
+    let z;
     z = re.sub("([^\\w])", "\\\\\\1", t);
     return z;
 }
@@ -1034,7 +1046,7 @@ function maybe_newline() {
 }
 
 function newline(doraise = false) {
-    var found;
+    let found;
     if ((((checkNewline() === english_tokens.NEWLINE) || (the.current_word === ";")) || (the.current_word === ""))) {
         next_token();
         if ((the.current_type === 54)) {
@@ -1072,14 +1084,14 @@ function NLs() {
 }
 
 function rest_of_statement() {
-    var current_value;
+    let current_value;
     current_value = re.search("(.*?)([\\r\\n;]|done)", the.string)[1].strip();
     the.string = the.string.slice(current_value.length, (-1));
     return current_value;
 }
 
-function rest_of_line() {
-    var rest;
+rest_of_line=function () {
+    let rest;
     rest = "";
     while (((!checkEndOfLine()) && (!(current_word === ";")))) {
         rest += (current_word + " ");
@@ -1104,7 +1116,7 @@ function comment_block() {
 new Starttokens(["//", "#", "'", "--"]);
 
 function skip_comments() {
-    var l;
+    let l;
     if ((the.current_word === null)) {
         return;
     }
@@ -1135,13 +1147,13 @@ function number() {
 }
 
 function number_word() {
-    var n;
+    let n;
     n = tokens(english_tokens.numbers);
     return xstr(n).parse_number();
 }
 
 function fraction() {
-    var f, m;
+    let f, m;
     f = (maybe(integer) || 0);
     m = starts_with(["\u00bc", "\u00bd", "\u00be", "\u2153", "\u2154", "\u2155", "\u2156", "\u2157", "\u2158", "\u2159", "\u215a", "\u215b", "\u215c", "\u215d", "\u215e"]);
     if ((!m)) {
@@ -1159,7 +1171,7 @@ function fraction() {
 ZERO = "0";
 
 function integer() {
-    var current_value, match;
+    let current_value, match;
     match = re.search("^\\s*(-?\\d+)", the.string);
     if (match) {
         current_value = parseInt(match.groups()[0]);
@@ -1176,7 +1188,7 @@ function integer() {
 }
 
 function real() {
-    var current_value, match;
+    let current_value, match;
     match = re.search("^\\s*(-?\\d*\\.\\d+)", the.string);
     if (match) {
         current_value = parseFloat(match.groups()[0]);
@@ -1187,7 +1199,7 @@ function real() {
 }
 
 function complex() {
-    var match, s;
+    let match, s;
     s = the.string.strip().replace("i", "j");
     match = re.search("^(\\d+j)", s);
     if ((!match)) {
@@ -1232,7 +1244,7 @@ function method_allowed(meth) {
 function load_module_methods() {
     // import * as warnings from 'warnings';
     // import * as english_parser from 'english_parser';
-    var ex;
+    let ex;
     warnings.filterwarnings("ignore", {
         category: UnicodeWarning
     });
@@ -1285,19 +1297,21 @@ function load_module_methods() {
         }
     }
     the.method_names = function () {
-            var a = [],
-                b = the.method_names;
-            for (var c = 0, d = b.length;
-                (c < d); c += 1) {
-                var meth = b[c];
-                if (method_allowed(meth)) {
-                    a.push(meth);
-                }
+        const a = [],
+            b = the.method_names;
+        let c = 0;
+        const d = b.length;
+        for (; c < d; c += 1) {
+            const meth = b[c];
+            if (method_allowed(meth)) {
+                a.push(meth);
             }
-            return a;
+        }
+        return a;
         }
         .call(this);
 }
 
 //# sourceMappingURL=power_parser.js.map
-module.exports.parse = parse
+// module.exports.parse = parse
+exports.parse = parse

@@ -69,10 +69,6 @@ function Pow(x, y) {
     return Math.pow(x, y);
 }
 
-is_string = function is_string(s) {
-    return (s instanceof String)
-}
-
 function flatten(l) {
     if (((l instanceof list) || (l instanceof tuple))) {
         for (var k, _pj_c = 0, _pj_a = l, _pj_b = _pj_a.length;

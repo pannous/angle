@@ -1,5 +1,9 @@
 #!/usr/local/bin/node
- // import * as sys from 'sys';
+// noinspection JSUnusedLocalSymbols
+// noinspection JSUnusedLocalSymbols
+
+
+// import * as sys from 'sys';
 // import * as traceback from 'traceback';
 // import * as types from 'types';
 // import * as stem.util.system from 'stem/util/system';
@@ -22,15 +26,15 @@
 // import {input as real_raw_input} from 'six/moves';
 
 // import context
-extensions = require('./extensions.js')()
-context = require('./context.js')
-exceptions = require('./exceptionz')
+extensions = require('./extensions.js')();
+context = require('./context.js');
+exceptions = require('./exceptionz');
 // [InternalError, NoMethodError, NotMatching, UndeclaredVariable, DidYouMean, UnknownCommandError, SecurityError, UnkownType, NotPassing, NoResult, EndOfDocument, EndOfLine, MaxRecursionReached, EndOfBlock, GivingUp, ShouldNotMatchKeyword, KeywordNotExpected, UndefinedRubyMethod, EndOfStatement, MustNotMatchKeyword, MethodMissingError, WrongType, ImmutableVaribale, SystemStackError] 
-console.log(exceptions);
+// console.log(exceptions);
 power_parser = require('./power_parser.js');
 
 
-var english_parser_imported, hash_assign, py2, py3, remove_hash, word_regex;
+let english_parser_imported, hash_assign, py2, py3, remove_hash, word_regex;
 
 function get(name) {
     if ((name instanceof Name)) {
@@ -45,10 +49,10 @@ function get(name) {
     });
 }
 
-function parent_node() {}
+function parent_node() { }
 
 function do_self_modify(v, mod, arg) {
-    var val;
+    let val;
     val = v.value;
     if ((mod === "|=")) {
         the.result = (val | arg);
@@ -92,7 +96,7 @@ function do_self_modify(v, mod, arg) {
     v.value = the.result;
     return the.result;
 }
-class Todo {}
+class Todo { }
 
 function _(x) {
     return power_parser.token(x);
@@ -109,14 +113,14 @@ function nill() {
 }
 
 function boole() {
-    var b;
+    let b;
     b = tokens(["True", "False", "true", "false"]);
     the.result = ((((b === "True") || (b === "true")) && TRUE) || FALSE);
     return the.result;
 }
 
 function should_not_start_with(words) {
-    var bad;
+    let bad;
     bad = starts_with(words);
     if ((!bad)) {
         return OK;
@@ -131,12 +135,12 @@ function should_not_start_with(words) {
 remove_hash = {};
 
 function remove_from_list(keywords0, excepty) {
-    var good;
+    let good;
     good = list(keywords0);
-    for (var x, _pj_c = 0, _pj_a = excepty, _pj_b = _pj_a.length;
+    for (let x, _pj_c = 0, _pj_a = excepty, _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         x = _pj_a[_pj_c];
-        while (_pj.in_es6(x, good)) {
+        while (x.in(good)) {
             good.remove(x);
         }
     }
@@ -144,7 +148,7 @@ function remove_from_list(keywords0, excepty) {
 }
 
 function no_keyword_except(excepty = null) {
-    var bad;
+    let bad;
     if ((!excepty)) {
         excepty = [];
     }
@@ -166,7 +170,7 @@ function it() {
 }
 
 function value() {
-    var current_value, typ;
+    let current_value, typ;
     if ((the.current_type === _token.STRING)) {
         return quote();
     }
@@ -182,10 +186,10 @@ function value() {
     }
     return the.result;
 }
-class Interpretation {}
+class Interpretation { }
 
 interpretation = function interpretation() {
-    var i = new Interpretation();
+    let i = new Interpretation();
     i.result = the.result;
     i.tree = the.result;
     i.error_position = error_position();
@@ -194,7 +198,7 @@ interpretation = function interpretation() {
     i.variables = the.variables;
     i.svg = svg;
     return i;
-}
+};
 
 function end_expression() {
     return (checkEndOfLine() || token(";"));
@@ -212,7 +216,7 @@ function rooty() {
 }
 
 function set_context(_context) {
-    _context = _context;
+    context = _context;
 }
 
 function package() {
@@ -229,7 +233,7 @@ function includes(dependency, type, version) {
     if (re.search("\\.js$", the.current_word)) {
         return javascript_require(dependency);
     }
-    if ((type && _pj.in_es6(type, "javascript script js".split()))) {
+    if ((type && type.in("javascript script js".split()))) {
         return javascript_require(dependency);
     }
 }
@@ -250,7 +254,7 @@ function regexp(val = 0) {
 }
 
 function package_version() {
-    var c;
+    let c;
     maybe_token("with");
     c = maybe_tokens(comparison_words);
     tokens(["v", "version"]);
@@ -261,7 +265,7 @@ function package_version() {
 }
 
 function imports() {
-    var _type, dependency, version;
+    let _type, dependency, version;
     _type = maybe_tokens(require_types);
     tokens(import_keywords);
     _type = (_type || maybe_tokens(require_types));
@@ -286,7 +290,7 @@ function imports() {
 }
 
 function module() {
-    var _context;
+    let _context;
     tokens(context_keywords);
     _context = word();
     newlines();
@@ -296,7 +300,7 @@ function module() {
 }
 
 function bracelet() {
-    var a;
+    let a;
     _("(");
     a = expression();
     _(")");
@@ -327,68 +331,73 @@ function fix_context(x) {
 }
 
 function apply_op(stack, i, op) {
-    var left, result, right;
+    let left, result, right;
     right = stack[(i + 1)];
     left = stack[(i - 1)];
+
+    function replaceI12(stack, result0) {
+        result=result0;
+        stack[(i - 1)]= [result];
+        delete stack[i+1];
+        delete stack[i]
+    }
+
     if (interpreting()) {
         if (((op === "!") || (op === "not"))) {
-            stack.slice(i, (i + 2)) = [(!do_evaluate(right))];
+            stack[i]= [(!do_evaluate(right))];
+            delete stack[i+1]
         } else {
-            result = do_math(left, op, right);
-            stack.slice((i - 1), (i + 2)) = [result];
+            replaceI12(stack,do_math(left, op, right))
         }
+    } else if (((op === "!") || (op === "not"))) {
+        result = kast.Not(right);
+        stack[(i)] = [result];
+        delete stack[i + 1];
+        delete stack[i]
     } else {
-        if (((op === "!") || (op === "not"))) {
-            stack.slice(i, (i + 2)) = [new kast.Not(right)];
+        left = fix_context(left);
+        right = fix_context(right);
+        if ((op instanceof _ast.operator)) {
+            replaceI12(stack, new kast.BinOp(left, ast_operator(op), right));
+        } else if (op.in(true_operators)) {
+            replaceI12(stack, new kast.BinOp(left, ast_operator(op), right));
+        } else if (op.in(comparison_words)) {
+            replaceI12(stack, new kast.Compare(left, [ast_operator(op)], [right]));
         } else {
-            left = fix_context(left);
-            right = fix_context(right);
-            if ((op instanceof _ast.operator)) {
-                stack.slice((i - 1), (i + 2)) = [new kast.BinOp(left, ast_operator(op), right)];
-            } else {
-                if (_pj.in_es6(op, true_operators)) {
-                    stack.slice((i - 1), (i + 2)) = [new kast.BinOp(left, ast_operator(op), right)];
-                } else {
-                    if (_pj.in_es6(op, comparison_words)) {
-                        stack.slice((i - 1), (i + 2)) = [new kast.Compare(left, [ast_operator(op)], [right])];
-                    } else {
-                        stack.slice((i - 1), (i + 2)) = [new kast.Compare(left, [ast_operator(op)], [right])];
-                    }
-                }
-            }
+            replaceI12(stack, new kast.Compare(left, [ast_operator(op)], [right]));
         }
     }
 }
 
 function fold_algebra(stack) {
-    var i, leng, used_ast_operators, used_operators;
+    let i, leng, used_ast_operators, used_operators;
     used_operators = function () {
-            var _pj_a = [],
-                _pj_b = operators;
-            for (var _pj_c = 0, _pj_d = _pj_b.length;
-                (_pj_c < _pj_d); _pj_c += 1) {
-                var x = _pj_b[_pj_c];
-                if (_pj.in_es6(x, stack)) {
-                    _pj_a.push(x);
-                }
+        let _pj_a = [],
+            _pj_b = operators;
+        for (let _pj_c = 0, _pj_d = _pj_b.length;
+            (_pj_c < _pj_d); _pj_c += 1) {
+            let x = _pj_b[_pj_c];
+            if (x.in(stack)) {
+                _pj_a.push(x);
             }
-            return _pj_a;
         }
+        return _pj_a;
+    }
         .call(this);
     used_ast_operators = function () {
-            var _pj_a = [],
-                _pj_b = kast_operator_map.values();
-            for (var _pj_c = 0, _pj_d = _pj_b.length;
-                (_pj_c < _pj_d); _pj_c += 1) {
-                var x = _pj_b[_pj_c];
-                if (_pj.in_es6(x, stack)) {
-                    _pj_a.push(x);
-                }
+        let _pj_a = [],
+            _pj_b = kast_operator_map.values();
+        for (let _pj_c = 0, _pj_d = _pj_b.length;
+            (_pj_c < _pj_d); _pj_c += 1) {
+            let x = _pj_b[_pj_c];
+            if (x.in(stack)) {
+                _pj_a.push(x);
             }
-            return _pj_a;
         }
+        return _pj_a;
+    }
         .call(this);
-    for (var op, _pj_c = 0, _pj_a = (used_operators + used_ast_operators), _pj_b = _pj_a.length;
+    for (let op, _pj_c = 0, _pj_a = (used_operators + used_ast_operators), _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         op = _pj_a[_pj_c];
         i = 0;
@@ -407,7 +416,7 @@ function fold_algebra(stack) {
 }
 
 function algebra(val = null) {
-    var stack;
+    let stack;
     if (context.in_algebra) {
         return false;
     }
@@ -422,8 +431,8 @@ function algebra(val = null) {
     stack.append(val);
 
     function lamb() {
-        var n, op, y;
-        if ((_pj.in_es6(the.current_word, be_words) && context.in_args)) {
+        let n, op, y;
+        if ((the.current_word.in(be_words) && context.in_args)) {
             return false;
         }
         op = (maybe(comparation) || operator());
@@ -452,13 +461,13 @@ function algebra(val = null) {
 }
 
 function read_block(type = null) {
-    var block;
+    let block;
     block = [];
     _(type);
     while (true) {
         if (maybe(() => {
-                return end_block(type);
-            })) {
+            return end_block(type);
+        })) {
             break;
         }
         block.append(rest_of_line());
@@ -467,7 +476,7 @@ function read_block(type = null) {
 }
 
 function read_xml_block(t = null) {
-    var b;
+    let b;
     _("<");
     t = (t || word());
     if (maybe_token("/")) {
@@ -486,7 +495,7 @@ function html_block() {
 }
 
 function javascript_block() {
-    var block;
+    let block;
     block = ((maybe(read_block("script")) || maybe(read_block("js"))) || read_block("javascript"));
     javascript.append(block.join(";\n"));
     return block;
@@ -501,7 +510,7 @@ function special_blocks() {
 }
 
 function is_a(x, type0) {
-    var _type;
+    let _type;
     _type = mapType(type0);
     debug(_type);
     if (is_string(_type)) {
@@ -519,14 +528,12 @@ function is_a(x, type0) {
     if (((x instanceof unicode) && (_type === xstr))) {
         return true;
     }
-    if ((xx(x) instanceof _type)) {
-        return true;
-    }
-    return false;
+    return (xx(x) instanceof _type);
+
 }
 
 function nth_item(val = 0) {
-    var l, n, set, type;
+    let l, n, set, type;
     set = maybe_token("set");
     n = (val || tokens((number_selectors + ["first", "last", "middle"])));
     n = xstr(n).parse_integer();
@@ -546,19 +553,19 @@ function nth_item(val = 0) {
             l = l.split(" ");
         }
     }
-    if (((l instanceof list) && _pj.in_es6(type, type_names))) {
+    if (((l instanceof list) && type.in(type_names))) {
         l = function () {
-                var _pj_a = [],
-                    _pj_b = l;
-                for (var _pj_c = 0, _pj_d = _pj_b.length;
-                    (_pj_c < _pj_d); _pj_c += 1) {
-                    var x = _pj_b[_pj_c];
-                    if (is_a(x, type)) {
-                        _pj_a.push(x);
-                    }
+            let _pj_a = [],
+                _pj_b = l;
+            for (let _pj_c = 0, _pj_d = _pj_b.length;
+                (_pj_c < _pj_d); _pj_c += 1) {
+                let x = _pj_b[_pj_c];
+                if (is_a(x, type)) {
+                    _pj_a.push(x);
                 }
-                return _pj_a;
             }
+            return _pj_a;
+        }
             .call(this);
     }
     if ((n > l.length)) {
@@ -581,7 +588,7 @@ function listselector() {
 }
 
 function functionalselector() {
-    var crit, xs;
+    let crit, xs;
     if (contains(",")) {
         return list();
     }
@@ -596,7 +603,7 @@ function functionalselector() {
 }
 
 function liste(check = true, first = null) {
-    var all, start_brace;
+    let all, start_brace;
     if (((!first) && (the.current_word === ","))) {
         throw new NotMatching();
     }
@@ -625,7 +632,7 @@ function liste(check = true, first = null) {
     }
 
     function lamb() {
-        var e;
+        let e;
         tokens([",", "and"]);
         e = endNode();
         if ((e === ZERO)) {
@@ -652,15 +659,15 @@ function liste(check = true, first = null) {
 }
 
 function must_contain_substring(param) {
-    var current_statement;
+    let current_statement;
     current_statement = re.split(";|:|\n", the.current_line.slice(the.current_offset))[0];
-    if ((!_pj.in_es6(param, current_statement))) {
+    if ((!param.in(current_statement))) {
         raise_not_matching(("must_contain_substring(%s)" % param));
     }
 }
 
 function plusPlus(v = null) {
-    var pre, start;
+    let pre, start;
     must_contain_substring("++");
     start = pointer();
     pre = (maybe_token("+") && token("+"));
@@ -675,7 +682,7 @@ function plusPlus(v = null) {
 }
 
 function minusMinus(v = null) {
-    var pre;
+    let pre;
     must_contain_substring("--");
     pre = (maybe_token("-") && token("-"));
     v = (v || variable());
@@ -693,7 +700,7 @@ function selfModify() {
 }
 
 function self_modify(v = null, exp = null) {
-    var arg, mod, op;
+    let arg, mod, op;
     must_contain(self_modifying_operators);
     v = (v || variable());
     mod = tokens(self_modifying_operators);
@@ -711,12 +718,12 @@ function self_modify(v = null, exp = null) {
 }
 
 function swift_hash() {
-    var h;
+    let h;
     _("[");
     h = {};
 
     function hashy() {
-        var key;
+        let key;
         if ((h.length > 0)) {
             _(",");
         }
@@ -752,7 +759,7 @@ function empty_map() {
 hash_assign = [":", "to", "=>", "->"];
 
 function hash_map() {
-    var z;
+    let z;
     must_contain_before({
         args: hash_assign,
         before: ["}"]
@@ -762,14 +769,14 @@ function hash_map() {
 }
 
 function regular_hash() {
-    var h;
+    let h;
     _("{");
     context.in_hash = true;
     (maybe_tokens(hash_assign) && no_rollback());
     h = {};
 
     function lamb() {
-        var key, val;
+        let key, val;
         if ((h.length > 0)) {
             tokens([";", ","]);
         }
@@ -791,7 +798,7 @@ function regular_hash() {
 }
 
 function immediate_hash() {
-    var r, w;
+    let r, w;
     must_contain_before(hash_assign, "}");
     w = (maybe(quote) || word());
     if (maybe_tokens(hash_assign)) {
@@ -813,7 +820,7 @@ function immediate_hash() {
 }
 
 function maybe_cast(_context) {
-    var typ;
+    let typ;
     if ((!maybe_token("as"))) {
         return false;
     }
@@ -822,7 +829,7 @@ function maybe_cast(_context) {
 }
 
 function maybe_algebra(_context) {
-    var op, z;
+    let op, z;
     op = maybe_tokens(operators);
     if ((!op)) {
         return false;
@@ -832,21 +839,21 @@ function maybe_algebra(_context) {
 }
 
 function contains(token) {
-    return _pj.in_es6(token, the.current_line);
+    return token.in(the.current_line);
 }
 
 function contains_any(tokens) {
-    for (var token, _pj_c = 0, _pj_a = tokens, _pj_b = _pj_a.length;
+    for (let token, _pj_c = 0, _pj_a = tokens, _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         token = _pj_a[_pj_c];
-        if (_pj.in_es6(token, the.current_line)) {
+        if (token.in(the.current_line)) {
             return true;
         }
     }
 }
 
 function quick_expression() {
-    var fun, result, z;
+    let fun, result, z;
     result = false;
     if ((the.current_word === "")) {
         throw new EndOfLine();
@@ -878,10 +885,10 @@ function quick_expression() {
             return setter();
         }
     }
-    if ((_pj.in_es6(the.current_word, type_names) || _pj.in_es6(the.current_word, the.classes.keys()))) {
+    if ((the.current_word.in(type_names) || the.current_word.in(the.classes.keys()))) {
         return declaration();
     }
-    if (_pj.in_es6(the.current_word, (operators + special_chars))) {
+    if (the.current_word.in((operators + special_chars))) {
         if ((the.current_word !== "~")) {
             return false;
         }
@@ -899,28 +906,28 @@ function quick_expression() {
             if (((the.current_type === _token.STRING) || the.current_word.startswith("'"))) {
                 result = quote();
             } else {
-                if (_pj.in_es6(the.current_word, the.token_map)) {
+                if (the.current_word.in(the.token_map)) {
                     fun = the.token_map[the.current_word];
                     debug(("token_map: %s -> %s" % [the.current_word, fun]));
                     result = fun();
                 } else {
-                    if (_pj.in_es6(the.current_word, the.method_token_map)) {
+                    if (the.current_word.in(the.method_token_map)) {
                         fun = the.method_token_map[the.current_word];
                         debug(("method_token_map: %s -> %s" % [the.current_word, fun]));
                         result = fun();
                     } else {
-                        if (_pj.in_es6(the.current_word, the.method_names)) {
+                        if (the.current_word.in(the.method_names)) {
                             if (method_allowed(the.current_word)) {
                                 result = method_call();
                             }
                         } else {
-                            if (_pj.in_es6(the.current_word, list(the.params.keys()))) {
+                            if (the.current_word.in(list(the.params.keys()))) {
                                 result = true_param();
                             } else {
-                                if (_pj.in_es6(the.current_word, list(the.variables.keys()))) {
+                                if (the.current_word.in(list(the.variables.keys()))) {
                                     result = known_variable();
                                 } else {
-                                    if (_pj.in_es6(the.current_word, english_tokens.type_names)) {
+                                    if (the.current_word.in(english_tokens.type_names)) {
                                         return (maybe(setter) || method_definition());
                                     }
                                 }
@@ -963,7 +970,7 @@ function post_operations(result) {
             first: result
         });
     }
-    if (_pj.in_es6(the.current_word, self_modifying_operators)) {
+    if (the.current_word.in(self_modifying_operators)) {
         return self_modify(result);
     }
     if (((the.current_word === "+") && look_1_ahead("+"))) {
@@ -972,7 +979,7 @@ function post_operations(result) {
     if (((the.current_word === "-") && look_1_ahead("-"))) {
         return minusMinus(result);
     }
-    if (_pj.in_es6(the.current_word, be_words)) {
+    if (the.current_word.in(be_words)) {
         if ((!context.in_condition)) {
             if ((result instanceof Variable)) {
                 return setter(result);
@@ -986,13 +993,13 @@ function post_operations(result) {
     if ((the.current_word === "|")) {
         return piped_actions((result || the.last_result));
     }
-    if (_pj.in_es6(the.current_word, operators)) {
+    if (the.current_word.in(operators)) {
         return algebra(result);
     }
     if ((the.current_word === "[")) {
         return evaluate_index(result);
     }
-    if (_pj.in_es6(the.current_word, ((operators + special_chars) + ["element", "item"]))) {
+    if (the.current_word.in(((operators + special_chars) + ["element", "item"]))) {
         return false;
     }
     if ((result && (the.current_word === "to"))) {
@@ -1004,7 +1011,7 @@ function post_operations(result) {
     if (the.current_line.endswith("times")) {
         return action_n_times(result);
     }
-    if (_pj.in_es6(the.current_word, be_words)) {
+    if (the.current_word.in(be_words)) {
         return setter(result);
     }
     if ((the.current_word === "if")) {
@@ -1017,7 +1024,7 @@ function post_operations(result) {
 }
 
 function passing() {
-    var ok;
+    let ok;
     ok = tokens(["pass", ";"]);
     return (interpreting() ? ok : new ast.Pass());
 }
@@ -1031,7 +1038,7 @@ function space() {
 }
 
 function expression(fallback = null, resolve = true) {
-    var ex;
+    let ex;
     maybe(space);
     if (((the.current_word === "") || (the.current_word.length === 0))) {
         throw new EndOfLine();
@@ -1048,7 +1055,7 @@ function expression(fallback = null, resolve = true) {
     if (((resolve && ex) && interpreting())) {
         the.last_result = the.result = do_evaluate(ex);
     }
-    if (((!the.result) || ((the.result === SyntaxError) && (!(ex === SyntaxError))))) {} else {
+    if (((!the.result) || ((the.result === SyntaxError) && (!(ex === SyntaxError))))) { } else {
         ex = the.result;
     }
     if ((ex === ZERO)) {
@@ -1059,7 +1066,7 @@ function expression(fallback = null, resolve = true) {
 }
 
 function piped_actions(a = false) {
-    var args, name, obj, xmodule;
+    let args, name, obj, xmodule;
     if (context.in_pipe) {
         return false;
     }
@@ -1086,7 +1093,7 @@ function piped_actions(a = false) {
 }
 
 function statement(doraise = true) {
-    var x;
+    let x;
     if ((starts_with(done_words) || checkNewline())) {
         if (doraise) {
             raise_not_matching("end of block ok");
@@ -1108,7 +1115,7 @@ function statement(doraise = true) {
 }
 
 function addMethodNames(f) {
-    var args, f2, name, obj;
+    let args, f2, name, obj;
     if ((f.arguments.length > 0)) {
         obj = f.arguments[0];
         if ((obj.name.length === 1)) {
@@ -1133,7 +1140,7 @@ function addMethodNames(f) {
 }
 
 function method_definition(name = null, return_type = null) {
-    var args, b, brace, f, f2, modifiers;
+    let args, b, brace, f, f2, modifiers;
     if ((!name)) {
         modifiers = maybe_tokens(modifier_words);
         return_type = maybe(typeName);
@@ -1148,7 +1155,7 @@ function method_definition(name = null, return_type = null) {
     args = [];
 
     function arguments() {
-        var a;
+        let a;
         if ((the.current_offset === 0)) {
             raise_not_matching("BLOCK START");
         }
@@ -1197,7 +1204,7 @@ function execute(command) {
 }
 
 function bash_action() {
-    var command, ok;
+    let command, ok;
     if ((starts_with("`") && beginning_of_line())) {
         throw new DidYouMean("shell <bash command ...>");
     }
@@ -1228,7 +1235,7 @@ function bash_action() {
 }
 
 function if_then_else() {
-    var o, ok;
+    let o, ok;
     ok = if_then();
     adjust_rollback();
     o = (maybe(otherwise) || FALSE);
@@ -1253,7 +1260,7 @@ function if_then_else() {
 }
 
 function action_if(a) {
-    var c;
+    let c;
     if ((!a)) {
         must_not_start_with("if");
     }
@@ -1276,7 +1283,7 @@ function isStatementOrExpression(b) {
 }
 
 function if_then() {
-    var b, c, started;
+    let b, c, started;
     tokens(if_words);
     no_rollback();
     c = condition();
@@ -1333,7 +1340,7 @@ function future_event() {
 }
 
 function once_trigger() {
-    var b, c;
+    let b, c;
     tokens(once_words);
     no_rollback();
     dont_interpret();
@@ -1350,7 +1357,7 @@ function _do() {
 }
 
 function action_once() {
-    var b, c;
+    let b, c;
     if ((!_do())) {
         must_contain(once_words);
     }
@@ -1368,17 +1375,17 @@ function once() {
 }
 
 function verb_node() {
-    var v;
+    let v;
     v = verb;
     nod;
-    if ((!_pj.in_es6(v, methods))) {
+    if ((!v.in(methods))) {
         throw new UnknownCommandError(("no such method: " + v));
     }
     return v;
 }
 
 function spo() {
-    var o, p, s;
+    let o, p, s;
     if ((!use_wordnet)) {
         return false;
     }
@@ -1395,21 +1402,21 @@ function spo() {
 
 function print_variables() {
     return "".join(function () {
-            var _pj_a = [],
-                _pj_b = variables.items();
-            for (var _pj_c = 0, _pj_d = _pj_b.length;
-                (_pj_c < _pj_d); _pj_c += 1) {
-                var v = _pj_b[_pj_c];
-                _pj_a.push(("%s=%s" % [v, k]));
-            }
-            return _pj_a;
+        let _pj_a = [],
+            _pj_b = variables.items();
+        for (let _pj_c = 0, _pj_d = _pj_b.length;
+            (_pj_c < _pj_d); _pj_c += 1) {
+            let v = _pj_b[_pj_c];
+            _pj_a.push(("%s=%s" % [v, k]));
         }
+        return _pj_a;
+    }
         .call(this));
 }
 
 function is_object_method(method_name) {
-    var object_method;
-    if ((!_pj.in_es6(method_name.toString(), globals()))) {
+    let object_method;
+    if ((!method_name.toString().in(globals()))) {
         return false;
     }
     object_method = globals()[method_name.toString()];
@@ -1417,7 +1424,7 @@ function is_object_method(method_name) {
 }
 
 function has_object(m) {
-    return _pj.in_es6(m.toString(), globals());
+    return m.toString().in(globals());
 }
 
 function get_module(module) {
@@ -1431,7 +1438,7 @@ function get_module(module) {
 }
 
 function first_is_self(method) {
-    var args, defaults, varargs, varkw;
+    let args, defaults, varargs, varkw;
     try {
         [args, varargs, varkw, defaults] = inspect.getargspec(method);
         return (args[0] === "self");
@@ -1441,8 +1448,8 @@ function first_is_self(method) {
 }
 
 function has_args(method, clazz = object, assume = 0) {
-    var alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
-    if (_pj.in_es6(method, ["increase", "++", "--"])) {
+    let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
+    if (method.in(["increase", "++", "--"])) {
         return 0;
     }
     if ((method instanceof FunctionDef)) {
@@ -1474,7 +1481,7 @@ function c_method() {
 }
 
 function builtin_method() {
-    var m, w;
+    let m, w;
     w = word;
     if ((!w)) {
         raise_not_matching("no word");
@@ -1484,11 +1491,11 @@ function builtin_method() {
 }
 
 function is_method(name) {
-    return (_pj.in_es6(name, the.method_names) || maybe(verb));
+    return (name.in(the.method_names) || maybe(verb));
 }
 
 function import_module(module_name) {
-    var module, moduleMethods;
+    let module, moduleMethods;
     try {
         console.log(("TRYING MODULE " + module_name));
         // import * as importlib from 'importlib';
@@ -1502,10 +1509,10 @@ function import_module(module_name) {
 }
 
 function subProperty(_context) {
-    var ext, properties, property;
+    let ext, properties, property;
     maybe_token(".");
     properties = dir(_context);
-    if ((_context && _pj.in_es6(Object.getPrototypeOf(_context), context.extensionMap))) {
+    if ((_context && Object.getPrototypeOf(_context).in(context.extensionMap))) {
         ext = context.extensionMap[Object.getPrototypeOf(_context)];
         properties += dir(ext);
     }
@@ -1518,9 +1525,9 @@ function subProperty(_context) {
 }
 
 function true_method(obj = null) {
-    var ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
+    let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
     ex = english_operators;
-    if (_pj.in_es6("print", ex)) {
+    if ("print".in(ex)) {
         no_keyword_except(ex);
     }
     should_not_start_with(auxiliary_verbs);
@@ -1560,10 +1567,10 @@ function true_method(obj = null) {
     if (maybe_tokens(articles)) {
         obj = " ".join(one_or_more(word));
         longName = ((name + " ") + obj);
-        if (_pj.in_es6(longName, the.method_names)) {
+        if (longName.in(the.method_names)) {
             name = longName;
         }
-        if (_pj.in_es6(obj, the.variables)) {
+        if (obj.in(the.variables)) {
             obj = the.variables[obj];
         }
     }
@@ -1571,7 +1578,7 @@ function true_method(obj = null) {
 }
 
 function method_call(obj = null) {
-    var args, assume_args, method, method_name, module, more, start_brace;
+    let args, assume_args, method, method_name, module, more, start_brace;
     [module, obj, method_name] = true_method(obj);
     context.in_algebra = false;
     start_brace = maybe_tokens(["(", "{"]);
@@ -1596,7 +1603,7 @@ function method_call(obj = null) {
         args = [];
 
         function call_args() {
-            var arg;
+            let arg;
             if ((args.length > 0)) {
                 maybe_tokens([",", "and"]);
             }
@@ -1665,7 +1672,7 @@ function bla() {
 
 function applescript() {
     // import * as platform from 'platform';
-    var app;
+    let app;
     _("tell");
     tokens(["application", "app"]);
     no_rollback();
@@ -1688,7 +1695,7 @@ function applescript() {
 }
 
 function assert_that() {
-    var s;
+    let s;
     _("assert");
     maybe_token("that");
     no_rollback();
@@ -1718,10 +1725,10 @@ function maybe_token(x) {
     return false;
 }
 
-function constructor() {}
+function constructor() { }
 
 function neu() {
-    var clazz;
+    let clazz;
     maybe_tokens(["create", "init"]);
     the();
     _("new");
@@ -1749,7 +1756,7 @@ function breaks() {
 }
 
 function action() {
-    var start;
+    let start;
     start = pointer();
     maybe(bla);
     the.result = (((((((((maybe(quick_expression) || maybe(special_blocks)) || maybe(applescript)) || maybe(bash_action)) || maybe(evaluate)) || maybe(returns)) || maybe(selfModify)) || maybe(method_call)) || maybe(spo)) || raise_not_matching("Not an action"));
@@ -1757,7 +1764,7 @@ function action() {
 }
 
 function action_or_expression(fallback = null) {
-    var ok;
+    let ok;
     ok = maybe(action);
     if (ok) {
         return ok;
@@ -1770,7 +1777,7 @@ function expression_or_block() {
 }
 
 function action_or_block(started = false) {
-    var _start, ab;
+    let _start, ab;
     _start = (maybe_tokens(start_block_words) || started);
     if (_start) {
         if ((maybe_newline() || must_contain(done_words, false))) {
@@ -1798,7 +1805,7 @@ function end_block(type = null) {
 }
 
 function done(_type = null) {
-    var ok;
+    let ok;
     if (checkEndOfFile()) {
         return OK;
     }
@@ -1814,7 +1821,7 @@ function done(_type = null) {
     }
     checkNewline();
     ok = maybe_tokens(done_words);
-    if ((_type && (!_pj.in_es6(_type, start_block_words)))) {
+    if ((_type && (!_type.in(start_block_words)))) {
         token(_type);
     }
     if ((_type && (the.previous_word === ";"))) {
@@ -1832,17 +1839,17 @@ function close_tag(type) {
 
 function prepare_named_args(args) {
     // import * as copy from 'copy';
-    var context_variables, v;
+    let context_variables, v;
     context_variables = copy.copy(the.variables);
     if ((!(args instanceof dict))) {
         return {
             "arg": args
         };
     }
-    for (var arg, _pj_c = 0, _pj_a = args.items(), _pj_b = _pj_a.length;
+    for (let arg, _pj_c = 0, _pj_a = args.items(), _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         arg = _pj_a[_pj_c];
-        if (_pj.in_es6(arg, context_variables)) {
+        if (arg.in(context_variables)) {
             v = context_variables[arg];
             if ((v instanceof Variable)) {
                 v.value = val;
@@ -1864,7 +1871,7 @@ function eval_ast(b, args = {}) {
 }
 
 function do_execute_block(b, args = {}) {
-    var block_parser, variableValues;
+    let block_parser, variableValues;
     if ((!interpreting())) {
         return;
     }
@@ -1903,7 +1910,7 @@ function do_execute_block(b, args = {}) {
 }
 
 function datetime() {
-    var _kind, _to, _unit, n;
+    let _kind, _to, _unit, n;
     must_contain(time_words);
     _kind = tokens(event_kinds);
     no_rollback();
@@ -1927,7 +1934,7 @@ function collection() {
 }
 
 function for_i_in_collection() {
-    var b, c, v;
+    let b, c, v;
     must_contain("for");
     maybe_token("repeat");
     maybe_tokens(["for", "with"]);
@@ -1936,7 +1943,7 @@ function for_i_in_collection() {
     maybe_tokens(["in", "from"]);
     c = collection();
     b = action_or_block();
-    for (var i, _pj_c = 0, _pj_a = c, _pj_b = _pj_a.length;
+    for (let i, _pj_c = 0, _pj_a = c, _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         i = _pj_a[_pj_c];
         v.value = i;
@@ -1946,8 +1953,8 @@ function for_i_in_collection() {
 }
 
 function assure_same_type(var_, _type) {
-    var oldType;
-    if (_pj.in_es6(var_.name, the.variableTypes)) {
+    let oldType;
+    if (var_.name.in(the.variableTypes)) {
         oldType = (the.variableTypes[var_.name] || Object.getPrototypeOf(var_.value));
     } else {
         if (var_.type) {
@@ -1989,7 +1996,7 @@ function assure_same_type(var_, _type) {
 }
 
 function assure_same_type_overwrite(var_, val, auto_cast = false) {
-    var oldType, oldValue, wrong_type;
+    let oldType, oldValue, wrong_type;
     if ((!val)) {
         return;
     }
@@ -2027,7 +2034,7 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 
 function do_get_class_constant(c) {
     try {
-        for (var module, _pj_c = 0, _pj_a = sys.modules, _pj_b = _pj_a.length;
+        for (let module, _pj_c = 0, _pj_a = sys.modules, _pj_b = _pj_a.length;
             (_pj_c < _pj_b); _pj_c += 1) {
             module = _pj_a[_pj_c];
             if ((c in module)) {
@@ -2040,7 +2047,7 @@ function do_get_class_constant(c) {
 }
 
 function class_constant() {
-    var c;
+    let c;
     c = word;
     return do_get_class_constant(c);
 }
@@ -2053,7 +2060,7 @@ function get_obj(o) {
 }
 
 function simpleProperty() {
-    var module, prop, x;
+    let module, prop, x;
     must_contain_before(".", (special_chars + keywords));
     module = token(the.moduleNames);
     module = get_module(module);
@@ -2067,11 +2074,11 @@ function simpleProperty() {
 }
 
 function property() {
-    var container, of_, properti, sett
+    let container, of_, properti, sett;
     must_contain_before([".", "'s", "of"], special_chars);
     var_ = variable();
     container = var_.value;
-    of_ = __ `.`;
+    of_ = __`.`;
     no_rollback();
     properti = word();
     if ((of_ === "of")) {
@@ -2100,7 +2107,7 @@ function property() {
 }
 
 function declaration() {
-    var a, mod, type, val, var_;
+    let a, mod, type, val, var_;
     must_not_contain(be_words);
     a = the();
     mod = maybe_tokens(modifier_words);
@@ -2123,14 +2130,14 @@ function declaration() {
     } else {
         var_.type = type;
     }
-    var_.final = _pj.in_es6(mod, const_words);
+    var_.final = mod.in(const_words);
     var_.modifier = mod;
     the.variableTypes[var_.name] = var_.type;
     return var_;
 }
 
 function setter(var_ = null) {
-    var _cast, _let, _type, a, guard, mod, setta, val;
+    let _cast, _let, _type, a, guard, mod, setta, val;
     must_contain_before({
         args: ["is", "be", "are", ":=", "=", "set", "to"],
         before: [">", "<", "+", "-", "|", "/", "*", ";"]
@@ -2174,7 +2181,7 @@ function setter(var_ = null) {
         }
     }
     val = (do_evaluate(val) || do_evaluate(guard));
-    if (_pj.in_es6(setta, ["are", "consist of", "consists of"])) {
+    if (setta.in(["are", "consist of", "consists of"])) {
         val = flatten(val);
     }
     try {
@@ -2197,7 +2204,7 @@ function setter(var_ = null) {
 }
 
 function alias(var_ = null) {
-    var a, ali, f;
+    let a, ali, f;
     if ((!var_)) {
         must_contain(["alias", ":="]);
         ali = _("alias");
@@ -2236,21 +2243,21 @@ function add_variable(var_, val, mod = null, _type = null) {
         assure_same_type(var_, (_type || Object.getPrototypeOf(val)));
         assure_same_type_overwrite(var_, val);
     }
-    if (((!_pj.in_es6(var_.name, variableValues.keys())) || (mod !== "default"))) {
+    if (((!var_.name.in(variableValues.keys())) || (mod !== "default"))) {
         the.variableValues[var_.name] = val;
         the.variables[var_.name] = var_;
         var_.value = val;
     }
     the.token_map[var_.name] = known_variable;
     var_.type = (_type || Object.getPrototypeOf(val));
-    var_.final = _pj.in_es6(mod, const_words);
+    var_.final = mod.in(const_words);
     var_.modifier = mod;
     the.variableTypes[var_.name] = var_.type;
     return var_;
 }
 
 function go_thread() {
-    var a, body, thread;
+    let a, body, thread;
     tokens(["go", "start", "thread"]);
     must_not_start_with(prepositions);
     dont_interpret();
@@ -2289,18 +2296,18 @@ function isType(x) {
     if ((x instanceof type)) {
         return true;
     }
-    if (_pj.in_es6(x, type_names)) {
+    if (x.in(type_names)) {
         return true;
     }
     return false;
 }
 
-function current_node() {}
+function current_node() { }
 
-function current_context() {}
+function current_context() { }
 
 function variable(a = null, ctx = new kast.Load(), isParam = false) {
-    var all, name, oldVal, p, param, typ;
+    let all, name, oldVal, p, param, typ;
     a = (a || maybe_tokens(articles));
     if ((a !== "a")) {
         a = null;
@@ -2331,17 +2338,17 @@ function variable(a = null, ctx = new kast.Load(), isParam = false) {
         return param;
     }
     if ((ctx instanceof kast.Load)) {
-        if (_pj.in_es6(name, the.variables)) {
+        if (name.in(the.variables)) {
             return the.variables[name];
         }
-        if (_pj.in_es6(name, the.params)) {
+        if (name.in(the.params)) {
             return the.params[name];
         } else {
             throw new UndeclaredVariable(("Unknown variable " + name));
         }
     }
     if ((ctx instanceof kast.Store)) {
-        if (_pj.in_es6(name, the.variables)) {
+        if (name.in(the.variables)) {
             return the.variables[name];
         }
         oldVal = null;
@@ -2361,7 +2368,7 @@ function variable(a = null, ctx = new kast.Load(), isParam = false) {
 word_regex = "^\\s*[a-zA-Z]+[\\w_]*";
 
 function word(include = null) {
-    var current_value, match;
+    let current_value, match;
     maybe_tokens(articles);
     if ((!include)) {
         include = [];
@@ -2378,11 +2385,11 @@ function word(include = null) {
 }
 
 function must_not_contain(words, before = ";") {
-    var old;
+    let old;
     old = the.current_token;
     words = flatten(words);
     while ((((!checkEndOfLine()) && (the.current_word !== ";")) && (the.current_word !== before))) {
-        for (var w, _pj_c = 0, _pj_a = words, _pj_b = _pj_a.length;
+        for (let w, _pj_c = 0, _pj_a = words, _pj_b = _pj_a.length;
             (_pj_c < _pj_b); _pj_c += 1) {
             w = _pj_a[_pj_c];
             if ((w === the.current_word)) {
@@ -2469,7 +2476,7 @@ function number_or_word() {
 }
 
 function param(position = 1) {
-    var a, pre;
+    let a, pre;
     pre = (maybe_tokens(prepositions) || null);
     a = variable({
         a: null,
@@ -2484,7 +2491,7 @@ function param(position = 1) {
 }
 
 function call_arg(position = 1) {
-    var name, pre, type, value;
+    let name, pre, type, value;
     pre = (maybe_tokens(prepositions) || "");
     maybe_tokens(articles);
     type = maybe(typeNameMapped);
@@ -2512,7 +2519,7 @@ function call_arg(position = 1) {
 }
 
 function compareNode() {
-    var c, right;
+    let c, right;
     c = comparison_word();
     if ((!c)) {
         throw new NotMatching("NO comparison");
@@ -2531,7 +2538,7 @@ function whose() {
 }
 
 function that_do() {
-    var comp, s;
+    let comp, s;
     tokens(["that", "who", "which"]);
     star(adverb);
     comp = verb;
@@ -2548,7 +2555,7 @@ function more_comparative() {
 }
 
 function as_adverb_as() {
-    var a;
+    let a;
     _("as");
     a = adverb();
     _("as");
@@ -2560,7 +2567,7 @@ function endNode() {
 }
 
 function null_comparative() {
-    var c;
+    let c;
     verb();
     c = comparative();
     endNode();
@@ -2576,18 +2583,18 @@ function than_comparative() {
 }
 
 function comparative() {
-    var c, comp;
+    let c, comp;
     c = (maybe(more_comparative) || adverb);
     if ((c.startswith("more") || maybe(() => {
-            return c.ends_with("er");
-        }))) {
+        return c.ends_with("er");
+    }))) {
         comp = c;
     }
     return c;
 }
 
 function that_are() {
-    var comp;
+    let comp;
     tokens(["that", "which", "who"]);
     be();
     comp = maybe(adjective);
@@ -2596,7 +2603,7 @@ function that_are() {
 }
 
 function that_object_predicate() {
-    var s;
+    let s;
     tokens(["that", "which", "who", "whom"]);
     (maybe(pronoun) || endNoun());
     verbium();
@@ -2607,7 +2614,7 @@ function that_object_predicate() {
 }
 
 function that() {
-    var filter;
+    let filter;
     filter = ((maybe(that_do) || maybe(that_are)) || whose());
     return filter;
 }
@@ -2618,7 +2625,7 @@ function where() {
 }
 
 function selector() {
-    var x;
+    let x;
     if (checkEndOfLine()) {
         return;
     }
@@ -2630,7 +2637,7 @@ function selector() {
 }
 
 function verb_comparison() {
-    var comp;
+    let comp;
     star(adverb);
     comp = verb();
     maybe(preposition);
@@ -2638,13 +2645,13 @@ function verb_comparison() {
 }
 
 function comparison_word() {
-    var comp;
+    let comp;
     comp = (maybe(verb_comparison) || comparation());
     return comp;
 }
 
 function comparation() {
-    var _not, comp, eq, start;
+    let _not, comp, eq, start;
     eq = maybe_tokens(be_words);
     maybe_token("all");
     start = pointer();
@@ -2671,7 +2678,7 @@ function comparation() {
 }
 
 function either_or() {
-    var v;
+    let v;
     maybe_tokens(["be", "is", "are", "were"]);
     tokens(["either", "neither"]);
     maybe(comparation);
@@ -2682,19 +2689,19 @@ function either_or() {
 }
 
 function is_comparator(c) {
-    var ok;
-    ok = _pj.in_es6(c, comparison_words);
-    ok = (ok || _pj.in_es6(c, class_words));
+    let ok;
+    ok = c.in(comparison_words);
+    ok = (ok || c.in(class_words));
     ok = (ok || (c instanceof ast.cmpop));
     return ok;
 }
 
 function check_list_condition(quantifier, left, comp, right) {
-    var count, min, negated;
+    let count, min, negated;
     try {
         count = 0;
         comp = comp.strip();
-        for (var item, _pj_c = 0, _pj_a = left, _pj_b = _pj_a.length;
+        for (let item, _pj_c = 0, _pj_a = left, _pj_b = _pj_a.length;
             (_pj_c < _pj_b); _pj_c += 1) {
             item = _pj_a[_pj_c];
             if (is_comparator(comp)) {
@@ -2703,13 +2710,13 @@ function check_list_condition(quantifier, left, comp, right) {
             if ((!is_comparator(comp))) {
                 the.result = do_call(item, comp, right);
             }
-            if (((!the.result) && _pj.in_es6(quantifier, ["all", "each", "every", "everything", "the whole"]))) {
+            if (((!the.result) && quantifier.in(["all", "each", "every", "everything", "the whole"]))) {
                 break;
             }
-            if ((the.result && _pj.in_es6(quantifier, ["either", "one", "some", "few", "any"]))) {
+            if ((the.result && quantifier.in(["either", "one", "some", "few", "any"]))) {
                 break;
             }
-            if ((the.result && _pj.in_es6(quantifier, ["no", "not", "none", "nothing"]))) {
+            if ((the.result && quantifier.in(["no", "not", "none", "nothing"]))) {
                 negated = (!negated);
                 break;
             }
@@ -2742,7 +2749,7 @@ function check_list_condition(quantifier, left, comp, right) {
 }
 
 function check_condition(cond = null, negate = false) {
-    var comp, left, right;
+    let comp, left, right;
     if (((cond === true) || (cond === "True"))) {
         return true;
     }
@@ -2802,7 +2809,7 @@ function check_condition(cond = null, negate = false) {
 }
 
 function element_in() {
-    var n;
+    let n;
     must_contain_before(["of", "in"], special_chars);
     n = maybe(noun);
     tokens(["in", "of"]);
@@ -2814,7 +2821,7 @@ function get_type(object1) {
 }
 
 function method_dir(left) {
-    var object1;
+    let object1;
     object1 = do_evaluate(left);
     if (interpreting()) {
         return dir(object1);
@@ -2823,7 +2830,7 @@ function method_dir(left) {
 }
 
 function condition_new() {
-    var c;
+    let c;
     context.in_condition = true;
     maybe_token("either");
     c = expression();
@@ -2832,7 +2839,7 @@ function condition_new() {
 }
 
 function condition() {
-    var brace, comp, cond, filter, left, negate, negated, quantifier, right, start, use_verb;
+    let brace, comp, cond, filter, left, negate, negated, quantifier, right, start, use_verb;
     start = pointer();
     brace = maybe_token("(");
     maybe_token("either");
@@ -2855,7 +2862,7 @@ function condition() {
         });
     }
     if (starts_with("then")) {
-        if (_pj.in_es6(quantifier, negative_quantifiers)) {
+        if (quantifier.in(negative_quantifiers)) {
             return (!left);
         }
         return left;
@@ -2902,7 +2909,7 @@ function condition() {
 }
 
 function condition_tree(recurse = true) {
-    var brace, c, cs, negate;
+    let brace, c, cs, negate;
     brace = maybe_token("(");
     maybe_token("either");
     negate = maybe_token("neither");
@@ -2914,7 +2921,7 @@ function condition_tree(recurse = true) {
     cs = [c];
 
     function lamb() {
-        var c2, op;
+        let c2, op;
         op = tokens(["and", "or", "nor", "xor", "nand", "but"]);
         if (recurse) {
             c2 = condition_tree(false);
@@ -2941,7 +2948,7 @@ function condition_tree(recurse = true) {
 }
 
 function otherwise() {
-    var e, pre;
+    let e, pre;
     maybe_newline();
     must_contain(["else", "otherwise"]);
     pre = maybe_tokens(["else", "otherwise"]);
@@ -2971,7 +2978,7 @@ function resolve_netbase(n) {
 }
 
 function the_noun_that() {
-    var criterium, n;
+    let criterium, n;
     maybe(_the);
     n = noun();
     if ((!n)) {
@@ -2985,10 +2992,10 @@ function the_noun_that() {
             n = resolve_netbase(n);
         }
     } else {
-        if (_pj.in_es6(n, the.variables)) {
+        if (n.in(the.variables)) {
             return the.variables[n];
         }
-        if (_pj.in_es6(n, the.classes)) {
+        if (n.in(the.classes)) {
             return the.classes[n];
         }
         raise_not_matching("only 'that' filtered nouns for now!");
@@ -3001,14 +3008,14 @@ function const_defined(c) {
     if ((c === "Pass")) {
         return false;
     }
-    if (_pj.in_es6(c, context.moduleClasses)) {
+    if (c.in(context.moduleClasses)) {
         return true;
     }
     return false;
 }
 
 function classConstDefined() {
-    var c;
+    let c;
     try {
         c = word().capitalize();
         if ((!const_defined(c))) {
@@ -3031,7 +3038,7 @@ function classConstDefined() {
 }
 
 function mapType(x0) {
-    var x;
+    let x;
     x = x0.lower();
     if ((x === "char")) {
         return xchar;
@@ -3134,9 +3141,9 @@ function mapType(x0) {
 }
 
 function typeNameMapped() {
-    var x;
+    let x;
     x = typeName();
-    if (_pj.in_es6(x, the.classes)) {
+    if (x.in(the.classes)) {
         return the.classes[x];
     }
     return mapType(x);
@@ -3147,7 +3154,7 @@ function typeName() {
 }
 
 function gerund() {
-    var current_value, match, pr;
+    let current_value, match, pr;
     match = re.search("^\\s*(\\w+)ing", the.string);
     if ((!match)) {
         return false;
@@ -3162,7 +3169,7 @@ function gerund() {
 }
 
 function postjective() {
-    var current_value, match, pr;
+    let current_value, match, pr;
     match = re.search("^\\s*(\\w+)ed", the.string);
     if ((!match)) {
         return false;
@@ -3189,23 +3196,23 @@ function do_evaluate_property(attr, node) {
     }
     verbose(((("do_evaluate_property '" + attr.toString()) + "' in ") + node.toString()));
     the.result = null;
-    if (_pj.in_es6(attr, dir(node))) {
+    if (attr.in(dir(node))) {
         return node.__getattribute__(attr);
     }
-    if (_pj.in_es6(attr, ["type", "class", "kind"])) {
+    if (attr.in(["type", "class", "kind"])) {
         return get_class(node);
     }
     if ((node instanceof list)) {
         return function () {
-                var _pj_a = [],
-                    _pj_b = node;
-                for (var _pj_c = 0, _pj_d = _pj_b.length;
-                    (_pj_c < _pj_d); _pj_c += 1) {
-                    var x = _pj_b[_pj_c];
-                    _pj_a.push(do_evaluate_property(attr, x));
-                }
-                return _pj_a;
+            let _pj_a = [],
+                _pj_b = node;
+            for (let _pj_c = 0, _pj_d = _pj_b.length;
+                (_pj_c < _pj_d); _pj_c += 1) {
+                let x = _pj_b[_pj_c];
+                _pj_a.push(do_evaluate_property(attr, x));
             }
+            return _pj_a;
+        }
             .call(this);
     }
     if ((attr instanceof _ast.AST)) {
@@ -3266,7 +3273,7 @@ function do_evaluate(x, _type = null) {
         if ((_type && (_type instanceof extensions.Numeric))) {
             return float_(x);
         }
-        if (_pj.in_es6(x, the.variableValues)) {
+        if (x.in(the.variableValues)) {
             return the.variableValues[x];
         }
         if (match_path(x)) {
@@ -3303,8 +3310,8 @@ function self_modifying(method) {
 }
 
 function is_math(method) {
-    var ok;
-    ok = _pj.in_es6(method, operators);
+    let ok;
+    ok = method.in(operators);
     return ok;
 }
 
@@ -3497,19 +3504,19 @@ function do_math(a, op, b) {
     if ((op === "isn't")) {
         return (a !== b);
     }
-    if (_pj.in_es6(op, class_words)) {
+    if (op.in(class_words)) {
         return ((a instanceof b) || is_a(a, b));
     }
-    if (_pj.in_es6(op, subtype_words)) {
+    if (op.in(subtype_words)) {
         return ((a.prototype instanceof b) || is(a, b));
     }
     throw new Error(("UNKNOWN OPERATOR " + op));
 }
 
 function is_bound(method) {
-    var _is_bound;
-    _is_bound = (_pj.in_es6("im_self", dir(method)) && method.__self__);
-    _is_bound = (_is_bound || _pj.in_es6("bound", method.toString()));
+    let _is_bound;
+    _is_bound = ("im_self".in(dir(method)) && method.__self__);
+    _is_bound = (_is_bound || "bound".in(method.toString()));
     return _is_bound;
 }
 
@@ -3522,7 +3529,7 @@ function instance(bounded_method) {
 }
 
 function findMethod(obj0, method0, args0 = null, bind = true) {
-    var _type, ex, function_, method;
+    let _type, ex, function_, method;
     method = method0;
     if ((method instanceof collections.Callable)) {
         return method;
@@ -3545,21 +3552,21 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
     if ((args0 instanceof Argument)) {
         args0 = args0.value;
     }
-    if (_pj.in_es6(method, the.methods)) {
+    if (method.in(the.methods)) {
         return the.methods[method];
     }
-    if (_pj.in_es6(method, locals())) {
+    if (method.in(locals())) {
         return locals()[method];
     }
-    if (_pj.in_es6(method, globals())) {
+    if (method.in(globals())) {
         return globals()[method];
     }
-    if (_pj.in_es6(method, dir(obj0))) {
+    if (method.in(dir(obj0))) {
         return obj0[method];
     }
-    if (_pj.in_es6(_type, context.extensionMap)) {
+    if (_type.in(context.extensionMap)) {
         ex = context.extensionMap[_type];
-        if (_pj.in_es6(method, dir(ex))) {
+        if (method.in(dir(ex))) {
             method = ex[method];
             if (bind) {
                 method = method.__get__(obj0, ex);
@@ -3567,7 +3574,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
             return method;
         }
     }
-    if (((obj0 instanceof type) && _pj.in_es6(method, obj0.__dict__))) {
+    if (((obj0 instanceof type) && method.in(obj0.__dict__))) {
         method = obj0.__dict__[method];
         if (bind) {
             method.__get__(null, obj0);
@@ -3584,10 +3591,10 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 }
 
 function align_function_args(args, clazz, method) {
-    var newArgs;
+    let newArgs;
     newArgs = {};
     if ((((args instanceof dict) || (args instanceof tuple) || (args instanceof list)) && (method.arguments.length === 1))) {
-        key = method.arguments[0].name
+        key = method.arguments[0].name;
         return {
             key: args
         };
@@ -3595,11 +3602,11 @@ function align_function_args(args, clazz, method) {
     if ((!((args instanceof dict) || (args instanceof list)))) {
         args = [args];
     }
-    for (var param, _pj_c = 0, _pj_a = method.arguments, _pj_b = _pj_a.length;
+    for (let param, _pj_c = 0, _pj_a = method.arguments, _pj_b = _pj_a.length;
         (_pj_c < _pj_b); _pj_c += 1) {
         param = _pj_a[_pj_c];
         if ((args instanceof dict)) {
-            if (_pj.in_es6(param.name, args)) {
+            if (param.name.in(args)) {
                 param.value = args[param.name];
             } else {
                 if (param.default) {
@@ -3633,7 +3640,7 @@ function eval_args(args) {
     if (((args instanceof list) || (args instanceof tuple))) {
         args = list(map(do_evaluate, args));
     } else {
-        if ((args instanceof dict)) {} else {
+        if ((args instanceof dict)) { } else {
             args = [do_evaluate(args)];
         }
     }
@@ -3641,8 +3648,8 @@ function eval_args(args) {
 }
 
 function align_args(args, clazz, method) {
-    var aa, defaults, expect, is_bound, margs, varargs, varkw;
-    is_bound = (_pj.in_es6("im_self", dir(method)) && method.__self__);
+    let aa, defaults, expect, is_bound, margs, varargs, varkw;
+    is_bound = ("im_self".in(dir(method)) && method.__self__);
     if (is_bound) {
         if ((method.__self__ === args)) {
             args = null;
@@ -3670,11 +3677,11 @@ function align_args(args, clazz, method) {
             }
         }
         if ((method instanceof FunctionDef)) {
-            for (var i = 0, _pj_a = expect;
+            for (let i = 0, _pj_a = expect;
                 (i < _pj_a); i += 1) {
                 aa = method.args[i];
                 if ((aa instanceof Argument)) {
-                    if (_pj.in_es6(aa.name, args)) {
+                    if (aa.name.in(args)) {
                         the.params[aa] = args[aa.name];
                         the.params[aa.name] = args[aa.name];
                     } else {
@@ -3682,7 +3689,7 @@ function align_args(args, clazz, method) {
                         the.params[aa.name] = args[i];
                     }
                 } else {
-                    if (_pj.in_es6(aa, args)) {
+                    if (aa.in(args)) {
                         the.params[aa] = args[aa];
                     } else {
                         the.params[aa] = args[i];
@@ -3698,7 +3705,7 @@ function align_args(args, clazz, method) {
 }
 
 function call_unbound(method, args, number_of_arguments) {
-    var arg0, bound_method, obj_type;
+    let arg0, bound_method, obj_type;
     if ((args instanceof dict)) {
         try {
             the.result = (method({
@@ -3713,7 +3720,7 @@ function call_unbound(method, args, number_of_arguments) {
             // import * as types from 'types';
             arg0 = args[0];
             obj_type = Object.getPrototypeOf(arg0);
-            if (_pj.in_es6(method.__self__.__class__, list(extensionMap.values()))) {
+            if (method.__self__.__class__.in(list(extensionMap.values()))) {
                 the.result = (method(xx(arg0)) || NILL);
             } else {
                 bound_method = new types.MethodType(method, obj_type, xx(args[0]));
@@ -3732,7 +3739,7 @@ function call_unbound(method, args, number_of_arguments) {
 }
 
 function do_call(obj0, method0, args0 = []) {
-    var args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
+    let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
     if ((!method0)) {
         throw new Error(("NO METHOD GIVEN %s %s" % [obj0, args0]));
     }
@@ -3743,7 +3750,7 @@ function do_call(obj0, method0, args0 = []) {
             object: obj0
         });
     }
-    if ((_pj.in_es6(method0, be_words) && (obj0 === args0))) {
+    if ((method0.in(be_words) && (obj0 === args0))) {
         return true;
     }
     args = eval_args(args0);
@@ -3767,7 +3774,7 @@ function do_call(obj0, method0, args0 = []) {
         return the.result;
     }
     console.log(("CALLING %s %s with %s" % [(obj || ""), method, args]));
-    if ((((!args) && (!(method instanceof collections.Callable))) && _pj.in_es6(method, dir(obj)))) {
+    if ((((!args) && (!(method instanceof collections.Callable))) && method.in(dir(obj)))) {
         return obj.__getattribute__(method);
     }
     try {
@@ -3861,16 +3868,16 @@ function do_compare(a, comp, b) {
                 if ((((comp === "bigger or equal") || (comp === ">=")) || (comp instanceof ast.GtE))) {
                     return (a >= b);
                 } else {
-                    if ((_pj.in_es6(comp, ["!=", "is not"]) || (comp instanceof ast.NotEq))) {
+                    if ((comp.in(["!=", "is not"]) || (comp instanceof ast.NotEq))) {
                         return (a === b);
                     } else {
-                        if ((_pj.in_es6(comp, ["in", "element of"]) || (comp instanceof ast.In))) {
-                            return _pj.in_es6(a, b);
+                        if ((comp.in(["in", "element of"]) || (comp instanceof ast.In))) {
+                            return a.in(b);
                         } else {
-                            if (_pj.in_es6(comp, subtype_words)) {
+                            if (comp.in(subtype_words)) {
                                 return (a.prototype instanceof b);
                             } else {
-                                if (_pj.in_es6(comp, class_words)) {
+                                if (comp.in(class_words)) {
                                     if (((a === b) || (a instanceof b))) {
                                         return true;
                                     }
@@ -3888,7 +3895,7 @@ function do_compare(a, comp, b) {
                                         if ((((((comp === "not equal") || (comp === "not the same")) || (comp === "different")) || (comp === "!=")) || (comp === "\u2260"))) {
                                             return (a !== b);
                                         } else {
-                                            if (((_pj.in_es6(comp, be_words) || ((comp instanceof ast.Eq) || (comp instanceof kast.Eq))) || _pj.in_es6("same", comp))) {
+                                            if (((comp.in(be_words) || ((comp instanceof ast.Eq) || (comp instanceof kast.Eq))) || "same".in(comp))) {
                                                 return ((a === b) || ((b instanceof type) && (a instanceof b)));
                                             } else {
                                                 try {
@@ -3917,7 +3924,7 @@ function drop_plural(x) {
 }
 
 function liste_selector() {
-    var typ, xs;
+    let typ, xs;
     if (context.in_list) {
         return false;
     }
@@ -3940,7 +3947,7 @@ function liste_selector() {
 }
 
 function selectable() {
-    var s, xs;
+    let s, xs;
     must_contain(["that", "whose", "which"]);
     maybe_tokens(["every", "all", "those"]);
     xs = (do_evaluate(known_variable()) || endNoun());
@@ -3952,7 +3959,7 @@ function selectable() {
 }
 
 function filters(liste, criterion) {
-    var args, method, mylist;
+    let args, method, mylist;
     if ((!criterion)) {
         return liste;
     }
@@ -3970,7 +3977,7 @@ function filters(liste, criterion) {
 }
 
 function ranger(a = null) {
-    var b;
+    let b;
     if ((context.in_params || context.in_args)) {
         return false;
     }
@@ -3986,7 +3993,7 @@ function ranger(a = null) {
 }
 
 function endNode() {
-    var po, x;
+    let po, x;
     raiseEnd();
     x = (((((((((((((((((maybe(liste) || maybe(fileName)) || maybe(linuxPath)) || maybe(quote)) || maybe(regexp)) || maybe(() => {
         return (maybe(article) && typeNameMapped());
@@ -3999,7 +4006,7 @@ function endNode() {
 }
 
 function endNoun(included = null) {
-    var adjs, obj;
+    let adjs, obj;
     if ((!included)) {
         included = [];
     }
@@ -4068,7 +4075,7 @@ function english_to_math(s) {
 }
 
 function evaluate_index(obj = null) {
-    var index, set, va;
+    let index, set, va;
     if ((!obj)) {
         should_not_start_with("[");
         must_contain(["[", "]"]);
@@ -4106,7 +4113,7 @@ function evaluate_index(obj = null) {
 }
 
 function evaluate_property(x = null) {
-    var y;
+    let y;
     maybe_token("all");
     must_contain_before(["of", "in", "."], "(");
     x = (x || endNoun({
@@ -4130,13 +4137,13 @@ function evaluate_property(x = null) {
 }
 
 function jeannie(request) {
-    var jeannie_api, params;
+    let jeannie_api, params;
     jeannie_api = "https://weannie.pannous.com/api";
     params = "login=test-user&out=simple&input=";
 }
 
 function evaluate() {
-    var the_expression;
+    let the_expression;
     tokens(eval_keywords);
     no_rollback();
     the_expression = rest_of_line;
@@ -4176,10 +4183,10 @@ function nonzero() {
     return tokens(nonzero_keywords);
 }
 
-function wordnet_is_adverb() {}
+function wordnet_is_adverb() { }
 
 function adverb() {
-    var found_adverb;
+    let found_adverb;
     no_keyword_except(adverbs);
     found_adverb = maybe_tokens(adverbs);
     if ((!found_adverb)) {
@@ -4189,7 +4196,7 @@ function adverb() {
 }
 
 function verb() {
-    var found_verb;
+    let found_verb;
     no_keyword_except(remove_from_list(system_verbs, be_words));
     found_verb = maybe_tokens(((list(((other_verbs + system_verbs) + the.verbs)) - be_words) - ["do"]));
     if ((!found_verb)) {
@@ -4219,7 +4226,7 @@ function quote() {
 
 function maybe_param(method, classOrModule) {
     // import * as inspect from 'inspect';
-    var args, defaults, param, varargs, varkw;
+    let args, defaults, param, varargs, varkw;
     param = maybe(true_param);
     if (param) {
         return (param.value || param);
@@ -4231,7 +4238,7 @@ function maybe_param(method, classOrModule) {
 }
 
 function true_param() {
-    var v, vars;
+    let v, vars;
     vars = list(the.params.keys());
     if ((vars.length === 0)) {
         throw new NotMatching();
@@ -4242,7 +4249,7 @@ function true_param() {
 }
 
 function known_variable(node = true) {
-    var v, v0, vars;
+    let v, v0, vars;
     vars = list(the.variables.keys());
     if ((vars.length === 0)) {
         throw new NotMatching();
@@ -4256,7 +4263,7 @@ function known_variable(node = true) {
 }
 
 function noun(include = []) {
-    var a;
+    let a;
     a = maybe_tokens(articles);
     if ((!a)) {
         should_not_start_with((list(keywords) - include));
@@ -4264,7 +4271,7 @@ function noun(include = []) {
     if ((!context.use_wordnet)) {
         return word(include);
     }
-    if (_pj.in_es6(the.current_word, the.nouns)) {
+    if (the.current_word.in(the.nouns)) {
         return the.current_word;
     }
     raise_not_matching("noun");
@@ -4283,7 +4290,7 @@ function the() {
 }
 
 function fileName() {
-    var match, path;
+    let match, path;
     raiseEnd();
     match = is_file(the.string, false);
     if (match) {
@@ -4298,7 +4305,7 @@ function fileName() {
 }
 
 function linuxPath() {
-    var match, path;
+    let match, path;
     raiseEnd();
     match = match_path(the.string);
     if (match) {
@@ -4317,7 +4324,7 @@ function loops() {
 }
 
 function repeat_with() {
-    var b, c, v;
+    let b, c, v;
     (maybe_token("for") || (_("repeat") && _("with")));
     no_rollback();
     v = variable();
@@ -4325,7 +4332,7 @@ function repeat_with() {
     c = collection();
     b = action_or_block();
     if (interpreting()) {
-        for (var i, _pj_c = 0, _pj_a = c, _pj_b = _pj_a.length;
+        for (let i, _pj_c = 0, _pj_a = c, _pj_b = _pj_a.length;
             (_pj_c < _pj_b); _pj_c += 1) {
             i = _pj_a[_pj_c];
             do_execute_block(b, {
@@ -4342,7 +4349,7 @@ function repeat_with() {
 }
 
 function while_loop() {
-    var b, c, r;
+    let b, c, r;
     maybe_tokens(["repeat"]);
     tokens(["while", "as long as"]);
     no_rollback();
@@ -4368,7 +4375,7 @@ function while_loop() {
 }
 
 function until_loop() {
-    var b, c, r;
+    let b, c, r;
     maybe_tokens(["repeat"]);
     tokens(["until", "as long as"]);
     dont_interpret();
@@ -4386,7 +4393,7 @@ function until_loop() {
 }
 
 function repeat_every_times() {
-    var interval;
+    let interval;
     must_contain(time_words);
     dont_interpret();
     maybe_tokens(["repeat"]);
@@ -4395,7 +4402,7 @@ function repeat_every_times() {
 }
 
 function repeat_action_while() {
-    var b, c;
+    let b, c;
     _("repeat");
     if (re.search("\\s*while", the.current_word)) {
         raise_not_matching("repeat_action_while != repeat_while_action", the.string);
@@ -4416,7 +4423,7 @@ function repeat_action_while() {
 }
 
 function looped_action() {
-    var a, c, r;
+    let a, c, r;
     must_not_start_with("while");
     must_contain(["as long as", "while"]);
     dont_interpret();
@@ -4437,7 +4444,7 @@ function looped_action() {
 }
 
 function looped_action_until() {
-    var a, b, c, r;
+    let a, b, c, r;
     must_contain("until");
     b = maybe_tokens(["do", "repeat"]);
     dont_interpret();
@@ -4461,7 +4468,7 @@ function is_number(n) {
 }
 
 function action_n_times(a = null) {
-    var n;
+    let n;
     must_contain("times");
     dont_interpret();
     maybe_tokens(["do"]);
@@ -4480,7 +4487,7 @@ function action_n_times(a = null) {
 }
 
 function n_times_action() {
-    var a, n;
+    let a, n;
     must_contain("times");
     n = number();
     _("times");
@@ -4497,7 +4504,7 @@ function n_times_action() {
 }
 
 function repeat_n_times() {
-    var b, n;
+    let b, n;
     _("repeat");
     n = number();
     _("times");
@@ -4527,7 +4534,7 @@ function forever(a = null) {
 }
 
 function as_long_condition_block() {
-    var a, c;
+    let a, c;
     _("as long as");
     c = condition();
     if ((!c)) {
@@ -4548,8 +4555,8 @@ function ruby_action() {
 
 function start_shell(args = []) {
     // import * as readline from 'readline';
-    var home, input0, interpretation;
-    context._debug = (context._debug || _pj.in_es6("ANGLE_DEBUG", os.environ));
+    let home, input0, interpretation;
+    context._debug = (context._debug || "ANGLE_DEBUG".in(os.environ));
     home = expanduser("~");
     readline.read_history_file((home + "/.english_history"));
     if ((args.length > 1)) {
@@ -4566,7 +4573,7 @@ function start_shell(args = []) {
             }
             console.log(interpretation.result);
         } catch (e) {
-            if ((e instanceof IgnoreException)) {} else {
+            if ((e instanceof IgnoreException)) { } else {
                 if ((e instanceof NotMatching)) {
                     console.log("Syntax Error");
                 } else {
@@ -4593,7 +4600,7 @@ function start_shell(args = []) {
 }
 
 function main() {
-    var ARGV, a, interpretation, target_file;
+    let ARGV, a, interpretation, target_file;
     the._verbose = false;
     ARGV = process.argv;
     context.home = process.env["ANGLE_HOME"];
@@ -4607,10 +4614,10 @@ function main() {
     }
     a = ARGV[1].toString();
     console.log((">>> %s" % a));
-    if ((((a === "--version") || (a === "-version")) || (a === "-v"))) {
-        console.log(the.version);
-        return;
-    }
+    if (a === "--version" || a === "-version" || a === "-v") {
+    console.log(the.version);
+    return;
+}
     if ((a === "--verbose")) {
         context._verbose = true;
     }
@@ -4634,6 +4641,8 @@ function main() {
 
         } else if ((e instanceof GivingUp)) {
             console.log("Syntax Error");
+        // } else if ((e instanceof EndOfDocument)) {
+        //     console.log("EndOfDocument??")
         } else {
             throw e;
         }
@@ -4641,11 +4650,11 @@ function main() {
     console.log("");
 }
 
-main();
+// main("test/");
 english_parser_imported = true;
 context.starttokens_done = true;
 
 //# sourceMappingURL=english_parser.js.map
 module.exports = {
     interpretation: interpretation
-}
+};

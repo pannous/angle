@@ -1,4 +1,6 @@
 *.pyc
+.AppleDouble
+.*/.AppleDouble
 .coverage
 tests/emitted.py
 intellij-angle-plugin
@@ -33,3 +35,6 @@ tox.ini
 upload_to_pip.shWISHLIST.txt
 WISHLIST.txt
 upload_to_pip.sh
+package-lock.json
+node_modules/
+.idea/
