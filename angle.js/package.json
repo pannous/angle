@@ -1,0 +1,30 @@
+{
+    "name": "angle",
+    "version": "1.0.12",
+    "description": "angle programming language",
+    "main": "english_parser.js",
+    "scripts": {
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pannous/angle.git"
+    },
+    "keywords": [
+        "angle",
+        "programming",
+        "language"
+    ],
+    "author": "Pannous <info@pannous.com> (http://pannous.com)",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/pannous/angle/issues"
+    },
+    "homepage": "https://github.com/pannous/angle#readme",
+    "dependencies": {
+        "json5": "",
+        "sync-request": "",
+        "node-fetch":"",
+        "request":"",
+        "fs-readfile-promise":""
+    }
+}
