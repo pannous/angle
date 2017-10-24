@@ -110,9 +110,7 @@ remove_hash = {};
 function remove_from_list(keywords0, excepty) {
 	let good;
 	good = list(keywords0);
-	for (let x, _pj_c = 0, _pj_a = excepty, _pj_b = _pj_a.length;
-	     (_pj_c < _pj_b); _pj_c += 1) {
-		x = _pj_a[_pj_c];
+	for (let x of excepty) {
 		while (x.in(good)) {
 			good.remove(x);
 		}
@@ -346,43 +344,16 @@ function apply_op(stack, i, op) {
 }
 
 function fold_algebra(stack) {
-	let i, leng, used_ast_operators, used_operators;
-	used_operators = function () {
-		let _pj_a = [],
-			_pj_b = operators;
-		for (let _pj_c = 0, _pj_d = _pj_b.length;
-		     (_pj_c < _pj_d); _pj_c += 1) {
-			let x = _pj_b[_pj_c];
-			if (x.in(stack)) {
-				_pj_a.push(x);
-			}
-		}
-		return _pj_a;
-	}
-		.call(this);
-	used_ast_operators = function () {
-		let _pj_a = [],
-			_pj_b = kast_operator_map.values();
-		for (let _pj_c = 0, _pj_d = _pj_b.length;
-		     (_pj_c < _pj_d); _pj_c += 1) {
-			let x = _pj_b[_pj_c];
-			if (x.in(stack)) {
-				_pj_a.push(x);
-			}
-		}
-		return _pj_a;
-	}
-		.call(this);
-	for (let op, _pj_c = 0, _pj_a = (used_operators + used_ast_operators), _pj_b = _pj_a.length;
-	     (_pj_c < _pj_b); _pj_c += 1) {
-		op = _pj_a[_pj_c];
-		i = 0;
-		leng = stack.length;
-		while (i < stack.length) {
-			if (stack[i] === op) {
-				apply_op(stack, i, op);
-			}
-			i += 1;
+	used_operators=operators.filter(x=>x.in(stack))
+	used_ast_operators=kast_operator_map.values().filter(x=>x.in(stack))
+
+	for(op of used_operators + used_ast_operators) {
+		i = 0
+		leng = len(stack)
+		while(i < len(stack)){
+			if (stack[i] == op)
+				apply_op(stack, i, op)
+			i += 1
 		}
 	}
 	if ((stack.length > 1) && (used_operators.length > 0)) {
@@ -531,19 +502,7 @@ function nth_item(val = 0) {
 		}
 	}
 	if ((l instanceof list) && type.in(type_names)) {
-		l = function () {
-			let _pj_a = [],
-				_pj_b = l;
-			for (let _pj_c = 0, _pj_d = _pj_b.length;
-			     (_pj_c < _pj_d); _pj_c += 1) {
-				let x = _pj_b[_pj_c];
-				if (is_a(x, type)) {
-					_pj_a.push(x);
-				}
-			}
-			return _pj_a;
-		}
-			.call(this);
+		l = l.map(x=>is_a(x, type))
 	}
 	if (n > l.length) {
 		throw new IndexError("%d > %d in %s[%d]" % [n, l.length, l, n]);
@@ -824,9 +783,7 @@ function contains(token) {
 }
 
 function contains_any(tokens) {
-	for (let token, _pj_c = 0, _pj_a = tokens, _pj_b = _pj_a.length;
-	     (_pj_c < _pj_b); _pj_c += 1) {
-		token = _pj_a[_pj_c];
+	for (let token of tokens) {
 		if (token.in(the.current_line)) {
 			return true;
 		}
@@ -1989,12 +1946,8 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 
 function do_get_class_constant(c) {
 	try {
-		for (let module, _pj_c = 0, _pj_a = sys.modules, _pj_b = _pj_a.length;
-		     (_pj_c < _pj_b); _pj_c += 1) {
-			module = _pj_a[_pj_c];
-			if (c in module) {
-				return module[c];
-			}
+		for (let module of sys.modules) {
+			if (c in module) return module[c];
 		}
 	} catch (e) {
 		console.log(e);
@@ -2346,14 +2299,8 @@ function must_not_contain(words, before = ";") {
 	let old;
 	old = the.current_token;
 	words = flatten(words);
-	while (((!checkEndOfLine() && (the.current_word !== ";")) && (the.current_word !== before))) {
-		for (let w, _pj_c = 0, _pj_a = words, _pj_b = _pj_a.length;
-		     (_pj_c < _pj_b); _pj_c += 1) {
-			w = _pj_a[_pj_c];
-			if (w === the.current_word) {
-				throw new MustNotMatchKeyword(w);
-			}
-		}
+	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
+		for (let w of words) if (w == the.current_word) throw new MustNotMatchKeyword(w);
 		next_token();
 	}
 	set_token(old);
@@ -2659,9 +2606,7 @@ function check_list_condition(quantifier, left, comp, right) {
 	try {
 		count = 0;
 		comp = comp.strip();
-		for (let item, _pj_c = 0, _pj_a = left, _pj_b = _pj_a.length;
-		     (_pj_c < _pj_b); _pj_c += 1) {
-			item = _pj_a[_pj_c];
+		for (let item of left) {
 			if (is_comparator(comp)) {
 				the.result = do_compare(item, comp, right);
 			}
@@ -3162,17 +3107,7 @@ function do_evaluate_property(attr, node) {
 		return get_class(node);
 	}
 	if (node instanceof list) {
-		return function () {
-			let _pj_a = [],
-				_pj_b = node;
-			for (let _pj_c = 0, _pj_d = _pj_b.length;
-			     (_pj_c < _pj_d); _pj_c += 1) {
-				let x = _pj_b[_pj_c];
-				_pj_a.push(do_evaluate_property(attr, x));
-			}
-			return _pj_a;
-		}
-			.call(this);
+		return node.map(x => do_evaluate_property(attr, x))
 	}
 	if (attr instanceof _ast.AST) {
 		return todo("do_evaluate_property");
@@ -3561,9 +3496,7 @@ function align_function_args(args, clazz, method) {
 	if (!((args instanceof dict) || (args instanceof list))) {
 		args = [args];
 	}
-	for (let param, _pj_c = 0, _pj_a = method.arguments, _pj_b = _pj_a.length;
-	     (_pj_c < _pj_b); _pj_c += 1) {
-		param = _pj_a[_pj_c];
+	for (let param of method.arguments) {
 		if (args instanceof dict) {
 			if (param.name.in(args)) {
 				param.value = args[param.name];
@@ -3637,8 +3570,7 @@ function align_args(args, clazz, method) {
 			}
 		}
 		if (method instanceof FunctionDef) {
-			for (let i = 0, _pj_a = expect;
-			     (i < _pj_a); i += 1) {
+			for (let i = 0; i < expect; i += 1) {
 				aa = method.args[i];
 				if (aa instanceof Argument) {
 					if (aa.name.in(args)) {
@@ -3956,9 +3888,24 @@ function ranger(a = null) {
 function endNode() {
 	let po, x;
 	raiseEnd();
-	x = ((((((((((((((((maybe(liste) || maybe(fileName) || maybe(linuxPath)) || maybe(quote)) || maybe(regexp)) || maybe(() => {
-		return (maybe(article) && typeNameMapped());
-	})) || maybe(simpleProperty)) || maybe(evaluate_property)) || maybe(selectable)) || maybe(liste_selector)) || maybe(known_variable)) || (maybe(article) && word())) || maybe(ranger)) || maybe(value)) || maybe(typeNameMapped)) || maybe(variable)) || maybe_token("a")) || raise_not_matching("Not an endNode"));
+	x = maybe(liste) ||
+		maybe(fileName) ||
+		maybe(linuxPath) ||
+		maybe(quote) ||
+		maybe(regexp) ||
+		maybe(() => maybe(article) && typeNameMapped()) ||
+		maybe(simpleProperty) ||
+		maybe(evaluate_property) ||
+		maybe(selectable) ||
+		maybe(liste_selector) ||
+		maybe(known_variable) ||
+		maybe(article) && word() ||
+		maybe(ranger) ||
+		maybe(value) ||
+		maybe(typeNameMapped) ||
+		maybe(variable) ||
+		maybe_token("a") ||
+		raise_not_matching("Not an endNode");
 	po = maybe(postjective);
 	if (po && interpreting()) {
 		x = do_call(x, po, null);
@@ -4293,21 +4240,14 @@ function loops() {
 }
 
 function repeat_with() {
-	let b, c, v;
 	(maybe_token("for") || (_("repeat") && _("with")));
 	no_rollback();
-	v = variable();
+	let v = variable();
 	_("in");
-	c = collection();
-	b = action_or_block();
+	let c = collection();
+	let b = action_or_block();
 	if (interpreting()) {
-		for (let i, _pj_c = 0, _pj_a = c, _pj_b = _pj_a.length;
-		     (_pj_c < _pj_b); _pj_c += 1) {
-			i = _pj_a[_pj_c];
-			do_execute_block(b, {
-				v: i
-			});
-		}
+		c.map(i=>do_execute_block(b,i))
 		return the.result;
 	}
 	return new kast.For({
@@ -4318,18 +4258,17 @@ function repeat_with() {
 }
 
 function while_loop() {
-	let b, c, r;
 	maybe_tokens(["repeat"]);
 	tokens(["while", "as long as"]);
 	no_rollback();
 	dont_interpret();
-	c = condition();
+	let c = condition();
 	allow_rollback();
 	maybe_tokens(["repeat"]);
 	maybe_tokens(["then"]);
 	dont_interpret();
-	b = action_or_block();
-	r = false;
+	let b = action_or_block();
+	let r = false;
 	adjust_interpret();
 	if (!interpreting()) {
 		return new kast.While({
@@ -4344,15 +4283,14 @@ function while_loop() {
 }
 
 function until_loop() {
-	let b, c, r;
 	maybe_tokens(["repeat"]);
 	tokens(["until", "as long as"]);
 	dont_interpret();
 	no_rollback();
-	c = condition();
+	let c = condition();
 	maybe_tokens(["repeat"]);
-	b = action_or_block();
-	r = false;
+	let b = action_or_block();
+	let r = false;
 	if (interpreting()) {
 		while (!check_condition(c)) {
 			r = do_execute_block(b);
@@ -4362,12 +4300,11 @@ function until_loop() {
 }
 
 function repeat_every_times() {
-	let interval;
 	must_contain(time_words);
 	dont_interpret();
 	maybe_tokens(["repeat"]);
 	action_or_block();
-	interval = datetime();
+	let interval = datetime();
 }
 
 function repeat_action_while() {
