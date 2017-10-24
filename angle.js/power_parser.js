@@ -480,8 +480,8 @@ must_contain_before_old = function (before, ...args) {
 		before = (flatten(before) + [";"]);
 	}
 	for (let x of flatten(args)) {
-		if ( x.match(/^\s*\w+\s*$/i)) {
-			good = (good ||  the.string.match("[^\w]%s[^\w]".format(x)))
+		if (x.match(/^\s*\w+\s*$/i)) {
+			good = (good || the.string.match("[^\w]%s[^\w]".format(x)))
 			if (Object.getPrototypeOf(good).__name__ === "SRE_Match") {
 				good = good.start();
 			}
@@ -489,7 +489,7 @@ must_contain_before_old = function (before, ...args) {
 				good = null;
 			}
 		} else {
-			good = (good ||  the.string).match(escape_token(x))
+			good = (good || the.string).match(escape_token(x))
 			if (Object.getPrototypeOf(good).__name__ === "SRE_Match") {
 				good = good.start();
 			}
@@ -565,7 +565,7 @@ lastmaybe = (stack) => {
 	let s, c = 0;
 	const a = stack, b = a.length;
 	for (let s of a) {
-		if ( s.match(/try/i)) return s;
+		if (s.match(/try/i)) return s;
 	}
 }
 
@@ -818,36 +818,40 @@ maybe = (expr) => {
 		last_node = current_node;
 		return result;
 	} catch (e) {
-		if (e instanceof EndOfLine) {
-			// todo(NotMatching);
-			verbose("Tried %d '%s' as %s, got %s".format(the.current_offset, the.current_word, expr.name, e.stack));
-			adjust_interpret();
-			cc = caller_depth();
-			rb = the.no_rollback_depth;
-			if (cc >= rb) {
+		switch (e.constructor) {
+			case NotMatching:
+				break; /*maybe: all good depth = (depth - 1) in FINALLY!*/
+			case EndOfDocument:
 				set_token(old);
-				current_value = null;
-			}
-			if (cc < rb) {
-				error("NO ROLLBACK, GIVING UP!!!");
-				ex = new GivingUp((((e.toString() + "\n") + to_source(expr) + "\n") + pointer_string()));
-				throw ex;
-			}
-		} else if (e instanceof EndOfDocument) {
-			set_token(old);
-			verbose("EndOfDocument");
-			return false;
-		} else {
-			if (e instanceof IgnoreException) {
+				verbose("EndOfDocument");
+				return false;
+			case EndOfLine:
+				verbose("Tried %d '%s' as %s, got %s".format(the.current_offset, the.current_word, expr.name, e.stack));
+				adjust_interpret();
+				cc = caller_depth();
+				rb = the.no_rollback_depth;
+				if (cc >= rb) {
+					set_token(old);
+					current_value = null;
+				}
+				if (cc < rb) {
+					error("NO ROLLBACK, GIVING UP!!!");
+					ex = new GivingUp((((e.toString() + "\n") + to_source(expr) + "\n") + pointer_string()));
+					throw ex;
+				}
+				break;
+			case IgnoreException:
 				set_token(old);
-				error(e);
+				// error(e);
 				verbose(e);
-			} else {
+				break;
+			default:
 				error(e);
 				throw e;
-			}
 		}
 	} finally {
+		// 			NotMatching
+
 		depth = (depth - 1);
 	}
 	adjust_rollback();
@@ -1069,7 +1073,7 @@ NLs = () => tokens("\n", "\r");
 
 rest_of_statement = () => {
 	let current_value;
-	current_value =  the.string[1].strip.match(/(.*?)([\r\n;]|done)/i)
+	current_value = the.string[1].strip.match(/(.*?)([\r\n;]|done)/i)
 	the.string = the.string.slice(current_value.length, (-1));
 	return current_value;
 }
@@ -1155,9 +1159,9 @@ ZERO = "0";
 
 integer = () => {
 	let current_value, match;
-	match =  the.string.match(/^\s*(-?\d+)/i)
+	match = the.string.match(/^\s*(-?\d+)/i)
 	if (match) {
-		current_value = parseInt(match.groups()[0]);
+		current_value = parseInt(match[0]);
 		next_token(false);
 		if (context.use_tree) {
 			return new kast.Num(current_value);
@@ -1172,7 +1176,7 @@ integer = () => {
 
 real = () => {
 	let current_value, match;
-	match =  the.string.match(/^\s*(-?\d*\\.\d+)/i)
+	match = the.string.match(/^\s*(-?\d*\\.\d+)/i)
 	if (match) {
 		current_value = parseFloat(match.groups()[0]);
 		next_token(false);
@@ -1184,15 +1188,15 @@ real = () => {
 complex = () => {
 	let match, s;
 	s = the.string.strip().replace("i", "j");
-	match =  s.match(/^(\d+j)/i)
+	match = s.match(/^(\d+j)/i)
 	if (!match) {
-		match =  s.match(/^(\d*\\.\d+j)/i)
+		match = s.match(/^(\d*\\.\d+j)/i)
 	}
 	if (!match) {
-		match =  s.match(/^(\d+\s*\\+\s*\d+j)/i)
+		match = s.match(/^(\d+\s*\\+\s*\d+j)/i)
 	}
 	if (!match) {
-		match =  s.match(/^(\d*\\.\d+\s*\\+\s*\d*\\.\d+j)/i)
+		match = s.match(/^(\d*\\.\d+\s*\\+\s*\d*\\.\d+j)/i)
 	}
 	if (match) {
 		the.current_value = complex(match[0].groups());
@@ -1235,7 +1239,7 @@ load_module_methods = () => {
 	the.moduleMethods = pickle.load(open(context.home + "/data/module_methods.bin"), "rb");
 	the.moduleNames = pickle.load(open(context.home + "/data/module_names.bin"), "rb");
 	the.moduleClasses = pickle.load(open(context.home + "/data/module_classes.bin"), "rb");
-	for (let [mo,mes] of the.moduleMethods.items()) {
+	for (let [mo, mes] of the.moduleMethods.items()) {
 		if (!method_allowed(mo)) {
 			continue;
 		}
@@ -1246,7 +1250,7 @@ load_module_methods = () => {
 			}
 		}
 	}
-	for (let [mo,cls] of the.moduleClasses.items()) {
+	for (let [mo, cls] of the.moduleClasses.items()) {
 		for (let meth of cls) {
 			if (method_allowed(meth)) {
 				the.method_token_map[meth] = english_parser.method_call;

@@ -378,7 +378,7 @@ function algebra(val = null) {
 	stack.append(val);
 
 	function lamb() {
-		let n, op, y;
+		let neg, op, va;
 		if (the.current_word.in(be_words) && context.in_args) {
 			return false;
 		}
@@ -386,17 +386,17 @@ function algebra(val = null) {
 		if (op === "=") {
 			throw NotMatching;
 		}
-		n = maybe_token("not");
-		y = (maybe(value) || maybe(bracelet));
+		neg = maybe_token("not");
+		va = (maybe(value) || maybe(bracelet));
 		context.in_algebra = true;
-		y = (y || expression());
-		if (y === ZERO) {
-			y = 0;
+		va = (va || expression());
+		if (va === ZERO) {
+			va = 0;
 		}
 		stack.append(op);
-		(n ? stack.append(n) : 0);
-		stack.append(y);
-		return (y || true);
+		(neg ? stack.append(neg) : 0);
+		stack.append(va);
+		return (va || true);
 	}
 
 	star(lamb);
@@ -409,8 +409,7 @@ function algebra(val = null) {
 }
 
 function read_block(type = null) {
-	let block;
-	block = [];
+	let block = [];
 	_(type);
 	while (true) {
 		if (maybe(() => {
@@ -4433,6 +4432,7 @@ function forever(a = null) {
 	a = (a || action());
 	_("forever");
 	if (interpreting()) {
+		// noinspection InfiniteLoopJS
 		while (true) {
 			do_execute_block(a);
 		}
@@ -4470,12 +4470,13 @@ function start_shell(args = []) {
 	} else {
 		input0 = real_raw_input("\u29a0 ");
 	}
+	// noinspection InfiniteLoopJS
 	while (true) {
 		readline.write_history_file(home + "/.english_history");
 		try {
 			interpretation = parse(input0, null);
 			if (!interpretation) {
-				next;
+				continue
 			}
 			console.log(interpretation.result);
 		} catch (e) {
