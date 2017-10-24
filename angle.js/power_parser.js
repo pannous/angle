@@ -280,7 +280,7 @@ parse_tokens = (s) => {
 		if (line !== line0) console.log("line!=line0", line, line0)
 		let token = [_token.UNKNOWN, val, [line_nr, index], end_row_col, line, the.tokenstream.length]
 		token_indices[index] = token
-		console.log(token)
+		// console.log(token)
 		the.tokenstream.push(token);
 		// return true
 		return false
@@ -295,7 +295,7 @@ parse_tokens = (s) => {
 		if (length == 0) return
 		the.tokenstream[length - 1][0] = type;
 		the.tokenstream[length - 1][1] = value;
-		console.log(type, value, strange_number, matches)
+		// console.log(type, value, strange_number, matches)
 	}
 
 	s = s.replace("\u29a0", "");
@@ -742,39 +742,39 @@ block = function (multiple = false) {
 	statement0 = statement(false);
 	statements = (statement0 ? [statement0] : []);
 	end_of_block = maybe(end_block);
-	while ((multiple || (!end_of_block) && (!checkEndOfFile()))) {
-		end_of_statement();
-		no_rollback();
-		if (multiple) {
-			maybe_newline();
-		}
-
-		lamb = () => {
-			let s;
-			try {
-				maybe_indent();
-				s = statement();
-				statements.append(s);
-			} catch (e) {
-				if (e instanceof NotMatching) {
-					if (starts_with(done_words) || checkNewline()) {
-						return false;
-					}
-					console.log("Giving up block");
-					print_pointer(true);
-					throw new Error(e.toString() + "\nGiving up block\n") + pointer_string();
-				} else {
-					throw e;
-				}
-			}
-			return end_of_statement();
-		}
-		star(lamb, /*giveUp:*/ true);
-		end_of_block = end_block();
-		if (!multiple) {
-			break;
-		}
+	while ((multiple || !end_of_block) && !checkEndOfFile()) {
+	end_of_statement();
+	no_rollback();
+	if (multiple) {
+		maybe_newline();
 	}
+
+	lamb = () => {
+		let s;
+		try {
+			maybe_indent();
+			s = statement();
+			statements.append(s);
+		} catch (e) {
+			if (e instanceof NotMatching) {
+				if (starts_with(done_words) || checkNewline()) {
+					return false;
+				}
+				console.log("Giving up block");
+				print_pointer(true);
+				throw new Error(e.toString() + "\nGiving up block\n") + pointer_string();
+			} else {
+				throw e;
+			}
+		}
+		return end_of_statement();
+	}
+	star(lamb, /*giveUp:*/ true);
+	end_of_block = end_block();
+	if (!multiple) {
+		break;
+	}
+}
 	the.last_result = the.result;
 	if (interpreting()) {
 		return statements.slice(-1)[0];
@@ -915,6 +915,7 @@ parse = parse = function (s, target_file = null) {
 	if (!s) {
 		return;
 	}
+	if(is_array(s))s=" ".join(s) // Todo
 	if (s instanceof File) {
 		source_file = s.name;
 		s = s.readlines();
@@ -951,23 +952,17 @@ parse = parse = function (s, target_file = null) {
 		init(s);
 		the.result = rooty();
 		// the.result = english_parser.rooty();
-		if (the.result instanceof FunctionCall) {
+		if (the.result instanceof nodes.FunctionCall) {
 			the.result = english_parser.do_execute_block(the.result);
 		}
-		if (the.result.in(["True", "true"])) {
-			the.result = true;
-		}
-		if (the.result.in(["False", "false"])) {
-			the.result = false;
-		}
-		if (the.result instanceof Variable) {
-			the.result = the.result.value;
-		}
+		if (the.result=="True" || the.result== "true") the.result = true;
+		if (the.result=="False" || the.result== "false") the.result = false;
+		if (the.result instanceof Variable) the.result = the.result.value;
 		// import * as ast from 'ast';
-		got_ast = (the.result instanceof ast.AST);
-		if ((the.result instanceof list) && (the.result.length > 0)) {
-			got_ast = (the.result[0] instanceof ast.AST);
-		}
+		// got_ast = (the.result instanceof ast.AST);
+		// if ((the.result instanceof list) && (the.result.length > 0)) {
+		// 	got_ast = (the.result[0] instanceof ast.AST);
+		// }
 		if (context.use_tree && got_ast) {
 			// import * as pyc_emitter from 'pyc_emitter';
 			the.result = pyc_emitter.eval_ast(the.result, {}, source_file, target_file, {
@@ -988,7 +983,7 @@ parse = parse = function (s, target_file = null) {
 		throw e;
 	}
 	verbose("PARSED SUCCESSFULLY!!");
-	return english_parser.interpretation();
+	return interpretation();
 }
 
 token = function (t, expected = "") {

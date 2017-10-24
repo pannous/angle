@@ -47,11 +47,11 @@ class Todo {
 }
 
 function _(x) {
-	return power_parser.token(x);
+	return token(x);
 }
 
 function __(x) {
-	return power_parser.tokens(x);
+	return tokens(x);
 }
 
 function nill() {
@@ -287,8 +287,8 @@ function apply_op(stack, i, op) {
 
 	function replaceI12(stack, result0) {
 		result = result0;
-		stack[(i - 1)] = [result];
-		delete stack[i + 1];
+		stack[i + 1] = result;
+		delete stack[i - 1];
 		delete stack[i]
 	}
 
@@ -324,17 +324,17 @@ function fold_algebra(stack) {
 	used_ast_operators = Object.values(kast_operator_map).filter(x => stack.has(x))
 	for (op of used_operators.plus(used_ast_operators)) {
 		i = 0
-		leng = len(stack)
-		while (i < len(stack)) {
-			if (stack[i] === op)
+		while (i < stack.length) {
+			if (stack[i] == op)
 				apply_op(stack, i, op)
 			i += 1
 		}
 	}
+	stack=Array(stack)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
 		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s" % [stack, used_operators]);
 	}
-	return stack[0];
+	return stack[0]
 }
 
 function algebra(val = null) {
@@ -3224,8 +3224,8 @@ function do_math(a, op, b) {
 	if(op === 'bigger') return a > b
 	if(op === '<=') return a <= b
 	if(op === '>=') return a >= b
-	if(op === '==') return a === b
-	if(op === '=') return a === b
+	if(op === '==') return a == b
+	if(op === '=') return a == b
 	if(op === '~') return regex_match(a, b)
 	if(op === '~=') return regex_match(a, b)
 	if(op === '=~') return regex_match(a, b)
@@ -3233,16 +3233,17 @@ function do_math(a, op, b) {
 	if(op === 'is') return a === b  // NOT the same as python a is b)
 	if(op === 'be') return a === b
 	if(op === 'equal to') return a === b
-	if(op === '===') return a === b
 	if(op === 'is identical') return a === b  // python ===
 	if(op === 'is exactly') return a === b
 	if(op === 'same as') return a === b  // weaker than 'exactly'!
 	if(op === 'the same as') return a === b
 	if(op === 'equals') return a === b
-	if(op === '!=') return a !== b
-	if(op === '≠') return a !== b
+	if(op === '!=') return a != b
+	if(op === '≠') return a != b
 	if(op === 'is not') return a !== b
 	if(op === 'isn\'t') return a !== b
+	if(op === '===') return a === b
+	if(op === '!==') return a !== b
 	if(op in class_words) return isinstance(a, b) || is_a(a, b)
 	if(op in subtype_words) return issubclass(a, b) || is_(a, b)
 
@@ -4267,63 +4268,74 @@ function ruby_action() {
 	_("ruby");
 	exec(action || quote);
 }
-
-function start_shell(args = []) {
-	// import * as readline from 'readline';
-	let home, input0, interpretation;
-	context._debug = (context._debug || "ANGLE_DEBUG".in(os.environ));
-	home = expanduser("~");
-	readline.read_history_file(home + "/.english_history");
-	if (args.length > 1) {
-		input0 = " ".join(args);
-	} else {
-		input0 = real_raw_input("\u29a0 ");
+async function real_raw_input() {
+	try{
+		return await input.question("\u29a0 ").then(console.log).catch(console.log)
+	}catch(ex){
+	console.error(ex)
 	}
-	// noinspection InfiniteLoopJS
-	while (true) {
-		readline.write_history_file(home + "/.english_history");
+	return 0
+}
+async function ask(rl) {
+	return new Promise((resolve, reject) =>
+	rl.question('⦠ ', input0 => {
+		// readline.write_history_file(home + "/.english_history");
 		try {
-			interpretation = parse(input0, null);
-			if (!interpretation) {
-				continue
+			result = parse(input0, null).result;
+			// result = new Array(result )[0]
+			result = result[2]
+			if (!result ) {
+				reject()
+				return
 			}
-			console.log(interpretation.result);
+			console.log(result);
+			resolve()
 		} catch (e) {
-			if (e instanceof IgnoreException) {
-			} else {
-				if (e instanceof NotMatching) {
+			switch (e.constructor) {
+				case NotMatching:
+				case GivingUp:
+				// case NameError:
+				case SyntaxError:
 					console.log("Syntax Error");
-				} else {
-					if (e instanceof GivingUp) {
-						console.log("Syntax Error");
-					} else {
-						if (e instanceof NameError) {
-							console.log("Name Error");
-						} else {
-							if (e instanceof SyntaxError) {
-								console.log("Syntax Error");
-							} else {
-								throw e;
-							}
-						}
-					}
-				}
+				case IgnoreException:
+					break
+				default:
+					throw e
 			}
 		}
-		input0 = real_raw_input("\u29a0 ");
+	}))
+}
+
+async function start_shell(args = []) {
+	// process.on('unhandledRejection', () => {console.log("FUCK")});
+	// process.on('rejectionHandled', () => {console.log("FUCK")});
+// import * as readline from 'readline';
+	let home, input0, interpretation;
+	let readline=require('readline')
+	var rl = readline.createInterface({input: process.stdin, output: process.stdout });
+	rl.setPrompt("\u29a0 ")// '⦠ '
+	context._debug = (context._debug || "ANGLE_DEBUG".in(process.env));
+	home = "~" //expanduser("~");
+	// readline.read_history_file(home + "/.english_history");\\
+	while(1){
+		await ask(rl)
 	}
-	console.log("Bye.");
-	exit(1);
+	// console.log("Bye.");
+// exit(1);
+		// process.stdin.on("keypress",console.log)
+
+		// rl.on("line",line=>{
+
 }
 
 setVerbose = (ok = 1) => context._verbose = ok;
 
-function main() {
+main=function () {
 	let ARGV, a, interpretation, target_file;
 	the._verbose = false;
 	ARGV = process.argv;
 	context.home = process.env["ANGLE_HOME"];
-	if (ARGV.length === 1) {
+	if (ARGV.length === 2) {
 		console.log("Angle english programming language v1.2");
 		console.log("usage:");
 		console.log("\t./angle 6 plus six");
@@ -4331,7 +4343,7 @@ function main() {
 		console.log("\t./angle (no args for shell)");
 		return start_shell();
 	}
-	a = ARGV[1].toString();
+	a = ARGV[2].toString();
 	console.log(">>> %s" % a);
 	if (a === "--version" || a === "-version" || a === "-v") {
 		console.log(the.version);
@@ -4374,7 +4386,9 @@ english_parser_imported = true;
 context.starttokens_done = true;
 
 //# sourceMappingURL=english_parser.js.map
-exports = module.exports = {
+module.exports = {
+	main:main,
 	rooty: rooty,
 	interpretation: interpretation
 };
+exports = module.exports

@@ -413,5 +413,6 @@ class Pointer {
 //# sourceMappingURL=nodes.js.map
 module.exports={
     Variable:Variable,
-	Argument:Argument
+	Argument:Argument,
+	FunctionCall:FunctionCall
 }
