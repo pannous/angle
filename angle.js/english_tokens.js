@@ -285,3 +285,22 @@ reductions = {
 };
 
 //# sourceMappingURL=english_tokens.js.map
+
+
+// export
+_token = {
+	NEWLINE:"NEWLINE",
+	ENDMARKER: "ENDMARKER",
+	NUMBER: "NUMBER",
+	STRING: "STRING",
+	COMMENT: "COMMENT",
+	WORD: "WORD",
+	OPERATOR: "OPERATOR",
+	BRACE: "BRACE",
+	UNKNOWN: "UNKNOWN",
+	INDENT: "INDENT",
+	DEDENT: "DEDENT",
+	BLOCK: "BLOCK",
+	KEYWORD: "KEYWORD",
+}
+

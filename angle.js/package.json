@@ -3,8 +3,7 @@
     "version": "1.0.12",
     "description": "angle programming language",
     "main": "english_parser.js",
-    "scripts": {
-    },
+    "scripts": {},
     "repository": {
         "type": "git",
         "url": "git+https://github.com/pannous/angle.git"
@@ -23,8 +22,8 @@
     "dependencies": {
         "json5": "",
         "sync-request": "",
-        "node-fetch":"",
-        "request":"",
-        "fs-readfile-promise":""
+        "node-fetch": "",
+        "request": "",
+        "fs-readfile-promise": ""
     }
 }

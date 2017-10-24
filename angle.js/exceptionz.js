@@ -5,6 +5,7 @@ StandardError = class StandardError extends Error {
     // }
 }
 Exception = StandardError
+IgnoreException = class IgnoreException extends StandardError {}
 InternalError = class InternalError extends StandardError {}
 NoMethodError = class NoMethodError extends StandardError {}
 NotMatching = class NotMatching extends StandardError {}
@@ -56,3 +57,4 @@ exports.WrongType = WrongType
 exports.ImmutableVaribale = ImmutableVaribale
 exports.SystemStackError = SystemStackError
 exports.NotMatching = NotMatching
+exports.IgnoreException = IgnoreException
