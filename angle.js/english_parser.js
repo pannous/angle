@@ -345,9 +345,8 @@ function apply_op(stack, i, op) {
 
 function fold_algebra(stack) {
 	used_operators = operators.filter(x => x.in(stack))
-	used_ast_operators = kast_operator_map.values().filter(x => x.in(stack))
-
-	for (op of used_operators + used_ast_operators) {
+	used_ast_operators = Object.values(kast_operator_map).filter(x => stack.has(x))
+	for (op of used_operators.plus(used_ast_operators)) {
 		i = 0
 		leng = len(stack)
 		while (i < len(stack)) {
@@ -383,9 +382,9 @@ function algebra(val = null) {
 			return false;
 		}
 		op = (maybe(comparation) || operator());
-		if (op === "=") {
-			throw NotMatching;
-		}
+		// if (op === "=") {
+		// 	throw NotMatching;
+		// }
 		neg = maybe_token("not");
 		va = (maybe(value) || maybe(bracelet));
 		context.in_algebra = true;
@@ -1000,7 +999,7 @@ function piped_actions(a = false) {
 	[xmodule, obj, name] = (true_method() || bash_action());
 	args = star(call_arg);
 	context.in_pipe = false;
-	if (name instanceof collections.Callable) {
+	if (name instanceof Function) {
 		args = [args, new Argument({
 			value: a
 		})];
@@ -1449,7 +1448,7 @@ function subProperty(_context) {
 		properties += dir(ext);
 	}
 	property = maybe_tokens(properties);
-	if (!property || (property instanceof collections.Callable) || is_method(property)) {
+	if (!property || (property instanceof Function) || is_method(property)) {
 		return [_context, property];
 	}
 	property = (maybe_token(".") && subProperty(property) || property);
@@ -1477,7 +1476,7 @@ function true_method(obj = null) {
 	} else {
 		if (xvariable) {
 			variable = the.variables[xvariable];
-			if (variable.value instanceof collections.Callable) {
+			if (variable.value instanceof Function) {
 				name = variable.value.__name__;
 			} else {
 				if (!(typeof variable.value === "string" || (variable.value instanceof String))) {
@@ -1783,7 +1782,7 @@ function do_execute_block(b, args = {}) {
 	if (b === true) {
 		return true;
 	}
-	if (b instanceof collections.Callable) {
+	if (b instanceof Function) {
 		return do_call(null, b, args);
 	}
 	if (b instanceof FunctionCall) {
@@ -2562,7 +2561,7 @@ function comparation() {
 	if (context.use_tree) {
 		comp = kast_operator_map[comp];
 	}
-	return comp;
+	return comp
 }
 
 function either_or() {
@@ -3119,10 +3118,7 @@ function do_evaluate(x, _type = null) {
 	if (!x) {
 		return null;
 	}
-	if (x instanceof collections.Callable) {
-		return x;
-	}
-	if (x instanceof type) {
+	if (x instanceof Function) {// and Type !!!
 		return x;
 	}
 	if (x instanceof ast.Num) {
@@ -3408,7 +3404,7 @@ function instance(bounded_method) {
 function findMethod(obj0, method0, args0 = null, bind = true) {
 	let _type, ex, function_, method;
 	method = method0;
-	if (method instanceof collections.Callable) {
+	if (method instanceof Function) {
 		return method;
 	}
 	if (method instanceof FunctionDef) {
@@ -3458,7 +3454,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 		}
 		return method;
 	}
-	if (!(method instanceof collections.Callable) && (args0 instanceof list) && args0.length > 0) {
+	if (!(method instanceof Function) && (args0 instanceof list) && args0.length > 0) {
 		function_ = findMethod((obj0 || args0[0]), method0, args0[0], {
 			bind: false
 		});
@@ -3630,7 +3626,7 @@ function do_call(obj0, method0, args0 = []) {
 	}
 	args = eval_args(args0);
 	method = findMethod(obj0, method0, args);
-	method_name = (method instanceof collections.Callable) && method.__name__ || method0;
+	method_name = (method instanceof Function) && method.__name__ || method0;
 	if (method === "of") {
 		return evaluate_property(args0, obj0);
 	}
@@ -3649,17 +3645,17 @@ function do_call(obj0, method0, args0 = []) {
 		return the.result;
 	}
 	console.log("CALLING %s %s with %s" % [(obj || ""), method, args]);
-	if (!args && !(method instanceof collections.Callable) && method.in(dir(obj))) {
+	if (!args && !(method instanceof Function) && method.in(dir(obj))) {
 		return obj.__getattribute__(method);
 	}
 	try {
-		if ((!(method instanceof collections.Callable) && (args instanceof list))) {
+		if ((!(method instanceof Function) && (args instanceof list))) {
 			function map_list(x) {
 				function_ = findMethod(x, method0, null);
 				if (function_ instanceof FunctionCall) {
 					return pyc_emitter.eval_ast(function_, args);
 				}
-				if (!(function_ instanceof collections.Callable)) {
+				if (!(function_ instanceof Function)) {
 					throw new Error("DONT KNOW how to apply %s to %s" % [method0, args0]);
 				}
 				return function_();
@@ -3673,7 +3669,7 @@ function do_call(obj0, method0, args0 = []) {
 		console.log(e);
 		verbose("CAN'T CALL ARGUMENT WISE");
 	}
-	if (!(method instanceof collections.Callable)) {
+	if (!(method instanceof Function)) {
 		throw new MethodMissingError(Object.getPrototypeOf(obj), method, args);
 	}
 	if (is_math(method_name)) {

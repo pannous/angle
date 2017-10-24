@@ -16,6 +16,8 @@ class Eq {}
 class BitOr {}
 class NotEq {}
 class In {}
+class Num {}
+class Str {}
 // module.exports = [Add]
 module.exports = {
   Add: Add,
@@ -36,5 +38,7 @@ module.exports = {
   GtE: GtE,
   Lt: Lt,
   LtE: LtE,
-  In: In
+  In: In,
+    Num:Num,
+    Str:Str
 }

@@ -90,15 +90,15 @@ class FunctionDef extends kast.FunctionDef {
         this.modifier = null;
         this.arguments = [];
         this.decorators = [];
-        this.scope = (_pj.in_es6("scope", args) ? args["scope"] : null);
-        this.object = (_pj.in_es6("owner", args) ? args["owner"] : null);
-        this.object = (_pj.in_es6("object", args) ? args["object"] : null);
-        this.clazz = (_pj.in_es6("clazz", args) ? args["clazz"] : null);
-        this.modifier = (_pj.in_es6("modifier", args) ? args["modifier"] : null);
-        this.decorators = (_pj.in_es6("decorators", args) ? args["decorators"] : []);
-        this.arguments = (_pj.in_es6("arguments", args) ? args["arguments"] : null);
-        this.arguments = (_pj.in_es6("args", args) ? args["args"] : this.arguments);
-        this.return_type = (_pj.in_es6("return_type", args) ? args["return_type"] : null);
+        this.scope = ( args.has("scope") ? args["scope"] : null);
+        this.object = ( args.has("owner") ? args["owner"] : null);
+        this.object = ( args.has("object") ? args["object"] : null);
+        this.clazz = ( args.has("clazz") ? args["clazz"] : null);
+        this.modifier = ( args.has("modifier") ? args["modifier"] : null);
+        this.decorators = ( args.has("decorators") ? args["decorators"] : []);
+        this.arguments = ( args.has("arguments") ? args["arguments"] : null);
+        this.arguments = ( args.has("args") ? args["args"] : this.arguments);
+        this.return_type = ( args.has("return_type") ? args["return_type"] : null);
         if ((! this.arguments)) {
             this.arguments = [];
         }
@@ -159,19 +159,19 @@ class FunctionCall extends ast.Assign {
         if ((func instanceof FunctionDef)) {
             func = func.name;
         }
-        func = (_pj.in_es6("func", args) ? args["func"] : func);
-        func = (_pj.in_es6("name", args) ? args["name"] : func);
+        func = ( args.has("func") ? args["func"] : func);
+        func = ( args.has("name") ? args["name"] : func);
         this.func = func;
         this.name = func;
-        this.arguments = (_pj.in_es6("arguments", args) ? args["arguments"] : arguments);
+        this.arguments = ( args.has("arguments") ? args["arguments"] : arguments);
         this.object = object;
-        if (_pj.in_es6("scope", args)) {
+        if ( args.has("scope")) {
             this.scope = args["scope"];
         }
-        if (_pj.in_es6("class", args)) {
+        if ( args.has("class")) {
             this.clazz = args["class"];
         }
-        if (_pj.in_es6("module", args)) {
+        if ( args.has("module")) {
             this.clazz = (this.clazz || args["module"]);
         }
         if (((func instanceof str) || (func instanceof extensions.unicode))) {
@@ -188,7 +188,7 @@ class FunctionCall extends ast.Assign {
                 this.arguments = [this.arguments];
             }
         }
-        if (_pj.in_es6("returns", args)) {
+        if ( args.has("returns")) {
             this.returns = this.return_type = args["returns"];
         } else {
             this.returns = this.return_type = this.resolve_return_type();
@@ -221,12 +221,12 @@ class Argument extends kast.arg {
         if ((! args)) {
             args = margs[0];
         }
-        this.name = (_pj.in_es6("name", args) ? args["name"] : null);
-        this.preposition = (_pj.in_es6("preposition", args) ? args["preposition"] : null);
-        this.position = (_pj.in_es6("position", args) ? args["position"] : 0);
-        this.type = (_pj.in_es6("type", args) ? args["type"] : null);
-        this.defaulty = (_pj.in_es6("default", args) ? args["default"] : null);
-        this.value = (_pj.in_es6("value", args) ? args["value"] : null);
+        this.name = ( args.has("name") ? args["name"] : null);
+        this.preposition = ( args.has("preposition") ? args["preposition"] : null);
+        this.position = ( args.has("position") ? args["position"] : 0);
+        this.type = ( args.has("type") ? args["type"] : null);
+        this.defaulty = ( args.has("default") ? args["default"] : null);
+        this.value = ( args.has("value") ? args["value"] : null);
         this.id = this.name;
     }
     __repr__() {
@@ -266,15 +266,15 @@ class Variable extends kast.Name {
             args = margs[0];
         }
         this.name = args["name"];
-        this.ctx = (_pj.in_es6("ctx", args) ? args["ctx"] : new ast.Load());
-        this.value = (_pj.in_es6("value", args) ? args["value"] : null);
-        this.type = (_pj.in_es6("type", args) ? args["type"] : Object.getPrototypeOf(this.value));
-        this.scope = (_pj.in_es6("scope", args) ? args["scope"] : null);
-        this.owner = (_pj.in_es6("owner", args) ? args["owner"] : null);
-        this.owner = (_pj.in_es6("object", args) ? args["object"] : this.owner);
-        this.modifier = (_pj.in_es6("modifier", args) ? args["modifier"] : null);
-        this.finale = _pj.in_es6("final", args);
-        this.typed = _pj.in_es6("typed", args);
+        this.ctx = ( args.has("ctx") ? args["ctx"] : new ast.Load());
+        this.value = ( args.has("value") ? args["value"] : null);
+        this.type = ( args.has("type") ? args["type"] : Object.getPrototypeOf(this.value));
+        this.scope = ( args.has("scope") ? args["scope"] : null);
+        this.owner = ( args.has("owner") ? args["owner"] : null);
+        this.owner = ( args.has("object") ? args["object"] : this.owner);
+        this.modifier = ( args.has("modifier") ? args["modifier"] : null);
+        this.finale =  args.has("final");
+        this.typed =  args.has("typed");
     }
     __repr__() {
         return ("xzcv %s" % this.name).toString();
