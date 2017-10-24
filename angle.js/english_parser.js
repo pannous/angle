@@ -4,7 +4,9 @@ power_parser = require('./power_parser.js');
 extensions = require('./extensions.js')();
 exceptions = require('./exceptionz');
 context = require('./context.js');
-
+nodes = require('./nodes.js')
+Variable=nodes.Variable
+Argument=nodes.Argument
 function get(name) {
 	if (name instanceof Name) {
 		name = name.id;
@@ -3163,12 +3165,12 @@ function do_evaluate(x, _type = null) {
 	if (!interpreting()) {
 		return x;
 	}
-	if (x instanceof kast.AST) {
-		return pyc_emitter.eval_ast([x]);
-	}
-	if ((x instanceof list) && (x[0] instanceof kast.AST)) {
-		return pyc_emitter.eval_ast(x);
-	}
+	// if (x instanceof kast.AST) {
+	// 	return pyc_emitter.eval_ast([x]);
+	// }
+	// if ((x instanceof list) && (x[0] instanceof kast.AST)) {
+	// 	return pyc_emitter.eval_ast(x);
+	// }
 	return x;
 }
 
@@ -3197,192 +3199,79 @@ function do_math(a, op, b) {
 	if (b instanceof Variable) {
 		b = b.value;
 	}
-	a = xx(a);
-	b = xx(b);
-	if (op === "+") {
-		return (a + b);
-	}
-	if (op === "plus") {
-		return (a + b);
-	}
-	if (op === "add") {
-		return (a + b);
-	}
-	if (op === "-") {
-		return (a - b);
-	}
-	if (op === "minus") {
-		return (a - b);
-	}
-	if (op === "substract") {
-		return (a - b);
-	}
-	if (op === "/") {
-		return (a / float_(b));
-	}
-	if (op === "devided") {
-		return (a / float_(b));
-	}
-	if (op === "devided by") {
-		return (a / float_(b));
-	}
-	if (op === "%") {
-		return (a % b);
-	}
-	if (op === "modulo") {
-		return (a % b);
-	}
-	if (op === "*") {
-		return (a * b);
-	}
-	if (op === "times") {
-		return (a * b);
-	}
-	if (op === "multiplied by") {
-		return (a * b);
-	}
-	if (op === "**") {
-		return Math.pow(a, b);
-	}
-	if (op === "to the power of") {
-		return Math.pow(a, b);
-	}
-	if (op === "to the power") {
-		return Math.pow(a, b);
-	}
-	if (op === "to the") {
-		return Math.pow(a, b);
-	}
-	if (op === "power") {
-		return Math.pow(a, b);
-	}
-	if (op === "pow") {
-		return Math.pow(a, b);
-	}
-	if (op === "^^") {
-		return Math.pow(a, b);
-	}
-	if (op === "^") {
-		return Math.pow(a, b);
-	}
-	if (op === "xor") {
-		return (a ^ b);
-	}
-	if (op === "and") {
-		return ((a && b) || FALSE);
-	}
-	if (op === "&&") {
-		return (a && b);
-	}
-	if (op === "but not") {
-		return (a && (!b));
-	}
-	if (op === "nor") {
-		return (!a) && (!b);
-	}
-	if (op === "neither") {
-		return (!a) && (!b);
-	}
-	if (op === "but") {
-		if (a instanceof list) {
-			return a.remove(b);
-		} else {
-			return (a && b);
-		}
-	}
-	if (op === "&") {
-		return (a & b);
-	}
-	if (op === "|") {
-		return (a | b);
-	}
-	if (op === "||") {
-		return (a | b);
-	}
-	if (op === "or") {
-		return (a || b);
-	}
-	if (op === "<") {
-		return (a < b);
-	}
-	if (op === "smaller") {
-		return (a < b);
-	}
-	if (op === ">") {
-		return (a > b);
-	}
-	if (op === "bigger") {
-		return (a > b);
-	}
-	if (op === "<=") {
-		return (a <= b);
-	}
-	if (op === ">=") {
-		return (a >= b);
-	}
-	if (op === "==") {
-		return (a === b);
-	}
-	if (op === "=") {
-		return (a === b);
-	}
-	if (op === "~") {
-		return regex_match(a, b);
-	}
-	if (op === "~=") {
-		return regex_match(a, b);
-	}
-	if (op === "=~") {
-		return regex_match(a, b);
-	}
-	if (op === "~~") {
-		return regex_match(a, b);
-	}
-	if (op === "is") {
-		return (a === b);
-	}
-	if (op === "be") {
-		return (a === b);
-	}
-	if (op === "equal to") {
-		return (a === b);
-	}
-	if (op === "===") {
-		return (a === b);
-	}
-	if (op === "is identical") {
-		return (a === b);
-	}
-	if (op === "is exactly") {
-		return (a === b);
-	}
-	if (op === "same as") {
-		return (a === b);
-	}
-	if (op === "the same as") {
-		return (a === b);
-	}
-	if (op === "equals") {
-		return (a === b);
-	}
-	if (op === "!=") {
-		return (a !== b);
-	}
-	if (op === "\u2260") {
-		return (a !== b);
-	}
-	if (op === "is not") {
-		return (a !== b);
-	}
-	if (op === "isn't") {
-		return (a !== b);
-	}
-	if (op.in(class_words)) {
-		return (a instanceof b) || is_a(a, b);
-	}
-	if (op.in(subtype_words)) {
-		return (a.prototype instanceof b) || is(a, b);
-	}
+
+
+	if(op == '+') return a + b
+	if(op == 'plus') return a + b
+	if(op == 'add') return a + b
+	if(op == '-') return a - b
+	if(op == 'minus') return a - b
+	if(op == 'substract') return a - b
+	if(op == '/') return a / float(b)
+	if(op == 'devided') return a / float(b)
+	if(op == 'devided by') return a / float(b)
+	if(op == '%') return a % b
+	if(op == 'modulo') return a % b
+	if(op == '*') return a * b
+	if(op == 'times') return a * b
+	if(op == 'multiplied by') return a * b
+
+	if(op == '**') return a ** b
+	if(op == 'to the power of') return a ** b
+	if(op == 'to the power') return a ** b
+	if(op == 'to the') return a ** b
+	if(op == 'power') return a ** b
+	if(op == 'pow') return a ** b
+	if(op == '^^') return a ** b
+	if(op == '^') return a ** b
+	// if(op == '^') return a ^ b
+	if(op == 'xor') return a ^ b
+	if(op == 'and') return a && b || FALSE
+	if(op == '&&') return a && b
+	if(op == 'but not')
+		return a && !b
+	if(op == 'nor')
+		return !a && !b
+	if(op == 'neither')
+		return !a && !b
+	if(op == 'but')
+		if(isinstance(a, list))
+			return a.remove(b)
+		else
+			return a && b
+	// if(op == '&') return a and b
+	if(op == '&') return a & b
+	if(op == '|') return a | b
+	if(op == '||') return a | b
+	if(op == 'or') return a || b
+	if(op == '<') return a < b
+	if(op == 'smaller') return a < b
+	if(op == '>') return a > b
+	if(op == 'bigger') return a > b
+	if(op == '<=') return a <= b
+	if(op == '>=') return a >= b
+	if(op == '==') return a == b
+	if(op == '=') return a == b
+	if(op == '~') return regex_match(a, b)
+	if(op == '~=') return regex_match(a, b)
+	if(op == '=~') return regex_match(a, b)
+	if(op == '~~') return regex_match(a, b)
+	if(op == 'is') return a == b  // NOT the same as python a is b)
+	if(op == 'be') return a == b
+	if(op == 'equal to') return a == b
+	if(op == '===') return a === b
+	if(op == 'is identical') return a === b  // python ===
+	if(op == 'is exactly') return a === b
+	if(op == 'same as') return a == b  // weaker than 'exactly'!
+	if(op == 'the same as') return a == b
+	if(op == 'equals') return a == b
+	if(op == '!=') return a != b
+	if(op == '≠') return a != b
+	if(op == 'is not') return a != b
+	if(op == 'isn\'t') return a != b
+	if(op in class_words) return isinstance(a, b) || is_a(a, b)
+	if(op in subtype_words) return issubclass(a, b) || is_(a, b)
+
 	throw new Error("UNKNOWN OPERATOR " + op);
 }
 

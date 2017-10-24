@@ -18,6 +18,13 @@ class NotEq {}
 class In {}
 class Num {}
 class Str {}
+class Compare{}
+class FunctionDef{}
+class Assign{}
+class Name{}
+class Load{}
+class Store{}
+
 // module.exports = [Add]
 module.exports = {
   Add: Add,
@@ -39,6 +46,12 @@ module.exports = {
   Lt: Lt,
   LtE: LtE,
   In: In,
-    Num:Num,
-    Str:Str
+	Name:Name,
+    Load:Load,
+    Store:Store,
+	Num:Num,
+    Str:Str,
+	Compare:Compare,
+	FunctionDef:FunctionDef,
+    Assign:Assign
 }
