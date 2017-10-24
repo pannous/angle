@@ -87,7 +87,7 @@ function nill() {
 function boole() {
 	let b;
 	b = tokens(["True", "False", "true", "false"]);
-	the.result = (((b === "True") || (b === "true") && TRUE) || FALSE);
+	the.result = b === "True" || b === "true" && TRUE || FALSE;
 	return the.result;
 }
 
@@ -149,8 +149,8 @@ function value() {
 		return number();
 	}
 	current_value = null;
-	no_keyword_except((((constants + numbers) + result_words) + nill_words) + ["+", "-"]);
-	the.result = ((((((((maybe(bracelet) || maybe(quote) || maybe(nill)) || maybe(number)) || maybe(known_variable)) || maybe(boole)) || maybe(constant)) || maybe(it)) || maybe(nod)) || raise_not_matching("Not a value"));
+	no_keyword_except(constants + numbers + result_words + nill_words + ["+", "-"]);
+	the.result = maybe(bracelet) || maybe(quote) || maybe(nill) || maybe(number) || maybe(known_variable) || maybe(boole) || maybe(constant) || maybe(it) || maybe(nod) || raise_not_matching("Not a value");
 	if (maybe_tokens(["as"])) {
 		typ = typeNameMapped();
 		the.result = call_cast(the.result, typ);
@@ -344,13 +344,13 @@ function apply_op(stack, i, op) {
 }
 
 function fold_algebra(stack) {
-	used_operators=operators.filter(x=>x.in(stack))
-	used_ast_operators=kast_operator_map.values().filter(x=>x.in(stack))
+	used_operators = operators.filter(x => x.in(stack))
+	used_ast_operators = kast_operator_map.values().filter(x => x.in(stack))
 
-	for(op of used_operators + used_ast_operators) {
+	for (op of used_operators + used_ast_operators) {
 		i = 0
 		leng = len(stack)
-		while(i < len(stack)){
+		while (i < len(stack)) {
 			if (stack[i] == op)
 				apply_op(stack, i, op)
 			i += 1
@@ -469,7 +469,7 @@ function is_a(x, type0) {
 	if ((x instanceof unicode) && (_type === types.StringType)) {
 		return true;
 	}
-	if (((x instanceof unicode) && (_type === xchar) && (x.length === 1))) {
+	if ((x instanceof unicode) && _type === xchar && x.length === 1) {
 		return true;
 	}
 	if ((x instanceof unicode) && (_type === xstr)) {
@@ -501,7 +501,7 @@ function nth_item(val = 0) {
 		}
 	}
 	if ((l instanceof list) && type.in(type_names)) {
-		l = l.map(x=>is_a(x, type))
+		l = l.map(x => is_a(x, type))
 	}
 	if (n > l.length) {
 		throw new IndexError("%d > %d in %s[%d]" % [n, l.length, l, n]);
@@ -835,45 +835,29 @@ function quick_expression() {
 		if (maybe_tokens(["rd", "nd", "th"])) {
 			result = nth_item(result);
 		}
-	} else {
-		if (the.current_word.startswith("r'")) {
-			result = regexp(the.current_word);
-			next_token(false);
-		} else {
-			if ((the.current_type === _token.STRING) || the.current_word.startswith("'")) {
-				result = quote();
-			} else {
-				if (the.current_word.in(the.token_map)) {
-					fun = the.token_map[the.current_word];
-					debug("token_map: %s -> %s" % [the.current_word, fun]);
-					result = fun();
-				} else {
-					if (the.current_word.in(the.method_token_map)) {
-						fun = the.method_token_map[the.current_word];
-						debug("method_token_map: %s -> %s" % [the.current_word, fun]);
-						result = fun();
-					} else {
-						if (the.current_word.in(the.method_names)) {
-							if (method_allowed(the.current_word)) {
-								result = method_call();
-							}
-						} else {
-							if (the.current_word.in(list(the.params.keys()))) {
-								result = true_param();
-							} else {
-								if (the.current_word.in(list(the.variables.keys()))) {
-									result = known_variable();
-								} else {
-									if (the.current_word.in(english_tokens.type_names)) {
-										return (maybe(setter) || method_definition());
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+	} else if (the.current_word.startswith("r'")) {
+		result = regexp(the.current_word);
+		next_token(false);
+	} else if ((the.current_type === _token.STRING) || the.current_word.startswith("'")) {
+		result = quote();
+	} else if (the.current_word.in(the.token_map)) {
+		fun = the.token_map[the.current_word];
+		debug("token_map: %s -> %s" % [the.current_word, fun]);
+		result = fun();
+	} else if (the.current_word.in(the.method_token_map)) {
+		fun = the.method_token_map[the.current_word];
+		debug("method_token_map: %s -> %s" % [the.current_word, fun]);
+		result = fun();
+	} else if (the.current_word.in(the.method_names)) {
+		if (method_allowed(the.current_word)) {
+			result = method_call();
 		}
+	} else if (the.current_word.in(list(the.params.keys()))) {
+		result = true_param();
+	} else if (the.current_word.in(list(the.variables.keys()))) {
+		result = known_variable();
+	} else if (the.current_word.in(english_tokens.type_names)) {
+		return (maybe(setter) || method_definition());
 	}
 	if (look_1_ahead("of")) {
 		result = evaluate_property(result);
@@ -983,7 +967,7 @@ function expression(fallback = null, resolve = true) {
 	if (the.current_word === ";") {
 		throw new EndOfStatement();
 	}
-	the.result = ex = (((((((((maybe(quick_expression) || maybe(listselector) || maybe(algebra)) || maybe(hash_map)) || maybe(evaluate_index)) || maybe(liste)) || maybe(evaluate_property)) || maybe(selfModify)) || maybe(endNode)) || maybe(passing)) || raise_not_matching("Not an expression: " + pointer_string()));
+	the.result = ex = maybe(quick_expression) || maybe(listselector) || maybe(algebra) || maybe(hash_map) || maybe(evaluate_index) || maybe(liste) || maybe(evaluate_property) || maybe(selfModify) || maybe(endNode) || maybe(passing) || raise_not_matching("Not an expression: " + pointer_string());
 	ex = (post_operations(ex) || ex);
 	skip_comments();
 	if (!interpreting()) {
@@ -1465,7 +1449,7 @@ function subProperty(_context) {
 		properties += dir(ext);
 	}
 	property = maybe_tokens(properties);
-	if (((!property) || (property instanceof collections.Callable) || is_method(property))) {
+	if (!property || (property instanceof collections.Callable) || is_method(property)) {
 		return [_context, property];
 	}
 	property = (maybe_token(".") && subProperty(property) || property);
@@ -1496,7 +1480,7 @@ function true_method(obj = null) {
 			if (variable.value instanceof collections.Callable) {
 				name = variable.value.__name__;
 			} else {
-				if (!(((typeof variable.value) === "string") || (variable.value instanceof String))) {
+				if (!(typeof variable.value === "string" || (variable.value instanceof String))) {
 					raise_not_matching("not a method: %s" % variable.value);
 				}
 				name = findMethod(nil, variable.value);
@@ -1568,7 +1552,7 @@ function method_call(obj = null) {
 		}
 
 		star(call_args);
-		if (((!args) && (!context.use_tree) && (!self_modifying(method)))) {
+		if (!args && !context.use_tree && !self_modifying(method)) {
 			if (context.use_tree) {
 				args = obj;
 			} else {
@@ -1709,7 +1693,7 @@ function action() {
 	let start;
 	start = pointer();
 	maybe(bla);
-	the.result = ((((((((maybe(quick_expression) || maybe(special_blocks) || maybe(applescript)) || maybe(bash_action)) || maybe(evaluate)) || maybe(returns)) || maybe(selfModify)) || maybe(method_call)) || maybe(spo)) || raise_not_matching("Not an action"));
+	the.result = maybe(quick_expression) || maybe(special_blocks) || maybe(applescript) || maybe(bash_action) || maybe(evaluate) || maybe(returns) || maybe(selfModify) || maybe(method_call) || maybe(spo) || raise_not_matching("Not an action");
 	return the.result;
 }
 
@@ -1900,13 +1884,13 @@ function assure_same_type(var_, _type) {
 		return;
 	}
 	if ((oldType && _type) && (!(oldType.prototype instanceof _type))) {
-		throw new WrongType((((var_.name + " has type ") + oldType.toString() + ", can't set to ") + _type.toString()));
+		throw new WrongType(var_.name + " has type " + oldType.toString() + ", can't set to " + _type.toString());
 	}
 	if ((oldType && var_.type) && (!(oldType.prototype instanceof var_.type))) {
-		throw new WrongType((((var_.name + " has type ") + oldType.toString() + ", cannot set to ") + var_.type.toString()));
+		throw new WrongType(var_.name + " has type " + oldType.toString() + ", cannot set to " + var_.type.toString());
 	}
 	if ((_type && var_.type) && (!((var_.type.prototype instanceof _type) || (_type.prototype instanceof var_.type)))) {
-		throw new WrongType((((var_.name + " has type ") + var_.type.toString() + ", Can't set to ") + _type.toString()));
+		throw new WrongType(var_.name + " has type " + var_.type.toString() + ", Can't set to " + _type.toString());
 	}
 	var_.type = _type;
 }
@@ -2230,7 +2214,7 @@ function variable(a = null, ctx = new kast.Load(), isParam = false) {
 		raise_not_matching();
 	}
 	name = " ".join([]);
-	if (((!typ) && (all.length > 1) && isType(all[0]))) {
+	if (!typ && all.length > 1 && isType(all[0])) {
 		name = all.slice(1, (-1)).join(" ");
 	}
 	if (p) {
@@ -2315,10 +2299,10 @@ function todo(x = "") {
 }
 
 function do_cast(x, typ) {
-	if (((typeof typ) === "number") || (typ instanceof Number)) {
+	if (typeof typ === "number" || (typ instanceof Number)) {
 		return float_(x);
 	}
-	if (((typeof typ) === "number") || (typ instanceof Number)) {
+	if (typeof typ === "number" || (typ instanceof Number)) {
 		return int_(x);
 	}
 	if (typ === int_) {
@@ -2368,7 +2352,7 @@ function call_cast(x, typ) {
 }
 
 function nod() {
-	return ((((maybe(number) || maybe(quote) || maybe(regexp)) || maybe(known_variable)) || maybe(true_param)) || the_noun_that());
+	return maybe(number) || maybe(quote) || maybe(regexp) || maybe(known_variable) || maybe(true_param) || the_noun_that();
 }
 
 function article() {
@@ -2533,7 +2517,7 @@ function selector() {
 	if (checkEndOfLine()) {
 		return;
 	}
-	x = (((maybe(compareNode) || maybe(where) || maybe(that)) || maybe(token("of") && endNode)) || (preposition && nod));
+	x = maybe(compareNode) || maybe(where) || maybe(that) || maybe(token("of") && endNode) || preposition && nod;
 	if (context.use_tree) {
 		return parent_node();
 	}
@@ -3097,7 +3081,7 @@ function do_evaluate_property(attr, node) {
 	if (!attr) {
 		return false;
 	}
-	verbose((("do_evaluate_property '" + attr.toString() + "' in ") + node.toString()));
+	verbose("do_evaluate_property '" + attr.toString() + "' in " + node.toString());
 	the.result = null;
 	if (attr.in(dir(node))) {
 		return node.__getattribute__(attr);
@@ -3430,7 +3414,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 	if (method instanceof FunctionDef) {
 		return method;
 	}
-	if (((!obj0) && (args0 instanceof list) && (args0.length === 1))) {
+	if (!obj0 && (args0 instanceof list) && args0.length === 1) {
 		obj0 = args0[0];
 	}
 	_type = Object.getPrototypeOf(obj0);
@@ -3474,7 +3458,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 		}
 		return method;
 	}
-	if (((!(method instanceof collections.Callable) && (args0 instanceof list)) && (args0.length > 0))) {
+	if (!(method instanceof collections.Callable) && (args0 instanceof list) && args0.length > 0) {
 		function_ = findMethod((obj0 || args0[0]), method0, args0[0], {
 			bind: false
 		});
@@ -3486,7 +3470,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 function align_function_args(args, clazz, method) {
 	let newArgs;
 	newArgs = {};
-	if (((args instanceof dict) || (args instanceof tuple) || (args instanceof list) && (method.arguments.length === 1))) {
+	if ((args instanceof dict) || (args instanceof tuple) || (args instanceof list) && method.arguments.length === 1) {
 		key = method.arguments[0].name;
 		return {
 			key: args
@@ -3646,7 +3630,7 @@ function do_call(obj0, method0, args0 = []) {
 	}
 	args = eval_args(args0);
 	method = findMethod(obj0, method0, args);
-	method_name = (((method instanceof collections.Callable) && method.__name__) || method0);
+	method_name = (method instanceof collections.Callable) && method.__name__ || method0;
 	if (method === "of") {
 		return evaluate_property(args0, obj0);
 	}
@@ -3665,7 +3649,7 @@ function do_call(obj0, method0, args0 = []) {
 		return the.result;
 	}
 	console.log("CALLING %s %s with %s" % [(obj || ""), method, args]);
-	if (((!args) && (!(method instanceof collections.Callable)) && method.in(dir(obj)))) {
+	if (!args && !(method instanceof collections.Callable) && method.in(dir(obj))) {
 		return obj.__getattribute__(method);
 	}
 	try {
@@ -3702,7 +3686,7 @@ function do_call(obj0, method0, args0 = []) {
 			the.result = method();
 		}
 	} else {
-		if (((!args) || (number_of_arguments === 0) || (number_of_arguments === 1) && is_first_self)) {
+		if (!args || number_of_arguments === 0 || number_of_arguments === 1 && is_first_self) {
 			if (bound || is_builtin) {
 				the.result = (method() || NILL);
 			} else {
@@ -3731,81 +3715,47 @@ function do_call(obj0, method0, args0 = []) {
 }
 
 function do_compare(a, comp, b) {
-	a = do_evaluate(a);
-	b = do_evaluate(b);
-	if ((((typeof b) === "number") || (b instanceof Number) && re.search("^\\+?\\-?\\.?\\d", a.toString()))) {
-		a = float_(a);
+	a = do_evaluate(a)  // NOT) "a=3; 'a' is 3" !!!!!!!!!!!!!!!!!!!!   Todo ooooooo!!
+	b = do_evaluate(b)
+	if (isinstance(b, float) && a.match(/^\+?\-?\.?\d/)) a = float(a)
+	if (isinstance(a, float) && b.match(/^\+?\-?\.?\d/)) b = float(b)
+	if (isinstance(b, int) && a.match(/^\+?\-?\.?\d/)) a = int(a)  // EEK PHP STYLE !? REALLY??
+	if (isinstance(a, int) && b.match(/^\+?\-?\.?\d/)) b = int(b)  // EEK PHP STYLE !? REALLY??
+	if (is_string(comp)) comp = comp.strip()
+	if (comp == 'smaller' || comp == 'tinier' || comp == 'comes before' || comp == '<' || isinstance(comp, ast.Lt))
+		return a < b
+	else if (comp == 'bigger' || comp == 'larger' || comp == 'greater' || comp == 'comes after' || comp == '>' || isinstance(
+			comp, ast.Gt))
+		return a > b
+	else if (comp == 'smaller || equal' || comp == '<=' || isinstance(comp, ast.LtE))
+		return a <= b
+	else if (comp == 'bigger || equal' || comp == '>=' || isinstance(comp, ast.GtE))
+		return a >= b
+	else if (comp in ['!=', 'is not'] || isinstance(comp, ast.NotEq))
+		return a == b
+	else if (comp in ['in', 'element of'] || isinstance(comp, ast.In))
+		return a in b
+	else if (comp in subtype_words)
+		return issubclass(a, b)
+	else if (comp in class_words) {
+		if (a == b || isinstance(a, b)) return True
+		if (isinstance(a, Variable)) return issubclass(a.type, b) || isinstance(a.value, b)
+		if (isinstance(a, type)) return issubclass(a, b) // issubclass? a bird is an animal OK
+		return false
 	}
-	if ((((typeof a) === "number") || (a instanceof Number) && re.search("^\\+?\\-?\\.?\\d", b.toString()))) {
-		b = float_(b);
-	}
-	if ((((typeof b) === "number") || (b instanceof Number) && re.search("^\\+?\\-?\\.?\\d", a.toString()))) {
-		a = int_(a);
-	}
-	if ((((typeof a) === "number") || (a instanceof Number) && re.search("^\\+?\\-?\\.?\\d", b.toString()))) {
-		b = int_(b);
-	}
-	if (is_string(comp)) {
-		comp = comp.strip();
-	}
-	if (((((comp === "smaller") || (comp === "tinier") || (comp === "comes before")) || (comp === "<")) || (comp instanceof ast.Lt))) {
-		return (a < b);
-	} else {
-		if ((((((comp === "bigger") || (comp === "larger") || (comp === "greater")) || (comp === "comes after")) || (comp === ">")) || (comp instanceof ast.Gt))) {
-			return (a > b);
-		} else {
-			if (((comp === "smaller or equal") || (comp === "<=") || (comp instanceof ast.LtE))) {
-				return (a <= b);
-			} else {
-				if (((comp === "bigger or equal") || (comp === ">=") || (comp instanceof ast.GtE))) {
-					return (a >= b);
-				} else {
-					if (comp.in(["!=", "is not"]) || (comp instanceof ast.NotEq)) {
-						return (a === b);
-					} else {
-						if (comp.in(["in", "element of"]) || (comp instanceof ast.In)) {
-							return a.in(b);
-						} else {
-							if (comp.in(subtype_words)) {
-								return (a.prototype instanceof b);
-							} else {
-								if (comp.in(class_words)) {
-									if ((a === b) || (a instanceof b)) {
-										return true;
-									}
-									if (a instanceof Variable) {
-										return (a.type.prototype instanceof b) || (a.value instanceof b);
-									}
-									if (a instanceof type) {
-										return (a.prototype instanceof b);
-									}
-									return false;
-								} else {
-									if ((((((comp === "equal") || (comp === "the same") || (comp === "the same as")) || (comp === "the same as")) || (comp === "=")) || (comp === "=="))) {
-										return (a === b);
-									} else {
-										if (((((comp === "not equal") || (comp === "not the same") || (comp === "different")) || (comp === "!=")) || (comp === "\u2260"))) {
-											return (a !== b);
-										} else {
-											if ((comp.in(be_words) || ((comp instanceof ast.Eq) || (comp instanceof kast.Eq)) || "same".in(comp))) {
-												return (a === b) || ((b instanceof type) && (a instanceof b));
-											} else {
-												try {
-													return a.send(comp, b);
-												} catch (e) {
-													error((((("ERROR COMPARING " + a.toString() + " ") + comp.toString()) + " ") + b.toString()));
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+	else if (comp == 'equal' || comp == 'the same' || comp == 'the same as' || comp == 'the same as' || comp == '=' || comp == '==')
+		return a == b  //# Redundant
+	else if (comp == 'not equal' || comp == 'not the same' || comp == 'different' || comp == '!=' || comp == '≠')
+		return a != b  //# Redundant
+	else if (comp in be_words || isinstance(comp, (ast.Eq, kast.Eq)) || 'same' in comp)
+		return a == b || isinstance(b, type) && isinstance(a, b)
+	else
+		try {
+			return a.send(comp, b) // # raises!
+		} catch (ex) {
+			error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
+			// return a.send(comp + '?', b)
 		}
-	}
 }
 
 function drop_plural(x) {
@@ -4113,7 +4063,7 @@ function adverb() {
 function verb() {
 	let found_verb;
 	no_keyword_except(remove_from_list(system_verbs, be_words));
-	found_verb = maybe_tokens((list(((other_verbs + system_verbs) + the.verbs) - be_words) - ["do"]));
+	found_verb = maybe_tokens((list((other_verbs + system_verbs + the.verbs) - be_words) - ["do"]));
 	if (!found_verb) {
 		raise_not_matching("no verb");
 	}
@@ -4126,7 +4076,7 @@ function adjective() {
 
 function quote() {
 	raiseEnd();
-	if (((the.current_type === _token.STRING) || (the.current_word[0] === "'") || (the.current_word[0] === "\""))) {
+	if (the.current_type === _token.STRING || the.current_word[0] === "'" || the.current_word[0] === "\"") {
 		the.result = the.current_word.slice(1, (-1));
 		if (!interpreting()) {
 			the.result = new kast.Str({
@@ -4235,7 +4185,7 @@ function linuxPath() {
 }
 
 function loops() {
-	return (((((((((((maybe(repeat_every_times) || maybe(repeat_n_times) || maybe(n_times_action)) || maybe(action_n_times)) || maybe(for_i_in_collection)) || maybe(repeat_with)) || maybe(while_loop)) || maybe(looped_action)) || maybe(looped_action_until)) || maybe(repeat_action_while)) || maybe(as_long_condition_block)) || maybe(forever)) || raise_not_matching("Not a loop"));
+	return maybe(repeat_every_times) || maybe(repeat_n_times) || maybe(n_times_action) || maybe(action_n_times) || maybe(for_i_in_collection) || maybe(repeat_with) || maybe(while_loop) || maybe(looped_action) || maybe(looped_action_until) || maybe(repeat_action_while) || maybe(as_long_condition_block) || maybe(forever) || raise_not_matching("Not a loop");
 }
 
 function repeat_with() {
@@ -4246,7 +4196,7 @@ function repeat_with() {
 	let c = collection();
 	let b = action_or_block();
 	if (interpreting()) {
-		c.map(i=>do_execute_block(b,i))
+		c.map(i => do_execute_block(b, i))
 		return the.result;
 	}
 	return new kast.For({

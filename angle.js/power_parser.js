@@ -810,9 +810,9 @@ maybe = (expr) => {
 			throw new Error("BUG!? returned CALLABLE " + result.toString());
 		}
 		if (result || (result === 0)) {
-			verbose((("GOT result " + expr.toString() + " : ") + result.toString()));
+			verbose((("GOT result " + expr.name + " : ") + result.toString()));
 		} else {
-			verbose("No result " + expr.toString());
+			verbose("No result " + expr.name);
 			set_token(old);
 		}
 		last_node = current_node;
