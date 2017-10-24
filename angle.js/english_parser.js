@@ -26,45 +26,19 @@ function parent_node() {
 function do_self_modify(v, mod, arg) {
 	let val;
 	val = v.value;
-	if (mod === "|=") {
-		the.result = (val | arg);
-	}
-	if (mod === "||=") {
-		the.result = (val || arg);
-	}
-	if (mod === "&=") {
-		the.result = (val & arg);
-	}
-	if (mod === "&&=") {
-		the.result = (val && arg);
-	}
-	if (mod === "+=") {
-		the.result = (val + arg);
-	}
-	if (mod === "-=") {
-		the.result = (val - arg);
-	}
-	if (mod === "*=") {
-		the.result = (val * arg);
-	}
-	if (mod === "**=") {
-		the.result = Math.pow(val, arg);
-	}
-	if (mod === "/=") {
-		the.result = (val / arg);
-	}
-	if (mod === "%=") {
-		the.result = (val % arg);
-	}
-	if (mod === "^=") {
-		the.result = (val ^ arg);
-	}
-	if (mod === "<<") {
-		the.result = (val << arg);
-	}
-	if (mod === ">>") {
-		the.result = (val >> arg);
-	}
+	if (mod === "|=") the.result = (val | arg);
+	if (mod === "||=") the.result = (val || arg);
+	if (mod === "&=") the.result = (val & arg);
+	if (mod === "&&=") the.result = (val && arg);
+	if (mod === "+=") the.result = (val + arg);
+	if (mod === "-=") the.result = (val - arg);
+	if (mod === "*=") the.result = (val * arg);
+	if (mod === "**=") the.result = Math.pow(val, arg);
+	if (mod === "/=") the.result = (val / arg);
+	if (mod === "%=") the.result = (val % arg);
+	if (mod === "^=") the.result = (val ^ arg);
+	if (mod === "<<") the.result = (val << arg);
+	if (mod === ">>") the.result = (val >> arg);
 	v.value = the.result;
 	return the.result;
 }
@@ -352,7 +326,7 @@ function fold_algebra(stack) {
 		i = 0
 		leng = len(stack)
 		while (i < len(stack)) {
-			if (stack[i] == op)
+			if (stack[i] === op)
 				apply_op(stack, i, op)
 			i += 1
 		}
@@ -2284,7 +2258,7 @@ function must_not_contain(words, before = ";") {
 	old = the.current_token;
 	words = flatten(words);
 	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
-		for (let w of words) if (w == the.current_word) throw new MustNotMatchKeyword(w);
+		for (let w of words) if (w === the.current_word) throw new MustNotMatchKeyword(w);
 		next_token();
 	}
 	set_token(old);
@@ -3201,74 +3175,74 @@ function do_math(a, op, b) {
 	}
 
 
-	if(op == '+') return a + b
-	if(op == 'plus') return a + b
-	if(op == 'add') return a + b
-	if(op == '-') return a - b
-	if(op == 'minus') return a - b
-	if(op == 'substract') return a - b
-	if(op == '/') return a / float(b)
-	if(op == 'devided') return a / float(b)
-	if(op == 'devided by') return a / float(b)
-	if(op == '%') return a % b
-	if(op == 'modulo') return a % b
-	if(op == '*') return a * b
-	if(op == 'times') return a * b
-	if(op == 'multiplied by') return a * b
+	if(op === '+') return a + b
+	if(op === 'plus') return a + b
+	if(op === 'add') return a + b
+	if(op === '-') return a - b
+	if(op === 'minus') return a - b
+	if(op === 'substract') return a - b
+	if(op === '/') return a / float(b)
+	if(op === 'devided') return a / float(b)
+	if(op === 'devided by') return a / float(b)
+	if(op === '%') return a % b
+	if(op === 'modulo') return a % b
+	if(op === '*') return a * b
+	if(op === 'times') return a * b
+	if(op === 'multiplied by') return a * b
 
-	if(op == '**') return a ** b
-	if(op == 'to the power of') return a ** b
-	if(op == 'to the power') return a ** b
-	if(op == 'to the') return a ** b
-	if(op == 'power') return a ** b
-	if(op == 'pow') return a ** b
-	if(op == '^^') return a ** b
-	if(op == '^') return a ** b
+	if(op === '**') return a ** b
+	if(op === 'to the power of') return a ** b
+	if(op === 'to the power') return a ** b
+	if(op === 'to the') return a ** b
+	if(op === 'power') return a ** b
+	if(op === 'pow') return a ** b
+	if(op === '^^') return a ** b
+	if(op === '^') return a ** b
 	// if(op == '^') return a ^ b
-	if(op == 'xor') return a ^ b
-	if(op == 'and') return a && b || FALSE
-	if(op == '&&') return a && b
-	if(op == 'but not')
+	if(op === 'xor') return a ^ b
+	if(op === 'and') return a && b || FALSE
+	if(op === '&&') return a && b
+	if(op === 'but not')
 		return a && !b
-	if(op == 'nor')
+	if(op === 'nor')
 		return !a && !b
-	if(op == 'neither')
+	if(op === 'neither')
 		return !a && !b
-	if(op == 'but')
+	if(op === 'but')
 		if(isinstance(a, list))
 			return a.remove(b)
 		else
 			return a && b
 	// if(op == '&') return a and b
-	if(op == '&') return a & b
-	if(op == '|') return a | b
-	if(op == '||') return a | b
-	if(op == 'or') return a || b
-	if(op == '<') return a < b
-	if(op == 'smaller') return a < b
-	if(op == '>') return a > b
-	if(op == 'bigger') return a > b
-	if(op == '<=') return a <= b
-	if(op == '>=') return a >= b
-	if(op == '==') return a == b
-	if(op == '=') return a == b
-	if(op == '~') return regex_match(a, b)
-	if(op == '~=') return regex_match(a, b)
-	if(op == '=~') return regex_match(a, b)
-	if(op == '~~') return regex_match(a, b)
-	if(op == 'is') return a == b  // NOT the same as python a is b)
-	if(op == 'be') return a == b
-	if(op == 'equal to') return a == b
-	if(op == '===') return a === b
-	if(op == 'is identical') return a === b  // python ===
-	if(op == 'is exactly') return a === b
-	if(op == 'same as') return a == b  // weaker than 'exactly'!
-	if(op == 'the same as') return a == b
-	if(op == 'equals') return a == b
-	if(op == '!=') return a != b
-	if(op == '≠') return a != b
-	if(op == 'is not') return a != b
-	if(op == 'isn\'t') return a != b
+	if(op === '&') return a & b
+	if(op === '|') return a | b
+	if(op === '||') return a | b
+	if(op === 'or') return a || b
+	if(op === '<') return a < b
+	if(op === 'smaller') return a < b
+	if(op === '>') return a > b
+	if(op === 'bigger') return a > b
+	if(op === '<=') return a <= b
+	if(op === '>=') return a >= b
+	if(op === '==') return a === b
+	if(op === '=') return a === b
+	if(op === '~') return regex_match(a, b)
+	if(op === '~=') return regex_match(a, b)
+	if(op === '=~') return regex_match(a, b)
+	if(op === '~~') return regex_match(a, b)
+	if(op === 'is') return a === b  // NOT the same as python a is b)
+	if(op === 'be') return a === b
+	if(op === 'equal to') return a === b
+	if(op === '===') return a === b
+	if(op === 'is identical') return a === b  // python ===
+	if(op === 'is exactly') return a === b
+	if(op === 'same as') return a === b  // weaker than 'exactly'!
+	if(op === 'the same as') return a === b
+	if(op === 'equals') return a === b
+	if(op === '!=') return a !== b
+	if(op === '≠') return a !== b
+	if(op === 'is not') return a !== b
+	if(op === 'isn\'t') return a !== b
 	if(op in class_words) return isinstance(a, b) || is_a(a, b)
 	if(op in subtype_words) return issubclass(a, b) || is_(a, b)
 
@@ -3607,33 +3581,33 @@ function do_compare(a, comp, b) {
 	if (isinstance(b, int) && a.match(/^\+?\-?\.?\d/)) a = int(a)  // EEK PHP STYLE !? REALLY??
 	if (isinstance(a, int) && b.match(/^\+?\-?\.?\d/)) b = int(b)  // EEK PHP STYLE !? REALLY??
 	if (is_string(comp)) comp = comp.strip()
-	if (comp == 'smaller' || comp == 'tinier' || comp == 'comes before' || comp == '<' || isinstance(comp, ast.Lt))
+	if (comp === 'smaller' || comp === 'tinier' || comp === 'comes before' || comp === '<' || isinstance(comp, ast.Lt))
 		return a < b
-	else if (comp == 'bigger' || comp == 'larger' || comp == 'greater' || comp == 'comes after' || comp == '>' || isinstance(
+	else if (comp === 'bigger' || comp === 'larger' || comp === 'greater' || comp === 'comes after' || comp === '>' || isinstance(
 			comp, ast.Gt))
 		return a > b
-	else if (comp == 'smaller || equal' || comp == '<=' || isinstance(comp, ast.LtE))
+	else if (comp === 'smaller || equal' || comp === '<=' || isinstance(comp, ast.LtE))
 		return a <= b
-	else if (comp == 'bigger || equal' || comp == '>=' || isinstance(comp, ast.GtE))
+	else if (comp === 'bigger || equal' || comp === '>=' || isinstance(comp, ast.GtE))
 		return a >= b
 	else if (comp in ['!=', 'is not'] || isinstance(comp, ast.NotEq))
-		return a == b
+		return a === b
 	else if (comp in ['in', 'element of'] || isinstance(comp, ast.In))
 		return a in b
 	else if (comp in subtype_words)
 		return issubclass(a, b)
 	else if (comp in class_words) {
-		if (a == b || isinstance(a, b)) return True
+		if (a === b || isinstance(a, b)) return True
 		if (isinstance(a, Variable)) return issubclass(a.type, b) || isinstance(a.value, b)
 		if (isinstance(a, type)) return issubclass(a, b) // issubclass? a bird is an animal OK
 		return false
 	}
-	else if (comp == 'equal' || comp == 'the same' || comp == 'the same as' || comp == 'the same as' || comp == '=' || comp == '==')
-		return a == b  //# Redundant
-	else if (comp == 'not equal' || comp == 'not the same' || comp == 'different' || comp == '!=' || comp == '≠')
-		return a != b  //# Redundant
+	else if (comp === 'equal' || comp === 'the same' || comp === 'the same as' || comp === 'the same as' || comp === '=' || comp === '==')
+		return a === b  //# Redundant
+	else if (comp === 'not equal' || comp === 'not the same' || comp === 'different' || comp === '!=' || comp === '≠')
+		return a !== b  //# Redundant
 	else if (comp in be_words || isinstance(comp, (ast.Eq, kast.Eq)) || 'same' in comp)
-		return a == b || isinstance(b, type) && isinstance(a, b)
+		return a === b || isinstance(b, type) && isinstance(a, b)
 	else
 		try {
 			return a.send(comp, b) // # raises!
