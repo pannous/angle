@@ -1,3 +1,4 @@
+class Param{}
 class Add {}
 class Sub {}
 class Mult {}
@@ -53,5 +54,6 @@ module.exports = {
     Str:Str,
 	Compare:Compare,
 	FunctionDef:FunctionDef,
-    Assign:Assign
+    Assign:Assign,
+	Param:Param
 }

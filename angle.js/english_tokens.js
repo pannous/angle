@@ -304,3 +304,4 @@ _token = {
 	BLOCK: "BLOCK",
 	KEYWORD: "KEYWORD",
 }
+keyword_except_english_operators=keywords.minus(english_operators)

@@ -11,7 +11,6 @@ IgnoreException = class IgnoreException extends StandardError {}
 InternalError = class InternalError extends StandardError {}
 NoMethodError = class NoMethodError extends StandardError {}
 NotMatching = class NotMatching extends StandardError {}
-UndeclaredVariable = class UndeclaredVariable extends StandardError {}
 DidYouMean = class DidYouMean extends StandardError {}
 UnknownCommandError = class UnknownCommandError extends StandardError {}
 SecurityError = class SecurityError extends StandardError {}
@@ -32,6 +31,8 @@ WrongType = class WrongType extends StandardError {}
 ImmutableVaribale = class ImmutableVaribale extends StandardError {}
 SystemStackError = class SystemStackError extends StandardError {}
 KeyboardInterrupt = class KeyboardInterrupt extends StandardError {} // TODO
+// UndeclaredVariable = class UndeclaredVariable extends NotMatching {}
+UndeclaredVariable = class UndeclaredVariable extends StandardError {}
 
 //# sourceMappingURL=exceptionz.js.map
 exports = module.exports

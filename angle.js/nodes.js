@@ -157,7 +157,7 @@ class FunctionDef extends ast.FunctionDef {
 class FunctionCall extends ast.Assign {
     constructor(func = null, argus = null, object = null, ...margs) {
 	    super()
-
+	    let args=arguments
 	    if (((func instanceof Function) || ((typeof func) === "function"))) {
             func = func.__name__;
         }
@@ -170,19 +170,20 @@ class FunctionCall extends ast.Assign {
         this.name = func;
         this.arguments = (args["arguments"]  || argus);
         this.object = object;
-        if ( args.has("scope")) {
+        console.log(typeof args)
+        if ( "scope" in args) {
             this.scope = args["scope"];
         }
-        if ( args.has("class")) {
+        if ( "class" in args) {
             this.clazz = args["class"];
         }
-        if ( args.has("module")) {
+        if ("module" in  args) {
             this.clazz = (this.clazz || args["module"]);
         }
-        if (((func instanceof str) || (func instanceof extensions.unicode))) {
-            func = kast.name(func);
+        if (is_string(func)) {
+            func = ast.name(func);
         }
-        if ((! (func instanceof kast.Name))) {
+        if ((! (func instanceof ast.Name))) {
             throw new Error(("NOT A NAME %s" % func));
         }
         this.targets = [new kast.Name({id: "it", ctx: new ast.Store()})];

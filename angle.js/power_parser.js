@@ -13,7 +13,6 @@
 // import * as the from 'context';
 // import {*} from 'context';
 // import * as io from 'io';
-
 the = require("./context")
 // console.log(the);
 require("./context.js")
@@ -372,7 +371,8 @@ drop_comments = () => {
 
 init = (strings) => {
 	let comp, left, right;
-	if (!the.moduleMethods) load_module_methods();
+	if (!the.moduleMethods || !the.moduleMethods.length)
+		load_module_methods();
 	the.no_rollback_depth = (-1);
 	the.rollback_depths = [];
 	the.line_number = 0;
@@ -1225,17 +1225,15 @@ method_allowed = (meth) => {
 }
 
 load_module_methods = () => {
+	pickle=require('pickle')
 	// import * as warnings from 'warnings';
-	// import * as english_parser from 'english_parser';
 	let ex;
-	warnings.filterwarnings("ignore", {
-		category: UnicodeWarning
-	});
-	the.methodToModulesMap = pickle.load(open(context.home + "/data/method_modules.bin"), "rb");
-	the.moduleMethods = pickle.load(open(context.home + "/data/module_methods.bin"), "rb");
-	the.moduleNames = pickle.load(open(context.home + "/data/module_names.bin"), "rb");
-	the.moduleClasses = pickle.load(open(context.home + "/data/module_classes.bin"), "rb");
-	for (let [mo, mes] of the.moduleMethods.items()) {
+	// warnings.filterwarnings("ignore", {category: UnicodeWarning});
+	the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb")||{}
+	the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb")||{}
+	the.moduleNames = pickle.loads(open(context.home + "/data/module_names.bin"), "rb")||[]
+	the.moduleClasses = pickle.loads(open(context.home + "/data/module_classes.bin"), "rb")||{}
+	for (let [mo, mes] of the.moduleMethods) {
 		if (!method_allowed(mo)) {
 			continue;
 		}
@@ -1246,16 +1244,17 @@ load_module_methods = () => {
 			}
 		}
 	}
-	for (let [mo, cls] of the.moduleClasses.items()) {
+	for (let [mo, cls] of the.moduleClasses) {
 		for (let meth of cls) {
 			if (method_allowed(meth)) {
 				the.method_token_map[meth] = english_parser.method_call;
 			}
 		}
 	}
-	the.constructors = (the.classes.keys()) + type_names;
-	let moduleKeys = the.methodToModulesMap.keys();
-	the.method_names = the.methods.keys() + c_methods + methods.keys() + core_methods + builtin_methods + moduleKeys
+	the.constructors = (keys(the.classes)) + type_names;
+	let moduleKeys = keys(the.methodToModulesMap);
+	the.method_names = keys(the.methods).plus(c_methods).add(keys(methods))
+	the.method_names.add( core_methods).add( builtin_methods).add( moduleKeys)
 	for (let x of dir(extensions)) {
 		the.method_names.append(x);
 	}
@@ -1269,7 +1268,7 @@ load_module_methods = () => {
 	let all = []
 	for (let meth of the.method_names) {
 		if (method_allowed(meth))
-			a.push(meth);
+			all.push(meth);
 	}
 	return all;
 }
