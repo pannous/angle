@@ -506,7 +506,7 @@ def remove_tokens(*tokenz):
 
 def must_contain(args, do_raise=True):  # before ;\n
 	if isinstance(args[-1], dict):
-		return must_contain_before(args[0:-2], args[-1]['before'])
+		return must_contain_before(args[0:-2], args[-1]['before']) # BAD style!!
 	if is_string(args): args = [args]
 	old = current_token
 	pre = the.previous_word

@@ -87,7 +87,7 @@ star = function (lamb, giveUp = false) {
 			}
 			max = 20;
 			if (good.length > max) {
-				throw new Error(" too many occurrences of " + to_source(lamb));
+				throw new Error(" too many occurrences of " + lamb.name );// to_source(
 			}
 		}
 	} catch (e) {
@@ -423,8 +423,8 @@ remove_tokens = function (...tokenz) {
 
 must_contain = function (args, do_raise = true) {
 	let old, pre;
-	if (args.slice((-1)[0] instanceof dict)) {
-		return must_contain_before(args.slice(0, (-2)), args.slice(-1)[0]["before"]);
+	if (args.last) {
+		return must_contain_before(args.slice(0, -2), args.last()["before"]);
 	}
 	if (is_string(args)) {
 		args = [args];
@@ -749,7 +749,8 @@ block = function (multiple = false) {
 		maybe_newline();
 	}
 
-	lamb = () => {
+		// block_lambda = function block_lambda() => {
+	block_lambda = () => {
 		let s;
 		try {
 			maybe_indent();
@@ -769,7 +770,7 @@ block = function (multiple = false) {
 		}
 		return end_of_statement();
 	}
-	star(lamb, /*giveUp:*/ true);
+	star(block_lambda, /*giveUp:*/ true);
 	end_of_block = end_block();
 	if (!multiple) {
 		break;
@@ -1277,3 +1278,4 @@ load_module_methods = () => {
 // module.exports.parse = parse
 exports.parse = parse
 exports.block = block
+exports.dont_interpret = dont_interpret

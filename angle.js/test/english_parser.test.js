@@ -8,22 +8,16 @@ exports.testSomething = test=> {
     test.done();
 };
 
-function test(log,meth) {
+// test=(log,meth)=> {
     // if(!meth())console.log(log)
-}
+// }
 
-// const sum = require('./sum');
-const sum = (a, b) => a + b;
-test('adds 1 + 2 to equal 3', () => {
-    // expect(sum(1, 2)).toBe(3);
-});
-
-test('parser', () => {
- parse('1+2=3')
-});
+// test('parser', () => {
+//  parse(`1+2=3`)
+// });
 
 exports.test_parser=test=>{
-    parse('1+2=3')
+    // parse(`1+2=3`)
     test.ok(true, "this assertion should pass");
     test.done();
 }

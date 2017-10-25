@@ -5,6 +5,8 @@ StandardError = class StandardError extends Error {
     // }
 }
 Exception = StandardError
+NotImplementedError = class NotImplementedError extends StandardError {}
+IgnoreException = class IgnoreException extends StandardError {}
 IgnoreException = class IgnoreException extends StandardError {}
 InternalError = class InternalError extends StandardError {}
 NoMethodError = class NoMethodError extends StandardError {}

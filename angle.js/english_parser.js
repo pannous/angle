@@ -5,8 +5,9 @@ extensions = require('./extensions.js')();
 exceptions = require('./exceptionz');
 context = require('./context.js');
 nodes = require('./nodes.js')
-Variable=nodes.Variable
-Argument=nodes.Argument
+Variable = nodes.Variable
+Argument = nodes.Argument
+
 function get(name) {
 	if (name instanceof Name) {
 		name = name.id;
@@ -85,7 +86,7 @@ remove_hash = {};
 
 function remove_from_list(keywords0, excepty) {
 	let good;
-	good = list(keywords0);
+	good = keywords0;
 	for (let x of excepty) {
 		while (x.in(good)) {
 			good.remove(x);
@@ -180,7 +181,8 @@ function javascript_require(dependency) {
 }
 
 function includes(dependency, type, version) {
-	if (re.search("\\.js$", the.current_word)) {
+	if (the.current_word.match(/\\.js$/))
+	{
 		return javascript_require(dependency);
 	}
 	if (type && type.in("javascript script js".split())) {
@@ -193,14 +195,14 @@ function regexp(val = 0) {
 		tokens(["regex", "regexp", "regular expression"]);
 		val = the.string;
 	}
-	if (val.startswith("r'")) {
-		return re.compile(val.slice(2, (-1)));
-	} else {
-		if (val.startswith("'")) {
-			return re.compile(val.slice(1, (-1)));
-		}
+	if (val.startsWith("r'")) {
+		return new RegExp(val.slice(2, -1))
+	} else if (val.startsWith("'")) {
+		return new RegExp(val.slice(1, -1))
+	} else if (val.startsWith("/")) {
+		return new RegExp(val.slice(1, -1))
 	}
-	return re.compile(val);
+	return new RegExp(val);
 }
 
 function package_version() {
@@ -330,7 +332,7 @@ function fold_algebra(stack) {
 			i += 1
 		}
 	}
-	stack=Array(stack)
+	stack = Array(stack)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
 		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s" % [stack, used_operators]);
 	}
@@ -447,18 +449,112 @@ function is_a(x, type0) {
 	if ((x instanceof unicode) && _type === xchar && x.length === 1) {
 		return true;
 	}
-	if ((x instanceof unicode) && (_type === xstr)) {
+	if ((x instanceof unicode) && (_type === str)) {
 		return true;
 	}
 	return (xx(x) instanceof _type);
 
 }
 
+function parse_integer(x) {
+	if (!x) return 0
+	x = x.replace(/([a-z])-([a-z])/, "$1+$2")  // WHOOOT???
+	x = x.replace("last", "-1")  // index trick
+	// x = x.replace("last", "0")  // index trick
+	x = x.replace("first", "1")  // index trick
+	x = x.replace("tenth", "10")
+	x = x.replace("ninth", "9")
+	x = x.replace("eighth", "8")
+	x = x.replace("seventh", "7")
+	x = x.replace("sixth", "6")
+	x = x.replace("fifth", "5")
+	x = x.replace("fourth", "4")
+	x = x.replace("third", "3")
+	x = x.replace("second", "2")
+	x = x.replace("first", "1")
+	x = x.replace("zero", "0")
+
+	x = x.replace("4th", "4")
+	x = x.replace("3rd", "3")
+	x = x.replace("2nd", "2")
+	x = x.replace("1st", "1")
+	x = x.replace("(\d+)th", "\\1")
+	x = x.replace("(\d+)rd", "\\1")
+	x = x.replace("(\d+)nd", "\\1")
+	x = x.replace("(\d+)st", "\\1")
+
+	x = x.replace("a couple of", "2")
+	x = x.replace("a dozen", "12")
+	x = x.replace("ten", "10")
+	x = x.replace("twenty", "20")
+	x = x.replace("thirty", "30")
+	x = x.replace("forty", "40")
+	x = x.replace("fifty", "50")
+	x = x.replace("sixty", "60")
+	x = x.replace("seventy", "70")
+	x = x.replace("eighty", "80")
+	x = x.replace("ninety", "90")
+
+	x = x.replace("ten", "10")
+	x = x.replace("eleven", "11")
+	x = x.replace("twelve", "12")
+	x = x.replace("thirteen", "13")
+	x = x.replace("fourteen", "14")
+	x = x.replace("fifteen", "15")
+	x = x.replace("sixteen", "16")
+	x = x.replace("seventeen", "17")
+	x = x.replace("eighteen", "18")
+	x = x.replace("nineteen", "19")
+
+	x = x.replace("ten", "10")
+	x = x.replace("nine", "9")
+	x = x.replace("eight", "8")
+	x = x.replace("seven", "7")
+	x = x.replace("six", "6")
+	x = x.replace("five", "5")
+	x = x.replace("four", "4")
+	x = x.replace("three", "3")
+	x = x.replace("two", "2")
+	x = x.replace("one", "1")
+	x = x.replace("dozen", "12")
+	x = x.replace("couple", "2")
+
+	// x = x.replace("½", "+.5");
+	x = x.replace("½", "+1/2.0");
+	x = x.replace("⅓", "+1/3.0");
+	x = x.replace("⅔", "+2/3.0");
+	x = x.replace("¼", "+.25");
+	x = x.replace("¼", "+1/4.0");
+	x = x.replace("¾", "+3/4.0");
+	x = x.replace("⅕", "+1/5.0");
+	x = x.replace("⅖", "+2/5.0");
+	x = x.replace("⅗", "+3/5.0");
+	x = x.replace("⅘", "+4/5.0");
+	x = x.replace("⅙", "+1/6.0");
+	x = x.replace("⅚", "+5/6.0");
+	x = x.replace("⅛", "+1/8.0");
+	x = x.replace("⅜", "+3/8.0");
+	x = x.replace("⅝", "+5/8.0");
+	x = x.replace("⅞", "+7/8.0");
+
+	x = x.replace(" hundred thousand", " 100000")
+	x = x.replace(" hundred", " 100")
+	x = x.replace(" thousand", " 1000")
+	x = x.replace(" million", " 1000000")
+	x = x.replace(" billion", " 1000000000")
+	x = x.replace("hundred thousand", "*100000")
+	x = x.replace("hundred ", "*100")
+	x = x.replace("thousand ", "*1000")
+	x = x.replace("million ", "*1000000")
+	x = x.replace("billion ", "*1000000000")
+	return x
+}
+
 function nth_item(val = 0) {
 	let l, n, set, type;
 	set = maybe_token("set");
 	n = (val || tokens(number_selectors + ["first", "last", "middle"]));
-	n = xstr(n).parse_integer();
+	n = parse_integer(n);
 	if (n > 0) {
 		n = (n - 1);
 	}
@@ -467,10 +563,13 @@ function nth_item(val = 0) {
 	type = maybe_tokens(["item", "element", "object", "word", "char", "character"] + type_names);
 	maybe_tokens(["in", "of"]);
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
-	if (re.search("^char", type)) {
+	if (type.match(/^char/))
+	{
 		the.result = "".join(l).__getitem__(n);
 		return the.result;
-	} else {
+	}
+else
+	{
 		if (is_string(l)) {
 			l = l.split(" ");
 		}
@@ -570,11 +669,8 @@ function liste(check = true, first = null) {
 }
 
 function must_contain_substring(param) {
-	let current_statement;
-	current_statement = re.split(";|:|\n", the.current_line.slice(the.current_offset))[0];
-	if (!param.in(current_statement)) {
-		raise_not_matching("must_contain_substring(%s)" % param);
-	}
+	let current_statement = the.current_line.slice(the.current_offset).split([';', ':', '\n'])[0]
+	if (!param.in(current_statement)) raise_not_matching("must_contain_substring(%s)" % param);
 }
 
 function plusPlus(v = null) {
@@ -706,7 +802,7 @@ function regular_hash() {
 	_("}");
 	context.in_hash = false;
 	if (!interpreting()) {
-		return new Dict(list(h.keys()), list(h.values()));
+		return new Dict(h.keys()), list(h.values());
 	}
 	return h;
 }
@@ -810,10 +906,10 @@ function quick_expression() {
 		if (maybe_tokens(["rd", "nd", "th"])) {
 			result = nth_item(result);
 		}
-	} else if (the.current_word.startswith("r'")) {
+	} else if (the.current_word.startsWith("r'")) {
 		result = regexp(the.current_word);
 		next_token(false);
-	} else if ((the.current_type === _token.STRING) || the.current_word.startswith("'")) {
+	} else if ((the.current_type === _token.STRING) || the.current_word.startsWith("'")) {
 		result = quote();
 	} else if (the.current_word.in(the.token_map)) {
 		fun = the.token_map[the.current_word];
@@ -827,11 +923,11 @@ function quick_expression() {
 		if (method_allowed(the.current_word)) {
 			result = method_call();
 		}
-	} else if (the.current_word.in(list(the.params.keys()))) {
+	} else if (the.current_word.in(the.params)) {
 		result = true_param();
-	} else if (the.current_word.in(list(the.variables.keys()))) {
+	} else if (the.current_word.in(the.variables)) {
 		result = known_variable();
-	} else if (the.current_word.in(english_tokens.type_names)) {
+	} else if (the.current_word.in(type_names)) {
 		return (maybe(setter) || method_definition());
 	}
 	if (look_1_ahead("of")) {
@@ -1004,7 +1100,6 @@ statement = function (doraise = true) {
 	maybe_indent();
 	x = maybe(quick_expression) ||
 		maybe(setter) ||
-		maybe ||
 		maybe(returns) ||
 		maybe(imports) ||
 		maybe(method_definition) ||
@@ -1439,7 +1534,7 @@ function true_method(obj = null) {
 	}
 	should_not_start_with(auxiliary_verbs);
 	xmodule = maybe_tokens(the.moduleNames);
-	xvariable = maybe_tokens(list(the.variables.keys()));
+	xvariable = maybe_tokens(the.variables.keys());
 	if (xmodule) {
 		[module, moduleMethods] = import_module(xmodule);
 		[obj, name] = subProperty(module);
@@ -1571,7 +1666,9 @@ function method_call(obj = null) {
 }
 
 function tokens(tokens0) {
-	return maybe_tokens(tokens0);
+	ok=maybe_tokens(tokens0)
+	if(!ok)throw new NotMatching(result)
+	return ok
 }
 
 function bla() {
@@ -1650,7 +1747,7 @@ function returns() {
 	no_rollback();
 	the.result = maybe(expression);
 	if (interpreting()) {
-		the.params.clear();
+		// todo("the.params.clear();?")
 	}
 	if (context.use_tree) {
 		return new ast.Return({
@@ -2234,7 +2331,7 @@ function variable(a = null, ctx = new kast.Load(), isParam = false) {
 	throw new Error("Unknown variable context " + ctx);
 }
 
-word_regex = "^\\s*[a-zA-Z]+[\\w_]*";
+word_regex = "^\s*[a-zA-Z]+[\w_]*";
 
 function word(include = null) {
 	let current_value, match;
@@ -2244,7 +2341,7 @@ function word(include = null) {
 	}
 	no_keyword_except(include);
 	raiseNewline();
-	match = re.search(word_regex, the.current_word);
+	match =  the.current_word.match(word_regex);
 	if (match) {
 		current_value = the.current_word;
 		next_token();
@@ -2270,7 +2367,7 @@ function must_not_start_with(words) {
 }
 
 function todo(x = "") {
-	throw new NotImplementedError(x);
+	throw new NotImplementedError("NotImplementedError: "+x);
 }
 
 function do_cast(x, typ) {
@@ -2295,7 +2392,7 @@ function do_cast(x, typ) {
 	if (typ === str) {
 		return x.toString();
 	}
-	if (typ === xstr) {
+	if (typ === str) {
 		return x.toString();
 	}
 	if (typ === unicode) {
@@ -2434,7 +2531,7 @@ function null_comparative() {
 	verb();
 	c = comparative();
 	endNode();
-	if (c.startswith("more") || c.ends_with("er")) {
+	if (c.startsWith("more") || c.ends_with("er")) {
 		return c;
 	}
 }
@@ -2448,7 +2545,7 @@ function than_comparative() {
 function comparative() {
 	let c, comp;
 	c = (maybe(more_comparative) || adverb);
-	if ((c.startswith("more") || maybe(() => {
+	if ((c.startsWith("more") || maybe(() => {
 			return c.ends_with("er");
 		}))) {
 		comp = c;
@@ -2849,7 +2946,7 @@ function the_noun_that() {
 	if (the.current_word === "that") {
 		criterium = star(selector);
 		if (criterium && interpreting()) {
-			n = list(filter(n, criterium));
+			n = filter(n, criterium);
 		} else {
 			n = resolve_netbase(n);
 		}
@@ -3017,7 +3114,7 @@ function typeName() {
 
 function gerund() {
 	let current_value, match, pr;
-	match = re.search("^\\s*(\\w+)ing", the.string);
+	match = the.string.match(/^\s*(\w+)ing/);
 	if (!match) {
 		return false;
 	}
@@ -3032,7 +3129,7 @@ function gerund() {
 
 function postjective() {
 	let current_value, match, pr;
-	match = re.search("^\\s*(\\w+)ed", the.string);
+	match = the.string.match(/^\s*(\w+)ed/);
 	if (!match) {
 		return false;
 	}
@@ -3175,77 +3272,77 @@ function do_math(a, op, b) {
 	}
 
 
-	if(op === '+') return a + b
-	if(op === 'plus') return a + b
-	if(op === 'add') return a + b
-	if(op === '-') return a - b
-	if(op === 'minus') return a - b
-	if(op === 'substract') return a - b
-	if(op === '/') return a / float(b)
-	if(op === 'devided') return a / float(b)
-	if(op === 'devided by') return a / float(b)
-	if(op === '%') return a % b
-	if(op === 'modulo') return a % b
-	if(op === '*') return a * b
-	if(op === 'times') return a * b
-	if(op === 'multiplied by') return a * b
+	if (op === '+') return a + b
+	if (op === 'plus') return a + b
+	if (op === 'add') return a + b
+	if (op === '-') return a - b
+	if (op === 'minus') return a - b
+	if (op === 'substract') return a - b
+	if (op === '/') return a / float(b)
+	if (op === 'devided') return a / float(b)
+	if (op === 'devided by') return a / float(b)
+	if (op === '%') return a % b
+	if (op === 'modulo') return a % b
+	if (op === '*') return a * b
+	if (op === 'times') return a * b
+	if (op === 'multiplied by') return a * b
 
-	if(op === '**') return a ** b
-	if(op === 'to the power of') return a ** b
-	if(op === 'to the power') return a ** b
-	if(op === 'to the') return a ** b
-	if(op === 'power') return a ** b
-	if(op === 'pow') return a ** b
-	if(op === '^^') return a ** b
-	if(op === '^') return a ** b
+	if (op === '**') return a ** b
+	if (op === 'to the power of') return a ** b
+	if (op === 'to the power') return a ** b
+	if (op === 'to the') return a ** b
+	if (op === 'power') return a ** b
+	if (op === 'pow') return a ** b
+	if (op === '^^') return a ** b
+	if (op === '^') return a ** b
 	// if(op == '^') return a ^ b
-	if(op === 'xor') return a ^ b
-	if(op === 'and') return a && b || FALSE
-	if(op === '&&') return a && b
-	if(op === 'but not')
+	if (op === 'xor') return a ^ b
+	if (op === 'and') return a && b || FALSE
+	if (op === '&&') return a && b
+	if (op === 'but not')
 		return a && !b
-	if(op === 'nor')
+	if (op === 'nor')
 		return !a && !b
-	if(op === 'neither')
+	if (op === 'neither')
 		return !a && !b
-	if(op === 'but')
-		if(isinstance(a, list))
+	if (op === 'but')
+		if (isinstance(a, list))
 			return a.remove(b)
 		else
 			return a && b
 	// if(op == '&') return a and b
-	if(op === '&') return a & b
-	if(op === '|') return a | b
-	if(op === '||') return a | b
-	if(op === 'or') return a || b
-	if(op === '<') return a < b
-	if(op === 'smaller') return a < b
-	if(op === '>') return a > b
-	if(op === 'bigger') return a > b
-	if(op === '<=') return a <= b
-	if(op === '>=') return a >= b
-	if(op === '==') return a == b
-	if(op === '=') return a == b
-	if(op === '~') return regex_match(a, b)
-	if(op === '~=') return regex_match(a, b)
-	if(op === '=~') return regex_match(a, b)
-	if(op === '~~') return regex_match(a, b)
-	if(op === 'is') return a === b  // NOT the same as python a is b)
-	if(op === 'be') return a === b
-	if(op === 'equal to') return a === b
-	if(op === 'is identical') return a === b  // python ===
-	if(op === 'is exactly') return a === b
-	if(op === 'same as') return a === b  // weaker than 'exactly'!
-	if(op === 'the same as') return a === b
-	if(op === 'equals') return a === b
-	if(op === '!=') return a != b
-	if(op === '≠') return a != b
-	if(op === 'is not') return a !== b
-	if(op === 'isn\'t') return a !== b
-	if(op === '===') return a === b
-	if(op === '!==') return a !== b
-	if(op in class_words) return isinstance(a, b) || is_a(a, b)
-	if(op in subtype_words) return issubclass(a, b) || is_(a, b)
+	if (op === '&') return a & b
+	if (op === '|') return a | b
+	if (op === '||') return a | b
+	if (op === 'or') return a || b
+	if (op === '<') return a < b
+	if (op === 'smaller') return a < b
+	if (op === '>') return a > b
+	if (op === 'bigger') return a > b
+	if (op === '<=') return a <= b
+	if (op === '>=') return a >= b
+	if (op === '==') return a == b
+	if (op === '=') return a == b
+	if (op === '~') return regex_match(a, b)
+	if (op === '~=') return regex_match(a, b)
+	if (op === '=~') return regex_match(a, b)
+	if (op === '~~') return regex_match(a, b)
+	if (op === 'is') return a === b  // NOT the same as python a is b)
+	if (op === 'be') return a === b
+	if (op === 'equal to') return a === b
+	if (op === 'is identical') return a === b  // python ===
+	if (op === 'is exactly') return a === b
+	if (op === 'same as') return a === b  // weaker than 'exactly'!
+	if (op === 'the same as') return a === b
+	if (op === 'equals') return a === b
+	if (op === '!=') return a != b
+	if (op === '≠') return a != b
+	if (op === 'is not') return a !== b
+	if (op === 'isn\'t') return a !== b
+	if (op === '===') return a === b
+	if (op === '!==') return a !== b
+	if (op in class_words) return isinstance(a, b) || is_a(a, b)
+	if (op in subtype_words) return issubclass(a, b) || is_(a, b)
 
 	throw new Error("UNKNOWN OPERATOR " + op);
 }
@@ -3373,7 +3470,7 @@ function eval_args(args) {
 		return [];
 	}
 	if ((args instanceof list) || (args instanceof tuple)) {
-		args = list(map(do_evaluate, args));
+		args = map(do_evaluate, args);
 	} else {
 		if (args instanceof dict) {
 		} else {
@@ -3455,7 +3552,7 @@ function call_unbound(method, args, number_of_arguments) {
 			// import * as types from 'types';
 			arg0 = args[0];
 			obj_type = Object.getPrototypeOf(arg0);
-			if (method.__self__.__class__.in(list(extensionMap.values()))) {
+			if (method.__self__.__class__.in(extensionMap.values())) {
 				the.result = (method(xx(arg0)) || NILL);
 			} else {
 				bound_method = new types.MethodType(method, obj_type, xx(args[0]));
@@ -3525,7 +3622,7 @@ function do_call(obj0, method0, args0 = []) {
 				return function_();
 			}
 
-			the.result = list(map(map_list, args));
+			the.result = map(map_list, args);
 			verbose("GOT RESULT %s " % the.result);
 			return the.result;
 		}
@@ -3604,14 +3701,14 @@ function do_compare(a, comp, b) {
 		return false
 	}
 	else if (comp === 'equal' || comp === 'the same' || comp === 'the same as' || comp === 'the same as' || comp === '=' || comp === '==')
-		return a === b  //# Redundant
+		return a === b  //// Redundant
 	else if (comp === 'not equal' || comp === 'not the same' || comp === 'different' || comp === '!=' || comp === '≠')
-		return a !== b  //# Redundant
+		return a !== b  //// Redundant
 	else if (comp in be_words || isinstance(comp, (ast.Eq, kast.Eq)) || 'same' in comp)
 		return a === b || isinstance(b, type) && isinstance(a, b)
 	else
 		try {
-			return a.send(comp, b) // # raises!
+			return a.send(comp, b) // // raises!
 		} catch (ex) {
 			error('ERROR COMPARING ' + str(a) + ' ' + str(comp) + ' ' + str(b))
 			// return a.send(comp + '?', b)
@@ -3639,7 +3736,7 @@ function liste_selector() {
 			xs = xs.value;
 		}
 		console.log("FILTERING %s in %s" % [typ, xs]);
-		xs = list(filter((x) => {
+		xs = filter((x => {
 			return is_a(x, typ);
 		}, xs));
 		console.log(xs);
@@ -3655,7 +3752,7 @@ function selectable() {
 	xs = (do_evaluate(known_variable()) || endNoun());
 	s = maybe(selector);
 	if (interpreting()) {
-		xs = list(filters(xs, s));
+		xs = filters(xs, s);
 	}
 	return xs;
 }
@@ -3776,7 +3873,7 @@ end_of_statement = () => {
 }
 
 function english_to_math(s) {
-	s = xstr(s);
+	s = str(s);
 	s = s.replace_numerals();
 	s = s.replace(" plus ", "+");
 	s = s.replace(" minus ", "-");
@@ -3923,7 +4020,7 @@ function adverb() {
 function verb() {
 	let found_verb;
 	no_keyword_except(remove_from_list(system_verbs, be_words));
-	found_verb = maybe_tokens((list((other_verbs + system_verbs + the.verbs) - be_words) - ["do"]));
+	found_verb = maybe_tokens(((other_verbs + system_verbs + the.verbs) - be_words) - ["do"]);
 	if (!found_verb) {
 		raise_not_matching("no verb");
 	}
@@ -3964,7 +4061,7 @@ function maybe_param(method, classOrModule) {
 
 function true_param() {
 	let v, vars;
-	vars = list(the.params.keys());
+	vars = the.params.keys();
 	if (vars.length === 0) {
 		throw new NotMatching();
 	}
@@ -3975,7 +4072,7 @@ function true_param() {
 
 function known_variable(node = true) {
 	let v, v0, vars;
-	vars = list(the.variables.keys());
+	vars = keys(the.variables);
 	if (vars.length === 0) {
 		throw new NotMatching();
 	}
@@ -4029,10 +4126,11 @@ function fileName() {
 	return false;
 }
 
+
 function linuxPath() {
 	let match, path;
 	raiseEnd();
-	match = match_path(the.string);
+	match = the.string.match(/^(\/[w'.]+)/)
 	if (match) {
 		path = match[0];
 		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path);
@@ -4119,7 +4217,8 @@ function repeat_every_times() {
 function repeat_action_while() {
 	let b, c;
 	_("repeat");
-	if (re.search("\\s*while", the.current_word)) {
+	if (the.current_word.match(/\s*while/))
+	{
 		raise_not_matching("repeat_action_while != repeat_while_action", the.string);
 	}
 	b = action_or_block();
@@ -4179,7 +4278,7 @@ function looped_action_until() {
 }
 
 function is_number(n) {
-	return (xstr(n).parse_number() !== 0);
+	return (str(n).parse_number() !== 0);
 }
 
 function action_n_times(a = null) {
@@ -4268,42 +4367,44 @@ function ruby_action() {
 	_("ruby");
 	exec(action || quote);
 }
+
 async function real_raw_input() {
-	try{
+	try {
 		return await input.question("\u29a0 ").then(console.log).catch(console.log)
-	}catch(ex){
-	console.error(ex)
+	} catch (ex) {
+		console.error(ex)
 	}
 	return 0
 }
+
 async function ask(rl) {
 	return new Promise((resolve, reject) =>
-	rl.question('⦠ ', input0 => {
-		// readline.write_history_file(home + "/.english_history");
-		try {
-			result = parse(input0, null).result;
-			// result = new Array(result )[0]
-			result = result[2]
-			if (!result ) {
-				reject()
-				return
+		rl.question('⦠ ', input0 => {
+			// readline.write_history_file(home + "/.english_history");
+			try {
+				result = parse(input0, null).result;
+				// result = new Array(result )[0]
+				result = result[2]
+				if (!result) {
+					reject()
+					return
+				}
+				console.log(result);
+				resolve()
+			} catch (e) {
+				switch (e.constructor) {
+					case NotMatching:
+					case GivingUp:
+					// case NameError:
+					case SyntaxError:
+						console.log("Syntax Error");
+					case IgnoreException:
+						break
+					default:
+						throw e
+				}
 			}
-			console.log(result);
-			resolve()
-		} catch (e) {
-			switch (e.constructor) {
-				case NotMatching:
-				case GivingUp:
-				// case NameError:
-				case SyntaxError:
-					console.log("Syntax Error");
-				case IgnoreException:
-					break
-				default:
-					throw e
-			}
-		}
-	}))
+		}))
 }
 
 async function start_shell(args = []) {
@@ -4311,26 +4412,32 @@ async function start_shell(args = []) {
 	// process.on('rejectionHandled', () => {console.log("FUCK")});
 // import * as readline from 'readline';
 	let home, input0, interpretation;
-	let readline=require('readline')
-	var rl = readline.createInterface({input: process.stdin, output: process.stdout });
+	let readline = require('readline')
+	// let readline=require('readline-history')
+	var rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+		path: "/me/.angle_history",
+		info: {next: x => x}
+	})
 	rl.setPrompt("\u29a0 ")// '⦠ '
 	context._debug = (context._debug || "ANGLE_DEBUG".in(process.env));
 	home = "~" //expanduser("~");
 	// readline.read_history_file(home + "/.english_history");\\
-	while(1){
+	while (1) {
 		await ask(rl)
 	}
 	// console.log("Bye.");
 // exit(1);
-		// process.stdin.on("keypress",console.log)
+	// process.stdin.on("keypress",console.log)
 
-		// rl.on("line",line=>{
+	// rl.on("line",line=>{
 
 }
 
 setVerbose = (ok = 1) => context._verbose = ok;
 
-main=function () {
+main = function () {
 	let ARGV, a, interpretation, target_file;
 	the._verbose = false;
 	ARGV = process.argv;
@@ -4385,10 +4492,11 @@ main=function () {
 english_parser_imported = true;
 context.starttokens_done = true;
 
-//# sourceMappingURL=english_parser.js.map
+//// sourceMappingURL=english_parser.js.map
 module.exports = {
-	main:main,
+	main: main,
 	rooty: rooty,
-	interpretation: interpretation
+	interpretation: interpretation,
+	// dont_interpret:power_parser.dont_interpret
 };
 exports = module.exports
