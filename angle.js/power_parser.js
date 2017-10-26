@@ -1,39 +1,5 @@
-// import * as sys from 'sys';
-// import * as readline from 'readline';
-// import * as tokenize from 'tokenize';
-// import * as from ';
-// import * as re from 're';
-// import * as _token from 'token';
-// import * as collections from 'collections';
-// import * as context from 'context';
-// import * as extensions from 'extensions';
-// import {*} from 'exceptionz';
-// import {is_string} from 'extension_functions';
-// import {Argument, Variable, Compare, FunctionCall, FunctionDef} from 'nodes';
-// import * as the from 'context';
-// import {*} from 'context';
-// import * as io from 'io';
-the = require("./context")
-// console.log(the);
-require("./context.js")
-require("./english_tokens.js")
-require("./ast.js")
-require("./exceptionz.js")
-// require("./extension_functions.js")
-// extensions = require("./js")
-// File = File
-//
-// class StandardError extends Error {
-//     constructor(message) {
-//         super(message);
-//         this.name = 'StandardError';
-//     }
-// }
 
-list = Array
-//
-// class NameError extends StandardError {
-// }
+let list = Array
 
 class Starttokens {
 	constructor(starttokens) {
@@ -59,13 +25,13 @@ class Starttokens {
 	}
 }
 
-app_path = () => "./"
+let app_path = () =>"./"
 
-dictionary_path = () => (app_path() + "word-lists/")
+let dictionary_path = () =>(app_path() + "word-lists/")
 
-isnumeric = (start) => (((typeof start) === "number") || (start instanceof Number) || ((typeof start) === "number") || (start instanceof Number))
+let isnumeric = (start) =>(((typeof start) === "number") || (start instanceof Number) || ((typeof start) === "number") || (start instanceof Number))
 
-star = function (lamb, giveUp = false) {
+function star (lamb, giveUp = false) {
 	let good, match, max, old, old_state;
 	if (depth > max_depth) {
 		throw new SystemStackError("if(len(nodes)>max_depth)");
@@ -125,13 +91,13 @@ star = function (lamb, giveUp = false) {
 	return old_state;
 }
 
-ignore_rest_of_line = () => {
+function ignore_rest_of_line(){
 	while (!checkEndOfLine()) {
 		next_token();
 	}
 }
 
-pointer_string = () => {
+function pointer_string(){
 	let filep, l, lineNo, offset;
 	if (!the.current_token) {
 		offset = the.current_line.length;
@@ -145,7 +111,7 @@ pointer_string = () => {
 	return the.current_line.slice(offset) + "\n" + the.current_line + "\n" + " " * offset + "^" * l + "\n" + filep;
 }
 
-print_pointer = function (force = false) {
+function print_pointer (force = false) {
 	if (the.current_token && (force || the._verbose)) {
 		console.log(the.current_token);
 		console.log(pointer_string());
@@ -153,7 +119,7 @@ print_pointer = function (force = false) {
 	return OK;
 }
 
-error = function (e, force = false) {
+function error (e, force = false) {
 	if (e instanceof GivingUp) {
 		throw e;
 	}
@@ -168,49 +134,48 @@ error = function (e, force = false) {
 	}
 }
 
-warn = (e) => {
+function warn(e){
 	console.log(e);
 }
 
-caller = () => arguments.callee.caller.caller
+let caller = () =>arguments.callee.caller.caller
 
-verbose = (info) => {
+function verbose(info){
 	context._verbose && console.log(info);
 }
 
-debug = (info) => {
+function debug(info){
 	context._debug && console.log(info);
 }
 
-info = (info) => {
+function info(info){
 	if (the._verbose) {
 		console.log(info);
 	}
 }
 
-to_source = (block) => block.toString()
+let to_source = (block) =>block.toString()
 
-filter_backtrace = (e) => e
+let filter_backtrace = (e) =>e
 
-tokens = (tokenz) => {
-	let ok;
+
+function tokens(tokenz){
 	raiseEnd();
-	ok = maybe_tokens(tokenz);
-	if (ok) {
-		return ok;
-	}
+	let ok = maybe_tokens(tokenz);
+	if (ok) return ok;
 	throw new NotMatching(result);
+	// throw new NotMatching(tokenz.toString() + "\n" + pointer_string());
 }
 
-maybe_tokens = (tokens0) => {
+function maybe_tokens(tokens0){
 	if (checkEndOfLine()) return false
-	for (t of tokens0) {
+	for (var t of tokens0) {
 		if ((t === the.current_word) || (t.lower() === the.current_word.lower())) {
 			next_token();
 			return t;
 		}
 		if (" ".in(t)) {
-			old = the.current_token;
+			let old = the.current_token;
 			for (let to of t.split(" ")) {
 				if (to !== the.current_word) {
 					t = null;
@@ -229,9 +194,9 @@ maybe_tokens = (tokens0) => {
 	return false;
 }
 
-__ = (x) => tokens(x)
+// let __ = (x) =>tokens(x)
 
-next_token = function (check = true) {
+function next_token(check = true) {
 	let token;
 	the.token_number = (the.token_number + 1);
 	token = the.tokenstream[the.token_number];
@@ -243,15 +208,21 @@ next_token = function (check = true) {
 	}
 	return set_token(token);
 }
+var current_word;
+var current_token;
+var current_type;
+var current_line;
+var token_number;
 
-set_token = (token) => {
+function set_token(token){
 	the.current_token = current_token = token;
 	the.current_type = current_type = token[0];
 	the.current_word = current_word = token[1];
 	if(!the.current_word.in)
 		console.log("DFFD")
-	[the.line_number, the.current_offset] = token[2];
-	end_pointer = token[3];
+			[the.line_number, the.current_offset] = token[2];
+	let end_pointer = token[3];
+
 	the.current_line = current_line = token[4];
 	the.token_number = token_number = token[5];
 	the.string = current_word;
@@ -261,14 +232,14 @@ set_token = (token) => {
 // const Tokenizer = require('tokenizer');
 const tokenizer = require('string-tokenizer');
 
-parse_tokens = (s) => {
+function parse_tokens(s){
 	// import * as tokenize from 'tokenize';
 	let _lines, i;
-	line_nr = 1
+	let line_nr = 1
 	the.tokenstream = [];
-	// token_helper = function(token_type, token_str, start_row_col, end_row_col, line) {
+	// function token_helper(token_type, token_str, start_row_col, end_row_col, line) {
 	let token_indices = {}
-	token_helper = function (tok, line0, pattern) {
+	function token_helper (tok, line0, pattern) {
 		let index = tok.index
 		if (token_indices[index]) return
 		let val = tok[0]
@@ -285,11 +256,11 @@ parse_tokens = (s) => {
 		return false
 	}
 
-	token_eater2 = function (type, value, match) {
+	function token_eater2 (type, value, match) {
 		console.log(arguments)
 	}
 
-	token_eater = function (type, value, strange_number, matches) {
+	function token_eater (type, value, strange_number, matches) {
 		let length = the.tokenstream.length;
 		if (length == 0) return
 		the.tokenstream[length - 1][0] = type;
@@ -327,7 +298,7 @@ parse_tokens = (s) => {
 	return the.tokenstream;
 }
 
-x_comment = (token) => {
+function x_comment(token){
 	let drop;
 	drop = true;
 	if (drop) {
@@ -337,7 +308,7 @@ x_comment = (token) => {
 	}
 }
 
-drop_comments = () => {
+function drop_comments(){
 	let i, in_comment_block, in_comment_line, is_beginning_of_line, prev, prev_token, str, token_type;
 	in_comment_block = false;
 	in_comment_line = false;
@@ -371,7 +342,7 @@ drop_comments = () => {
 	}
 }
 
-init = (strings) => {
+function init(strings){
 	let comp, left, right;
 	if (!the.moduleMethods || !the.moduleMethods.length)
 		load_module_methods();
@@ -405,10 +376,10 @@ init = (strings) => {
 	}
 }
 
-error_position = () => {
+function error_position(){
 }
 
-raiseEnd = () => {
+function raiseEnd(){
 	if (current_type === _token.ENDMARKER) {
 		throw new EndOfDocument();
 	}
@@ -417,13 +388,13 @@ raiseEnd = () => {
 	}
 }
 
-remove_tokens = function (...tokenz) {
+function remove_tokens(...tokenz) {
 	while (the.current_word.in(tokenz)) {
 		next_token();
 	}
 }
 
-must_contain = function (args, do_raise = true) {
+function must_contain(args, do_raise = true) {
 	let old, pre;
 	if (args.last) {
 		return must_contain_before(args.slice(0, -2), args.last()["before"]);
@@ -452,10 +423,10 @@ must_contain = function (args, do_raise = true) {
 	}
 	return false;
 }
-must_contain_before_ = function ({args, before}) {
+function must_contain_before_ ({args, before}) {
 	return must_contain_before(args, before)
 }
-must_contain_before = function (args, before) {
+function must_contain_before(args, before) {
 	let good, old;
 	old = current_token;
 	good = null;
@@ -471,7 +442,7 @@ must_contain_before = function (args, before) {
 	return good;
 }
 
-must_contain_before_old = function (before, ...args) {
+function must_contain_before_old(before, ...args) {
 	var args, good, sub;
 	raiseEnd();
 	good = false;
@@ -515,13 +486,13 @@ must_contain_before_old = function (before, ...args) {
 	return OK;
 }
 
-starts_with = (param) => {
+function starts_with(param){
 	return maybe(() => {
 		return starts_with(param);
 	});
 }
 
-starts_with = (tokenz) => {
+function starts_with(tokenz){
 	if (checkEndOfLine()) {
 		return false;
 	}
@@ -534,7 +505,7 @@ starts_with = (tokenz) => {
 	return false;
 }
 
-look_1_ahead = function (expect_next, doraise = false, must_not_be = false, offset = 1) {
+function look_1_ahead (expect_next, doraise = false, must_not_be = false, offset = 1) {
 	let token;
 	if (the.current_word === "") {
 		return false;
@@ -559,9 +530,9 @@ look_1_ahead = function (expect_next, doraise = false, must_not_be = false, offs
 	}
 }
 
-_ = (x) => token(x)
+// let _ = (x) =>token(x)
 
-lastmaybe = (stack) => {
+function lastmaybe(stack){
 	let s, c = 0;
 	const a = stack, b = a.length;
 	for (let s of a) {
@@ -569,9 +540,9 @@ lastmaybe = (stack) => {
 	}
 }
 
-caller_name = () => caller()
+let caller_name = () =>caller()
 
-adjust_interpret = () => {
+function adjust_interpret(){
 	let depth;
 	depth = caller_depth();
 	if (context.interpret_border > (depth - 2)) {
@@ -581,14 +552,14 @@ adjust_interpret = () => {
 	}
 }
 
-do_interpret = () => {
+function do_interpret(){
 	if (context.did_interpret !== context.interpret) {
 		context.did_interpret = context.interpret;
 	}
 	context.interpret = true;
 }
 
-dont_interpret = () => {
+function dont_interpret(){
 	let depth;
 	depth = caller_depth();
 	if (context.interpret_border < 0) {
@@ -598,14 +569,14 @@ dont_interpret = () => {
 	context.interpret = false;
 }
 
-interpreting = () => {
+function interpreting(){
 	if (context.use_tree) {
 		return false;
 	}
 	return context.interpret;
 }
 
-check_rollback_allowed = () => {
+function check_rollback_allowed(){
 	let c, level, throwing;
 	c = caller_depth;
 	throwing = true;
@@ -613,7 +584,7 @@ check_rollback_allowed = () => {
 	return (c < no_rollback_depth) || (c > (no_rollback_depth + 2));
 }
 
-read_source = (x) => {
+function read_source(x){
 	let i, lines, res;
 	if (last_pattern || (!x)) {
 		return last_pattern;
@@ -628,19 +599,19 @@ read_source = (x) => {
 	return res;
 }
 
-caller_depth = function () {
+function caller_depth () {
 	let c = arguments.callee.caller.length;
 	if (c > max_depth) throw new SystemStackError("depth overflow");
 	return c;
 }
 
-no_rollback = () => {
+function no_rollback(){
 	let depth = (caller_depth() - 1);
 	the.no_rollback_depth = depth;
 	the.rollback_depths.append(depth);
 }
 
-adjust_rollback = function (depth = (-1)) {
+function adjust_rollback (depth = (-1)) {
 	try {
 		if (depth === (-1)) {
 			depth = caller_depth();
@@ -653,7 +624,7 @@ adjust_rollback = function (depth = (-1)) {
 	}
 }
 
-allow_rollback = function (n = 0) {
+function allow_rollback (n = 0) {
 	let depth;
 	if (n < 0) {
 		the.rollback_depths = [];
@@ -675,7 +646,7 @@ allow_rollback = function (n = 0) {
 	}
 }
 
-invalidate_obsolete = (old_nodes) => {
+function invalidate_obsolete(old_nodes){
 	for (let fuck of old_nodes) {
 		if (fuck.in(nodes)) {
 			nodes.remove(fuck);
@@ -687,7 +658,7 @@ invalidate_obsolete = (old_nodes) => {
 	}
 }
 
-beginning_of_line = () => {
+function beginning_of_line(){
 	let previous_offset;
 	if (the.token_number > 1) {
 		previous_offset = the.tokenstream[(the.token_number - 1)][2][1];
@@ -730,7 +701,7 @@ function done(_type = null) {
 }
 
 
-block = function (multiple = false) {
+function block (multiple = false) {
 	// import {
 	//     statement,
 	//     end_of_statement,
@@ -749,8 +720,9 @@ block = function (multiple = false) {
 			maybe_newline();
 		}
 
-		// block_lambda = function block_lambda() => {
-		block_lambda = () => {
+		// function block_lambda block_lambda() => {
+		// noinspection JSAnnotator
+		function block_lambda(){
 			let s;
 			try {
 				maybe_indent();
@@ -789,11 +761,12 @@ block = function (multiple = false) {
 	return statements;
 }
 
-todo = function (x) {
+function todo (x) {
 	console.log("TODO", x)// TODO
 }
 
-maybe = (expr) => {
+var depth;
+function maybe(expr){
 	let cc, current_value, ex, last_node, old, rb, result;
 	if (!(expr instanceof Function)) return maybe_tokens(expr);
 	depth = (depth + 1);
@@ -857,7 +830,7 @@ maybe = (expr) => {
 	return false;
 }
 
-one_or_more = (expressions) => {
+function one_or_more(expressions){
 	let all, more;
 	all = [expressions()];
 	more = (the.current_offset && star(expressions));
@@ -867,19 +840,17 @@ one_or_more = (expressions) => {
 	return all;
 }
 
-to_source = (block) => block.toString()
+// let to_source = (block) =>block.toString()
 
-pointer = () => {
+function pointer(){
 	if (!current_token) throw new Exception("END")
 	return current_token[2];
 }
 
-isnumeric = (start) => start.isdigit()
+// let isnumeric = (start) =>start.isdigit()
 
-app_path = () => {
-}
 
-clear = () => {
+function clear(){
 	let variableValues, variables;
 	verbose("clear all variables, methods, ...");
 	variables = {};
@@ -908,7 +879,7 @@ clear = () => {
 //     }
 // }
 
-parse = function (s, target_file = null, clean=true) {
+parse =function (s, target_file = null, clean=true) {
 	if(clean)clear()
 	let got_ast, source_file;
 	if (!s) return;
@@ -939,7 +910,7 @@ parse = function (s, target_file = null, clean=true) {
 		verbose("-------------------------");
 	}
 	try {
-		english_parser = require("./english_parser.js")
+		// english_parser = require("./angle_parser.js")
 		if (s instanceof File) {
 			source_file = s.toString();
 			target_file = (source_file + ".pyc");
@@ -948,9 +919,9 @@ parse = function (s, target_file = null, clean=true) {
 		allow_rollback();
 		init(s);
 		the.result = rooty();
-		// the.result = english_parser.rooty();
+		// the.result = rooty();
 		if (the.result instanceof nodes.FunctionCall) {
-			the.result = english_parser.do_execute_block(the.result);
+			the.result = do_execute_block(the.result);
 		}
 		if (the.result == "True" || the.result == "true") the.result = true;
 		if (the.result == "False" || the.result == "false") the.result = false;
@@ -984,7 +955,7 @@ parse = function (s, target_file = null, clean=true) {
 	return interpretation();
 }
 
-token = function (t, expected = "") {
+function token (t, expected = "") {
 	if (t instanceof list) {
 		return tokens(t);
 	}
@@ -997,38 +968,28 @@ token = function (t, expected = "") {
 	}
 }
 
-tokens = (tokenz) => {
-	let ok;
-	raiseEnd();
-	ok = maybe_tokens(tokenz);
-	if (ok) {
-		return ok;
-	}
-	throw new NotMatching((tokenz.toString() + "\n") + pointer_string());
-}
-
-escape_token = (t) => {
+function escape_token(t){
 	return t.replace(/([^\w])/, "\\1");
 }
 
-raiseNewline = () => {
+function raiseNewline(){
 	if (checkEndOfLine()) throw new EndOfLine();
 }
 
-checkNewline = () => checkEndOfLine()
+let checkNewline = () =>checkEndOfLine()
 
-checkEndOfLine = () =>
+let checkEndOfLine = () =>
 	current_type === _token.NEWLINE ||
 	current_type === _token.ENDMARKER ||
 	the.current_word === "\n" ||
 	the.current_word === "" ||
 	the.token_number >= the.tokenstream.length
 
-checkEndOfFile = () => (current_type === _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
+let checkEndOfFile = () =>(current_type === _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
 
-maybe_newline = () => (checkEndOfFile() || newline(/*doraise*/ false))
+let maybe_newline = () =>(checkEndOfFile() || newline(/*doraise*/ false))
 
-newline = function (doraise = false) {
+function newline (doraise = false) {
 	let found;
 	if (((checkNewline() === NEWLINE) || (the.current_word === ";") || (the.current_word === ""))) {
 		next_token();
@@ -1054,20 +1015,20 @@ newline = function (doraise = false) {
 	return false;
 }
 
-newlines = () => star(newline);
+let newlines = () =>star(newline);
 
-NL = () => tokens("\n", "\r");
+let NL = () =>tokens("\n", "\r");
 
-NLs = () => tokens("\n", "\r");
+let NLs = () =>tokens("\n", "\r");
 
-rest_of_statement = () => {
+function rest_of_statement(){
 	let current_value;
 	current_value = the.string[1].strip.match(/(.*?)([\r\n;]|done)/i)
 	the.string = the.string.slice(current_value.length, (-1));
 	return current_value;
 }
 
-rest_of_line = () => {
+function rest_of_line(){
 	let rest;
 	rest = "";
 	while ((!checkEndOfLine() && (!(current_word === ";")))) {
@@ -1077,7 +1038,7 @@ rest_of_line = () => {
 	return rest.strip();
 }
 
-comment_block = () => {
+function comment_block(){
 	token("/");
 	token("*");
 	while (true) {
@@ -1092,7 +1053,7 @@ comment_block = () => {
 }
 new Starttokens(["//", "#", "'", "--"]);
 
-skip_comments = () => {
+function skip_comments(){
 	let l;
 	if (the.current_word === null) {
 		return;
@@ -1114,21 +1075,21 @@ skip_comments = () => {
 	}
 }
 
-raise_not_matching = (msg = null) => {
+function raise_not_matching(msg = null){
 	throw new NotMatching(msg)
 }
 
-_try = maybe;
+let _try = maybe;
 
-number = () => maybe(real) || maybe(fraction) || maybe(integer) || maybe(number_word) || raise_not_matching("number")
+let number = () =>maybe(real) || maybe(fraction) || maybe(integer) || maybe(number_word) || raise_not_matching("number")
 
-number_word = () => {
+function number_word(){
 	let n;
 	n = tokens(numbers);
 	return xstr(n).parse_number();
 }
 
-fraction = () => {
+function fraction(){
 	let f, m;
 	f = maybe(integer) || 0;
 	m = starts_with(["\u00bc", "\u00bd", "\u00be", "\u2153", "\u2154", "\u2155", "\u2156", "\u2157", "\u2158", "\u2159", "\u215a", "\u215b", "\u215c", "\u215d", "\u215e"]);
@@ -1145,9 +1106,9 @@ fraction = () => {
 	the.result = (f + m);
 	return the.result;
 }
-ZERO = "0";
+let ZERO = "0";
 
-integer = () => {
+function integer(){
 	let current_value, match;
 	match = the.string.match(/^\s*(-?\d+)/i)
 	if (match) {
@@ -1164,7 +1125,7 @@ integer = () => {
 	throw new NotMatching("no integer");
 }
 
-real = () => {
+function real(){
 	let current_value, match;
 	match = the.string.match(/^\s*(-?\d*\\.\d+)/i)
 	if (match) {
@@ -1175,7 +1136,7 @@ real = () => {
 	throw new NotMatching("no real (unreal)");
 }
 
-complex = () => {
+function complex(){
 	let match, s;
 	s = the.string.strip().replace("i", "j");
 	match = s.match(/^(\d+j)/i)
@@ -1196,13 +1157,13 @@ complex = () => {
 	return false;
 }
 
-maybe_indent = () => {
+function maybe_indent(){
 	while ((the.current_type === _token.INDENT) || (the.current_word === " ")) {
 		next_token();
 	}
 }
 
-method_allowed = (meth) => {
+function method_allowed(meth){
 	if (meth.length < 2) {
 		return false;
 	}
@@ -1218,9 +1179,9 @@ method_allowed = (meth) => {
 	return true;
 }
 
-load_module_methods = () => {
+function load_module_methods(){
 	return []
-	pickle = require('pickle')
+	let pickle = require('pickle')
 	// import * as warnings from 'warnings';
 	let ex;
 	// warnings.filterwarnings("ignore", {category: UnicodeWarning});
@@ -1232,17 +1193,17 @@ load_module_methods = () => {
 		if (!method_allowed(mo)) {
 			continue;
 		}
-		the.method_token_map[mo] = english_parser.method_call;
+		the.method_token_map[mo] = method_call;
 		for (let meth of mes) {
 			if (method_allowed(meth)) {
-				the.method_token_map[meth] = english_parser.method_call;
+				the.method_token_map[meth] = method_call;
 			}
 		}
 	}
 	for (let [mo, cls] of the.moduleClasses) {
 		for (let meth of cls) {
 			if (method_allowed(meth)) {
-				the.method_token_map[meth] = english_parser.method_call;
+				the.method_token_map[meth] = method_call;
 			}
 		}
 	}
@@ -1268,9 +1229,21 @@ load_module_methods = () => {
 	return all;
 }
 
-//# sourceMappingURL=power_parser.js.map
-// module.exports.parse = parse
-// exports.parse = parse
-// exports.block = block
-// exports.dont_interpret = dont_interpret
-// exports.clear =clear
+
+function is_number(n) {
+	return (str(n).parse_number() !== 0);
+}
+
+function must_not_start_with(words) {
+	let bad;
+	bad = starts_with(words);
+	if (!bad) {
+		return OK;
+	}
+	if (bad) {
+		info("should_not_match DID match %s" % bad);
+	}
+	if (bad) {
+		throw new NotMatching("should_not_match DID match %s" % bad);
+	}
+}

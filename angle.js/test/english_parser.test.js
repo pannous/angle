@@ -1,5 +1,5 @@
 "use strict";
-require('../english_parser')
+require('../angle_parser')
 exports.testSomething = test=> {
     // console.log(test)
     // { done, ok, same, equals, expect: , _assertion_list: [], AssertionError, fail, equal, notEqual, deepEqual, notDeepEqual, strictEqual, notStrictEqual, throws, doesNotThrow, ifError: [Function] }

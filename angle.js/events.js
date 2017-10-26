@@ -1,6 +1,6 @@
 import * as sched from 'sched';
 import * as time from 'time';
-import * as english_parser from 'english_parser';
+import * as english_parser from 'angle_parser';
 class Event {
 }
 class Observer {
