@@ -35,7 +35,7 @@ numbers = "1 2 3 4 5 6 7 8 9 0      -1 -2 -3 -4 -5 -6 -7 -8 -9 -0           ten 
 number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th      tenth ninth eighth seventh sixth fifth fourth third second first".split();
 special_chars = "!@#$%^*()+_}{\":?><,./';][=-`'|\\".split("");
 NEWLINE = "NEWLINE";
-articles = ["an", "the", "these", "those", "any", "all", "some", "teh", "that", "every", "each", "this"];
+article_words = ["an", "the", "these", "those", "any", "all", "some", "teh", "that", "every", "each", "this"];
 negative_quantifiers = ["nothing", "neither", "none", "no"];
 all_quantifiers = ["all", "every", "everything", "the whole"];
 any_quantifiers = ["any", "one", "some", "most", "many", "exists", "exist", "there is", "there are", "at least one", "at most two"];

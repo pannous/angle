@@ -1,4 +1,7 @@
-function statement (doraise = true) {
+let {starts_with,checkNewline,maybe_indent,maybe,must_contain_before_,maybe_tokens}=require('./power_parser')
+let {quick_expression}= require('./expressions')
+let {articles}=require('./angle_parser')
+statement=function statement (doraise = true) {
 	let x;
 	if (starts_with(done_words) || checkNewline())
 		return !doraise || raise_not_matching("end of block ok")
@@ -29,6 +32,7 @@ function statement (doraise = true) {
 	return the.result;
 }
 
+
 function setter(var_ = null) {
 	let _cast, _let, _type, guard, mod, setta, val;
 	must_contain_before_({
@@ -37,7 +41,7 @@ function setter(var_ = null) {
 	});
 	_let = maybe_tokens(let_words);
 	if (_let) no_rollback();
-	let a = maybe(_the);
+	let a = maybe(articles);
 	mod = maybe_tokens(modifier_words);
 	_type = maybe(typeNameMapped);
 	maybe_tokens(["var", "val", "value of"]);
@@ -361,4 +365,16 @@ function declaration() {
 	var_.modifier = mod;
 	the.variableTypes[var_.name] = var_.type;
 	return var_;
+}
+
+module.exports={
+	statement,
+	end_of_statement,
+}
+
+
+function typeNameMapped() {
+	let name = typeName();
+	if (name.in(the.classes)) return the.classes[name];
+	return mapType(name);
 }

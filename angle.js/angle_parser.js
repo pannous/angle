@@ -5,19 +5,20 @@ let used_operators
 let used_ast_operators
 
 the = require("./context");
-// console.log(the);
+require("./power_parser")
+let {block,tokens} = require("./power_parser")
 require("./english_tokens")
 require("./ast")
 require("./loops")
 let extensions = require('./extensions')();
 let exceptions = require('./exceptionz');
 let context = require('./context.js');
-let nodes= require('./nodes')
-let {Variable,Argument} = require('./nodes')
+let nodes = require('./nodes')
+let {Variable, Argument} = require('./nodes')
 // let Variable = nodes.Variable
 // let Argument = nodes.Argument
 
-function raise_not_matching(msg = null){
+function raise_not_matching(msg = null) {
 	throw new NotMatching(msg)
 }
 
@@ -49,8 +50,6 @@ function _(x) {
 function __(x) {
 	return tokens(x);
 }
-
-
 
 
 let remove_hash = {};
@@ -109,7 +108,7 @@ function raiseSyntaxError() {
 	throw new SyntaxError("incomprehensible input");
 }
 
-function rooty () {
+function rooty() {
 	// power_parser.
 	block({
 		multiple: true
@@ -165,8 +164,6 @@ function package_version() {
 	maybe_tokens("or later");
 	return the.result;
 }
-
-
 
 
 function operator() {
@@ -229,19 +226,20 @@ function apply_op(stack, i, op) {
 	}
 	return result
 }
+
 function fold_algebra(stack) {
-	
+
 	used_operators = operators.filter(x => x.in(stack))
 	used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
 	for (op of used_operators.plus(used_ast_operators)) {
 		let i = 0
 		while (i < stack.length) {
 			if (stack[i] == op)
-				result=apply_op(stack, i, op)
+				result = apply_op(stack, i, op)
 			i += 1
 		}
 	}
-	stack = stack.filter(x=>x)
+	stack = stack.filter(x => x)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
 		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
 	}
@@ -489,16 +487,10 @@ function nth_item(val = 0) {
 }
 
 
-
-
 function must_contain_substring(param) {
 	let current_statement = the.current_line.slice(the.current_offset).split([';', ':', '\n'])[0]
 	if (!param.in(current_statement)) raise_not_matching("must_contain_substring(%s)" % param);
 }
-
-
-
-
 
 
 function close_bracket() {
@@ -524,7 +516,6 @@ function hash_map() {
 	let z = (starts_with("{") ? regular_hash() : immediate_hash());
 	return z;
 }
-
 
 
 function maybe_cast(_context) {
@@ -597,7 +588,6 @@ function execute(command) {
 	// import * as os from 'os';
 	return os.popen(command).read();
 }
-
 
 
 function isStatementOrExpression(b) {
@@ -818,7 +808,7 @@ function true_method(obj = null) {
 		name = (maybe_tokens(the.method_names) || maybe(verb));
 	}
 	if (!name) throw new NotMatching("no method found");
-	if (maybe_tokens(articles)) {
+	if (maybe_tokens(article_words)) {
 		obj = " ".join(one_or_more(word));
 		longName = ((name + " ") + obj);
 		if (longName.in(the.method_names)) {
@@ -965,7 +955,7 @@ function maybe_token(x) {
 function neu() {
 	let clazz;
 	maybe_tokens(["create", "init"]);
-	the_();
+	maybe(articles)
 	_("new");
 	clazz = class_constant();
 	return do_call(clazz, "__init__", arguments());
@@ -1273,7 +1263,6 @@ function property() {
 }
 
 
-
 function alias(var_ = null) {
 	let a, ali, f;
 	if (!var_) {
@@ -1375,7 +1364,7 @@ function current_context() {
 
 function variable(a = null, ctx = ast.Load, isParam = false) {
 	let all, name, oldVal, p, param, typ;
-	a = (a || maybe_tokens(articles));
+	a = (a || maybe_tokens(article_words));
 	if (a !== "a") a = null;
 	must_not_start_with(keywords);
 	must_not_start_with(the.method_names)
@@ -1435,7 +1424,7 @@ let word_regex = "^\s*[a-zA-Z]+[\w_]*";
 
 function word(include = null) {
 	let current_value, match;
-	maybe_tokens(articles);
+	maybe_tokens(article_words);
 	if (!include) {
 		include = [];
 	}
@@ -1517,7 +1506,7 @@ function call_cast(x, typ) {
 
 
 function article() {
-	tokens(articles);
+	tokens(article_words);
 }
 
 function number_or_word() {
@@ -1542,7 +1531,7 @@ function param(position = 1) {
 function call_arg(position = 1) {
 	let name, pre, type, value;
 	pre = (maybe_tokens(prepositions) || "");
-	maybe_tokens(articles);
+	maybe_tokens(article_words);
 	type = maybe(typeNameMapped);
 	if (look_1_ahead("=")) {
 		name = maybe(word);
@@ -2024,7 +2013,7 @@ function resolve_netbase(n) {
 
 function the_noun_that() {
 	let criterium, n;
-	maybe(_the);
+	maybe(articles);
 	n = noun();
 	if (!n) {
 		raise_not_matching("no noun");
@@ -2124,14 +2113,6 @@ function mapType(x0) {
 	return x0;
 }
 
-function typeNameMapped() {
-	let x;
-	x = typeName();
-	if (x.in(the.classes)) {
-		return the.classes[x];
-	}
-	return mapType(x);
-}
 
 function typeName() {
 	return (maybe_tokens(type_names) || classConstDefined());
@@ -2225,21 +2206,17 @@ function nonzero() {
 }
 
 
-
-
-
 function bla() {
 	return tokens(["hey"]);
 }
 
-function _the() {
-	return tokens(articles);
+function articles() {
+	return tokens(article_words);
 }
 
 function the_() {
-	maybe_tokens(articles);
+	maybe_tokens(article_words);
 }
-
 
 
 async function real_raw_input() {
@@ -2310,8 +2287,7 @@ async function start_shell(args = []) {
 }
 
 
-
-function main () {
+function main() {
 	let ARGV, a, interpretation, target_file;
 	the._verbose = false;
 	ARGV = process.argv;
@@ -2366,28 +2342,15 @@ function main () {
 let english_parser_imported = true;
 context.starttokens_done = true;
 
-
-//# sourceMappingURL=power_parser.js.map
 // module.exports.parse = parse
 // exports.parse = parse
-// exports.block = block
-// exports.dont_interpret = dont_interpret
-// exports.clear =clear
-
 //// sourceMappingURL=js.map
-// exports={
-	// module.exports = {
-setVerbose = (ok = 1) =>context._verbose = ok;
+let setVerbose = (ok = 1) => context._verbose = ok;
 
-module.exports={
-	setVerbose :setVerbose ,// (ok = 1) =>context._verbose = ok,
-	parse:parse,
-	main: main,
-	rooty: rooty,
-	interpretation: interpretation,
-	// dont_interpret:power_parser.dont_interpret
-};
-// exports = module.exports// import * as sys from 'sys';
-
-// exports.setVerbose = (ok = 1) =>context._verbose = ok;
-// module.exports.setVerbose = (ok = 1) =>context._verbose = ok;
+module.exports = {
+	setVerbose,
+	main,
+	rooty,
+	interpretation,
+	articles,
+}

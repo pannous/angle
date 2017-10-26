@@ -1,11 +1,10 @@
 // require('./angle_base_test') // include in test files
 // parser=
 // let {parse}=
-require('../angle_parser')
+let {setVerbose}=require('../angle_parser')
 // console.log(parser) // setVerbose,
 // parser.dont_interpret=()=>dont_interpret() // why??
 // parser.clear=()=>clear() // why??
-console.log(setVerbose)
 setVerbose(1)
 ParserBaseTest=class ParserBaseTest{
 	result_be(a,b){

@@ -1,3 +1,4 @@
+let {look_1_ahead} = require('./power_parser')
 function expression(fallback = null, resolve = true) {
 	let ex;
 	maybe(space);
@@ -611,3 +612,4 @@ function do_compare(a, comp, b) {
 		}
 }
 
+module.exports={quick_expression,expression}

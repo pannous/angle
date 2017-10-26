@@ -1,6 +1,6 @@
 function noun(include = []) {
 	let a;
-	a = maybe_tokens(articles);
+	a = maybe_tokens(article_words);
 	if (!a) {
 		must_not_start_with(list(keywords) - include);
 	}
