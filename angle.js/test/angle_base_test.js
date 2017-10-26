@@ -50,9 +50,9 @@ assert_result_is=(prog,val)=>{
 	interpretation = parse(prog);
 	let result = interpretation.result
 	assert(result==val,prog+"=?="+val)
-	console.log(prog)
-	console.log(val)
-	console.log(result)
+	console.log(prog + " ==== " + val + "   ... OK!")
+	// console.log(val)
+	// console.log(result)
 }
 
 result_be=function (a,b){

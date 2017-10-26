@@ -40,7 +40,7 @@ class SetterTest extends (ParserBaseTest) {
 		assert_equals(i, list(range(5, 10 + 1)))  // count from 1 to 10 => 10 INCLUDED, thus +1!
 	}
 	test_variable_type_cast2(){
-		skip();
+		// skip();
 		parse(`int i;i=int(3.2)`);
 		parse(`int i;i=int(float("3.2"))`);
 		parse(`int i;i=float("3.2") as int`);
@@ -116,9 +116,10 @@ class SetterTest extends (ParserBaseTest) {
 }
 // register(SetterTest ,module)
 // register(new SetterTest(),module)
-// exports.o=x=>{parse(`int i=3`);x.done()}
+
 exports.quick_test=x=>{
-	assert_result_is(`x=nil else 'c'`,'c')//  assignment side guard!
-	assert_result_is(`char x=3 else 'c'`,3);
+	assert_result_is(`x=nil or 'c'`, 'c') //  value side to guard!
+	// assert_result_is(`x=nil else 'c'`,'c')//  assignment side guard!
+	// assert_result_is(`char x=3 else 'c'`,3);
 	x.done()
 }
