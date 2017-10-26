@@ -1,15 +1,11 @@
-#!/usr/bin/env python;
-// var angle = require('angle');
-
-
-
-
+require('./angle_base_test')
+"use strict"
 class SetterTest extends (ParserBaseTest) {
 	setUp(){
 		parser.clear();
 	}
-	test_samples(){
-		x=parse(`samples/basics.e`);
+	est_samples(){
+		let x=parse(`samples/basics.e`);
 		assert(x==6)
 	}
 	test_a_setter_article_vs_variable(){
@@ -38,8 +34,8 @@ class SetterTest extends (ParserBaseTest) {
 		parse(`int i;i=3.2 as int`);
 	}
 	test_variable_range(){
-		j = parse(`list i is 5 to 10`);
-		i = parse(`i is 5 to 10`);
+		let j = parse(`list i is 5 to 10`);
+		let i = parse(`i is 5 to 10`);
 		assert_equals(i,j);
 		assert_equals(i, list(range(5, 10 + 1)))  // count from 1 to 10 => 10 INCLUDED, thus +1!
 	}
@@ -94,7 +90,7 @@ class SetterTest extends (ParserBaseTest) {
 		// Especially useful if we get the return value of a function with unknown type but mutable value
 	}
 	test_variable_type_safety0(){
-		x=parse(`string i=3`);
+		let x=parse(`string i=3`);
 		if(x=='3')console.log('auto casted it to string');
 		assert_has_error('string i=3', WrongType);
 		assert_has_error('int i="hi"', WrongType);
@@ -115,4 +111,13 @@ class SetterTest extends (ParserBaseTest) {
 		assert_has_error('int i;i="hi"', WrongType);
 
 	}
+}
+// register(SetterTest ,module)
+// register(new SetterTest(),module)
+// exports.o=x=>{parse(`int i=3`);x.done()}
+exports.quick_test=x=>{
+	// parse(`int i=3`);
+	// assert_has_error('int i;string i', WrongType);
+	assert_has_no_error(`typed i="hi";i='ho'`);
+	x.done()
 }

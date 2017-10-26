@@ -8,8 +8,8 @@
 // import * as kast.kast from 'kast/kast';
 // import {*} from 'power_parser';
 // import {list} from 'extensions';
-ast = require("./ast.js")
-extensions = require('./extensions.js')();
+ast = require("./ast")
+extensions = require('./extensions')();
 
 function list(xs) { // Only in this context  don't make it global
 	if (xs instanceof String) return xs.split("")

@@ -76,9 +76,7 @@ star = function (lamb, giveUp = false) {
 	try {
 		while (!checkEndOfLine()) {
 			match = lamb();
-			if (!match) {
-				break;
-			}
+			if (!match) break;
 			old = current_token;
 			good.append(match);
 			if (the.current_word === ")") {
@@ -86,7 +84,7 @@ star = function (lamb, giveUp = false) {
 			}
 			max = 20;
 			if (good.length > max) {
-				throw new Error(" too many occurrences of " + lamb.name );// to_source(
+				throw new Error(" too many occurrences of " + lamb.name);// to_source(
 			}
 		}
 	} catch (e) {
@@ -205,6 +203,7 @@ tokens = (tokenz) => {
 }
 
 maybe_tokens = (tokens0) => {
+	if (checkEndOfLine()) return false
 	for (t of tokens0) {
 		if ((t === the.current_word) || (t.lower() === the.current_word.lower())) {
 			next_token();
@@ -235,14 +234,13 @@ __ = (x) => tokens(x)
 next_token = function (check = true) {
 	let token;
 	the.token_number = (the.token_number + 1);
-	if (the.token_number >= the.tokenstream.length) {
-		if (!check) {
-			return new EndOfDocument();
-		}
-		throw new EndOfDocument();
-	}
 	token = the.tokenstream[the.token_number];
 	the.previous_word = the.current_word;
+	if (the.token_number >= the.tokenstream.length) {
+		the.current_word = "<EndOfDocument>"
+		if (!check) return new EndOfDocument();
+		throw new EndOfDocument();
+	}
 	return set_token(token);
 }
 
@@ -450,12 +448,14 @@ must_contain = function (args, do_raise = true) {
 	}
 	return false;
 }
-
+must_contain_before_ = function ({args, before}) {
+	return must_contain_before(args, before)
+}
 must_contain_before = function (args, before) {
 	let good, old;
 	old = current_token;
 	good = null;
-	while (!(checkEndOfLine() || (current_word.in(before) && (!current_word.in(args))))) {
+	while (!checkEndOfLine() && !current_word.in(before)) {
 		if (current_word.in(args)) {
 			good = current_word;
 			break;
@@ -463,9 +463,7 @@ must_contain_before = function (args, before) {
 		next_token();
 	}
 	set_token(old);
-	if (!good) {
-		throw NotMatching;
-	}
+	if (!good) throw NotMatching;
 	return good;
 }
 
@@ -537,10 +535,8 @@ look_1_ahead = function (expect_next, doraise = false, must_not_be = false, offs
 	if (the.current_word === "") {
 		return false;
 	}
-	if ((the.token_number + 1) >= the.tokens_len) {
-		console.log("BUG: this should not happen");
-		return false;
-	}
+	if (the.token_number + 1 >= the.tokens_len)
+		return false
 	token = the.tokenstream[(the.token_number + offset)];
 	if (expect_next === token[1]) {
 		return true;
@@ -743,39 +739,39 @@ block = function (multiple = false) {
 	statements = (statement0 ? [statement0] : []);
 	end_of_block = maybe(end_block);
 	while ((multiple || !end_of_block) && !checkEndOfFile()) {
-	end_of_statement();
-	no_rollback();
-	if (multiple) {
-		maybe_newline();
-	}
+		end_of_statement();
+		no_rollback();
+		if (multiple) {
+			maybe_newline();
+		}
 
 		// block_lambda = function block_lambda() => {
-	block_lambda = () => {
-		let s;
-		try {
-			maybe_indent();
-			s = statement();
-			statements.append(s);
-		} catch (e) {
-			if (e instanceof NotMatching) {
-				if (starts_with(done_words) || checkNewline()) {
-					return false;
+		block_lambda = () => {
+			let s;
+			try {
+				maybe_indent();
+				s = statement();
+				statements.append(s);
+			} catch (e) {
+				if (e instanceof NotMatching) {
+					if (starts_with(done_words) || checkNewline()) {
+						return false;
+					}
+					console.log("Giving up block");
+					print_pointer(true);
+					throw new Error(e.toString() + "\nGiving up block\n") + pointer_string();
+				} else {
+					throw e;
 				}
-				console.log("Giving up block");
-				print_pointer(true);
-				throw new Error(e.toString() + "\nGiving up block\n") + pointer_string();
-			} else {
-				throw e;
 			}
+			return end_of_statement();
 		}
-		return end_of_statement();
+		star(block_lambda, /*giveUp:*/ true);
+		end_of_block = end_block();
+		if (!multiple) {
+			break;
+		}
 	}
-	star(block_lambda, /*giveUp:*/ true);
-	end_of_block = end_block();
-	if (!multiple) {
-		break;
-	}
-}
 	the.last_result = the.result;
 	if (interpreting()) {
 		return statements.slice(-1)[0];
@@ -819,37 +815,39 @@ maybe = (expr) => {
 		last_node = current_node;
 		return result;
 	} catch (e) {
-		switch (e.constructor) {
-			case NotMatching:
-				break; /*maybe: all good depth = (depth - 1) in FINALLY!*/
-			case EndOfDocument:
-				set_token(old);
-				verbose("EndOfDocument");
-				return false;
-			case EndOfLine:
-				verbose("Tried %d '%s' as %s, got %s".format(the.current_offset, the.current_word, expr.name, e.stack));
-				adjust_interpret();
-				cc = caller_depth();
-				rb = the.no_rollback_depth;
-				if (cc >= rb) {
+		if (!(e instanceof NotMatching))
+			switch (e.constructor) {
+				case MustNotMatchKeyword: // does not inherit!! :(
+				case NotMatching:
+					break; /*maybe: all good depth = (depth - 1) in FINALLY!*/
+				case EndOfDocument:
 					set_token(old);
-					current_value = null;
-				}
-				if (cc < rb) {
-					error("NO ROLLBACK, GIVING UP!!!");
-					ex = new GivingUp((((e.toString() + "\n") + to_source(expr) + "\n") + pointer_string()));
-					throw ex;
-				}
-				break;
-			case IgnoreException:
-				set_token(old);
-				// error(e);
-				verbose(e);
-				break;
-			default:
-				error(e);
-				throw e;
-		}
+					// verbose("EndOfDocument");
+					return false;
+				case EndOfLine:
+					verbose("Tried %d '%s' as %s, got %s".format(the.current_offset, the.current_word, expr.name, e.stack));
+					adjust_interpret();
+					cc = caller_depth();
+					rb = the.no_rollback_depth;
+					if (cc >= rb) {
+						set_token(old);
+						current_value = null;
+					}
+					if (cc < rb) {
+						error("NO ROLLBACK, GIVING UP!!!");
+						ex = new GivingUp((((e.toString() + "\n") + to_source(expr) + "\n") + pointer_string()));
+						throw ex;
+					}
+					break;
+				case IgnoreException:
+					set_token(old);
+					// error(e);
+					verbose(e);
+					break;
+				default:
+					error(e);
+					throw e;
+			}
 	} finally {
 		// 			NotMatching
 
@@ -888,9 +886,9 @@ clear = () => {
 	variables = {};
 	variableValues = {};
 	context.testing = true;
-	the.variables.clear();
-	the.variableTypes.clear();
-	the.variableValues.clear();
+	the.variables={}//.clear();
+	the.variableTypes={}//.clear();
+	the.variableValues={}//.clear();
 	context.in_hash = false;
 	context.in_list = false;
 	context.in_condition = false;
@@ -916,15 +914,15 @@ parse = parse = function (s, target_file = null) {
 	if (!s) {
 		return;
 	}
-	if(is_array(s))s=" ".join(s) // Todo
+	if (is_array(s)) s = " ".join(s) // Todo
 	if (s instanceof File) {
 		source_file = s.name;
-		s = s.readlines();
+		s = readlines(s);
 	} else {
 		if (s.endswith(".e") || s.endswith(".an")) {
 			target_file = (target_file || (s + ".pyc"));
 			source_file = s;
-			s = open(s).readlines();
+			s = readlines(s);
 		} else {
 			source_file = "out/inline";
 			try {
@@ -956,8 +954,8 @@ parse = parse = function (s, target_file = null) {
 		if (the.result instanceof nodes.FunctionCall) {
 			the.result = english_parser.do_execute_block(the.result);
 		}
-		if (the.result=="True" || the.result== "true") the.result = true;
-		if (the.result=="False" || the.result== "false") the.result = false;
+		if (the.result == "True" || the.result == "true") the.result = true;
+		if (the.result == "False" || the.result == "false") the.result = false;
 		if (the.result instanceof Variable) the.result = the.result.value;
 		// import * as ast from 'ast';
 		// got_ast = (the.result instanceof ast.AST);
@@ -984,6 +982,7 @@ parse = parse = function (s, target_file = null) {
 		throw e;
 	}
 	verbose("PARSED SUCCESSFULLY!!");
+	verbose("RESULT = "+the.result);
 	return interpretation();
 }
 
@@ -1011,15 +1010,11 @@ tokens = (tokenz) => {
 }
 
 escape_token = (t) => {
-	let z;
-	z = re.sub("([^\w])", "\\\\\\1", t);
-	return z;
+	return t.replace(/([^\w])/, "\\1");
 }
 
 raiseNewline = () => {
-	if (checkEndOfLine()) {
-		throw new EndOfLine();
-	}
+	if (checkEndOfLine()) throw new EndOfLine();
 }
 
 checkNewline = () => checkEndOfLine()
@@ -1121,13 +1116,13 @@ skip_comments = () => {
 	}
 }
 
-raise_not_matching = function (msg = null) {
-	throw new NotMatching(msg);
+raise_not_matching = (msg = null) => {
+	throw new NotMatching(msg)
 }
 
 _try = maybe;
 
-number = () => (((maybe(real) || maybe(fraction) || maybe(integer)) || maybe(number_word)) || raise_not_matching("number"))
+number = () => maybe(real) || maybe(fraction) || maybe(integer) || maybe(number_word) || raise_not_matching("number")
 
 number_word = () => {
 	let n;
@@ -1137,10 +1132,11 @@ number_word = () => {
 
 fraction = () => {
 	let f, m;
-	f = (maybe(integer) || 0);
+	f = maybe(integer) || 0;
 	m = starts_with(["\u00bc", "\u00bd", "\u00be", "\u2153", "\u2154", "\u2155", "\u2156", "\u2157", "\u2158", "\u2159", "\u215a", "\u215b", "\u215c", "\u215d", "\u215e"]);
 	if (!m) {
 		if (f !== 0) {
+			next_token();
 			return f;
 		}
 		throw new NotMatching();
@@ -1225,14 +1221,15 @@ method_allowed = (meth) => {
 }
 
 load_module_methods = () => {
-	pickle=require('pickle')
+	return []
+	pickle = require('pickle')
 	// import * as warnings from 'warnings';
 	let ex;
 	// warnings.filterwarnings("ignore", {category: UnicodeWarning});
-	the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb")||{}
-	the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb")||{}
-	the.moduleNames = pickle.loads(open(context.home + "/data/module_names.bin"), "rb")||[]
-	the.moduleClasses = pickle.loads(open(context.home + "/data/module_classes.bin"), "rb")||{}
+	the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb") || {}
+	the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb") || {}
+	the.moduleNames = pickle.loads(open(context.home + "/data/module_names.bin"), "rb") || []
+	the.moduleClasses = pickle.loads(open(context.home + "/data/module_classes.bin"), "rb") || {}
 	for (let [mo, mes] of the.moduleMethods) {
 		if (!method_allowed(mo)) {
 			continue;
@@ -1254,7 +1251,7 @@ load_module_methods = () => {
 	the.constructors = (keys(the.classes)) + type_names;
 	let moduleKeys = keys(the.methodToModulesMap);
 	the.method_names = keys(the.methods).plus(c_methods).add(keys(methods))
-	the.method_names.add( core_methods).add( builtin_methods).add( moduleKeys)
+	the.method_names.add(core_methods).add(builtin_methods).add(moduleKeys)
 	for (let x of dir(extensions)) {
 		the.method_names.append(x);
 	}
@@ -1278,3 +1275,4 @@ load_module_methods = () => {
 exports.parse = parse
 exports.block = block
 exports.dont_interpret = dont_interpret
+exports.clear =clear

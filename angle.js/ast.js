@@ -1,3 +1,5 @@
+class AST{}
+class FunctionCall{}
 class Param{}
 class Add {}
 class Sub {}
@@ -54,6 +56,8 @@ module.exports = {
     Str:Str,
 	Compare:Compare,
 	FunctionDef:FunctionDef,
+	FunctionCall:FunctionCall,
     Assign:Assign,
-	Param:Param
+	Param:Param,
+	AST:AST
 }

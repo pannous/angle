@@ -1,13 +1,14 @@
 
 parser=require('../english_parser')
 parser.dont_interpret=()=>dont_interpret() // why??
+parser.clear=()=>clear() // why??
 
-
+setVerbose(1)
 ParserBaseTest=class ParserBaseTest{
 	result_be(a,b){
 		// console.log("this.result_be OK")
 	}
-	skip(){}
+	// skip(){}
 	setUp(){
 		context.testing = true;
 		// 	context.use_tree=False
@@ -20,15 +21,34 @@ ParserBaseTest=class ParserBaseTest{
 	}
 }
 
+class SkipException extends Error{}
+class TestError extends Error{}
 skip=()=>{
-	// throw new Error("skip");
+	throw new SkipException("skip");
 }
 assert_result_emitted=(prog,val)=>{
+	let result = parse(prog);
+	assert(result==val)
 	console.log(prog)
 	console.log(val)
 }
+assert_has_no_error=(prog)=>{
+	x=parse(prog)
+	console.log(x)
+}
+assert_has_error=(prog,type="")=>{
+	try{
+		parse(prog)
+	}catch(ex){
+		console.log("OK, exception raised: "+(ex.message||ex.name))
+		return
+	}
+	throw new TestError("should have raised "+type.name+": "+the.current_line)
+}
 
 assert_result_is=(prog,val)=>{
+	let result = parse(prog);
+	assert(result==val)
 	console.log(prog)
 	console.log(val)
 }
@@ -39,11 +59,15 @@ result_be=function (a,b){
 // export default ParserBaseTest
 // module.exports={ParserBaseTest:ParserBaseTest}
 
+registered={}
 register=(instance,modul)=>{
+	try{
 	if(instance instanceof Function){
 		clazz=instance
 		instance=new clazz() //.constructor()
 	}
+	// if(registered[instance+""]) return
+	// registered[instance+""]=1
 	console.log("\n------------------------------")
 	console.log(instance)
 	console.log("------------------------------\n")
@@ -52,11 +76,24 @@ register=(instance,modul)=>{
 	for (let test of Object.getOwnPropertyNames(clazz)) {
 		if(!test.match(/test/))continue
 		modulus.exports[test]=ok=>{
-			instance[test](ok);
-			ok.done()
+			try{
+				parser.clear()
+				instance[test](ok);
+			}catch(ex){
+				if(ex instanceof SkipException)return console.log("SKIPPING:")&&console.log(clazz)
+				// console.error(ex)
+				else throw ex
+			}
+			finally {
+				ok.done()
+			}
 		}
 	}
+	}catch(ex){
+		console.error(ex)
+	}
 }
+
 function register_tests() {
 	for(mod of module.parent.children.slice(5)){
 		if(mod.exports.length>0)

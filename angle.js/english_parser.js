@@ -8,6 +8,11 @@ nodes = require('./nodes.js')
 Variable = nodes.Variable
 Argument = nodes.Argument
 
+raise_not_matching = (msg = null) => {
+	throw new NotMatching(msg)
+}
+
+
 function get(name) {
 	if (name instanceof Name) {
 		name = name.id;
@@ -15,7 +20,7 @@ function get(name) {
 	if (name instanceof nodes.Variable) {
 		name = name.name;
 	}
-	return new _ast.Name({
+	return new ast.Name({
 		id: name,
 		ctx: new Load()
 	});
@@ -68,7 +73,7 @@ function boole() {
 	return the.result;
 }
 
-function should_not_start_with(words) {
+function must_not_start_with(words) {
 	let bad;
 	bad = starts_with(words);
 	if (!bad) {
@@ -89,7 +94,7 @@ function remove_from_list(keywords0, excepty) {
 	good = keywords0;
 	for (let x of excepty) {
 		while (x.in(good)) {
-			good=good.remove(x);
+			good = good.remove(x);
 		}
 	}
 	return good;
@@ -101,7 +106,7 @@ function no_keyword_except(excepty = null) {
 		excepty = [];
 	}
 	bad = remove_from_list(keywords, excepty);
-	return should_not_start_with(bad);
+	return must_not_start_with(bad);
 }
 
 function no_keyword() {
@@ -181,8 +186,7 @@ function javascript_require(dependency) {
 }
 
 function includes(dependency, type, version) {
-	if (the.current_word.match(/\\.js$/))
-	{
+	if (the.current_word.match(/\\.js$/)) {
 		return javascript_require(dependency);
 	}
 	if (type && type.in("javascript script js".split())) {
@@ -309,7 +313,7 @@ function apply_op(stack, i, op) {
 	} else {
 		left = fix_context(left);
 		right = fix_context(right);
-		if (op instanceof _ast.operator) {
+		if (op instanceof ast.operator) {
 			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
 		} else if (op.in(true_operators)) {
 			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
@@ -323,8 +327,8 @@ function apply_op(stack, i, op) {
 
 function fold_algebra(stack) {
 	used_operators = operators.filter(x => x.in(stack))
-	used_ast_operators = Object.values(ast.operator_map).filter(x => stack.has(x))
-	for (op of used_operators.plus(used_ast_operators)) {
+	usedast_operators = Object.values(ast.operator_map).filter(x => stack.has(x))
+	for (op of used_operators.plus(usedast_operators)) {
 		i = 0
 		while (i < stack.length) {
 			if (stack[i] == op)
@@ -334,7 +338,7 @@ function fold_algebra(stack) {
 	}
 	stack = Array(stack)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
-		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s" % [stack, used_operators]);
+		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
 	}
 	return stack[0]
 }
@@ -345,7 +349,7 @@ function algebra(val = null) {
 		return false;
 	}
 	if (!val) {
-		must_contain_before({
+		must_contain_before_({
 			args: operators,
 			before: (be_words + ["then", ",", ";", ":"])
 		});
@@ -563,13 +567,11 @@ function nth_item(val = 0) {
 	type = maybe_tokens(["item", "element", "object", "word", "char", "character"] + type_names);
 	maybe_tokens(["in", "of"]);
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
-	if (type.match(/^char/))
-	{
+	if (type.match(/^char/)) {
 		the.result = "".join(l).__getitem__(n);
 		return the.result;
 	}
-else
-	{
+	else {
 		if (is_string(l)) {
 			l = l.split(" ");
 		}
@@ -578,7 +580,7 @@ else
 		l = l.map(x => is_a(x, type))
 	}
 	if (n > l.length) {
-		throw new IndexError("%d > %d in %s[%d]" % [n, l.length, l, n]);
+		throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
 	}
 	the.result = l[n];
 	if (context.in_condition) {
@@ -769,7 +771,7 @@ hash_assign = [":", "to", "=>", "->"];
 
 function hash_map() {
 	let z;
-	must_contain_before({
+	must_contain_before_({
 		args: hash_assign,
 		before: ["}"]
 	});
@@ -913,11 +915,11 @@ function quick_expression() {
 		result = quote();
 	} else if (the.current_word.in(the.token_map)) {
 		fun = the.token_map[the.current_word];
-		debug("token_map: %s -> %s" % [the.current_word, fun]);
+		debug("token_map: %s -> %s".format(the.current_word, fun));
 		result = fun();
 	} else if (the.current_word.in(the.method_token_map)) {
 		fun = the.method_token_map[the.current_word];
-		debug("method_token_map: %s -> %s" % [the.current_word, fun]);
+		debug("method_token_map: %s -> %s".format(the.current_word, fun));
 		result = fun();
 	} else if (the.current_word.in(the.method_names)) {
 		if (method_allowed(the.current_word)) {
@@ -1078,7 +1080,7 @@ function piped_actions(a = false) {
 	}
 	if (interpreting()) {
 		the.result = do_call(a, name, args);
-		console.log(the.result);
+		verbose(the.result);
 		return the.result;
 	} else {
 		return OK;
@@ -1450,7 +1452,7 @@ function first_is_self(method) {
 }
 
 function has_args(method, clazz = object, assume = 0) {
-	if(!method)raise_not_matching("method has_args")
+	if (!method) raise_not_matching("method has_args")
 	let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
 	if (method instanceof Function) return method.length
 	if (method instanceof FunctionDef) return method.length
@@ -1527,8 +1529,8 @@ function subProperty(_context) {
 function true_method(obj = null) {
 	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
 	ex = english_operators;
-	should_not_start_with(keyword_except_english_operators)
-	should_not_start_with(auxiliary_verbs);
+	must_not_start_with(keyword_except_english_operators)
+	must_not_start_with(auxiliary_verbs);
 	xmodule = maybe_tokens(the.moduleNames);
 	xvariable = maybe_token(keys(the.variables));
 	if (xmodule) {
@@ -1572,6 +1574,7 @@ function true_method(obj = null) {
 function method_call(obj = null) {
 	let args, assume_args, method, method_name, modul, more, start_brace;
 	[modul, obj, method_name] = true_method(obj);
+	if (!method_name) raise_not_matching("no method_call")
 	context.in_algebra = false;
 	start_brace = maybe_tokens(["(", "{"]);
 	if (start_brace) {
@@ -1627,6 +1630,7 @@ function method_call(obj = null) {
 		}
 	}
 	method = findMethod(obj, method, args);
+	if (!method && interpreting()) raise_not_matching("no such method: " + method_name)
 	context.in_args = false;
 	if (start_brace === "(") {
 		_(")");
@@ -1651,13 +1655,13 @@ function method_call(obj = null) {
 			object: obj
 		});
 	}
-	the.result = do_call(obj || null), method, (args || null);
+	the.result = do_call(obj || null, method, args || null, method_name);
 	return the.result;
 }
 
 function tokens(tokens0) {
-	ok=maybe_tokens(tokens0)
-	if(!ok)throw new NotMatching(result)
+	ok = maybe_tokens(tokens0)
+	if (!ok) throw new NotMatching(result)
 	return ok
 }
 
@@ -1835,9 +1839,9 @@ function prepare_named_args(args) {
 	return context_variables;
 }
 
-function eval_ast(b, args = {}) {
+function evalast(b, args = {}) {
 	args = prepare_named_args(args);
-	the.result = pyc_emitter.eval_ast(b, args, {
+	the.result = pyc_emitter.evalast(b, args, {
 		run: true
 	});
 	return the.result;
@@ -1861,10 +1865,10 @@ function do_execute_block(b, args = {}) {
 		return do_call(b.object, b.name, (args || b.arguments));
 	}
 	if (b instanceof ast.AST) {
-		return eval_ast(b, args);
+		return evalast(b, args);
 	}
 	if ((b instanceof list) && (b[0] instanceof ast.AST)) {
-		return eval_ast(b, args);
+		return evalast(b, args);
 	}
 	if (!is_string(b)) {
 		return b;
@@ -1934,9 +1938,9 @@ function assure_same_type(var_, _type) {
 			oldType = null;
 		}
 	}
-	if (_type === "Unknown") {
+	let types_match = !oldType || !_type || oldType == _type || oldType == _type.prototype || oldType.prototype == _type
+	if (_type === "Unknown")
 		return;
-	}
 	if (_type instanceof ast.AST) {
 		warn("TYPE AST");
 		return;
@@ -1945,23 +1949,20 @@ function assure_same_type(var_, _type) {
 		warn("NOT A TYPE %s" % oldType);
 		return;
 	}
-	if (oldType && (oldType.prototype instanceof str)) {
-		if (_type.prototype instanceof extensions.xchar) {
-			return;
-		}
+	if (oldType == String) {
 	}
-	if (_type.prototype instanceof _ast.AST) {
+	if (_type == ast.AST) {
 		console.log("skipping type check for AST expressions (for now)!");
 		return;
 	}
-	if ((oldType && _type) && (!(oldType.prototype instanceof _type))) {
-		throw new WrongType(var_.name + " has type " + oldType.toString() + ", can't set to " + _type.toString());
+	if (oldType && _type && !(oldType == _type)) {
+		throw new WrongType(var_.name + " has type " + oldType.name + ", can't set to " + _type);
 	}
-	if ((oldType && var_.type) && (!(oldType.prototype instanceof var_.type))) {
-		throw new WrongType(var_.name + " has type " + oldType.toString() + ", cannot set to " + var_.type.toString());
+	if (oldType && var_.type && !(oldType == var_.type)) {
+		throw new WrongType(var_.name + " has type " + oldType.name + ", cannot set to " + var_.type.name);
 	}
-	if ((_type && var_.type) && (!((var_.type.prototype instanceof _type) || (_type.prototype instanceof var_.type)))) {
-		throw new WrongType(var_.name + " has type " + var_.type.toString() + ", Can't set to " + _type.toString());
+	if (_type && var_.type && !(var_.type == _type || _type == var_.type)) {
+		throw new WrongType(var_.name + " has type " + var_.type.name + ", Can't set to " + _type);
 	}
 	var_.type = _type;
 }
@@ -1973,19 +1974,20 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 	}
 	oldType = var_.type;
 	oldValue = var_.value;
-	if (val instanceof FunctionCall) {
-		if ((val.return_type !== "Unknown") && (val.return_type !== oldType)) {
-			throw new WrongType("OLD: %s %s VS %s return_type: %s " % [oldType, oldValue, val, val.return_type]);
-		}
+	let val_type = val && Object.getPrototypeOf(val) || null
+	if (val instanceof ast.FunctionCall) {
+		if ((val.return_type !== "Unknown") && (val.return_type !== oldType))
+			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(oldType, oldValue, val, val.return_type));
 	} else if (oldType) {
 		try {
-			wrong_type = new WrongType("OLD: %s %s VS %s %s" % [oldType, oldValue, Object.getPrototypeOf(val), val]);
-			if (!(val instanceof oldType) && !(oldType.prototype instanceof Object.getPrototypeOf(val))) {
+			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
+			let types_match = (oldType == val_type || oldType == val_type.prototype || oldType.prototype == val_type);
+			if (!types_match) {
 				if (auto_cast) return do_cast(val, oldType);
 				throw wrongType;
 			}
 		} catch (e) {
-			if (!(Object.getPrototypeOf(val).prototype instanceof _ast.AST)) {
+			if (!(val_type == ast.AST)) {
 				throw wrong_type;
 			} else {
 				console.log("skipping type check for AST expressions (for now)!");
@@ -1993,7 +1995,7 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 		}
 	}
 	if ((var_.final && var_.value) && (!(val === var_.value))) {
-		throw new ImmutableVaribale("OLD: %s %s VS %s %s" % [oldType, oldValue, Object.getPrototypeOf(val), val]);
+		throw new ImmutableVaribale("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
 	}
 	var_.value = val;
 }
@@ -2099,42 +2101,34 @@ function declaration() {
 }
 
 function setter(var_ = null) {
-	let _cast, _let, _type, a, guard, mod, setta, val;
-	must_contain_before({
+	let _cast, _let, _type, guard, mod, setta, val;
+	must_contain_before_({
 		args: ["is", "be", "are", ":=", "=", "set", "to"],
 		before: [">", "<", "+", "-", "|", "/", "*", ";"]
 	});
 	_let = maybe_tokens(let_words);
-	if (_let) {
-		no_rollback();
-	}
-	a = maybe(_the);
+	if (_let) no_rollback();
+	let a = maybe(_the);
 	mod = maybe_tokens(modifier_words);
 	_type = maybe(typeNameMapped);
 	maybe_tokens(["var", "val", "value of"]);
-	mod = (mod || maybe(modifier));
-	var_ = (var_ || variable(a, {
-		ctx: new ast.Store()
-	}));
+	mod = mod || maybe(modifier);
+	var_ = var_ || variable(a, ast.Store);
 	if (current_word === "[") {
 		return evaluate_index(var_);
 	}
-	setta = (maybe_tokens(["to"]) || be());
-	if (!setta) {
-		throw new NotMatching("BE!?");
-	}
-	if ((setta === ":=") || (_let === "alias")) {
-		return alias(var_);
-	}
-	if (maybe_tokens(["a", "an"]) && (!_type)) {
+	setta = maybe_tokens(["to"]) || be();
+	if (!setta) throw new NotMatching("BE!?");
+	if (setta === ":=" || _let === "alias") return alias(var_);
+	if (maybe_tokens(["a", "an"]) && !_type) {
 		_type = typeNameMapped();
 		val = _type();
 		return add_variable(var_, val, mod, _type);
 	} else {
 		val = expression();
 	}
-	_cast = (maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) && typeNameMapped());
-	guard = (maybe_token("else") && value());
+	_cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) && typeNameMapped();
+	guard = maybe_token("else") && value();
 	if (_cast) {
 		if (interpreting()) {
 			val = do_cast(val, _cast);
@@ -2142,7 +2136,7 @@ function setter(var_ = null) {
 			_type = _cast;
 		}
 	}
-	val = (do_evaluate(val) || do_evaluate(guard));
+	val = do_evaluate(val) || do_evaluate(guard);
 	if (setta.in(["are", "consist of", "consists of"])) {
 		val = flatten(val);
 	}
@@ -2199,7 +2193,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 		return var_;
 	}
 	var_.typed = (_type || var_.typed) || ("typed" === mod);
-	if (val instanceof FunctionCall) {
+	if (val instanceof ast.FunctionCall) {
 		assure_same_type(var_, val.returns);
 	} else {
 		assure_same_type(var_, (_type || Object.getPrototypeOf(val)));
@@ -2212,7 +2206,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 	}
 	the.token_map[var_.name] = known_variable;
 	var_.type = (_type || Object.getPrototypeOf(val));
-	var_.final = mod.in(const_words);
+	var_.final = const_words.has(mod)
 	var_.modifier = mod;
 	the.variableTypes[var_.name] = var_.type;
 	return var_;
@@ -2255,13 +2249,7 @@ function go_thread() {
 }
 
 function isType(x) {
-	if (x instanceof type) {
-		return true;
-	}
-	if (x.in(type_names)) {
-		return true;
-	}
-	return false;
+	return is_type(x) || type_names.has(x)
 }
 
 function current_node() {
@@ -2270,22 +2258,18 @@ function current_node() {
 function current_context() {
 }
 
-function variable(a = null, ctx = new ast.Load(), isParam = false) {
+function variable(a = null, ctx = ast.Load, isParam = false) {
 	let all, name, oldVal, p, param, typ;
 	a = (a || maybe_tokens(articles));
-	if (a !== "a") {
-		a = null;
-	}
+	if (a !== "a") a = null;
 	must_not_start_with(keywords);
 	must_not_start_with(the.method_names)
 	typ = maybe(typeNameMapped);
 	p = maybe_tokens(possessive_pronouns);
 	no_keyword();
 	all = one_or_more(word);
-	if ((!all) || (all[0] === null)) {
-		raise_not_matching();
-	}
-	name = " ".join([]);
+	if (empty(all)) raise_not_matching();
+	name = " ".join(all);
 	if (!typ && all.length > 1 && isType(all[0])) {
 		name = all.slice(1, (-1)).join(" ");
 	}
@@ -2293,7 +2277,7 @@ function variable(a = null, ctx = new ast.Load(), isParam = false) {
 		name = ((p + " ") + name);
 	}
 	name = name.strip();
-	if(!name)throw new NotMatching("no variable")
+	if (!name) throw new NotMatching("no variable")
 	if (isParam || (ctx instanceof ast.Param)) {
 		param = new Variable({
 			name: name,
@@ -2303,7 +2287,7 @@ function variable(a = null, ctx = new ast.Load(), isParam = false) {
 		the.params[name] = param;
 		return param;
 	}
-	if (ctx instanceof ast.Load) {
+	if (ctx instanceof ast.Load || ctx == ast.Load) {
 		if (name.in(the.variables)) {
 			return the.variables[name];
 		}
@@ -2313,7 +2297,7 @@ function variable(a = null, ctx = new ast.Load(), isParam = false) {
 			throw new UndeclaredVariable("Unknown variable " + name);
 		}
 	}
-	if (ctx instanceof ast.Store) {
+	if (ctx instanceof ast.Store || ctx == ast.Store) {
 		if (name.in(the.variables)) {
 			return the.variables[name];
 		}
@@ -2342,7 +2326,7 @@ function word(include = null) {
 	}
 	no_keyword_except(include);
 	raiseNewline();
-	match =  the.current_word.match(word_regex);
+	match = the.current_word.match(word_regex);
 	if (match) {
 		current_value = the.current_word;
 		next_token();
@@ -2361,59 +2345,51 @@ function must_not_contain(words, before = ";") {
 	old = the.current_token;
 	words = flatten(words);
 	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
-		for (let w of words) if (w === the.current_word) throw new MustNotMatchKeyword(w);
+		for (let w of words)
+			if (w === the.current_word)
+				throw new MustNotMatchKeyword(w);
 		next_token();
 	}
 	set_token(old);
 	return OK;
 }
 
-function must_not_start_with(words) {
-	should_not_start_with(words);
-}
 
 function todo(x = "") {
-	throw new NotImplementedError("NotImplementedError: "+x);
+	throw new NotImplementedError("NotImplementedError: " + x);
+}
+
+function toString(x) {
+	if (x.toString) return x.toString()
+	if (x.to_string) return x.to_string()
+	if (x.to_s) return x.to_s()
+	if (x.name) return x.name
+	if (x.__str__) return x.__str__()
+	if (x.__repr__) return x.__repr__()
+	return `${x}`
 }
 
 function do_cast(x, typ) {
-	if (typeof typ === "number" || (typ instanceof Number)) {
+	if(!typ) return x
+	if (typeof typ === "number" || (typ instanceof Number) || typ == Number) {
 		return float_(x);
 	}
 	if (typeof typ === "number" || (typ instanceof Number)) {
-		return int_(x);
+		return int(x); // never reached
 	}
-	if (typ === int_) {
-		return int_(x);
-	}
-	if (typ === xint) {
-		return int_(x);
-	}
-	if (typ === "int") {
-		return int_(x);
-	}
-	if (typ === "integer") {
-		return int_(x);
-	}
-	if (typ === str) {
-		return x.toString();
-	}
-	if (typ === str) {
-		return x.toString();
-	}
-	if (typ === unicode) {
-		return x.toString();
-	}
-	if (typ === "str") {
-		return x.toString();
-	}
-	if (typ === "string") {
-		return x.toString();
-	}
-	if ((typ === extensions.xchar) && (x.length === 1)) {
-		return extensions.xchar(x[0]);
-	}
-	throw new WrongType("CANNOT CAST: %s (%s) TO %s " % [x, Object.getPrototypeOf(x), typ]);
+	// if (typ === int_) {
+	// 	return int(x);
+	// }
+	typ = typ.toLowerCase()
+	if (typ === String) return toString(x)();
+	if (typ === "int") return int(x);
+	if (typ === "integer") return int(x);
+	if (typ === "double") return int(x);
+	if (typ === "float") return parseFloat(x);
+	if (typ === "real") return parseFloat(x);
+	if (typ === "str") return toString(x)();
+	if (typ === "string") return toString(x)();
+	throw new WrongType("CANNOT CAST: %s (%s) TO %s ".format(x, Object.getPrototypeOf(x), typ));
 }
 
 function call_cast(x, typ) {
@@ -2699,7 +2675,7 @@ function check_list_condition(quantifier, left, comp, right) {
 			the.result = (!the.result);
 		}
 		if (!the.result) {
-			verbose("List condition not met %s %s %s" % [left, comp, right]);
+			verbose("List condition not met %s %s %s".format(left, comp, right));
 		}
 		return the.result;
 	} catch (e) {
@@ -2758,9 +2734,9 @@ function check_condition(cond = null, negate = false) {
 			the.result = (!the.result);
 		}
 		if (!the.result) {
-			verbose("condition not met %s %s %s" % [left, comp, right]);
+			verbose("condition not met %s %s %s".format(left, comp, right));
 		}
-		verbose("condition met %s %s %s" % [left, comp, right]);
+		verbose("condition met %s %s %s".format(left, comp, right));
 		return the.result;
 	} catch (e) {
 		if (e instanceof IgnoreException) {
@@ -3003,104 +2979,43 @@ function classConstDefined() {
 }
 
 function mapType(x0) {
-	let x;
-	x = x0.lower();
-	if (x === "char") {
-		return xchar;
-	}
-	if (x === "character") {
-		return xchar;
-	}
-	if (x === "letter") {
-		return xchar;
-	}
-	if (x === "type") {
-		return type;
-	}
-	if (x === "word") {
-		return str;
-	}
-	if (x === "int") {
-		return int_;
-	}
-	if (x === "integer") {
-		return int_;
-	}
-	if (x === "long") {
-		return int_;
-	}
-	if (x === "double") {
-		return int_;
-	}
-	if (x === "str") {
-		return str;
-	}
-	if (x === "string") {
-		return str;
-	}
-	if (x === "real") {
-		return float_;
-	}
-	if (x === "float") {
-		return float_;
-	}
-	if (x === "number") {
-		return float_;
-	}
-	if (x === "fraction") {
-		return float_;
-	}
-	if (x === "rational") {
-		return float_;
-	}
-	if (x === "hash") {
-		return dict;
-	}
-	if (x === "hashmap") {
-		return dict;
-	}
-	if (x === "hashtable") {
-		return dict;
-	}
-	if (x === "dict") {
-		return dict;
-	}
-	if (x === "dictionary") {
-		return dict;
-	}
-	if (x === "map") {
-		return dict;
-	}
-	if (x === "object") {
-		return object;
-	}
-	if (x === "array") {
-		return list;
-	}
-	if (x === "set") {
-		return set;
-	}
-	if (x === "list") {
-		return list;
-	}
-	if (x === "tuple") {
-		return tuple;
-	}
-	if (x === "name") {
-		return str;
-	}
-	if (x === "label") {
-		return str;
-	}
-	if (x === "length") {
-		return int_;
-	}
-	if (x === "label") {
-		return str;
-	}
-	if (x === "class") {
-		throw new NotMatching("class is not a type");
-	}
+	let x = x0.lower();
+	if (x === "str") return String
+	if (x === "string") return String;
+	if (x === "char") return String
+	if (x === "character") return String
+	if (x === "letter") return String
+	if (x === "word") return String
+	if (x === "name") return String
+	if (x === "label") return String
+	if (x === "lable") return String
+	if (x === "type") return Function // todo
+	if (x === "int") return Number;
+	if (x === "integer") return Number;
+	if (x === "long") return Number;
+	if (x === "double") return Number;
+	if (x === "real") return Number;
+	if (x === "float") return Number;
+	if (x === "number") return Number;
+	if (x === "fraction") return Number;
+	if (x === "rational") return Number;
+	if (x === "object") return Object;
+	if (x === "dict") return Object;// damn JS!
+	if (x === "dictionary") return Object;
+	if (x === "map") return Object;
+	if (x === "hash") return Object;
+	if (x === "hashmap") return Object;
+	if (x === "hashtable") return Object;
+	if (x === "vector") return Array;
+	if (x === "array") return Array;
+	if (x === "list") return Array;
+	if (x === "set") return Array;
+	if (x === "tubple") return Array;
+	if (x === "length") return Number;
+	if (x === "class") return Function
+	if (x === "kind") return Function
+	if (x === "type") return Function
+	if (x === "function") return Function
 	throw new NotMatching("not a known type:" + x);
 	return x0;
 }
@@ -3159,7 +3074,8 @@ function do_evaluate_property(attr, node) {
 	if (!attr) {
 		return false;
 	}
-	verbose("do_evaluate_property '" + attr.toString() + "' in " + node.toString());
+	verbose("do_evaluate_property '" + attr + "' in " + node);
+	// verbose("do_evaluate_property '" + attr.toString() + "' in " + node.toString());
 	the.result = null;
 	if (attr.in(dir(node))) {
 		return node.__getattribute__(attr);
@@ -3170,7 +3086,7 @@ function do_evaluate_property(attr, node) {
 	if (node instanceof list) {
 		return node.map(x => do_evaluate_property(attr, x))
 	}
-	if (attr instanceof _ast.AST) {
+	if (attr instanceof ast.AST) {
 		return todo("do_evaluate_property");
 	}
 	try {
@@ -3180,6 +3096,9 @@ function do_evaluate_property(attr, node) {
 		verbose("do_send(node,attr) failed");
 	}
 }
+
+match_path = x => x.match(/^\/\w+/)
+
 
 function do_evaluate(x, _type = null) {
 	if ((x === ZERO) || (x === 0)) {
@@ -3234,8 +3153,8 @@ function do_evaluate(x, _type = null) {
 		if (_type && (_type === float_)) {
 			return float_(x);
 		}
-		if (_type && (_type === int_)) {
-			return int_(x);
+		if (_type && (_type === Number)) {
+			return Number(x);
 		}
 		return x;
 	}
@@ -3243,10 +3162,10 @@ function do_evaluate(x, _type = null) {
 		return x;
 	}
 	// if (x instanceof ast.AST) {
-	// 	return pyc_emitter.eval_ast([x]);
+	// 	return pyc_emitter.evalast([x]);
 	// }
 	// if ((x instanceof list) && (x[0] instanceof ast.AST)) {
-	// 	return pyc_emitter.eval_ast(x);
+	// 	return pyc_emitter.evalast(x);
 	// }
 	return x;
 }
@@ -3380,7 +3299,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 	if (!obj0 && (args0 instanceof list) && args0.length === 1) {
 		obj0 = args0[0];
 	}
-	if(obj0)  _type = Object.getPrototypeOf(obj0);
+	if (obj0) _type = Object.getPrototypeOf(obj0);
 	if (obj0 instanceof Variable) {
 		_type = obj0.type;
 		obj0 = obj0.value;
@@ -3576,11 +3495,10 @@ function call_unbound(method, args, number_of_arguments) {
 	return the.result;
 }
 
-function do_call(obj0, method0, args0 = []) {
+function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
-	if (!method0) {
-		throw new Error("NO METHOD GIVEN %s %s" % [obj0, args0]);
-	}
+	method_name = method_name0 || (method instanceof Function) && method.name || method0;
+	if (!method0) throw new Error("NO METHOD GIVEN %s %s".format(obj0, args0));
 	if (!interpreting()) {
 		return new FunctionCall({
 			func: method0,
@@ -3588,16 +3506,15 @@ function do_call(obj0, method0, args0 = []) {
 			object: obj0
 		});
 	}
-	if (method0.in(be_words) && (obj0 === args0)) {
+	if (method_name.in(be_words) && (obj0 === args0)) {
 		return true;
 	}
 	args = eval_args(args0);
 	method = findMethod(obj0, method0, args);
-	method_name = (method instanceof Function) && method.__name__ || method0;
 	if (method === "of") {
 		return evaluate_property(args0, obj0);
 	}
-	is_builtin = (Object.getPrototypeOf(method) === types.BuiltinFunctionType) || (Object.getPrototypeOf(method) === types.BuiltinMethodType);
+	is_builtin = false
 	bound = is_bound(method);
 	if (self_modifying(method)) {
 		obj = obj0;
@@ -3607,11 +3524,11 @@ function do_call(obj0, method0, args0 = []) {
 	args = align_args(args, obj, method);
 	number_of_arguments = has_args(method, obj, (!(!args)));
 	is_first_self = first_is_self(method);
-	if (method instanceof FunctionDef) {
+	if (method instanceof ast.FunctionDef) {
 		the.result = do_execute_block(method.body, args);
 		return the.result;
 	}
-	console.log("CALLING %s %s with %s" % [(obj || ""), method, args]);
+	console.log("CALLING %s %s with %s".format((obj || ""), method, args));
 	if (!args && !(method instanceof Function) && method.in(dir(obj))) {
 		return obj.__getattribute__(method);
 	}
@@ -3620,10 +3537,10 @@ function do_call(obj0, method0, args0 = []) {
 			function map_list(x) {
 				function_ = findMethod(x, method0, null);
 				if (function_ instanceof FunctionCall) {
-					return pyc_emitter.eval_ast(function_, args);
+					return pyc_emitter.evalast(function_, args);
 				}
 				if (!(function_ instanceof Function)) {
-					throw new Error("DONT KNOW how to apply %s to %s" % [method0, args0]);
+					throw new Error("DONT KNOW how to apply %s to %s".format(method0, args0));
 				}
 				return function_();
 			}
@@ -3741,7 +3658,7 @@ function liste_selector() {
 		if (xs instanceof Variable) {
 			xs = xs.value;
 		}
-		console.log("FILTERING %s in %s" % [typ, xs]);
+		console.log("FILTERING %s in %s".format(typ, xs));
 		xs = filter((x => {
 			return is_a(x, typ);
 		}, xs));
@@ -3904,7 +3821,7 @@ function english_to_math(s) {
 function evaluate_index(obj = null) {
 	let index, set, va;
 	if (!obj) {
-		should_not_start_with("[");
+		must_not_start_with("[");
 		must_contain(["[", "]"]);
 		obj = (maybe(variable) || endNode());
 	}
@@ -4040,13 +3957,10 @@ function adjective() {
 function quote() {
 	raiseEnd();
 	if (the.current_type === _token.STRING || the.current_word[0] === "'" || the.current_word[0] === "\"") {
-		the.result = the.current_word.slice(1, (-1));
-		if (!interpreting()) {
-			the.result = new ast.Str({
-				s: the.result
-			});
-		}
-		next_token();
+		// the.result = the.current_word.slice(1, (-1));
+		the.result = the.current_word
+		next_token(false);
+		if (!interpreting()) the.result = new ast.Str(the.current_word);
 		return the.result;
 	}
 	raise_not_matching("no quote");
@@ -4094,7 +4008,7 @@ function noun(include = []) {
 	let a;
 	a = maybe_tokens(articles);
 	if (!a) {
-		should_not_start_with(list(keywords) - include);
+		must_not_start_with(list(keywords) - include);
 	}
 	if (!context.use_wordnet) {
 		return word(include);
@@ -4223,8 +4137,7 @@ function repeat_every_times() {
 function repeat_action_while() {
 	let b, c;
 	_("repeat");
-	if (the.current_word.match(/\s*while/))
-	{
+	if (the.current_word.match(/\s*while/)) {
 		raise_not_matching("repeat_action_while != repeat_while_action", the.string);
 	}
 	b = action_or_block();
@@ -4297,7 +4210,7 @@ function action_n_times(a = null) {
 	_("times");
 	end_block();
 	if (interpreting()) {
-		int_(n).times(() => {
+		Number(n).times(() => {
 			return do_evaluate(a);
 		});
 	} else {

@@ -14,9 +14,9 @@ function _pj_snippets(container) {
             return (right.indexOf(left) > (- 1));
         } else {
             if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {
-                return right.has(left);
+                return right[left];
             } else {
-                return (left in right);
+	            return left in right;
             }
         }
     }
@@ -194,11 +194,7 @@ class FunctionCall extends ast.Assign {
                 this.arguments = [this.arguments];
             }
         }
-        if ( args.has("returns")) {
-            this.returns = this.return_type = args["returns"];
-        } else {
-            this.returns = this.return_type = this.resolve_return_type();
-        }
+        this.returns = this.return_type = args["returns"] || this.resolve_return_type();
         if (this.object) {
             this.value = kast.call_attribute(kast.name(this.object), func.id, this.arguments);
         } else {
@@ -276,13 +272,13 @@ class Variable extends ast.Name {
         this.name = args["name"];
 	    this.ctx = args["ctx"] || ast.Load();
 	    this.value = args["value"] || null;
-	    this.type = args["type"] || Object.getPrototypeOf(this.value);
+	    this.type = args["type"] || this.value && Object.getPrototypeOf(this.value) || null
 	    this.scope = args["scope"] || null;
 	    this.owner = args["owner"] || null;
 	    this.owner = args["object"] || this.owner;
 	    this.modifier = args["modifier"] || null;
-        this.finale =  args.has("final");
-        this.typed =  args.has("typed");
+        this.finale =  args["final"];
+        this.typed =  args["typed"];
     }
 	// __repr__() {
      //    return ("xzcv %s" % this.name).toString();
