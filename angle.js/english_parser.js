@@ -893,7 +893,10 @@ function quick_expression() {
 			return setter();
 		}
 	}
-	if (the.current_word.in(type_names) || the.current_word.in(the.classes)) {
+	if (!the.current_word.in)
+		console.log("HO")
+
+	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) {
 		return declaration();
 	}
 	if (the.current_word.in(operators + special_chars)) {

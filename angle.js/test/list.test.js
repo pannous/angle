@@ -1,9 +1,4 @@
-#!/usr/bin/env python;
-
-
-
 context.use_tree = false;
-
 
 class ListTest extends (ParserBaseTest) {
 	setUp(){

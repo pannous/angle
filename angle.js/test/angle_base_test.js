@@ -1,4 +1,4 @@
-
+// require('./angle_base_test') // include in test files
 parser=require('../english_parser')
 parser.dont_interpret=()=>dont_interpret() // why??
 parser.clear=()=>clear() // why??
@@ -23,8 +23,8 @@ ParserBaseTest=class ParserBaseTest{
 
 class SkipException extends Error{}
 class TestError extends Error{}
-skip=()=>{
-	throw new SkipException("skip");
+skip=(msg="")=>{
+	throw msg// new SkipException(msg);
 }
 assert_result_emitted=(prog,val)=>{
 	let result = parse(prog);
@@ -49,7 +49,7 @@ assert_has_error=(prog,type="")=>{
 assert_result_is=(prog,val)=>{
 	let interpretation = parse(prog);
 	let result = interpretation.result
-	assert(result==val,prog+" == "+val)
+	assert(result==val,prog+" ==== "+val)
 	console.log(prog + " ==== " + val + "   ... OK!")
 	// console.log(val)
 	// console.log(result)
@@ -83,7 +83,8 @@ register=(instance,modul)=>{
 				parser.clear()
 				instance[test](ok);
 			}catch(ex){
-				if(ex instanceof SkipException)return console.log("SKIPPING:")&&console.log(clazz)
+				if(ex instanceof SkipException)
+					return console.log("SKIPPING:")&&console.log(clazz)
 				// console.error(ex)
 				else throw ex
 			}

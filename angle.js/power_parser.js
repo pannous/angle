@@ -248,6 +248,8 @@ set_token = (token) => {
 	the.current_token = current_token = token;
 	the.current_type = current_type = token[0];
 	the.current_word = current_word = token[1];
+	if(!the.current_word.in)
+		console.log("DFFD")
 	[the.line_number, the.current_offset] = token[2];
 	end_pointer = token[3];
 	the.current_line = current_line = token[4];
@@ -292,6 +294,8 @@ parse_tokens = (s) => {
 		if (length == 0) return
 		the.tokenstream[length - 1][0] = type;
 		the.tokenstream[length - 1][1] = value;
+		if(type==_token.NEWLINE)
+			line_nr++
 		// console.log(type, value, strange_number, matches)
 	}
 
@@ -306,7 +310,7 @@ parse_tokens = (s) => {
 		.token(_token.STRING, /`(.*?)`/)
 		.token(_token.STRING, /'(.*?)'/)
 		.token(_token.COMMENT, /#.*/)
-		.token(_token.NEWLINE, /\n/, x => line_nr++)
+		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
 		.token(_token.COMMENT, /\/\*(.*)\*\//)
 		.token(_token.COMMENT, /<!--(.*)-->/)
@@ -904,11 +908,10 @@ clear = () => {
 //     }
 // }
 
-parse = parse = function (s, target_file = null) {
+parse = function (s, target_file = null, clean=true) {
+	if(clean)clear()
 	let got_ast, source_file;
-	if (!s) {
-		return;
-	}
+	if (!s) return;
 	if (is_array(s)) s = " ".join(s) // Todo
 	if (s instanceof File) {
 		source_file = s.name;
@@ -1267,7 +1270,7 @@ load_module_methods = () => {
 
 //# sourceMappingURL=power_parser.js.map
 // module.exports.parse = parse
-exports.parse = parse
-exports.block = block
-exports.dont_interpret = dont_interpret
-exports.clear =clear
+// exports.parse = parse
+// exports.block = block
+// exports.dont_interpret = dont_interpret
+// exports.clear =clear
