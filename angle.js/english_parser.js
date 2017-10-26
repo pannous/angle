@@ -131,8 +131,18 @@ function value() {
 		return number();
 	}
 	current_value = null;
-	no_keyword_except(constants + numbers + result_words + nill_words + ["+", "-"]);
-	the.result = maybe(bracelet) || maybe(quote) || maybe(nill) || maybe(number) || maybe(known_variable) || maybe(boole) || maybe(constant) || maybe(it) || maybe(nod) || raise_not_matching("Not a value");
+	must_not_start_with(keywords_except_values)
+	the.result =
+		maybe(bracelet) ||
+		maybe(quote) ||
+		maybe(nill) ||
+		maybe(number) ||
+		maybe(known_variable) ||
+		maybe(boole) ||
+		maybe(constant) ||
+		maybe(it) ||
+		maybe(nod) ||
+		raise_not_matching("Not a value");
 	if (maybe_tokens(["as"])) {
 		typ = typeNameMapped();
 		the.result = call_cast(the.result, typ);
@@ -287,7 +297,7 @@ function fix_context(x) {
 }
 
 function apply_op(stack, i, op) {
-	let left, result, right;
+	let left, right;
 	right = stack[(i + 1)];
 	left = stack[(i - 1)];
 
@@ -298,13 +308,11 @@ function apply_op(stack, i, op) {
 		delete stack[i]
 	}
 
-	if (interpreting()) {
-		if ((op === "!") || (op === "not")) {
-			stack[i] = [(!do_evaluate(right))];
-			delete stack[i + 1]
-		} else {
-			replaceI12(stack, do_math(left, op, right))
-		}
+	if (interpreting()) if ((op === "!") || (op === "not")) {
+		stack[i] = [(!do_evaluate(right))];
+		delete stack[i + 1]
+	} else {
+		replaceI12(stack, do_math(left, op, right))
 	} else if ((op === "!") || (op === "not")) {
 		result = ast.Not(right);
 		stack[(i)] = [result];
@@ -323,46 +331,39 @@ function apply_op(stack, i, op) {
 			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]));
 		}
 	}
+	return result
 }
 
 function fold_algebra(stack) {
 	used_operators = operators.filter(x => x.in(stack))
-	usedast_operators = Object.values(ast.operator_map).filter(x => stack.has(x))
-	for (op of used_operators.plus(usedast_operators)) {
+	used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
+	for (op of used_operators.plus(used_ast_operators)) {
 		i = 0
 		while (i < stack.length) {
 			if (stack[i] == op)
-				apply_op(stack, i, op)
+				last=apply_op(stack, i, op)
 			i += 1
 		}
 	}
-	stack = Array(stack)
+	stack = stack.filter(x=>x)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
 		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
 	}
-	return stack[0]
+	return last//stack[0]
 }
 
 function algebra(val = null) {
-	let stack;
-	if (context.in_algebra) {
-		return false;
-	}
-	if (!val) {
-		must_contain_before_({
-			args: operators,
-			before: (be_words + ["then", ",", ";", ":"])
-		});
-	}
-	stack = [];
-	val = (val || maybe(value) || bracelet());
-	stack.append(val);
+	if (context.in_algebra) return false;
+	if (!val) must_contain_before_({
+		args: operators,
+		before: (be_words + ["then", ",", ";", ":"])
+	});
+	val = val || maybe(value) || bracelet();
+	let stack = [val];
 
 	function lamb() {
 		let neg, op, va;
-		if (the.current_word.in(be_words) && context.in_args) {
-			return false;
-		}
+		if (the.current_word.in(be_words) && context.in_args) return false;
 		op = (maybe(comparation) || operator());
 		// if (op === "=") {
 		// 	throw NotMatching;
@@ -371,9 +372,7 @@ function algebra(val = null) {
 		va = (maybe(value) || maybe(bracelet));
 		context.in_algebra = true;
 		va = (va || expression());
-		if (va === ZERO) {
-			va = 0;
-		}
+		if (va === ZERO) va = 0;
 		stack.append(op);
 		(neg ? stack.append(neg) : 0);
 		stack.append(va);
@@ -383,9 +382,8 @@ function algebra(val = null) {
 	star(lamb);
 	context.in_algebra = false;
 	the.result = fold_algebra(stack);
-	if (the.result === false) {
-		the.result = FALSE;
-	}
+	if (the.result === false) the.result = FALSE;
+	if (the.result === null) the.result = NONE;
 	return the.result;
 }
 
@@ -1034,28 +1032,30 @@ function space() {
 function expression(fallback = null, resolve = true) {
 	let ex;
 	maybe(space);
-	if ((the.current_word === "") || (the.current_word.length === 0)) {
-		throw new EndOfLine();
-	}
-	if (the.current_word === ";") {
-		throw new EndOfStatement();
-	}
-	the.result = ex = maybe(quick_expression) || maybe(listselector) || maybe(algebra) || maybe(hash_map) || maybe(evaluate_index) || maybe(liste) || maybe(evaluate_property) || maybe(selfModify) || maybe(endNode) || maybe(passing) || raise_not_matching("Not an expression: " + pointer_string());
-	ex = (post_operations(ex) || ex);
+	if (the.current_word === "") throw new EndOfLine();
+	if (the.current_word === ";") throw new EndOfStatement();
+	the.result = ex = maybe(quick_expression) ||
+		maybe(listselector) ||
+		maybe(algebra) ||
+		maybe(hash_map) ||
+		maybe(evaluate_index) ||
+		maybe(liste) ||
+		maybe(evaluate_property) ||
+		maybe(selfModify) ||
+		maybe(endNode) ||
+		maybe(passing) ||
+		raise_not_matching("Not an expression: " + pointer_string());
+	ex = post_operations(ex) || ex;
 	skip_comments();
-	if (!interpreting()) {
+	if (!interpreting())
 		return ex;
-	}
+
 	if ((resolve && ex) && interpreting()) {
 		the.last_result = the.result = do_evaluate(ex);
 	}
-	if ((!the.result) || ((the.result === SyntaxError) && (!(ex === SyntaxError)))) {
-	} else {
+	if (the.result && !(the.result === SyntaxError && !(ex === SyntaxError)))
 		ex = the.result;
-	}
-	if (ex === ZERO) {
-		ex = 0;
-	}
+	if (ex === ZERO) ex = 0;
 	the.result = ex;
 	return the.result;
 }
@@ -1930,7 +1930,7 @@ function for_i_in_collection() {
 function assure_same_type(var_, _type) {
 	let oldType;
 	if (var_.name.in(the.variableTypes)) {
-		oldType = (the.variableTypes[var_.name] || Object.getPrototypeOf(var_.value));
+		oldType = (the.variableTypes[var_.name] || var_.value && Object.getPrototypeOf(var_.value));
 	} else {
 		if (var_.type) {
 			oldType = var_.type;
@@ -2124,9 +2124,10 @@ function setter(var_ = null) {
 		_type = typeNameMapped();
 		val = _type();
 		return add_variable(var_, val, mod, _type);
-	} else {
-		val = expression();
 	}
+	/////////////////////
+	val = expression() // <<<<<< TODO: debug
+	/////////////////////
 	_cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) && typeNameMapped();
 	guard = maybe_token("else") && value();
 	if (_cast) {
@@ -2196,7 +2197,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 	if (val instanceof ast.FunctionCall) {
 		assure_same_type(var_, val.returns);
 	} else {
-		assure_same_type(var_, (_type || Object.getPrototypeOf(val)));
+		assure_same_type(var_, (_type || val && Object.getPrototypeOf(val)));
 		assure_same_type_overwrite(var_, val);
 	}
 	if ((!var_.name.in(keys(variableValues)) || (mod !== "default"))) {
@@ -2205,7 +2206,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 		var_.value = val;
 	}
 	the.token_map[var_.name] = known_variable;
-	var_.type = (_type || Object.getPrototypeOf(val));
+	var_.type = (_type || val && Object.getPrototypeOf(val));
 	var_.final = const_words.has(mod)
 	var_.modifier = mod;
 	the.variableTypes[var_.name] = var_.type;
@@ -2370,18 +2371,13 @@ function toString(x) {
 }
 
 function do_cast(x, typ) {
-	if(!typ) return x
-	if (typeof typ === "number" || (typ instanceof Number) || typ == Number) {
+	if (!typ) return x
+	if (typeof typ === "number" || (typ instanceof Number) || typ == Number || typ == Number.prototype) {
 		return float_(x);
 	}
-	if (typeof typ === "number" || (typ instanceof Number)) {
-		return int(x); // never reached
-	}
-	// if (typ === int_) {
-	// 	return int(x);
-	// }
+	// if (typ === "int") {}
 	typ = typ.toLowerCase()
-	if (typ === String) return toString(x)();
+	if (typ == String || typ == String.prototype) return toString(x)();
 	if (typ === "int") return int(x);
 	if (typ === "integer") return int(x);
 	if (typ === "double") return int(x);
@@ -3187,16 +3183,10 @@ function is_math(method) {
 }
 
 function do_math(a, op, b) {
-	a = (do_evaluate(a) || 0);
-	b = (do_evaluate(b) || 0);
-	if (a instanceof Variable) {
-		a = a.value;
-	}
-	if (b instanceof Variable) {
-		b = b.value;
-	}
-
-
+	a = do_evaluate(a) || 0;
+	b = do_evaluate(b) || 0;
+	if (a instanceof Variable) a = a.value;
+	if (b instanceof Variable) b = b.value;
 	if (op === '+') return a + b
 	if (op === 'plus') return a + b
 	if (op === 'add') return a + b
@@ -3240,6 +3230,7 @@ function do_math(a, op, b) {
 	if (op === '|') return a | b
 	if (op === '||') return a | b
 	if (op === 'or') return a || b
+	if (op === 'else') return a || b // x = nil else 1
 	if (op === '<') return a < b
 	if (op === 'smaller') return a < b
 	if (op === '>') return a > b

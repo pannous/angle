@@ -46,8 +46,10 @@ class SetterTest extends (ParserBaseTest) {
 		parse(`int i;i=float("3.2") as int`);
 		parse(`int i;i=int("3.2")`);
 	}
-	test_guard_value(){
-		assert_result_is(`x=nil or 'c'`,'c') //  value side to guard!
+	test_guard_value() {
+		assert_result_is(`x=nil or 'c'`, 'c') //  value side to guard!
+	}
+	test_guard_value_else(){
 		assert_result_is(`x=nil else 'c'`,'c')//  assignment side guard!
 		assert_result_is(`char x=3 else 'c'`,'c');
 	}
@@ -116,8 +118,7 @@ class SetterTest extends (ParserBaseTest) {
 // register(new SetterTest(),module)
 // exports.o=x=>{parse(`int i=3`);x.done()}
 exports.quick_test=x=>{
-	// parse(`int i=3`);
-	// assert_has_error('int i;string i', WrongType);
-	assert_has_no_error(`typed i="hi";i='ho'`);
+	assert_result_is(`x=nil else 'c'`,'c')//  assignment side guard!
+	assert_result_is(`char x=3 else 'c'`,3);
 	x.done()
 }

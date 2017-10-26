@@ -20,10 +20,11 @@ True = true;
 False = false;
 TRUE = "True";
 FALSE = "False";
-NONE = "None";
-NILL = "None";
-Nil = "None";
-nil = "None";
+None = class None{}
+NONE = None
+NILL = None
+Nil = None
+nil = None
 ZERO = "0";
 OK = "OK"
 bash_commands = ["ls", "cd"];
@@ -112,7 +113,7 @@ invoke_keywords = ["call", "execute", "run", "start", "evaluate", "eval", "invok
 context_keywords = ["context", "module", "package"];
 self_modifying_operators = ["|=", "&=", "&&=", "||=", "+=", "-=", "/=", "^=", "%=", "#=", "*=", "**=", "<<", ">>"];
 newline_tokens = ["\n", "\r\n", ";", "\\.\n", "\\. "];
-kast_operator_map = {
+ast_operator_map = {
 	"+": new ast.Add(),
 	"plus": new ast.Add(),
 	"add": new ast.Add(),
@@ -305,3 +306,4 @@ _token = {
 	KEYWORD: "KEYWORD",
 }
 keyword_except_english_operators=keywords.minus(english_operators)
+keywords_except_values=keywords.minus(constants.plus(constants).add(numbers).add(result_words).add(nill_words).add(["+", "-"]))

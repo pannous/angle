@@ -790,23 +790,19 @@ todo = function (x) {
 }
 
 maybe = (expr) => {
-	let cc, current_value, depth, ex, last_node, old, rb, result;
-	if (!(expr instanceof Function)) {
-		return maybe_tokens(expr);
-	}
-	the.current_expression = expr;
+	let cc, current_value, ex, last_node, old, rb, result;
+	if (!(expr instanceof Function)) return maybe_tokens(expr);
 	depth = (depth + 1);
-	if (depth > context.max_depth) {
-		throw new SystemStackError("len(nodes)>max_depth)");
-	}
-	old = current_token;
+	if (depth > context.max_depth) throw new SystemStackError(">max_depth)");
 	try {
+		old = current_token;
+		the.current_expression = expr;
 		result = expr();
 		adjust_rollback();
 		if (context._debug && (result instanceof Function) && !(result instanceof type)) {
 			throw new Error("BUG!? returned CALLABLE " + result.toString());
 		}
-		if (result || (result === 0)) {
+		if (result || result === 0 ) { // || result===None
 			verbose((("GOT result " + expr.name + " : ") + result.toString()));
 		} else {
 			verbose("No result " + expr.name);
@@ -849,8 +845,7 @@ maybe = (expr) => {
 					throw e;
 			}
 	} finally {
-		// 			NotMatching
-
+		// NotMatching
 		depth = (depth - 1);
 	}
 	adjust_rollback();
