@@ -65,10 +65,16 @@ class SetterTest extends (ParserBaseTest) {
 		parse(`x=nil else return`);
 		parse(`x=nil else print 'ok'`);
 	}
+	test_guard_rescue_nan() {
+		assert_result_is(`x=1/0 or 2`, 2);
+		assert_result_is(`x=1/0 else 2`, 2);
+	}
+
 	test_guard_rescue(){
 		assert_result_is(`x=1/0 rescue 2`, 2);
 		assert_result_is(`x=1 rescue 2/0`, 1);
 	}
+
 	test_guard_rescue2(){
 		assert_result_is(`try x=1/0 rescue 2`, 2);
 		assert_result_is(`x=2;try x=x/0`, 2);
@@ -91,13 +97,20 @@ class SetterTest extends (ParserBaseTest) {
 		assert_has_error('typed i="hi";i=3', WrongType);
 		// Especially useful if we get the return value of a function with unknown type but mutable value
 	}
-	test_variable_type_safety0(){
-		let x=parse(`string i=3`);
-		if(x=='3')console.log('auto casted it to string');
+
+	test_variable_type_safety_autocast() {
+		let x = parse(`string i=3`);
+		if (x == '3') console.log('auto casted it to string');
+	}
+	test_variable_type_safety_no_autocast() {
 		assert_has_error('string i=3', WrongType);
-		assert_has_error('int i="hi"', WrongType);
+	}
+
+	test_variable_type_safety0(){
+			assert_has_error('int i="hi"', WrongType);
 		assert_has_error('integer i="hi"', WrongType);
 	}
+
 	test_variable_type_safety1(){
 		assert_has_error('an integer i;i="hi"', WrongType);
 		assert_has_error('typed i="hi";i=3', WrongType);
@@ -115,7 +128,7 @@ class SetterTest extends (ParserBaseTest) {
 	}
 }
 // register(SetterTest ,module)
-// register(new SetterTest(),module)
+register(new SetterTest(),module)
 
 exports.quick_test=x=>{
 	assert_result_is(`x=nil or 'c'`, 'c') //  value side to guard!

@@ -47,9 +47,9 @@ assert_has_error=(prog,type="")=>{
 }
 
 assert_result_is=(prog,val)=>{
-	interpretation = parse(prog);
+	let interpretation = parse(prog);
 	let result = interpretation.result
-	assert(result==val,prog+"=?="+val)
+	assert(result==val,prog+" == "+val)
 	console.log(prog + " ==== " + val + "   ... OK!")
 	// console.log(val)
 	// console.log(result)
