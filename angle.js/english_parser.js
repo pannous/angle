@@ -1,3 +1,17 @@
+let {
+	block,
+	checkNewline,
+	dont_interpret,
+	look_1_ahead,
+	maybe,
+	maybe_indent,
+	must_contain_before_,
+	must_contain_before,
+	maybe_tokens,
+	starts_with,
+	tokens,
+}= require('./power_parser')
+
 function noun(include = []) {
 	let a;
 	a = maybe_tokens(article_words);
@@ -60,4 +74,16 @@ function drop_plural(x) {
 		return x.slice(0, (-1));
 	}
 	return x;
+}
+
+module.exports = {
+	adjective,
+	adverb,
+	attribute,
+	drop_plural,
+	noun,
+	preposition,
+	pronoun,
+	verb,
+	wordnet_is_adverb,
 }

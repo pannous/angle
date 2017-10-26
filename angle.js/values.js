@@ -1,4 +1,18 @@
 // values / end-nodes vs expression!
+let {next_token,starts_with,must_not_start_with,checkNewline,raiseNewline,maybe_indent,maybe,must_contain_before_,maybe_tokens}=require('./power_parser')
+
+let {
+	adjective,
+	adverb,
+	attribute,
+	drop_plural,
+	noun,
+	preposition,
+	pronoun,
+	verb,
+	wordnet_is_adverb,
+}=require('./english_parser')
+
 function value() {
 	let current_value, typ;
 	if (the.current_type === _token.STRING) {
@@ -35,6 +49,21 @@ function nod() {
 		the_noun_that() // english!
 }
 
+
+let word_regex = "^\s*[a-zA-Z]+[\w_]*";
+function word(include = null) {
+	let current_value, match;
+	maybe_tokens(article_words);
+	must_not_start_with(keywords,include);
+	raiseNewline();
+	match = the.current_word.match(word_regex);
+	if (match) {
+		current_value = the.current_word;
+		next_token();
+		return current_value;
+	}
+	raise_not_matching("word");
+}
 
 
 function bracelet() {
@@ -87,3 +116,63 @@ function boole() {
 function constant() {
 	return constantMap.get(tokens(constants));
 }
+
+
+function typeName() {
+	return maybe_tokens(type_names) || classConstDefined();
+}
+
+function typeNameMapped() {
+	let name = typeName();
+	if (name.in(the.classes)) return the.classes[name];
+	return mapType(name);
+}
+
+function const_defined(c) {
+	if (c === "Pass") {
+		return false;
+	}
+	if (c.in(context.moduleClasses)) {
+		return true;
+	}
+	return false;
+}
+
+function classConstDefined() {
+	let c;
+	try {
+		c = word().capitalize();
+		if (!const_defined(c)) {
+			throw new NotMatching("Not a class Const");
+		}
+	} catch (e) {
+		if (e instanceof IgnoreException) {
+			throw new NotMatching();
+		} else {
+			throw e;
+		}
+	}
+	if (interpreting()) {
+		c = do_get_class_constant(c);
+	}
+	if (!c) {
+		throw new NotMatching();
+	}
+	return c;
+}
+
+
+module.exports = {
+	boole,
+	bracelet,
+	constant,
+	known_variable,
+	nill,
+	nod,
+	quote,
+	typeName,
+	typeNameMapped,
+	value,
+	word,
+}
+

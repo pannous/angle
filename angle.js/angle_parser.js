@@ -15,6 +15,7 @@ let exceptions = require('./exceptionz');
 let context = require('./context.js');
 let nodes = require('./nodes')
 let {Variable, Argument} = require('./nodes')
+
 // let Variable = nodes.Variable
 // let Argument = nodes.Argument
 
@@ -53,31 +54,6 @@ function __(x) {
 
 
 let remove_hash = {};
-
-function remove_from_list(keywords0, excepty) {
-	let good;
-	good = keywords0;
-	for (let x of excepty) {
-		while (x.in(good)) {
-			good = good.remove(x);
-		}
-	}
-	return good;
-}
-
-function no_keyword_except(excepty = null) {
-	let bad;
-	if (!excepty) {
-		excepty = [];
-	}
-	bad = remove_from_list(keywords, excepty);
-	return must_not_start_with(bad);
-}
-
-function no_keyword() {
-	return no_keyword_except([]);
-}
-
 
 function it() {
 	tokens(result_words);
@@ -1264,29 +1240,29 @@ function property() {
 
 
 function alias(var_ = null) {
-	let a, ali, f;
+	let aliaz, fun_def;
 	if (!var_) {
 		must_contain(["alias", ":="]);
-		ali = _("alias");
+		aliaz = _("alias");
 		var_ = variable(false, {
 			ctx: new ast.Store()
 		});
 		if (look_1_ahead("(")) {
 			return method_definition(var_.name);
 		}
-		(ali || be());
+		aliaz || tokens(be_words);
 	}
 	dont_interpret();
-	a = rest_of_line();
-	add_variable(var_, a);
+	let rest = rest_of_line();
+	add_variable(var_, rest);
 	var_.type = "alias";
 	if (context.use_tree) {
-		f = new FunctionDef({
+		fun_def = new FunctionDef({
 			name: var_.name,
-			body: a
+			body: rest
 		});
-		addMethodNames(f);
-		return f;
+		addMethodNames(fun_def);
+		return fun_def;
 	}
 	return var_;
 }
@@ -1420,24 +1396,7 @@ function variable(a = null, ctx = ast.Load, isParam = false) {
 	throw new Error("Unknown variable context " + ctx);
 }
 
-let word_regex = "^\s*[a-zA-Z]+[\w_]*";
 
-function word(include = null) {
-	let current_value, match;
-	maybe_tokens(article_words);
-	if (!include) {
-		include = [];
-	}
-	no_keyword_except(include);
-	raiseNewline();
-	match = the.current_word.match(word_regex);
-	if (match) {
-		current_value = the.current_word;
-		next_token();
-		return current_value;
-	}
-	raise_not_matching("word");
-}
 
 function flatten(words) {
 	// todo("flatten")
@@ -1631,7 +1590,7 @@ function comparative() {
 function that_are() {
 	let comp;
 	tokens(["that", "which", "who"]);
-	be();
+	tokens(be_words)
 	comp = maybe(adjective);
 	(comp || maybe(compareNode) || gerund());
 	return comp;
@@ -2038,38 +1997,7 @@ function the_noun_that() {
 	return n;
 }
 
-function const_defined(c) {
-	if (c === "Pass") {
-		return false;
-	}
-	if (c.in(context.moduleClasses)) {
-		return true;
-	}
-	return false;
-}
 
-function classConstDefined() {
-	let c;
-	try {
-		c = word().capitalize();
-		if (!const_defined(c)) {
-			throw new NotMatching("Not a class Const");
-		}
-	} catch (e) {
-		if (e instanceof IgnoreException) {
-			throw new NotMatching();
-		} else {
-			throw e;
-		}
-	}
-	if (interpreting()) {
-		c = do_get_class_constant(c);
-	}
-	if (!c) {
-		throw new NotMatching();
-	}
-	return c;
-}
 
 function mapType(x0) {
 	let x = x0.lower();
@@ -2114,9 +2042,6 @@ function mapType(x0) {
 }
 
 
-function typeName() {
-	return (maybe_tokens(type_names) || classConstDefined());
-}
 
 function gerund() {
 	let current_value, match, pr;
@@ -2195,11 +2120,6 @@ function svg(x) {
 function be() {
 	return tokens(be_words);
 }
-
-function modifier() {
-	return tokens(modifier_words);
-}
-
 
 function nonzero() {
 	return tokens(nonzero_keywords);

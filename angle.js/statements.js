@@ -1,6 +1,19 @@
 let {starts_with,checkNewline,maybe_indent,maybe,must_contain_before_,maybe_tokens}=require('./power_parser')
 let {quick_expression}= require('./expressions')
 let {articles}=require('./angle_parser')
+let {
+	boole,
+	bracelet,
+	constant,
+	known_variable,
+	nill,
+	nod,
+	quote,
+	typeName,
+	typeNameMapped,
+	value,
+} = require('./values')
+
 statement=function statement (doraise = true) {
 	let x;
 	if (starts_with(done_words) || checkNewline())
@@ -45,7 +58,7 @@ function setter(var_ = null) {
 	mod = maybe_tokens(modifier_words);
 	_type = maybe(typeNameMapped);
 	maybe_tokens(["var", "val", "value of"]);
-	mod = mod || maybe(modifier);
+	mod = mod || maybe_tokens(modifier_words);
 	var_ = var_ || variable(a, ast.Store);
 	if (current_word === "[") {
 		return evaluate_index(var_);
@@ -373,8 +386,3 @@ module.exports={
 }
 
 
-function typeNameMapped() {
-	let name = typeName();
-	if (name.in(the.classes)) return the.classes[name];
-	return mapType(name);
-}

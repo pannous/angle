@@ -1,4 +1,17 @@
 let {look_1_ahead} = require('./power_parser')
+
+let {
+	adjective,
+	adverb,
+	attribute,
+	drop_plural,
+	noun,
+	preposition,
+	pronoun,
+	verb,
+	wordnet_is_adverb,
+}=require('./english_parser')
+
 function expression(fallback = null, resolve = true) {
 	let ex;
 	maybe(space);

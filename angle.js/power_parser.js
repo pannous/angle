@@ -1239,30 +1239,37 @@ function is_number(n) {
 	return (str(n).parse_number() !== 0);
 }
 
-function must_not_start_with(words) {
-	let bad;
-	bad = starts_with(words);
-	if (!bad) {
-		return OK;
-	}
-	if (bad) {
-		info("should_not_match DID match %s" % bad);
-	}
-	if (bad) {
-		throw new NotMatching("should_not_match DID match %s" % bad);
-	}
+function must_not_start_with(words,whitelist) {
+	let bad = starts_with(words);
+	if (!bad) return OK
+	if(bad.in(whitelist)) return OK
+	if (bad) info("should_not_match DID match %s" % bad);
+	if (bad) throw new NotMatching("should_not_match DID match %s" % bad);
 }
+
+
+function no_keyword_except(excepty = null) {
+	return must_not_start_with(keywords,excepty);
+}
+
+function no_keyword() {
+	return must_not_start_with(keywords);
+}
+
 
 module.exports = {
 	block,
 	checkNewline,
+	raiseNewline,
 	dont_interpret,
 	look_1_ahead,
 	maybe,
 	maybe_indent,
+	must_not_start_with,
 	must_contain_before_,
 	must_contain_before,
 	maybe_tokens,
+	next_token,
 	starts_with,
-	tokens
+	tokens,
 }
