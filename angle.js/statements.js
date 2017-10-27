@@ -13,6 +13,7 @@ let {
 	must_contain_before_,
 	must_contain_before,
 	must_not_contain,
+	must_contain,
 	maybe_token,
 	maybe_tokens,
 	next_token,
@@ -22,7 +23,7 @@ let {
 	starts_with,
 	tokens,
 }=require('./power_parser')
-let {do_evaluate}= require('./actions')
+let {action,do_evaluate}= require('./actions')
 let {Variable, Argument} = require('./nodes')
 let {expression}= require('./expressions')
 let {articles}=require('./angle_parser')
@@ -57,12 +58,11 @@ statement =function statement (doraise = true) {
 		maybe(breaks) ||
 		maybe(loops) ||
 		maybe(if_then_else) ||
-		maybe(once) ||
 		maybe(piped_actions) ||
 		maybe(declaration) ||
-		maybe(nth_item) ||
 		maybe(neu) ||
 		maybe(action) ||
+		maybe(returns) ||
 		maybe(expression) ||
 		raise_not_matching("Not a statement %s".format(pointer_string()));
 	context.in_condition = false;
@@ -653,6 +653,16 @@ function declaration() {
 	the.variableTypes[var_.name] = var_.type;
 	return var_;
 }
+
+function neu() {
+	let clazz;
+	maybe_tokens(["create", "init"]);
+	maybe(articles)
+	_("new");
+	clazz = class_constant();
+	return do_call(clazz, "__init__", arguments());
+}
+
 
 function breaks() {
 	return tokens(flow_keywords);

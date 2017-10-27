@@ -1,10 +1,7 @@
-import * as kast from 'kast';
-import * as events from 'events';
-import * as the from 'context';
+let power_parser= require('./power_parser')
 class Interpretation {
 }
 function add_trigger(condition, action) {
-    import * as power_parser from 'power_parser';
     if (power_parser.interpreting()) {
         return the.listeners.append(new events.Observer(condition, action));
     } else {
@@ -13,8 +10,7 @@ function add_trigger(condition, action) {
 }
 function substitute_variables(args) {
     var value, variable;
-    for (var variable, _pj_c = 0, _pj_a = the.variableValues.keys, _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {
-        variable = _pj_a[_pj_c];
+	for (let variable of the.variableValues.keys) {
         if ((variable instanceof list)) {
             variable = variable.join(" ");
         }
@@ -30,9 +26,8 @@ function substitute_variables(args) {
     return args;
 }
 function self_modify(v, mod, arg) {
-    var val;
-    val = v.value;
-    if ((mod === "|=")) {
+	var val = v.value;
+	if ((mod === "|=")) {
         the.result = (val | arg);
     }
     if ((mod === "||=")) {

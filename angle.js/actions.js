@@ -15,28 +15,170 @@ let {
 	maybe_tokens,
 	next_token,
 	one_or_more,
+	pointer,
 	raiseEnd,
 	skip_comments,
 	starts_with,
 	tokens,
 } = require('./power_parser')
 let {variable} = require('./values')
+let {verb, spo} = require('./english_parser')
+// todo : untangle ^^
+
+let _ = tokens
+
 function action() {
-	 // extends expression
+	// extends expression
 	let start = pointer();
-	maybe(bla);
+	maybe_tokens(bla_words)
 	the.result = maybe(quick_expression) ||
-		maybe(special_blocks) ||
-		maybe(applescript) ||
+		// maybe(  applescript) ||
 		maybe(bash_action) ||
 		maybe(evaluate) ||
-		maybe(returns) ||
 		maybe(selfModify) ||
 		maybe(method_call) ||
 		maybe(spo) ||
 		raise_not_matching("Not an action");
 	return the.result;
 }
+
+function true_method(obj = null) {
+	let {subProperty} = require('./expressions')
+	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
+	ex = english_operators;
+	must_not_start_with(keyword_except_english_operators)
+	must_not_start_with(auxiliary_verbs);
+	xmodule = maybe_tokens(the.moduleNames);
+	xvariable = maybe_token(keys(the.variables));
+	if (xmodule) {
+		[module, moduleMethods] = import_module(xmodule);
+		[obj, name] = subProperty(module);
+		if (obj) {
+			moduleMethods += dir(obj);
+		}
+		if (!name) {
+			name = maybe_tokens(moduleMethods);
+		}
+	} else if (xvariable) {
+		variable = the.variables[xvariable];
+		if (variable.value instanceof Function) {
+			name = variable.value.__name__;
+		} else {
+			if (!(typeof variable.value === "string" || (variable.value instanceof String))) {
+				raise_not_matching("not a method: %s" % variable.value);
+			}
+			name = findMethod(nil, variable.value);
+			if (!name) [obj, name] = subProperty(variable.value);
+		}
+	} else {
+		todo("subProperty")
+			// [obj, property] = subProperty(obj);
+		name = (maybe_tokens(the.method_names) || maybe(verb));
+	}
+	if (!name) throw new NotMatching("no method found");
+	if (maybe_tokens(article_words)) {
+		obj = " ".join(one_or_more(word));
+		longName = ((name + " ") + obj);
+		if (longName.in(the.method_names)) {
+			name = longName;
+		}
+		if (obj.in(the.variables)) {
+			obj = the.variables[obj];
+		}
+	}
+	return [xmodule, obj, name];
+}
+
+
+function method_call(obj = null) {
+	let args, assume_args, method, method_name, modul, more, start_brace;
+	[modul, obj, method_name] = true_method(obj);
+	if (!method_name) raise_not_matching("no method_call")
+	context.in_algebra = false;
+	start_brace = maybe_tokens(["(", "{"]);
+	if (start_brace) {
+		no_rollback();
+	}
+	if ((modul || obj) || is_object_method(method_name)) {
+		obj = (obj || null);
+	} else {
+		maybe_token("of");
+		obj = maybe(the.classes) || maybe(the.moduleNames);
+		if (!context.in_args) {
+			obj = (obj || maybe(liste));
+		}
+		maybe_token(",");
+	}
+	method = findMethod(obj, method_name);
+	assume_args = true;
+	args = null;
+	if (has_args(method, (modul || obj), assume_args)) {
+		context.in_args = true;
+		args = [];
+
+		// noinspection JSAnnotator
+		function call_args() {
+			let arg;
+			if (args.length > 0) {
+				maybe_tokens([",", "and"]);
+			}
+			if (starts_with(";")) {
+				return false;
+			}
+			arg = call_arg();
+			if (arg instanceof list) {
+				args.extend(arg);
+			} else {
+				args.append(arg);
+			}
+			return args;
+		}
+
+		star(call_args);
+		if (!args && !context.use_tree && !self_modifying(method)) {
+			if (context.use_tree) {
+				args = obj;
+			} else {
+				args = do_evaluate(obj);
+			}
+			obj = null;
+		}
+	} else {
+		more = maybe_token(",");
+		if (more) {
+			obj = ([obj] + liste(false));
+		}
+	}
+	method = findMethod(obj, method, args);
+	if (!method && interpreting()) raise_not_matching("no such method: " + method_name)
+	context.in_args = false;
+	if (start_brace === "(") {
+		_(")");
+	}
+	if (start_brace === "[") {
+		_("]");
+	}
+	if (start_brace === "{") {
+		_("}");
+	}
+	if (!interpreting()) {
+		if ((method_name === "puts") || (method_name === "print")) {
+			return new ast.Print({
+				dest: null,
+				values: args,
+				nl: true
+			});
+		}
+		return new nodes.FunctionCall({
+			func: method,
+			arguments: args,
+			object: obj
+		});
+	}
+	the.result = do_call(obj || null, method, args || null, method_name);
+	return the.result;
+}
+
 
 function plusPlus(v = null) {
 	let pre, start;
@@ -56,9 +198,9 @@ function plusPlus(v = null) {
 function minusMinus(v = null) {
 	let pre;
 	// must_contain_substring("--");
-	pre = maybe_token("--")||(maybe_token("-") && token("-"));
+	pre = maybe_token("--") || (maybe_token("-") && token("-"));
 	v = (v || variable());
-	(pre ||maybe_token("--")|| (_("-") && token("-")));
+	(pre || maybe_token("--") || (_("-") && token("-")));
 	if (!interpreting()) {
 		return new Assign([store(v.name)], new BinOp(name(v.name), new Sub(), num(1)));
 	}
@@ -167,6 +309,7 @@ function start_xml_block(type) {
 	_(">");
 	return type;
 }
+
 function english_to_math(s) {
 	s = str(s);
 	s = s.replace_numerals();
@@ -595,6 +738,7 @@ function is_unbound(method) {
 function instance(bounded_method) {
 	return bounded_method.__self__;
 }
+let match_path = x => x.match(/^\/\w+/)
 
 function do_evaluate(x, _type = null) {
 	if ((x === ZERO) || (x === 0)) {
@@ -714,7 +858,7 @@ module.exports = {
 	// call_unbound,
 	// do_call,
 	do_evaluate,
-	// do_math,
+	do_math,
 	// do_self_modify,
 	// english_to_math,
 	// eval_args,

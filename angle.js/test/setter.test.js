@@ -1,14 +1,14 @@
 require('./angle_base_test')
 // "use strict"
 // class SetterTest extends (ParserBaseTest) {
-no_exports={}//IGNORE
+no_exports=nexports={}//IGNORE
 no_exports.test_samples = test => {
 	let x = parse(`samples/basics.e`);
 	assert(x == 6)
 	test.done()
 }
 
-exports.skip_test_a_setter_article_vs_variable = test => {
+nexports.skip_test_a_setter_article_vs_variable = test => {
 	console.log(test)
 	// test.skip()
 	// skip();
@@ -19,7 +19,7 @@ exports.skip_test_a_setter_article_vs_variable = test => {
 	assert_equals(variables['dog'], 'green');
 	test.done()
 }
-exports.test_alias = test => {
+nexports.test_alias = test => {
 	skip('aliases sit between methods and variables. do we really want them?');
 	parse(`alias x=y*y`);
 	parse(`z:=y*y`);
@@ -29,33 +29,31 @@ exports.test_alias = test => {
 	test.done()
 }
 
-exports.test_variable_type_syntax = test => {
+nexports.test_variable_type_syntax = test => {
 	parse(`int i=3`);
 	test.done()
-	test.done()
 }
-exports.test_variable_type_syntax2 = test => {
+nexports.test_variable_type_syntax2 = test => {
 	parse(`an integer i;i=3`);
-	test.done()
 	test.done()
 }
 
-exports.test_variable_type_syntax3 = test => {
+nexports.test_variable_type_syntax3 = test => {
 	parse(`int i;i=3`);
 	test.done()
 }
-exports.test_variable_type_cast = test => {
+nexports.test_variable_type_cast = test => {
 	parse(`int i;i=3.2 as int`);
 	test.done()
 }
-exports.test_variable_range = test => {
+nexports.test_variable_range = test => {
 	let j = parse(`list i is 5 to 10`);
 	let i = parse(`i is 5 to 10`);
 	assert_equals(i, j);
 	assert_equals(i, list(range(5, 10 + 1)))  // count from 1 to 10 => 10 INCLUDED, thus +1!
 	test.done()
 }
-exports.test_variable_type_cast2 = test => {
+nexports.test_variable_type_cast2 = test => {
 	// skip();
 	parse(`int i;i=int(3.2)`);
 	parse(`int i;i=int(float("3.2"))`);
@@ -110,7 +108,7 @@ exports.test_guard_block = test => {
 	parse(`x=nil else { print 'ok' }`);
 	test.done()
 }
-exports.test_variable_type_syntax2 = test => {
+nexports.test_variable_type_syntax2 = test => {
 	parse(`char x='c'`);
 	parse(`char x;x='c'`);
 	parse(`char x;x=3 as char`)// ambiguous : x='3' or x=chr(3) == '\x03' ?

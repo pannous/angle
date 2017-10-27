@@ -13,6 +13,7 @@ let {
 	maybe_tokens,
 	next_token,
 	one_or_more,
+	pointer,
 	pointer_string,
 	raiseEnd,
 	skip_comments,
@@ -34,7 +35,7 @@ let {
 } = require('./english_parser')
 
 let {
-	action, do_evaluate,selfModify
+	action, do_evaluate,do_math,selfModify
 } = require('./actions')
 
 let {
@@ -54,6 +55,7 @@ function expression(fallback = null, resolve = true) {
 	if (the.current_word === "") throw new EndOfLine();
 	if (the.current_word === ";") throw new EndOfStatement();
 	the.result = ex = maybe(quick_expression) || // again for not statements . Todo: not!
+		maybe(nth_item) ||
 		maybe(listselector) ||
 		maybe(algebra) ||
 		maybe(hash_map) ||
@@ -63,6 +65,7 @@ function expression(fallback = null, resolve = true) {
 		maybe(selfModify) ||
 		maybe(true_param) ||
 		maybe(the_noun_that)|| // english!
+		maybe(special_blocks) ||
 		maybe(endNode) ||
 		maybe(passing) ||
 		raise_not_matching("Not an expression: " + pointer_string());
@@ -79,6 +82,10 @@ function expression(fallback = null, resolve = true) {
 	if (ex === ZERO) ex = 0;
 	the.result = ex;
 	return the.result;
+}
+
+function special_blocks() {
+	return (maybe(html_block) || maybe(ruby_block) || javascript_block());
 }
 
 
@@ -116,6 +123,101 @@ function algebra(val = null) {
 	if (the.result === null) the.result = NONE;
 	return the.result;
 }
+function fold_algebra(stack) {
+
+	used_operators = operators.filter(x => x.in(stack))
+	used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
+	for (op of used_operators.plus(used_ast_operators)) {
+		let i = 0
+		while (i < stack.length) {
+			if (stack[i] == op)
+				result = apply_op(stack, i, op)
+			i += 1
+		}
+	}
+	stack = stack.filter(x => x)
+	if ((stack.length > 1) && (used_operators.length > 0)) {
+		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
+	}
+	return result//stack[0]
+}
+
+function apply_op(stack, i, op) {
+	let left, right;
+	right = stack[(i + 1)];
+	left = stack[(i - 1)];
+
+	function replaceI12(stack, result0) {
+		result = result0;
+		stack[i + 1] = result;
+		delete stack[i - 1];
+		delete stack[i]
+	}
+
+	if (interpreting()) if ((op === "!") || (op === "not")) {
+		stack[i] = [(!do_evaluate(right))];
+		delete stack[i + 1]
+	} else {
+		replaceI12(stack, do_math(left, op, right))
+	} else if ((op === "!") || (op === "not")) {
+		result = ast.Not(right);
+		stack[(i)] = [result];
+		delete stack[i + 1];
+		delete stack[i]
+	} else {
+		left = fix_context(left);
+		right = fix_context(right);
+		if (op instanceof ast.operator) {
+			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
+		} else if (op.in(true_operators)) {
+			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
+		} else if (op.in(comparison_words)) {
+			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]));
+		} else {
+			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]));
+		}
+	}
+	return result
+}
+
+
+function comparation() {
+	let _not, comp, eq, start;
+	eq = maybe_tokens(be_words);
+	maybe_token("all");
+	start = pointer();
+	maybe_tokens(["either", "neither"]);
+	_not = maybe_tokens(["not"]);
+	maybe(adverb);
+	if (eq) {
+		comp = maybe_tokens(comparison_words);
+	} else {
+		comp = tokens(comparison_words);
+		no_rollback();
+	}
+	if (eq) {
+		maybe_token("to");
+	}
+	maybe_tokens(["and", "or", "xor", "nor"]);
+	maybe_tokens(comparison_words);
+	maybe_token("than");
+	comp = (comp || eq);
+	if (context.use_tree) {
+		comp = ast.operator_map[comp];
+	}
+	return comp
+}
+
+
+function operator() {
+	return tokens(operators);
+}
+
+function isUnary(op) {
+	todo("isUnary");
+	return false;
+}
+
 
 let hash_assign = [":", "to", "=>", "->"];
 
@@ -390,6 +492,22 @@ function immediate_hash() {
 	return new ast.Dict([w], [r]);
 }
 
+function subProperty(_context) {
+	let ext, properties, property;
+	maybe_token(".");
+	properties = dir(_context);
+	if (_context && Object.getPrototypeOf(_context).in(context.extensionMap)) {
+		ext = context.extensionMap[Object.getPrototypeOf(_context)];
+		properties += dir(ext);
+	}
+	property = maybe_tokens(properties);
+	if (!property || (property instanceof Function) || is_method(property)) {
+		return [_context, property];
+	}
+	property = (maybe_token(".") && subProperty(property) || property);
+	return [property, null];
+}
+// <> VS?
 function evaluate_property(x = null) {
 	let y;
 	maybe_token("all");
@@ -748,4 +866,4 @@ function linuxPath() {
 
 
 
-module.exports = {expression}
+module.exports = {expression,subProperty}

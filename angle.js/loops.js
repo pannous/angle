@@ -1,4 +1,24 @@
+let {
+	block,
+	checkNewline,
+	raiseNewline,
+	raiseEnd,
+	dont_interpret,
+	look_1_ahead,
+	maybe,
+	maybe_indent,
+	must_contain,
+	must_not_start_with,
+	must_contain_before_,
+	must_contain_before,
+	maybe_tokens,
+	next_token,
+	one_or_more,
+	starts_with,
+	tokens,
+}=require('./power_parser')
 
+let _=tokens
 
 function loops() {
 	return maybe(repeat_every_times) ||
@@ -13,8 +33,28 @@ function loops() {
 		maybe(repeat_action_while) ||
 		maybe(as_long_condition_block) ||
 		maybe(forever) ||
+		maybe(once) ||
 		raise_not_matching("Not a loop");
 }
+
+function for_i_in_collection() {
+	let b, c, v;
+	must_contain("for");
+	maybe_token("repeat");
+	maybe_tokens(["for", "with"]);
+	maybe_token("all");
+	v = variable();
+	maybe_tokens(["in", "from"]);
+	c = collection();
+	b = action_or_block();
+	for (let i of c) {
+		v.value = i;
+		the.result = do_execute_block(b);
+	}
+	return the.result;
+}
+
+module.exports={loops}
 
 function repeat_with() {
 	(maybe_token("for") || (_("repeat") && _("with")));
@@ -185,7 +225,6 @@ function n_times_action() {
 	}
 	return a;
 }
-
 function repeat_n_times() {
 	let b, n;
 	_("repeat");
@@ -231,6 +270,43 @@ function as_long_condition_block() {
 		}
 	}
 }
+
+function once() {
+	return (maybe(once_trigger) || action_once());
+}
+
+function once_trigger() {
+	let b, c;
+	tokens(once_words);
+	no_rollback();
+	dont_interpret();
+	c = (maybe(future_event) || condition());
+	maybe_token("then");
+	b = action_or_block();
+	return todo("add_trigger(c, b);")
+}
+
+function action_once() {
+	let b, c;
+	if (!maybe_tokens("do")) must_contain(once_words);
+	no_rollback();
+	maybe_newline();
+	b = action_or_block();
+	tokens(once_words);
+	c = condition();
+	end_expression();
+	interpretation.add_trigger(c, b);
+}
+
+
+function future_event() {// once beeped ... todo G
+	if (the.current_word.endswith("ed")) {
+		return word();
+	}
+}
+
+
+
 
 module.exports={
 	loops,

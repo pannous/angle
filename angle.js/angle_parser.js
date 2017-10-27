@@ -57,20 +57,6 @@ let remove_hash = {};
 
 
 
-class Interpretation {
-}
-
-function interpretation() {
-	let i = new Interpretation();
-	i.result = the.result;
-	i.tree = the.result;
-	i.error_position = error_position();
-	i.methods = the.methods;
-	i.ruby_methods = builtin_methods;
-	i.variables = the.variables;
-	i.svg = svg;
-	return i;
-};
 
 function end_expression() {
 	return (checkEndOfLine() || token(";"));
@@ -124,14 +110,6 @@ function package_version() {
 }
 
 
-function operator() {
-	return tokens(operators);
-}
-
-function isUnary(op) {
-	todo("isUnary");
-	return false;
-}
 
 function ast_operator(op) {
 	if ((op instanceof cmpop) || (op instanceof BinOp)) {
@@ -147,62 +125,7 @@ function fix_context(x) {
 	return x;
 }
 
-function apply_op(stack, i, op) {
-	let left, right;
-	right = stack[(i + 1)];
-	left = stack[(i - 1)];
 
-	function replaceI12(stack, result0) {
-		result = result0;
-		stack[i + 1] = result;
-		delete stack[i - 1];
-		delete stack[i]
-	}
-
-	if (interpreting()) if ((op === "!") || (op === "not")) {
-		stack[i] = [(!do_evaluate(right))];
-		delete stack[i + 1]
-	} else {
-		replaceI12(stack, do_math(left, op, right))
-	} else if ((op === "!") || (op === "not")) {
-		result = ast.Not(right);
-		stack[(i)] = [result];
-		delete stack[i + 1];
-		delete stack[i]
-	} else {
-		left = fix_context(left);
-		right = fix_context(right);
-		if (op instanceof ast.operator) {
-			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
-		} else if (op.in(true_operators)) {
-			replaceI12(stack, new ast.BinOp(left, ast_operator(op), right));
-		} else if (op.in(comparison_words)) {
-			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]));
-		} else {
-			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]));
-		}
-	}
-	return result
-}
-
-function fold_algebra(stack) {
-
-	used_operators = operators.filter(x => x.in(stack))
-	used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
-	for (op of used_operators.plus(used_ast_operators)) {
-		let i = 0
-		while (i < stack.length) {
-			if (stack[i] == op)
-				result = apply_op(stack, i, op)
-			i += 1
-		}
-	}
-	stack = stack.filter(x => x)
-	if ((stack.length > 1) && (used_operators.length > 0)) {
-		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
-	}
-	return result//stack[0]
-}
 
 
 function read_block(type = null) {
@@ -249,9 +172,6 @@ function ruby_block() {
 	return read_block("ruby");
 }
 
-function special_blocks() {
-	return (maybe(html_block) || maybe(ruby_block) || javascript_block());
-}
 
 function is_a(x, type0) {
 	let _type;
@@ -369,73 +289,6 @@ function isStatementOrExpression(b) {
 }
 
 
-function future_event() {
-	if (the.current_word.endswith("ed")) {
-		return word();
-	}
-}
-
-function once_trigger() {
-	let b, c;
-	tokens(once_words);
-	no_rollback();
-	dont_interpret();
-	c = (maybe(future_event) || condition());
-	maybe_token("then");
-	b = action_or_block();
-	return interpretation.add_trigger(c, b);
-}
-
-function _do() {
-	return maybe(() => {
-		return _("do");
-	});
-}
-
-function action_once() {
-	let b, c;
-	if (!_do()) {
-		must_contain(once_words);
-	}
-	no_rollback();
-	maybe_newline();
-	b = action_or_block();
-	tokens(once_words);
-	c = condition();
-	end_expression();
-	interpretation.add_trigger(c, b);
-}
-
-function once() {
-	return (maybe(once_trigger) || action_once());
-}
-
-function verb_node() {
-	let v;
-	v = verb;
-	nod;
-	if (!v.in(methods)) {
-		throw new UnknownCommandError("no such method: " + v);
-	}
-	return v;
-}
-
-function spo() {
-	let o, p, s;
-	if (!use_wordnet) {
-		return false;
-	}
-	if (!use_wordnet) {
-		throw new NotMatching("use_wordnet==false");
-	}
-	s = endNoun;
-	p = verb;
-	o = nod;
-	if (interpreting()) {
-		return do_call(s, p, o);
-	}
-}
-
 function print_variables() {
 	for (let [v, k] of variables.items()) {
 		console.log(v + "=" + k);
@@ -534,159 +387,9 @@ function import_module(module_name) {
 	}
 }
 
-function subProperty(_context) {
-	let ext, properties, property;
-	maybe_token(".");
-	properties = dir(_context);
-	if (_context && Object.getPrototypeOf(_context).in(context.extensionMap)) {
-		ext = context.extensionMap[Object.getPrototypeOf(_context)];
-		properties += dir(ext);
-	}
-	property = maybe_tokens(properties);
-	if (!property || (property instanceof Function) || is_method(property)) {
-		return [_context, property];
-	}
-	property = (maybe_token(".") && subProperty(property) || property);
-	return [property, null];
-}
 
-function true_method(obj = null) {
-	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
-	ex = english_operators;
-	must_not_start_with(keyword_except_english_operators)
-	must_not_start_with(auxiliary_verbs);
-	xmodule = maybe_tokens(the.moduleNames);
-	xvariable = maybe_token(keys(the.variables));
-	if (xmodule) {
-		[module, moduleMethods] = import_module(xmodule);
-		[obj, name] = subProperty(module);
-		if (obj) {
-			moduleMethods += dir(obj);
-		}
-		if (!name) {
-			name = maybe_tokens(moduleMethods);
-		}
-	} else if (xvariable) {
-		variable = the.variables[xvariable];
-		if (variable.value instanceof Function) {
-			name = variable.value.__name__;
-		} else {
-			if (!(typeof variable.value === "string" || (variable.value instanceof String))) {
-				raise_not_matching("not a method: %s" % variable.value);
-			}
-			name = findMethod(nil, variable.value);
-			if (!name) [obj, name] = subProperty(variable.value);
-		}
-	} else {
-		[obj, property] = subProperty(obj);
-		name = (maybe_tokens(the.method_names) || maybe(verb));
-	}
-	if (!name) throw new NotMatching("no method found");
-	if (maybe_tokens(article_words)) {
-		obj = " ".join(one_or_more(word));
-		longName = ((name + " ") + obj);
-		if (longName.in(the.method_names)) {
-			name = longName;
-		}
-		if (obj.in(the.variables)) {
-			obj = the.variables[obj];
-		}
-	}
-	return [xmodule, obj, name];
-}
 
-function method_call(obj = null) {
-	let args, assume_args, method, method_name, modul, more, start_brace;
-	[modul, obj, method_name] = true_method(obj);
-	if (!method_name) raise_not_matching("no method_call")
-	context.in_algebra = false;
-	start_brace = maybe_tokens(["(", "{"]);
-	if (start_brace) {
-		no_rollback();
-	}
-	if ((modul || obj) || is_object_method(method_name)) {
-		obj = (obj || null);
-	} else {
-		maybe_token("of");
-		obj = maybe(the.classes) || maybe(the.moduleNames);
-		if (!context.in_args) {
-			obj = (obj || maybe(liste));
-		}
-		maybe_token(",");
-	}
-	method = findMethod(obj, method_name);
-	assume_args = true;
-	args = null;
-	if (has_args(method, (modul || obj), assume_args)) {
-		context.in_args = true;
-		args = [];
 
-		// noinspection JSAnnotator
-		function call_args() {
-			let arg;
-			if (args.length > 0) {
-				maybe_tokens([",", "and"]);
-			}
-			if (starts_with(";")) {
-				return false;
-			}
-			arg = call_arg();
-			if (arg instanceof list) {
-				args.extend(arg);
-			} else {
-				args.append(arg);
-			}
-			return args;
-		}
-
-		star(call_args);
-		if (!args && !context.use_tree && !self_modifying(method)) {
-			if (context.use_tree) {
-				args = obj;
-			} else {
-				args = do_evaluate(obj);
-			}
-			obj = null;
-		}
-	} else {
-		more = maybe_token(",");
-		if (more) {
-			obj = ([obj] + liste(false));
-		}
-	}
-	method = findMethod(obj, method, args);
-	if (!method && interpreting()) raise_not_matching("no such method: " + method_name)
-	context.in_args = false;
-	if (start_brace === "(") {
-		_(")");
-	}
-	if (start_brace === "[") {
-		_("]");
-	}
-	if (start_brace === "{") {
-		_("}");
-	}
-	if (!interpreting()) {
-		if ((method_name === "puts") || (method_name === "print")) {
-			return new ast.Print({
-				dest: null,
-				values: args,
-				nl: true
-			});
-		}
-		return new nodes.FunctionCall({
-			func: method,
-			arguments: args,
-			object: obj
-		});
-	}
-	the.result = do_call(obj || null, method, args || null, method_name);
-	return the.result;
-}
-
-function bla() {
-	return tokens(bla_words);
-}
 
 function applescript() {
 	// import * as platform from 'platform';
@@ -718,14 +421,6 @@ function argumentz() {
 }
 
 
-function neu() {
-	let clazz;
-	maybe_tokens(["create", "init"]);
-	maybe(articles)
-	_("new");
-	clazz = class_constant();
-	return do_call(clazz, "__init__", arguments());
-}
 
 
 
@@ -865,22 +560,6 @@ function collection() {
 	return (maybe(ranger) || maybe(known_variable) || action_or_expression());
 }
 
-function for_i_in_collection() {
-	let b, c, v;
-	must_contain("for");
-	maybe_token("repeat");
-	maybe_tokens(["for", "with"]);
-	maybe_token("all");
-	v = variable();
-	maybe_tokens(["in", "from"]);
-	c = collection();
-	b = action_or_block();
-	for (let i of c) {
-		v.value = i;
-		the.result = do_execute_block(b);
-	}
-	return the.result;
-}
 
 
 
@@ -1041,32 +720,6 @@ function whose() {
 	return compareNode();
 }
 
-function comparation() {
-	let _not, comp, eq, start;
-	eq = maybe_tokens(be_words);
-	maybe_token("all");
-	start = pointer();
-	maybe_tokens(["either", "neither"]);
-	_not = maybe_tokens(["not"]);
-	maybe(adverb);
-	if (eq) {
-		comp = maybe_tokens(comparison_words);
-	} else {
-		comp = tokens(comparison_words);
-		no_rollback();
-	}
-	if (eq) {
-		maybe_token("to");
-	}
-	maybe_tokens(["and", "or", "xor", "nor"]);
-	maybe_tokens(comparison_words);
-	maybe_token("than");
-	comp = (comp || eq);
-	if (context.use_tree) {
-		comp = ast.operator_map[comp];
-	}
-	return comp
-}
 
 function either_or() {
 	let v;
@@ -1596,6 +1249,6 @@ module.exports = {
 	setVerbose,
 	main,
 	rooty,
-	interpretation,
+	// interpretation,
 	articles,
 }

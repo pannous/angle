@@ -1,7 +1,13 @@
-context = the = require('./context')
+// "use strict"
+context =  require('./context')
+let the = context
 let nodes = require('./nodes')
 
-
+var current_word;
+var current_token;
+var current_type;
+var current_line;
+var token_number;
 
 let list = Array
 
@@ -170,6 +176,7 @@ function tokens(tokenz) {
 
 function maybe_tokens(tokens0) {
 	if (checkEndOfLine()) return false
+	if(!is_array(tokens0)) return maybe_token(tokens0)
 	for (var t of tokens0) {
 		if ((t === the.current_word) || (t.lower() === the.current_word.lower())) {
 			next_token();
@@ -209,12 +216,6 @@ function next_token(check = true) {
 	}
 	return set_token(token);
 }
-
-var current_word;
-var current_token;
-var current_type;
-var current_line;
-var token_number;
 
 function set_token(token) {
 	the.current_token = current_token = token;
@@ -911,6 +912,22 @@ function clear() {
 //     }
 // }
 
+
+class Interpretation {
+}
+
+function interpretation() {
+	let i = new Interpretation();
+	i.result = the.result;
+	i.tree = the.result;
+	i.error_position = error_position();
+	i.methods = the.methods;
+	i.ruby_methods = builtin_methods;
+	i.variables = the.variables;
+	i.svg = svg;
+	return i;
+};
+
 parse = function (s, target_file = null, clean = true) {
 	if (clean) clear()
 	let got_ast, source_file;
@@ -957,7 +974,7 @@ parse = function (s, target_file = null, clean = true) {
 		}
 		if (the.result == "True" || the.result == "true") the.result = true;
 		if (the.result == "False" || the.result == "false") the.result = false;
-		if (the.result instanceof Variable) the.result = the.result.value;
+		if (the.result instanceof nodes.Variable) the.result = the.result.value;
 		// import * as ast from 'ast';
 		// got_ast = (the.result instanceof ast.AST);
 		// if ((the.result instanceof list) && (the.result.length > 0)) {
@@ -1245,6 +1262,7 @@ module.exports = {
 	next_token,
 	no_rollback,
 	one_or_more,
+	pointer,
 	pointer_string,
 	raiseEnd,
 	star,

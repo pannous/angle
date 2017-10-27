@@ -179,6 +179,7 @@ function pronoun() {
 function wordnet_is_adverb() {
 }
 
+let no_keyword_except=except=>must_not_start_with(keywords,except)
 function adverb() {
 	let found_adverb;
 	no_keyword_except(adverbs);
@@ -197,6 +198,33 @@ function drop_plural(x) {
 	return x;
 }
 
+function verb_node() {
+	let v;
+	v = verb;
+	nod;
+	if (!v.in(methods)) {
+		throw new UnknownCommandError("no such method: " + v);
+	}
+	return v;
+}
+
+function spo() {
+	let o, p, s;
+	if (!use_wordnet) {
+		return false;
+	}
+	if (!use_wordnet) {
+		throw new NotMatching("use_wordnet==false");
+	}
+	s = endNoun;
+	p = verb;
+	o = nod;
+	if (interpreting()) {
+		return do_call(s, p, o);
+	}
+}
+
+
 module.exports = {
 	adjective,
 	adverb,
@@ -206,5 +234,6 @@ module.exports = {
 	preposition,
 	pronoun,
 	verb,
+	spo,
 	wordnet_is_adverb,
 }
