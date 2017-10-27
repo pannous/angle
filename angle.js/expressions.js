@@ -1,4 +1,25 @@
-let {look_1_ahead} = require('./power_parser')
+let {
+	block,
+	checkNewline,
+	raiseNewline,
+	dont_interpret,
+	look_1_ahead,
+	maybe,
+	maybe_indent,
+	must_not_start_with,
+	must_contain,
+	must_contain_before_,
+	must_contain_before,
+	maybe_tokens,
+	next_token,
+	one_or_more,
+	pointer_string,
+	raiseEnd,
+	skip_comments,
+	starts_with,
+	star,
+	tokens,
+} = require('./power_parser')
 
 let {
 	adjective,
@@ -10,14 +31,29 @@ let {
 	pronoun,
 	verb,
 	wordnet_is_adverb,
-}=require('./english_parser')
+} = require('./english_parser')
+
+let {
+	action, do_evaluate,selfModify
+} = require('./actions')
+
+let {
+	value,
+	number,
+	parse_integer,
+	typeNameMapped,
+	known_variable,
+	variable,
+	quote,
+} = require('./values')
+
 
 function expression(fallback = null, resolve = true) {
 	let ex;
-	maybe(space);
+	// maybe(space);
 	if (the.current_word === "") throw new EndOfLine();
 	if (the.current_word === ";") throw new EndOfStatement();
-	the.result = ex = maybe(quick_expression) ||
+	the.result = ex = maybe(quick_expression) || // again for not statements . Todo: not!
 		maybe(listselector) ||
 		maybe(algebra) ||
 		maybe(hash_map) ||
@@ -25,6 +61,8 @@ function expression(fallback = null, resolve = true) {
 		maybe(liste) ||
 		maybe(evaluate_property) ||
 		maybe(selfModify) ||
+		maybe(true_param) ||
+		maybe(the_noun_that)|| // english!
 		maybe(endNode) ||
 		maybe(passing) ||
 		raise_not_matching("Not an expression: " + pointer_string());
@@ -43,162 +81,51 @@ function expression(fallback = null, resolve = true) {
 	return the.result;
 }
 
-function quick_expression() {
-	let fun, result, z;
-	result = false;
-	if (!the.current_word) {
-		throw new EndOfLine();
-	}
-	if (the.current_word === ";") {
-		throw new EndOfStatement();
-	}
-	if (the.current_word === ",") {
-		return liste({
-			first: the.result
-		});
-	}
-	if ((!context.in_params) && look_1_ahead(":")) {
-		return immediate_hash();
-	}
-	if (the.current_word === "{") {
-		if (look_1_ahead("}")) {
-			return empty_map();
-		}
-		if (contains("=>") || contains(":")) {
-			return hash_map();
-		}
-	}
-	if (look_1_ahead([".", "'s", "of"])) {
-		return (maybe(method_call) || property());
-	}
-	if (look_1_ahead("=")) {
-		if (!context.in_condition) {
-			return setter();
-		}
-	}
-	if (!the.current_word.in)
-		console.log("HO")
 
-	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) {
-		return declaration();
+function algebra(val = null) {
+	if (context.in_algebra) return false;
+	if (!val) must_contain_before_({
+		args: operators,
+		before: (be_words + ["then", ",", ";", ":"])
+	});
+	val = val || maybe(value) || bracelet();
+	let stack = [val];
+
+	function lamb() {
+		let neg, op, va;
+		if (the.current_word.in(be_words) && context.in_args) return false;
+		op = (maybe(comparation) || operator());
+		// if (op === "=") {
+		// 	throw NotMatching;
+		// }
+		neg = maybe_token("not");
+		va = (maybe(value) || maybe(bracelet));
+		context.in_algebra = true;
+		va = (va || expression());
+		if (va === ZERO) va = 0;
+		stack.append(op);
+		(neg ? stack.append(neg) : 0);
+		stack.append(va);
+		return (va || true);
 	}
-	if (the.current_word.in(operators + special_chars)) {
-		if (the.current_word !== "~") {
-			return false;
-		}
-	}
-	if (the.current_type === _token.NUMBER) {
-		result = number();
-		if (maybe_tokens(["rd", "nd", "th"])) {
-			result = nth_item(result);
-		}
-	} else if (the.current_word.startsWith("r'")) {
-		result = regexp(the.current_word);
-		next_token(false);
-	} else if ((the.current_type === _token.STRING) || the.current_word.startsWith("'")) {
-		result = quote();
-	} else if (the.current_word.in(the.token_map)) {
-		fun = the.token_map[the.current_word];
-		debug("token_map: %s -> %s".format(the.current_word, fun));
-		result = fun();
-	} else if (the.current_word.in(the.method_token_map)) {
-		fun = the.method_token_map[the.current_word];
-		debug("method_token_map: %s -> %s".format(the.current_word, fun));
-		result = fun();
-	} else if (the.current_word.in(the.method_names)) {
-		if (method_allowed(the.current_word)) {
-			result = method_call();
-		}
-	} else if (the.current_word.in(the.params)) {
-		result = true_param();
-	} else if (the.current_word.in(the.variables)) {
-		result = known_variable();
-	} else if (the.current_word.in(type_names)) {
-		return (maybe(setter) || method_definition());
-	}
-	if (look_1_ahead("of")) {
-		result = evaluate_property(result);
-	}
-	if (!result) {
-		return false;
-	}
-	while (true) {
-		z = post_operations(result);
-		if ((!z) || (z === result)) {
-			break;
-		}
-		result = z;
-	}
-	return result;
+
+	star(lamb);
+	context.in_algebra = false;
+	the.result = fold_algebra(stack);
+	if (the.result === false) the.result = FALSE;
+	if (the.result === null) the.result = NONE;
+	return the.result;
 }
 
-function post_operations(result) {
-	if (the.current_word === "") {
-		return result;
-	}
-	if (the.current_word === ";") {
-		return result;
-	}
-	if (the.current_word === ".") {
-		return method_call(result);
-	}
-	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
-		return liste({
-			check: false,
-			first: result
-		});
-	}
-	if (the.current_word.in(self_modifying_operators)) {
-		return self_modify(result);
-	}
-	if ((the.current_word === "+") && look_1_ahead("+")) {
-		return plusPlus(result);
-	}
-	if ((the.current_word === "-") && look_1_ahead("-")) {
-		return minusMinus(result);
-	}
-	if (the.current_word.in(be_words)) {
-		if (!context.in_condition) {
-			if (result instanceof Variable) {
-				return setter(result);
-			}
-		} else {
-			if (the.current_word === "are") {
-				return false;
-			}
-		}
-	}
-	if (the.current_word === "|") {
-		return piped_actions(result || the.last_result);
-	}
-	if (the.current_word.in(operators)) {
-		return algebra(result);
-	}
-	if (the.current_word === "[") {
-		return evaluate_index(result);
-	}
-	if (the.current_word.in((operators + special_chars) + ["element", "item"])) {
-		return false;
-	}
-	if (result && (the.current_word === "to")) {
-		return ranger(result);
-	}
-	if (result && (the.current_word === "if")) {
-		return action_if(result);
-	}
-	if (the.current_line.endswith("times")) {
-		return action_n_times(result);
-	}
-	if (the.current_word.in(be_words)) {
-		return setter(result);
-	}
-	if (the.current_word === "if") {
-		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
-	}
-	if (the.current_word === "as") {
-		return maybe_cast(result);
-	}
-	return false;
+let hash_assign = [":", "to", "=>", "->"];
+
+function hash_map() {
+	must_contain_before_({
+		args: hash_assign,
+		before: ["}"]
+	});
+	let z = (starts_with("{") ? regular_hash() : immediate_hash());
+	return z;
 }
 
 
@@ -207,7 +134,7 @@ function passing() {
 	ok = tokens(["pass", ";"]);
 	return (interpreting() ? ok : new ast.Pass());
 }
-
+var article=x=>maybe_tokens(article_words)
 function endNode() {
 	let po, x;
 	raiseEnd();
@@ -215,8 +142,7 @@ function endNode() {
 		maybe(fileName) ||
 		maybe(linuxPath) ||
 		maybe(quote) ||
-		maybe(regexp) ||
-		maybe(() => maybe(article) && typeNameMapped()) ||
+		maybe(article) && typeNameMapped() ||
 		maybe(simpleProperty) ||
 		maybe(evaluate_property) ||
 		maybe(selectable) ||
@@ -235,6 +161,8 @@ function endNode() {
 	}
 	return x;
 }
+
+
 
 function endNoun(included = null) {
 	let adjs, obj;
@@ -263,9 +191,48 @@ function endNoun(included = null) {
 	return obj.toString();
 }
 
-function selfModify() {
-	return (maybe(self_modify) || maybe(plusPlus) || minusMinus());
+
+
+function nth_item(val = 0) {
+	let l, n, set, type;
+	set = maybe_token("set");
+	n = (val || tokens(number_selectors + ["first", "last", "middle"]));
+	n = parse_integer(n);
+	if (n > 0) {
+		n = (n - 1);
+	}
+	raiseEnd();
+	maybe_tokens([".", "rd", "st", "nd"]);
+	type = maybe_tokens(["item", "element", "object", "word", "char", "character"] + type_names);
+	maybe_tokens(["in", "of"]);
+	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
+	if (type.match(/^char/)) {
+		the.result = "".join(l).__getitem__(n);
+		return the.result;
+	}
+	else {
+		if (is_string(l)) {
+			l = l.split(" ");
+		}
+	}
+	if ((l instanceof list) && type.in(type_names)) {
+		l = l.map(x => is_a(x, type))
+	}
+	if (n > l.length) {
+		throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
+	}
+	the.result = l[n];
+	if (context.in_condition) {
+		return the.result;
+	}
+	if (set && _("to")) {
+		val = endNode();
+		the.result = do_evaluate(val);
+		l[n] = the.result;
+	}
+	return the.result;
 }
+
 
 function listselector() {
 	return maybe(nth_item);
@@ -509,6 +476,34 @@ function true_param() {
 	v = the.params[v];
 	return v;
 }
+let articles=x=>tokens(article_words)
+
+function the_noun_that() {
+	let criterium, n;
+	maybe(articles);
+	n = noun();
+	if (!n) {
+		raise_not_matching("no noun");
+	}
+	if (the.current_word === "that") {
+		criterium = star(selector);
+		if (criterium && interpreting()) {
+			n = filter(n, criterium);
+		} else {
+			n = resolve_netbase(n);
+		}
+	} else {
+		if (n.in(the.variables)) {
+			return the.variables[n];
+		}
+		if (n.in(the.classes)) {
+			return the.classes[n];
+		}
+		raise_not_matching("only 'that' filtered nouns for now!");
+		throw new Error("Undefined: " + n);
+	}
+	return n;
+}
 
 
 function ranger(a = null) {
@@ -625,4 +620,132 @@ function do_compare(a, comp, b) {
 		}
 }
 
-module.exports={quick_expression,expression}
+
+
+
+function do_get_class_constant(c) {
+	try {
+		for (let module of sys.modules) {
+			if (c in module) return module[c];
+		}
+	} catch (e) {
+		console.log(e);
+	}
+}
+
+function class_constant() {
+	let c = word;
+	return do_get_class_constant(c);
+}
+
+
+function simpleProperty() {
+	let module, prop, x;
+	must_contain_before(".", (special_chars + keywords));
+	module = token(the.moduleNames);
+	module = get_module(module);
+	_(".");
+	prop = word();
+	if (interpreting()) {
+		x = module[prop];
+		return x;
+	}
+	return new ast.Attribute(new ast.Name(module, new ast.Load()), prop, new ast.Load());
+}
+
+function property() {
+	let container, of_, properti, sett;
+	must_contain_before([".", "'s", "of"], special_chars);
+	let var_ = variable();
+	container = var_.value;
+	of_ = __`.`;
+	no_rollback();
+	properti = word();
+	if (of_ === "of") {
+		[container, properti] = [properti, container];
+	}
+	sett = (maybe_token("=") && expression());
+	if (sett) {
+		if (interpreting()) {
+			if (container instanceof dict) {
+				container[properti] = sett;
+			} else {
+				container[properti] = sett;
+			}
+			return sett;
+		}
+		return new Assign([new Attribute(container, properti, (sett && new Store() || new Load())), sett]);
+	}
+	if (interpreting()) {
+		if (container instanceof dict) {
+			return container[properti];
+		} else {
+			return container[properti];
+		}
+	}
+	return new Attribute(container, properti, (sett && new Store() || new Load()));
+}
+
+
+function alias(var_ = null) {
+	let aliaz, fun_def;
+	if (!var_) {
+		must_contain(["alias", ":="]);
+		aliaz = _("alias");
+		var_ = variable(false, {
+			ctx: new ast.Store()
+		});
+		if (look_1_ahead("(")) {
+			return method_definition(var_.name);
+		}
+		aliaz || tokens(be_words);
+	}
+	dont_interpret();
+	let rest = rest_of_line();
+	add_variable(var_, rest);
+	var_.type = "alias";
+	if (context.use_tree) {
+		fun_def = new FunctionDef({
+			name: var_.name,
+			body: rest
+		});
+		addMethodNames(fun_def);
+		return fun_def;
+	}
+	return var_;
+}
+
+
+function fileName() {
+	let match, path;
+	raiseEnd();
+	match = is_file(the.string, false);
+	if (match) {
+		path = match[0];
+		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path);
+		path = new extensions.File(path);
+		next_token();
+		the.current_value = path;
+		return path;
+	}
+	return false;
+}
+
+function linuxPath() {
+	let match, path;
+	raiseEnd();
+	match = the.string.match(/^(\/[w'.]+)/)
+	if (match) {
+		path = match[0];
+		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path);
+		path = new extensions.Dir(path);
+		next_token();
+		the.current_value = path;
+		return path;
+	}
+	return false;
+}
+
+
+
+module.exports = {expression}

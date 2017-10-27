@@ -1,30 +1,6 @@
-// import * as _ast from '_ast';
-// import * as ast from 'ast';
-// import * as ast_magic from 'ast_magic';
-// import * as extensions from 'extensions';
-// import * as kast.kast from 'kast/kast';
-// import * as the from 'context';
-// import {kast} from 'kast';
-// import * as sys from 'sys';
-// import * as pyc_emitter from 'pyc_emitter';
-var _pj;
-function _pj_snippets(container) {
-    function in_es6(left, right) {
-        if (((right instanceof Array) || ((typeof right) === "string"))) {
-            return (right.indexOf(left) > (- 1));
-        } else {
-            if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {
-                return right[left];
-            } else {
-	            return left in right;
-            }
-        }
-    }
-    container["in_es6"] = in_es6;
-    return container;
-}
-_pj = {};
-_pj_snippets(_pj);
+// "use strict"
+//let {Variable, Argument} = require('./nodes')
+let ast = require('./ast')
 
 class Compare extends ast.Compare {
     constructor(...args) {

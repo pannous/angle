@@ -19,7 +19,7 @@ let {Variable, Argument} = require('./nodes')
 // let Variable = nodes.Variable
 // let Argument = nodes.Argument
 
-function raise_not_matching(msg = null) {
+raise_not_matching=function raise_not_matching(msg = null) {
 	throw new NotMatching(msg)
 }
 
@@ -55,10 +55,6 @@ function __(x) {
 
 let remove_hash = {};
 
-function it() {
-	tokens(result_words);
-	return the.last_result;
-}
 
 
 class Interpretation {
@@ -115,20 +111,6 @@ function includes(dependency, type, version) {
 	}
 }
 
-function regexp(val = 0) {
-	if (!val) {
-		tokens(["regex", "regexp", "regular expression"]);
-		val = the.string;
-	}
-	if (val.startsWith("r'")) {
-		return new RegExp(val.slice(2, -1))
-	} else if (val.startsWith("'")) {
-		return new RegExp(val.slice(1, -1))
-	} else if (val.startsWith("/")) {
-		return new RegExp(val.slice(1, -1))
-	}
-	return new RegExp(val);
-}
 
 function package_version() {
 	let c;
@@ -222,40 +204,6 @@ function fold_algebra(stack) {
 	return result//stack[0]
 }
 
-function algebra(val = null) {
-	if (context.in_algebra) return false;
-	if (!val) must_contain_before_({
-		args: operators,
-		before: (be_words + ["then", ",", ";", ":"])
-	});
-	val = val || maybe(value) || bracelet();
-	let stack = [val];
-
-	function lamb() {
-		let neg, op, va;
-		if (the.current_word.in(be_words) && context.in_args) return false;
-		op = (maybe(comparation) || operator());
-		// if (op === "=") {
-		// 	throw NotMatching;
-		// }
-		neg = maybe_token("not");
-		va = (maybe(value) || maybe(bracelet));
-		context.in_algebra = true;
-		va = (va || expression());
-		if (va === ZERO) va = 0;
-		stack.append(op);
-		(neg ? stack.append(neg) : 0);
-		stack.append(va);
-		return (va || true);
-	}
-
-	star(lamb);
-	context.in_algebra = false;
-	the.result = fold_algebra(stack);
-	if (the.result === false) the.result = FALSE;
-	if (the.result === null) the.result = NONE;
-	return the.result;
-}
 
 function read_block(type = null) {
 	let block = [];
@@ -328,139 +276,6 @@ function is_a(x, type0) {
 
 }
 
-function parse_integer(x) {
-	if (!x) return 0
-	x = x.replace(/([a-z])-([a-z])/, "$1+$2")  // WHOOOT???
-	x = x.replace("last", "-1")  // index trick
-	// x = x.replace("last", "0")  // index trick
-	x = x.replace("first", "1")  // index trick
-	x = x.replace("tenth", "10")
-	x = x.replace("ninth", "9")
-	x = x.replace("eighth", "8")
-	x = x.replace("seventh", "7")
-	x = x.replace("sixth", "6")
-	x = x.replace("fifth", "5")
-	x = x.replace("fourth", "4")
-	x = x.replace("third", "3")
-	x = x.replace("second", "2")
-	x = x.replace("first", "1")
-	x = x.replace("zero", "0")
-
-	x = x.replace("4th", "4")
-	x = x.replace("3rd", "3")
-	x = x.replace("2nd", "2")
-	x = x.replace("1st", "1")
-	x = x.replace("(\d+)th", "\\1")
-	x = x.replace("(\d+)rd", "\\1")
-	x = x.replace("(\d+)nd", "\\1")
-	x = x.replace("(\d+)st", "\\1")
-
-	x = x.replace("a couple of", "2")
-	x = x.replace("a dozen", "12")
-	x = x.replace("ten", "10")
-	x = x.replace("twenty", "20")
-	x = x.replace("thirty", "30")
-	x = x.replace("forty", "40")
-	x = x.replace("fifty", "50")
-	x = x.replace("sixty", "60")
-	x = x.replace("seventy", "70")
-	x = x.replace("eighty", "80")
-	x = x.replace("ninety", "90")
-
-	x = x.replace("ten", "10")
-	x = x.replace("eleven", "11")
-	x = x.replace("twelve", "12")
-	x = x.replace("thirteen", "13")
-	x = x.replace("fourteen", "14")
-	x = x.replace("fifteen", "15")
-	x = x.replace("sixteen", "16")
-	x = x.replace("seventeen", "17")
-	x = x.replace("eighteen", "18")
-	x = x.replace("nineteen", "19")
-
-	x = x.replace("ten", "10")
-	x = x.replace("nine", "9")
-	x = x.replace("eight", "8")
-	x = x.replace("seven", "7")
-	x = x.replace("six", "6")
-	x = x.replace("five", "5")
-	x = x.replace("four", "4")
-	x = x.replace("three", "3")
-	x = x.replace("two", "2")
-	x = x.replace("one", "1")
-	x = x.replace("dozen", "12")
-	x = x.replace("couple", "2")
-
-	// x = x.replace("½", "+.5");
-	x = x.replace("½", "+1/2.0");
-	x = x.replace("⅓", "+1/3.0");
-	x = x.replace("⅔", "+2/3.0");
-	x = x.replace("¼", "+.25");
-	x = x.replace("¼", "+1/4.0");
-	x = x.replace("¾", "+3/4.0");
-	x = x.replace("⅕", "+1/5.0");
-	x = x.replace("⅖", "+2/5.0");
-	x = x.replace("⅗", "+3/5.0");
-	x = x.replace("⅘", "+4/5.0");
-	x = x.replace("⅙", "+1/6.0");
-	x = x.replace("⅚", "+5/6.0");
-	x = x.replace("⅛", "+1/8.0");
-	x = x.replace("⅜", "+3/8.0");
-	x = x.replace("⅝", "+5/8.0");
-	x = x.replace("⅞", "+7/8.0");
-
-	x = x.replace(" hundred thousand", " 100000")
-	x = x.replace(" hundred", " 100")
-	x = x.replace(" thousand", " 1000")
-	x = x.replace(" million", " 1000000")
-	x = x.replace(" billion", " 1000000000")
-	x = x.replace("hundred thousand", "*100000")
-	x = x.replace("hundred ", "*100")
-	x = x.replace("thousand ", "*1000")
-	x = x.replace("million ", "*1000000")
-	x = x.replace("billion ", "*1000000000")
-	return x
-}
-
-function nth_item(val = 0) {
-	let l, n, set, type;
-	set = maybe_token("set");
-	n = (val || tokens(number_selectors + ["first", "last", "middle"]));
-	n = parse_integer(n);
-	if (n > 0) {
-		n = (n - 1);
-	}
-	raiseEnd();
-	maybe_tokens([".", "rd", "st", "nd"]);
-	type = maybe_tokens(["item", "element", "object", "word", "char", "character"] + type_names);
-	maybe_tokens(["in", "of"]);
-	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
-	if (type.match(/^char/)) {
-		the.result = "".join(l).__getitem__(n);
-		return the.result;
-	}
-	else {
-		if (is_string(l)) {
-			l = l.split(" ");
-		}
-	}
-	if ((l instanceof list) && type.in(type_names)) {
-		l = l.map(x => is_a(x, type))
-	}
-	if (n > l.length) {
-		throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
-	}
-	the.result = l[n];
-	if (context.in_condition) {
-		return the.result;
-	}
-	if (set && _("to")) {
-		val = endNode();
-		the.result = do_evaluate(val);
-		l[n] = the.result;
-	}
-	return the.result;
-}
 
 
 function must_contain_substring(param) {
@@ -482,16 +297,8 @@ function empty_map() {
 	return new Expr(new Dict([], []));
 }
 
-let hash_assign = [":", "to", "=>", "->"];
 
-function hash_map() {
-	must_contain_before_({
-		args: hash_assign,
-		before: ["}"]
-	});
-	let z = (starts_with("{") ? regular_hash() : immediate_hash());
-	return z;
-}
+
 
 
 function maybe_cast(_context) {
@@ -522,15 +329,6 @@ function contains_any(tokens) {
 		if (token.in(the.current_line)) {
 			return true;
 		}
-	}
-}
-
-
-function space() {
-	if ((token(" ") || token("") !== null)) {
-		return OK;
-	} else {
-		return false;
 	}
 }
 
@@ -919,14 +717,6 @@ function argumentz() {
 	return star(param);
 }
 
-function maybe_token(x) {
-	if (x === the.current_word) {
-		next_token();
-		return x;
-	}
-	return false;
-}
-
 
 function neu() {
 	let clazz;
@@ -938,9 +728,6 @@ function neu() {
 }
 
 
-function breaks() {
-	return tokens(flow_keywords);
-}
 
 
 function action_or_expression(fallback = null) {
@@ -1095,202 +882,7 @@ function for_i_in_collection() {
 	return the.result;
 }
 
-function assure_same_type(var_, _type) {
-	let oldType;
-	if (var_.name.in(the.variableTypes)) {
-		oldType = (the.variableTypes[var_.name] || var_.value && Object.getPrototypeOf(var_.value));
-	} else {
-		if (var_.type) {
-			oldType = var_.type;
-		} else {
-			oldType = null;
-		}
-	}
-	let types_match = !oldType || !_type || oldType == _type || oldType == _type.prototype || oldType.prototype == _type
-	if (_type === "Unknown")
-		return;
-	if (_type instanceof ast.AST) {
-		warn("TYPE AST");
-		return;
-	}
-	if (!isType(oldType)) {
-		warn("NOT A TYPE %s" % oldType);
-		return;
-	}
-	if (oldType == String) {
-	}
-	if (_type == ast.AST) {
-		console.log("skipping type check for AST expressions (for now)!");
-		return;
-	}
-	if (oldType && _type && !(oldType == _type)) {
-		throw new WrongType(var_.name + " has type " + oldType.name + ", can't set to " + _type);
-	}
-	if (oldType && var_.type && !(oldType == var_.type)) {
-		throw new WrongType(var_.name + " has type " + oldType.name + ", cannot set to " + var_.type.name);
-	}
-	if (_type && var_.type && !(var_.type == _type || _type == var_.type)) {
-		throw new WrongType(var_.name + " has type " + var_.type.name + ", Can't set to " + _type);
-	}
-	var_.type = _type;
-}
 
-function assure_same_type_overwrite(var_, val, auto_cast = false) {
-	let oldType, oldValue, wrong_type;
-	if (!val) {
-		return;
-	}
-	oldType = var_.type;
-	oldValue = var_.value;
-	let val_type = val && Object.getPrototypeOf(val) || null
-	if (val instanceof ast.FunctionCall) {
-		if ((val.return_type !== "Unknown") && (val.return_type !== oldType))
-			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(oldType, oldValue, val, val.return_type));
-	} else if (oldType) {
-		try {
-			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
-			let types_match = (oldType == val_type || oldType == val_type.prototype || oldType.prototype == val_type);
-			if (!types_match) {
-				if (auto_cast) return do_cast(val, oldType);
-				throw wrongType;
-			}
-		} catch (e) {
-			if (!(val_type == ast.AST)) {
-				throw wrong_type;
-			} else {
-				console.log("skipping type check for AST expressions (for now)!");
-			}
-		}
-	}
-	if ((var_.final && var_.value) && (!(val === var_.value))) {
-		throw new ImmutableVaribale("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
-	}
-	var_.value = val;
-}
-
-function do_get_class_constant(c) {
-	try {
-		for (let module of sys.modules) {
-			if (c in module) return module[c];
-		}
-	} catch (e) {
-		console.log(e);
-	}
-}
-
-function class_constant() {
-	let c;
-	c = word;
-	return do_get_class_constant(c);
-}
-
-function get_obj(o) {
-	if (!o) {
-		return false;
-	}
-	eval(o);
-}
-
-function simpleProperty() {
-	let module, prop, x;
-	must_contain_before(".", (special_chars + keywords));
-	module = token(the.moduleNames);
-	module = get_module(module);
-	_(".");
-	prop = word();
-	if (interpreting()) {
-		x = module[prop];
-		return x;
-	}
-	return new ast.Attribute(new ast.Name(module, new ast.Load()), prop, new ast.Load());
-}
-
-function property() {
-	let container, of_, properti, sett;
-	must_contain_before([".", "'s", "of"], special_chars);
-	let var_ = variable();
-	container = var_.value;
-	of_ = __`.`;
-	no_rollback();
-	properti = word();
-	if (of_ === "of") {
-		[container, properti] = [properti, container];
-	}
-	sett = (maybe_token("=") && expression());
-	if (sett) {
-		if (interpreting()) {
-			if (container instanceof dict) {
-				container[properti] = sett;
-			} else {
-				container[properti] = sett;
-			}
-			return sett;
-		}
-		return new Assign([new Attribute(container, properti, (sett && new Store() || new Load())), sett]);
-	}
-	if (interpreting()) {
-		if (container instanceof dict) {
-			return container[properti];
-		} else {
-			return container[properti];
-		}
-	}
-	return new Attribute(container, properti, (sett && new Store() || new Load()));
-}
-
-
-function alias(var_ = null) {
-	let aliaz, fun_def;
-	if (!var_) {
-		must_contain(["alias", ":="]);
-		aliaz = _("alias");
-		var_ = variable(false, {
-			ctx: new ast.Store()
-		});
-		if (look_1_ahead("(")) {
-			return method_definition(var_.name);
-		}
-		aliaz || tokens(be_words);
-	}
-	dont_interpret();
-	let rest = rest_of_line();
-	add_variable(var_, rest);
-	var_.type = "alias";
-	if (context.use_tree) {
-		fun_def = new FunctionDef({
-			name: var_.name,
-			body: rest
-		});
-		addMethodNames(fun_def);
-		return fun_def;
-	}
-	return var_;
-}
-
-function add_variable(var_, val, mod = null, _type = null) {
-	if (!(var_ instanceof Variable)) {
-		console.log("NOT a Variable: %s" % var_);
-		return var_;
-	}
-	var_.typed = (_type || var_.typed) || ("typed" === mod);
-	if (val instanceof ast.FunctionCall) {
-		assure_same_type(var_, val.returns);
-	} else {
-		assure_same_type(var_, (_type || val && Object.getPrototypeOf(val)));
-		assure_same_type_overwrite(var_, val);
-	}
-	if ((!var_.name.in(keys(variableValues)) || (mod !== "default"))) {
-		the.variableValues[var_.name] = val;
-		the.variables[var_.name] = var_;
-		var_.value = val;
-	}
-	the.token_map[var_.name] = known_variable;
-	var_.type = (_type || val && Object.getPrototypeOf(val));
-	var_.final = const_words.has(mod)
-	var_.modifier = mod;
-	the.variableTypes[var_.name] = var_.type;
-	return var_;
-}
 
 function go_thread() {
 	let a, body, thread;
@@ -1328,94 +920,9 @@ function go_thread() {
 	return OK;
 }
 
-function isType(x) {
-	return is_type(x) || type_names.has(x)
-}
-
-function current_node() {
-}
-
-function current_context() {
-}
-
-function variable(a = null, ctx = ast.Load, isParam = false) {
-	let all, name, oldVal, p, param, typ;
-	a = (a || maybe_tokens(article_words));
-	if (a !== "a") a = null;
-	must_not_start_with(keywords);
-	must_not_start_with(the.method_names)
-	typ = maybe(typeNameMapped);
-	p = maybe_tokens(possessive_pronouns);
-	no_keyword();
-	all = one_or_more(word);
-	if (empty(all)) raise_not_matching();
-	name = " ".join(all);
-	if (!typ && all.length > 1 && isType(all[0])) {
-		name = all.slice(1, (-1)).join(" ");
-	}
-	if (p) {
-		name = ((p + " ") + name);
-	}
-	name = name.strip();
-	if (!name) throw new NotMatching("no variable")
-	if (isParam || (ctx instanceof ast.Param)) {
-		param = new Variable({
-			name: name,
-			type: (typ || null),
-			ctx: ctx
-		});
-		the.params[name] = param;
-		return param;
-	}
-	if (ctx instanceof ast.Load || ctx == ast.Load) {
-		if (name.in(the.variables)) {
-			return the.variables[name];
-		}
-		if (name.in(the.params)) {
-			return the.params[name];
-		} else {
-			throw new UndeclaredVariable("Unknown variable " + name);
-		}
-	}
-	if (ctx instanceof ast.Store || ctx == ast.Store) {
-		if (name.in(the.variables)) {
-			return the.variables[name];
-		}
-		oldVal = null;
-		the.result = new Variable({
-			name: name,
-			type: (typ || null),
-			scope: null,
-			module: current_context(),
-			value: oldVal,
-			ctx: ctx
-		});
-		the.variables[name] = the.result;
-		return the.result;
-	}
-	throw new Error("Unknown variable context " + ctx);
-}
 
 
 
-function flatten(words) {
-	// todo("flatten")
-	return words
-}
-
-function must_not_contain(words, before = ";") {
-	let old;
-	old = the.current_token;
-	words = flatten(words);
-	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
-		for (let w of words)
-			if (w === the.current_word)
-				throw new MustNotMatchKeyword(w);
-		next_token();
-	}
-	set_token(old);
-	return OK;
-}
 
 
 function todo(x = "") {
@@ -1532,116 +1039,6 @@ function whose() {
 	_("whose");
 	endNoun();
 	return compareNode();
-}
-
-function that_do() {
-	let comp, s;
-	tokens(["that", "who", "which"]);
-	star(adverb);
-	comp = verb;
-	maybe_token("s");
-	s = star(() => {
-		return (maybe(adverb) || maybe(preposition) || maybe(endNoun));
-	});
-	return comp;
-}
-
-function more_comparative() {
-	tokens(["more", "less", "equally"]);
-	return adverb();
-}
-
-function as_adverb_as() {
-	let a;
-	_("as");
-	a = adverb();
-	_("as");
-	return a;
-}
-
-
-function null_comparative() {
-	let c;
-	verb();
-	c = comparative();
-	endNode();
-	if (c.startsWith("more") || c.ends_with("er")) {
-		return c;
-	}
-}
-
-function than_comparative() {
-	comparative();
-	_("than");
-	return (maybe(adverb) || endNode());
-}
-
-function comparative() {
-	let c, comp;
-	c = (maybe(more_comparative) || adverb);
-	if ((c.startsWith("more") || maybe(() => {
-			return c.ends_with("er");
-		}))) {
-		comp = c;
-	}
-	return c;
-}
-
-function that_are() {
-	let comp;
-	tokens(["that", "which", "who"]);
-	tokens(be_words)
-	comp = maybe(adjective);
-	(comp || maybe(compareNode) || gerund());
-	return comp;
-}
-
-function that_object_predicate() {
-	let s;
-	tokens(["that", "which", "who", "whom"]);
-	(maybe(pronoun) || endNoun());
-	verbium();
-	s = star(() => {
-		return (maybe(adverb) || maybe(preposition) || maybe(endNoun));
-	});
-	return s;
-}
-
-function that() {
-	let filter;
-	filter = (maybe(that_do) || maybe(that_are) || whose());
-	return filter;
-}
-
-function where() {
-	tokens(["where"]);
-	return condition();
-}
-
-function selector() {
-	let x;
-	if (checkEndOfLine()) {
-		return;
-	}
-	x = maybe(compareNode) || maybe(where) || maybe(that) || maybe(token("of") && endNode) || preposition && nod;
-	if (context.use_tree) {
-		return parent_node();
-	}
-	return x;
-}
-
-function verb_comparison() {
-	let comp;
-	star(adverb);
-	comp = verb();
-	maybe(preposition);
-	return comp;
-}
-
-function comparison_word() {
-	let comp;
-	comp = (maybe(verb_comparison) || comparation());
-	return comp;
 }
 
 function comparation() {
@@ -1970,76 +1367,9 @@ function resolve_netbase(n) {
 	return n;
 }
 
-function the_noun_that() {
-	let criterium, n;
-	maybe(articles);
-	n = noun();
-	if (!n) {
-		raise_not_matching("no noun");
-	}
-	if (the.current_word === "that") {
-		criterium = star(selector);
-		if (criterium && interpreting()) {
-			n = filter(n, criterium);
-		} else {
-			n = resolve_netbase(n);
-		}
-	} else {
-		if (n.in(the.variables)) {
-			return the.variables[n];
-		}
-		if (n.in(the.classes)) {
-			return the.classes[n];
-		}
-		raise_not_matching("only 'that' filtered nouns for now!");
-		throw new Error("Undefined: " + n);
-	}
-	return n;
-}
 
 
 
-function mapType(x0) {
-	let x = x0.lower();
-	if (x === "str") return String
-	if (x === "string") return String;
-	if (x === "char") return String
-	if (x === "character") return String
-	if (x === "letter") return String
-	if (x === "word") return String
-	if (x === "name") return String
-	if (x === "label") return String
-	if (x === "lable") return String
-	if (x === "type") return Function // todo
-	if (x === "int") return Number;
-	if (x === "integer") return Number;
-	if (x === "long") return Number;
-	if (x === "double") return Number;
-	if (x === "real") return Number;
-	if (x === "float") return Number;
-	if (x === "number") return Number;
-	if (x === "fraction") return Number;
-	if (x === "rational") return Number;
-	if (x === "object") return Object;
-	if (x === "dict") return Object;// damn JS!
-	if (x === "dictionary") return Object;
-	if (x === "map") return Object;
-	if (x === "hash") return Object;
-	if (x === "hashmap") return Object;
-	if (x === "hashtable") return Object;
-	if (x === "vector") return Array;
-	if (x === "array") return Array;
-	if (x === "list") return Array;
-	if (x === "set") return Array;
-	if (x === "tubple") return Array;
-	if (x === "length") return Number;
-	if (x === "class") return Function
-	if (x === "kind") return Function
-	if (x === "type") return Function
-	if (x === "function") return Function
-	throw new NotMatching("not a known type:" + x);
-	return x0;
-}
 
 
 
@@ -2133,11 +1463,6 @@ function bla() {
 function articles() {
 	return tokens(article_words);
 }
-
-function the_() {
-	maybe_tokens(article_words);
-}
-
 
 async function real_raw_input() {
 	try {

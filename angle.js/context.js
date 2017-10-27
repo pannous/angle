@@ -175,3 +175,10 @@ module.exports = {
     version: version,
     very_verbose: very_verbose,
 }
+
+interpreting=function interpreting() {
+	if (context.use_tree) {
+		return false;
+	}
+	return context.interpret;
+}

@@ -1227,3 +1227,5 @@ module.exports.puts=puts
 is_type = x => x instanceof Function && x.constructor && true
 proto=x=>Object.getPrototypeOf(x)
 // proto2=x=>x.prototype
+todo=x=>console.log(x)
+warn=x=>console.log(x)

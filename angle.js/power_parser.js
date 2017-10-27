@@ -1,4 +1,7 @@
 context = the = require('./context')
+let nodes = require('./nodes')
+
+
 
 let list = Array
 
@@ -135,9 +138,6 @@ function error(e, force = false) {
 	}
 }
 
-function warn(e) {
-	console.log(e);
-}
 
 let caller = () => arguments.callee.caller.caller
 
@@ -346,6 +346,7 @@ function drop_comments() {
 }
 
 function init(strings) {
+	let{number}= require('./values')
 	let comp, left, right;
 	if (!the.moduleMethods || !the.moduleMethods.length)
 		load_module_methods();
@@ -491,6 +492,27 @@ function must_contain_before_old(before, ...args) {
 	return OK;
 }
 
+function flatten(words) {
+	// todo("flatten")
+	return words
+}
+
+
+function must_not_contain(words, before = ";") {
+	let old;
+	old = the.current_token;
+	words = flatten(words);
+	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
+		for (let w of words)
+			if (w === the.current_word)
+				throw new MustNotMatchKeyword(w);
+		next_token();
+	}
+	set_token(old);
+	return OK;
+}
+
+
 let starts_with = function starts_with(tokenz) {
 	if (checkEndOfLine()) {
 		return false;
@@ -568,12 +590,6 @@ function dont_interpret() {
 	context.interpret = false;
 }
 
-function interpreting() {
-	if (context.use_tree) {
-		return false;
-	}
-	return context.interpret;
-}
 
 function check_rollback_allowed() {
 	let c, level, throwing;
@@ -704,7 +720,7 @@ function block(multiple = false) {
 	// import {
 	let {
 		// statement,
-		end_of_statement,
+		// end_of_statement,
 	} = require('./statements')
 	// } from 'english_parser';
 	let end_of_block, start, statement0, statements;
@@ -760,6 +776,19 @@ function block(multiple = false) {
 	}
 	return statements;
 }
+
+
+function end_of_statement(){
+	return beginning_of_line() ||
+		maybe_newline() ||
+		starts_with(done_words) ||
+		the.current_offset === 0 ||
+		the.current_word === ";" ||
+		the.previous_word === ";" ||
+		the.previous_word === "\n" ||
+		check_end_of_statement()
+}
+
 
 function todo(x) {
 	console.log("TODO", x)// TODO
@@ -988,8 +1017,6 @@ let checkEndOfLine = () =>
 	the.current_word === "" ||
 	the.token_number >= the.tokenstream.length
 
-let checkEndOfFile = () => (current_type === _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
-
 let maybe_newline = () => (checkEndOfFile() || newline(/*doraise*/ false))
 
 function newline(doraise = false) {
@@ -1019,6 +1046,8 @@ function newline(doraise = false) {
 }
 
 let newlines = () => star(newline);
+
+let checkEndOfFile = () => (current_type === _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
 
 let NL = () => tokens("\n", "\r");
 
@@ -1084,83 +1113,6 @@ function raise_not_matching(msg = null) {
 }
 
 let _try = maybe;
-
-let number = () => maybe(real) || maybe(fraction) || maybe(integer) || maybe(number_word) || raise_not_matching("number")
-
-function number_word() {
-	let n;
-	n = tokens(numbers);
-	return xstr(n).parse_number();
-}
-
-function fraction() {
-	let f, m;
-	f = maybe(integer) || 0;
-	m = starts_with(["\u00bc", "\u00bd", "\u00be", "\u2153", "\u2154", "\u2155", "\u2156", "\u2157", "\u2158", "\u2159", "\u215a", "\u215b", "\u215c", "\u215d", "\u215e"]);
-	if (!m) {
-		if (f !== 0) {
-			next_token();
-			return f;
-		}
-		throw new NotMatching();
-	} else {
-		next_token();
-		m = xstr(m).parse_number();
-	}
-	the.result = (f + m);
-	return the.result;
-}
-
-let ZERO = "0";
-
-function integer() {
-	let current_value, match;
-	match = the.string.match(/^\s*(-?\d+)/i)
-	if (match) {
-		current_value = parseInt(match[0]);
-		next_token(false);
-		if (context.use_tree) {
-			return new kast.Num(current_value);
-		}
-		if (current_value === 0) {
-			current_value = ZERO;
-		}
-		return current_value;
-	}
-	throw new NotMatching("no integer");
-}
-
-function real() {
-	let current_value, match;
-	match = the.string.match(/^\s*(-?\d*\\.\d+)/i)
-	if (match) {
-		current_value = parseFloat(match.groups()[0]);
-		next_token(false);
-		return current_value;
-	}
-	throw new NotMatching("no real (unreal)");
-}
-
-function complex() {
-	let match, s;
-	s = the.string.strip().replace("i", "j");
-	match = s.match(/^(\d+j)/i)
-	if (!match) {
-		match = s.match(/^(\d*\\.\d+j)/i)
-	}
-	if (!match) {
-		match = s.match(/^(\d+\s*\\+\s*\d+j)/i)
-	}
-	if (!match) {
-		match = s.match(/^(\d*\\.\d+\s*\\+\s*\d*\\.\d+j)/i)
-	}
-	if (match) {
-		the.current_value = complex(match[0].groups());
-		next_token(false);
-		return current_value;
-	}
-	return false;
-}
 
 function maybe_indent() {
 	while ((the.current_type === _token.INDENT) || (the.current_word === " ")) {
@@ -1256,20 +1208,48 @@ function no_keyword() {
 	return must_not_start_with(keywords);
 }
 
+function space() {
+	if ((token(" ") || token("") !== null)) {
+		return OK;
+	} else {
+		return false;
+	}
+}
+
+
+maybe_token=function maybe_token(x) {
+	if (x === the.current_word) {
+		next_token();
+		return x;
+	}
+	return false;
+}
 
 module.exports = {
+	adjust_interpret,
 	block,
 	checkNewline,
 	raiseNewline,
 	dont_interpret,
+	do_interpret,
 	look_1_ahead,
 	maybe,
 	maybe_indent,
 	must_not_start_with,
 	must_contain_before_,
 	must_contain_before,
+	must_not_contain,
+	maybe_token,
 	maybe_tokens,
+	must_contain,
 	next_token,
+	no_rollback,
+	one_or_more,
+	pointer_string,
+	raiseEnd,
+	star,
 	starts_with,
+	skip_comments,
 	tokens,
 }
+

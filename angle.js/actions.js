@@ -1,7 +1,29 @@
-
-function action() { // extends expression
-	let start;
-	start = pointer();
+"use strict"
+let {Variable, Argument} = require('./nodes')
+let {
+	block,
+	checkNewline,
+	raiseNewline,
+	dont_interpret,
+	look_1_ahead,
+	maybe,
+	maybe_indent,
+	must_not_start_with,
+	must_contain,
+	must_contain_before_,
+	must_contain_before,
+	maybe_tokens,
+	next_token,
+	one_or_more,
+	raiseEnd,
+	skip_comments,
+	starts_with,
+	tokens,
+} = require('./power_parser')
+let {variable} = require('./values')
+function action() {
+	 // extends expression
+	let start = pointer();
 	maybe(bla);
 	the.result = maybe(quick_expression) ||
 		maybe(special_blocks) ||
@@ -18,8 +40,8 @@ function action() { // extends expression
 
 function plusPlus(v = null) {
 	let pre, start;
-	must_contain_substring("++");
-	start = pointer();
+	// must_contain_substring("++");
+	// start = pointer();
 	pre = (maybe_token("+") && token("+"));
 	v = (v || variable());
 	(pre || (_("+") && token("+")));
@@ -33,10 +55,10 @@ function plusPlus(v = null) {
 
 function minusMinus(v = null) {
 	let pre;
-	must_contain_substring("--");
-	pre = (maybe_token("-") && token("-"));
+	// must_contain_substring("--");
+	pre = maybe_token("--")||(maybe_token("-") && token("-"));
 	v = (v || variable());
-	(pre || (_("-") && token("-")));
+	(pre ||maybe_token("--")|| (_("-") && token("-")));
 	if (!interpreting()) {
 		return new Assign([store(v.name)], new BinOp(name(v.name), new Sub(), num(1)));
 	}
@@ -132,35 +154,8 @@ function evaluate() {
 	return the.result;
 }
 
-function linuxPath() {
-	let match, path;
-	raiseEnd();
-	match = the.string.match(/^(\/[w'.]+)/)
-	if (match) {
-		path = match[0];
-		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path);
-		path = new extensions.Dir(path);
-		next_token();
-		the.current_value = path;
-		return path;
-	}
-	return false;
-}// todo move
+// todo move
 
-function fileName() {
-	let match, path;
-	raiseEnd();
-	match = is_file(the.string, false);
-	if (match) {
-		path = match[0];
-		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path);
-		path = new extensions.File(path);
-		next_token();
-		the.current_value = path;
-		return path;
-	}
-	return false;
-}
 
 function start_xml_block(type) {
 	_("<");
@@ -194,6 +189,18 @@ function english_to_math(s) {
 	s = s.replace(" multiply ", "*");
 	return s;
 }
+
+function map_list(x) {
+	let function_ = findMethod(x, method0, null);
+	if (function_ instanceof FunctionCall) {
+		return pyc_emitter.evalast(function_, args);
+	}
+	if (!(function_ instanceof Function)) {
+		throw new Error("DONT KNOW how to apply %s to %s".format(method0, args0));
+	}
+	return function_();
+}
+
 
 function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
@@ -235,17 +242,6 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	try {
 		if ((!(method instanceof Function) && (args instanceof list))) {
 			// noinspection JSAnnotator
-			function map_list(x) {
-				let function_ = findMethod(x, method0, null);
-				if (function_ instanceof FunctionCall) {
-					return pyc_emitter.evalast(function_, args);
-				}
-				if (!(function_ instanceof Function)) {
-					throw new Error("DONT KNOW how to apply %s to %s".format(method0, args0));
-				}
-				return function_();
-			}
-
 			the.result = map(map_list, args);
 			verbose("GOT RESULT %s " % the.result);
 			return the.result;
@@ -634,11 +630,11 @@ function do_evaluate(x, _type = null) {
 	if (x instanceof extensions.File) {
 		return x.to_path;
 	}
-	if ((x instanceof list) && (x.length === 1)) {
+	if ((x instanceof Array) && (x.length === 1)) {
 		return do_evaluate(x[0]);
 	}
-	if (x instanceof list) {
-		return list(map(do_evaluate, x));
+	if (x instanceof Array) {
+		return Array(map(do_evaluate, x));
 	}
 	if (is_string(x)) {
 		if (_type && (_type instanceof extensions.Numeric)) {
@@ -703,4 +699,39 @@ function do_self_modify(v, mod, arg) {
 	if (mod === ">>") the.result = (val >> arg);
 	v.value = the.result;
 	return the.result;
+}
+
+function selfModify() {
+	return (maybe(self_modify) || maybe(plusPlus) || minusMinus());
+}
+
+module.exports = {
+	action,
+	// action_if,
+	// align_args,
+	// align_function_args,
+	// bash_action,
+	// call_unbound,
+	// do_call,
+	do_evaluate,
+	// do_math,
+	// do_self_modify,
+	// english_to_math,
+	// eval_args,
+	// evaluate,
+	// fileName,
+	// instance,
+	// is_bound,
+	// is_math,
+	// is_unbound,
+	// jeannie,
+	// findMethod,
+	// linuxPath,
+	// map_list,
+	// minusMinus,
+	// plusPlus,
+	selfModify,
+	// self_modify,
+	// self_modifying,
+	// start_xml_block,
 }

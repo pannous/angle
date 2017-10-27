@@ -1,20 +1,48 @@
-let {starts_with,checkNewline,maybe_indent,maybe,must_contain_before_,maybe_tokens}=require('./power_parser')
-let {quick_expression}= require('./expressions')
+// "use strict"
+let {
+	adjust_interpret,
+	block,
+	checkNewline,
+	raiseNewline,
+	do_interpret,
+	dont_interpret,
+	look_1_ahead,
+	maybe,
+	maybe_indent,
+	must_not_start_with,
+	must_contain_before_,
+	must_contain_before,
+	must_not_contain,
+	maybe_token,
+	maybe_tokens,
+	next_token,
+	no_rollback,
+	one_or_more,
+	skip_comments,
+	starts_with,
+	tokens,
+}=require('./power_parser')
+let {do_evaluate}= require('./actions')
+let {Variable, Argument} = require('./nodes')
+let {expression}= require('./expressions')
 let {articles}=require('./angle_parser')
+let {loops} = require('./loops')
 let {
 	boole,
 	bracelet,
 	constant,
 	known_variable,
 	nill,
+	number,
 	nod,
 	quote,
 	typeName,
 	typeNameMapped,
 	value,
+	variable,
 } = require('./values')
 
-statement=function statement (doraise = true) {
+statement =function statement (doraise = true) {
 	let x;
 	if (starts_with(done_words) || checkNewline())
 		return !doraise || raise_not_matching("end of block ok")
@@ -45,6 +73,263 @@ statement=function statement (doraise = true) {
 	return the.result;
 }
 
+quick_expression=function quick_expression() {
+	let fun, result, z;
+	result = false;
+	if (!the.current_word) {
+		throw new EndOfLine();
+	}
+	if (the.current_word === ";") {
+		throw new EndOfStatement();
+	}
+	if (the.current_word === ",") {
+		return liste({
+			first: the.result
+		});
+	}
+	if ((!context.in_params) && look_1_ahead(":")) {
+		return immediate_hash();
+	}
+	if (the.current_word === "{") {
+		if (look_1_ahead("}")) {
+			return empty_map();
+		}
+		if (contains("=>") || contains(":")) {
+			return hash_map();
+		}
+	}
+	if (look_1_ahead([".", "'s", "of"])) {
+		return (maybe(method_call) || property());
+	}
+	if (look_1_ahead("=")) {
+		if (!context.in_condition) return setter();
+	}
+	if (!the.current_word.in)
+		console.log("HO")
+
+	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) {
+		return declaration();
+	}
+	if (the.current_word.in(operators + special_chars)) {
+		if (the.current_word !== "~") {
+			return false;
+		}
+	}
+	if (the.current_type === _token.NUMBER) {
+		result = number();
+		if (maybe_tokens(["rd", "nd", "th"])) {
+			result = nth_item(result);
+		}
+	} else if (the.current_word.startsWith("r'")) {
+		result = regexp(the.current_word);
+		next_token(false);
+	} else if ((the.current_type === _token.STRING) || the.current_word.startsWith("'")) {
+		result = quote();
+	} else if (the.current_word.in(the.token_map)) {
+		fun = the.token_map[the.current_word];
+		debug("token_map: %s -> %s".format(the.current_word, fun));
+		result = fun();
+	} else if (the.current_word.in(the.method_token_map)) {
+		fun = the.method_token_map[the.current_word];
+		debug("method_token_map: %s -> %s".format(the.current_word, fun));
+		result = fun();
+	} else if (the.current_word.in(the.method_names)) {
+		if (method_allowed(the.current_word)) {
+			result = method_call();
+		}
+	} else if (the.current_word.in(the.params)) {
+		result = true_param();
+	} else if (the.current_word.in(the.variables)) {
+		result = known_variable();
+	} else if (the.current_word.in(type_names)) {
+		return (maybe(setter) || method_definition());
+	}
+	if (look_1_ahead("of")) {
+		result = evaluate_property(result);
+	}
+	if (!result) {
+		return false;
+	}
+	while (true) {
+		z = post_operations(result);
+		if ((!z) || (z === result)) {
+			break;
+		}
+		result = z;
+	}
+	return result;
+}
+
+post_operations=function post_operations(result) {
+	if (the.current_word === "") {
+		return result;
+	}
+	if (the.current_word === ";") {
+		return result;
+	}
+	if (the.current_word === ".") {
+		return method_call(result);
+	}
+	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
+		return liste({
+			check: false,
+			first: result
+		});
+	}
+	if (the.current_word.in(self_modifying_operators)) {
+		return self_modify(result);
+	}
+	if ((the.current_word === "+") && look_1_ahead("+")) {
+		return plusPlus(result);
+	}
+	if ((the.current_word === "-") && look_1_ahead("-")) {
+		return minusMinus(result);
+	}
+	if (the.current_word.in(be_words)) {
+		if (!context.in_condition) {
+			if (result instanceof Variable) {
+				return setter(result);
+			}
+		} else {
+			if (the.current_word === "are") {
+				return false;
+			}
+		}
+	}
+	if (the.current_word === "|") {
+		return piped_actions(result || the.last_result);
+	}
+	if (the.current_word.in(operators)) {
+		return algebra(result);
+	}
+	if (the.current_word === "[") {
+		return evaluate_index(result);
+	}
+	if (the.current_word.in((operators + special_chars) + ["element", "item"])) {
+		return false;
+	}
+	if (result && (the.current_word === "to")) {
+		return ranger(result);
+	}
+	if (result && (the.current_word === "if")) {
+		return action_if(result);
+	}
+	if (the.current_line.endswith("times")) {
+		return action_n_times(result);
+	}
+	if (the.current_word.in(be_words)) {
+		return setter(result);
+	}
+	if (the.current_word === "if") {
+		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
+	}
+	if (the.current_word === "as") {
+		return maybe_cast(result);
+	}
+	return false;
+}
+
+function isType(x) {
+	return is_type(x) || type_names.has(x)
+}
+function assure_same_type(var_, _type) {
+	let oldType;
+	if (var_.name.in(the.variableTypes)) {
+		oldType = (the.variableTypes[var_.name] || var_.value && Object.getPrototypeOf(var_.value));
+	} else {
+		if (var_.type) {
+			oldType = var_.type;
+		} else {
+			oldType = null;
+		}
+	}
+	let types_match = !oldType || !_type || oldType == _type || oldType == _type.prototype || oldType.prototype == _type
+	if (_type === "Unknown")
+		return;
+	if (_type instanceof ast.AST) {
+		warn("TYPE AST");
+		return;
+	}
+	if (!isType(oldType)) {
+		warn("NOT A TYPE %s" % oldType);
+		return;
+	}
+	if (oldType == String) {
+	}
+	if (_type == ast.AST) {
+		console.log("skipping type check for AST expressions (for now)!");
+		return;
+	}
+	if (oldType && _type && !(oldType == _type)) {
+		throw new WrongType(var_.name + " has type " + oldType.name + ", can't set to " + _type);
+	}
+	if (oldType && var_.type && !(oldType == var_.type)) {
+		throw new WrongType(var_.name + " has type " + oldType.name + ", cannot set to " + var_.type.name);
+	}
+	if (_type && var_.type && !(var_.type == _type || _type == var_.type)) {
+		throw new WrongType(var_.name + " has type " + var_.type.name + ", Can't set to " + _type);
+	}
+	var_.type = _type;
+}
+function assure_same_type_overwrite(var_, val, auto_cast = false) {
+	let oldType, oldValue, wrong_type;
+	if (!val) {
+		return;
+	}
+	oldType = var_.type;
+	oldValue = var_.value;
+	let val_type = val && Object.getPrototypeOf(val) || null
+	if (val instanceof ast.FunctionCall) {
+		if ((val.return_type !== "Unknown") && (val.return_type !== oldType))
+			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(oldType, oldValue, val, val.return_type));
+	} else if (oldType) {
+		try {
+			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
+			let types_match = (oldType == val_type || oldType == val_type.prototype || oldType.prototype == val_type);
+			if (!types_match) {
+				if (auto_cast) return do_cast(val, oldType);
+				throw wrongType;
+			}
+		} catch (e) {
+			if (!(val_type == ast.AST)) {
+				throw wrong_type;
+			} else {
+				console.log("skipping type check for AST expressions (for now)!");
+			}
+		}
+	}
+	if ((var_.final && var_.value) && (!(val === var_.value))) {
+		throw new ImmutableVaribale("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
+	}
+	var_.value = val;
+}
+
+
+function add_variable(var_, val, mod = null, _type = null) {
+	if (!(var_ instanceof Variable)) {
+		console.log("NOT a Variable: %s" % var_);
+		return var_;
+	}
+	var_.typed = (_type || var_.typed) || ("typed" === mod);
+	if (val instanceof ast.FunctionCall) {
+		assure_same_type(var_, val.returns);
+	} else {
+		assure_same_type(var_, (_type || val && Object.getPrototypeOf(val)));
+		assure_same_type_overwrite(var_, val);
+	}
+	if ((!var_.name.in(keys(variableValues)) || (mod !== "default"))) {
+		the.variableValues[var_.name] = val;
+		the.variables[var_.name] = var_;
+		var_.value = val;
+	}
+	the.token_map[var_.name] = known_variable;
+	var_.type = (_type || val && Object.getPrototypeOf(val));
+	var_.final = const_words.has(mod)
+	var_.modifier = mod;
+	the.variableTypes[var_.name] = var_.type;
+	return var_;
+}
+
 
 function setter(var_ = null) {
 	let _cast, _let, _type, guard, mod, setta, val;
@@ -63,7 +348,7 @@ function setter(var_ = null) {
 	if (current_word === "[") {
 		return evaluate_index(var_);
 	}
-	setta = maybe_tokens(["to"]) || be();
+	setta = maybe_tokens(["to"]) || tokens(be_words);
 	if (!setta) throw new NotMatching("BE!?");
 	if (setta === ":=" || _let === "alias") return alias(var_);
 	if (maybe_tokens(["a", "an"]) && !_type) {
@@ -215,7 +500,7 @@ function method_definition(name = null, return_type = null) {
 	the.params.clear();
 	return f;
 }
-
+let _=tokens
 function assert_that() {
 	let s;
 	_("assert");
@@ -338,17 +623,6 @@ function if_then() {
 	}
 }
 
-function end_of_statement(){
-	return beginning_of_line() ||
-		maybe_newline() ||
-		starts_with(done_words) ||
-		the.current_offset === 0 ||
-		the.current_word === ";" ||
-		the.previous_word === ";" ||
-		the.previous_word === "\n" ||
-		check_end_of_statement()
-}
-
 
 function declaration() {
 	let a, mod, type, val, var_;
@@ -380,9 +654,26 @@ function declaration() {
 	return var_;
 }
 
-module.exports={
-	statement,
-	end_of_statement,
+function breaks() {
+	return tokens(flow_keywords);
 }
 
 
+module.exports = {
+	add_variable,
+	assert_that,
+	assure_same_type,
+	assure_same_type_overwrite,
+	declaration,
+	if_then,
+	if_then_else,
+	imports,
+	isType,
+	method_definition,
+	module,
+	piped_actions,
+	returns,
+	setter,
+	quick_expression,
+	statement
+}

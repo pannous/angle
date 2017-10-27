@@ -1,7 +1,8 @@
 require('./angle_base_test')
 // "use strict"
 // class SetterTest extends (ParserBaseTest) {
-exports.test_samples = test => {
+no_exports={}//IGNORE
+no_exports.test_samples = test => {
 	let x = parse(`samples/basics.e`);
 	assert(x == 6)
 	test.done()
