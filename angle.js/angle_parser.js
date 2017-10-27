@@ -128,49 +128,6 @@ function fix_context(x) {
 
 
 
-function read_block(type = null) {
-	let block = [];
-	_(type);
-	while (true) {
-		if (maybe(() => {
-				return end_block(type);
-			})) {
-			break;
-		}
-		block.append(rest_of_line());
-	}
-	return block;
-}
-
-function read_xml_block(t = null) {
-	let b;
-	_("<");
-	t = (t || word());
-	if (maybe_token("/")) {
-		return _(">");
-	}
-	_(">");
-	b = read_xml_block();
-	_("</");
-	token(t);
-	_(">");
-	return b;
-}
-
-function html_block() {
-	return read_xml_block("html");
-}
-
-function javascript_block() {
-	let block;
-	block = (maybe(read_block("script") || maybe(read_block("js"))) || read_block("javascript"));
-	javascript.append(block.join(";\n"));
-	return block;
-}
-
-function ruby_block() {
-	return read_block("ruby");
-}
 
 
 function is_a(x, type0) {

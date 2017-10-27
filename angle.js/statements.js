@@ -244,6 +244,7 @@ function assure_same_type(var_, _type) {
 		}
 	}
 	let types_match = !oldType || !_type || oldType == _type || oldType == _type.prototype || oldType.prototype == _type
+	if(types_match)return
 	if (_type === "Unknown")
 		return;
 	if (_type instanceof ast.AST) {
@@ -305,16 +306,23 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 }
 
 
+function get_type(val) {
+	return Object.getPrototypeOf(val)
+	 // val.prototype
+	// return mapType(typeof val) // Stupid js?
+}
+
 function add_variable(var_, val, mod = null, _type = null) {
 	if (!(var_ instanceof Variable)) {
 		console.log("NOT a Variable: %s" % var_);
 		return var_;
 	}
-	var_.typed = (_type || var_.typed) || ("typed" === mod);
+	var_.typed = ((_type || var_.typed) || ("typed" === mod)) && true; // redundant? no: autotype vs 'typed!'
+	if(!_type)_type=get_type(val)
 	if (val instanceof ast.FunctionCall) {
 		assure_same_type(var_, val.returns);
 	} else {
-		assure_same_type(var_, (_type || val && Object.getPrototypeOf(val)));
+		assure_same_type(var_, _type);
 		assure_same_type_overwrite(var_, val);
 	}
 	if ((!var_.name.in(keys(variableValues)) || (mod !== "default"))) {
@@ -627,28 +635,24 @@ function if_then() {
 function declaration() {
 	let a, mod, type, val, var_;
 	must_not_contain(be_words);
-	a = the_();
+	a = maybe(articles)
 	mod = maybe_tokens(modifier_words);
 	type = typeNameMapped();
 	maybe_tokens(["var", "val", "let"]);
 	mod = (mod || maybe_tokens(modifier_words));
-	var_ = (maybe(known_variable) || variable(a, {
-		ctx: new ast.Store()
-	}));
+	var_ = maybe(known_variable) || variable(a, ast.Store);
 	try {
-		val = Object.getPrototypeOf();
+		val = Object.getPrototypeOf();// ???
 	} catch (e) {
 		val = null;
 	}
-	var_ = add_variable(var_, val, mod, {
-		_type: type
-	});
+	var_ = add_variable(var_, val, mod, type);
 	if (var_.type) {
 		assure_same_type(var_, type);
 	} else {
 		var_.type = type;
 	}
-	var_.final = mod.in(const_words);
+	var_.final = const_words.has(mod)
 	var_.modifier = mod;
 	the.variableTypes[var_.name] = var_.type;
 	return var_;

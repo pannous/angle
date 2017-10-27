@@ -65,7 +65,6 @@ function expression(fallback = null, resolve = true) {
 		maybe(selfModify) ||
 		maybe(true_param) ||
 		maybe(the_noun_that)|| // english!
-		maybe(special_blocks) ||
 		maybe(endNode) ||
 		maybe(passing) ||
 		raise_not_matching("Not an expression: " + pointer_string());
@@ -82,10 +81,6 @@ function expression(fallback = null, resolve = true) {
 	if (ex === ZERO) ex = 0;
 	the.result = ex;
 	return the.result;
-}
-
-function special_blocks() {
-	return (maybe(html_block) || maybe(ruby_block) || javascript_block());
 }
 
 

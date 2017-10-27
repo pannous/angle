@@ -17,6 +17,7 @@ let {
 	one_or_more,
 	starts_with,
 	tokens,
+	token
 }=require('./power_parser')
 
 let {
@@ -43,6 +44,7 @@ function value() {
 	must_not_start_with(keywords_except_values)
 	the.result =
 		maybe(bracelet) ||
+		maybe(special_blocks) ||
 		maybe(quote) ||
 		maybe(nill) ||
 		maybe(number) ||
@@ -346,8 +348,11 @@ function typeNameMapped() {
 	if (name.in(the.classes)) return the.classes[name];
 	return mapType(name);
 }
+
 function mapType(x0) {
+	if(the.classes[x0]) return the.classes[x0]
 	let x = x0.lower();
+	if(the.classes[x0]) return the.classes[x0]
 	if (x === "str") return String
 	if (x === "string") return String;
 	if (x === "char") return String
@@ -485,6 +490,56 @@ function parse_integer(x) {
 
 
 
+function special_blocks() {
+	return (maybe(html_block) || maybe(ruby_block) || javascript_block());
+}
+
+let _=token
+function read_xml_block(t = null) {
+	let b;
+	_("<");
+	t = (t || word());
+	if (maybe_token("/")) {
+		return _(">");
+	}
+	_(">");
+	b = read_xml_block();
+	_("</");
+	token(t);
+	_(">");
+	return b;
+}
+
+function html_block() {
+	return read_xml_block("html");
+}
+
+function javascript_block() {
+	let block;
+	block = (maybe(read_block("script") || maybe(read_block("js"))) || read_block("javascript"));
+	javascript.append(block.join(";\n"));
+	return block;
+}
+
+function ruby_block() {
+	return read_block("ruby");
+}
+
+function read_block(type = null) {
+	let block = [];
+	_(type);
+	while (true) {
+		if (maybe(() => {
+				return end_block(type);
+			})) {
+			break;
+		}
+		block.append(rest_of_line());
+	}
+	return block;
+}
+
+
 
 module.exports = {
 	boole,
@@ -506,4 +561,5 @@ module.exports = {
 	integer,
 	real,
 	complex,
+	special_blocks,// DATA!
 }

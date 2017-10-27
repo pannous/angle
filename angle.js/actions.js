@@ -1,6 +1,6 @@
 "use strict"
 let {Variable, Argument} = require('./nodes')
-let {
+var {
 	block,
 	checkNewline,
 	raiseNewline,

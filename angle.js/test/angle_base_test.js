@@ -45,7 +45,7 @@ assert_has_error=(prog,type="")=>{
 		console.log("OK, exception raised: "+(ex.message||ex.name))
 		return
 	}
-	throw new TestError("should have raised "+type.name+": "+the.current_line)
+	throw new TestError("should have raised ["+type.name+"]: "+the.current_line)
 }
 
 assert_result_is=(prog,val)=>{

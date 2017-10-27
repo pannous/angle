@@ -285,6 +285,8 @@ function parse_tokens(s) {
 		.token(_token.STRING, /`(.*?)`/)
 		.token(_token.STRING, /'(.*?)'/)
 		.token(_token.COMMENT, /#.*/)
+		.token(_token.NEWLINE, /;/)
+		.token(_token.NEWLINE, /:/)
 		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
 		.token(_token.COMMENT, /\/\*(.*)\*\//)
@@ -500,10 +502,9 @@ function flatten(words) {
 
 
 function must_not_contain(words, before = ";") {
-	let old;
-	old = the.current_token;
+	let old = the.current_token;
 	words = flatten(words);
-	while (!checkEndOfLine() && the.current_word !== ";" && the.current_word !== before) {
+	while (!checkEndOfLine() && the.current_word != ";" && the.current_word !== before) {
 		for (let w of words)
 			if (w === the.current_word)
 				throw new MustNotMatchKeyword(w);
@@ -733,10 +734,7 @@ function block(multiple = false) {
 	while ((multiple || !end_of_block) && !checkEndOfFile()) {
 		end_of_statement();
 		no_rollback();
-		if (multiple) {
-			maybe_newline();
-		}
-
+		if (multiple) maybe_newline();
 		// noinspection JSAnnotator
 		function block_lambda() {
 			let s;
@@ -746,15 +744,13 @@ function block(multiple = false) {
 				statements.append(s);
 			} catch (e) {
 				if (e instanceof NotMatching) {
-					if (starts_with(done_words) || checkNewline()) {
+					if (starts_with(done_words) || checkNewline())
 						return false;
-					}
 					console.log("Giving up block");
 					print_pointer(true);
-					throw new Error(e.toString() + "\nGiving up block\n") + pointer_string();
-				} else {
-					throw e;
+					throw new Error(e + "\nGiving up block\n") + pointer_string();
 				}
+				throw e;
 			}
 			return end_of_statement();
 		}
@@ -1269,5 +1265,6 @@ module.exports = {
 	starts_with,
 	skip_comments,
 	tokens,
+	token
 }
 

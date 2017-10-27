@@ -248,7 +248,9 @@ class Variable extends ast.Name {
         this.name = args["name"];
 	    this.ctx = args["ctx"] || ast.Load();
 	    this.value = args["value"] || null;
-	    this.type = args["type"] || this.value && Object.getPrototypeOf(this.value) || null
+	    this.type = args["type"] || args["typed"]
+	    this.type = this.type || this.value &&Object.getPrototypeOf(this.value)
+	    this.type = this.type || this.value && typeof this.value || null
 	    this.scope = args["scope"] || null;
 	    this.owner = args["owner"] || null;
 	    this.owner = args["object"] || this.owner;
@@ -385,7 +387,7 @@ class Pointer {
 
 //# sourceMappingURL=nodes.js.map
 module.exports={
-    Variable:Variable,
-	Argument:Argument,
-	FunctionCall:FunctionCall
+    Variable,
+	Argument,
+	FunctionCall
 }
