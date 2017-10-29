@@ -320,6 +320,10 @@ Array_Extensions = {
 		all = this.filter(a => a == x || ("" + a).match(x) || x.match("" + a));
 		return len(all) > 0 ? all : false
 	},
+	removeAt(i){ // delete leaves holes!!
+		this.splice(i,1)
+		return this
+	},
 	match(x) {
 		all = this.filter(a => a == x || ("" + a).match(x) || x.match("" + a));
 		return len(all) > 0

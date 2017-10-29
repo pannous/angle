@@ -8,12 +8,23 @@ class BlankTest extends (ParserBaseTest) {
 		assert_result_is("1", 1)
 		assert_result_is("ok", true)
 		assert_result_is("int i=3.2", 3)
-	}
-	test_ok(){
 		assert_result_is("yes",1)
 		assert_result_is("False",0)
+		assert_result_is("'a'",'a')
+		assert_result_is("`a`",'a')
+		assert_result_is("\"a\"",'a')
+		assert_result_is("'a'+'b'",'ab')
+	}
+	test_ok(){
+		assert_result_is("1+2*3",7)
+
 		console.log("ALL OK")
 	}
+	no_ok() {
+		assert_result_is("'a' 'b'",'ab')
+		assert_result_is("'⦠'", '⦠')
+	}
+
 }
 
 register(BlankTest,module)

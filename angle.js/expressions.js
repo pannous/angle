@@ -120,19 +120,19 @@ function algebra(val = null) {
 	if (the.result === null) the.result = NONE;
 	return the.result;
 }
-function fold_algebra(stack) {
 
-	used_operators = operators.filter(x => x.in(stack))
-	used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
-	for (op of used_operators.plus(used_ast_operators)) {
+function fold_algebra(stack) {
+	let used_operators = operators.filter(x => x.in(stack))
+	let used_ast_operators = Object.values(ast_operator_map).filter(x => stack.has(x))
+	for (let op of used_operators.plus(used_ast_operators)) {
 		let i = 0
 		while (i < stack.length) {
 			if (stack[i] == op)
 				result = apply_op(stack, i, op)
 			i += 1
 		}
+		stack = stack.filter(x => x) // compress
 	}
-	stack = stack.filter(x => x)
 	if ((stack.length > 1) && (used_operators.length > 0)) {
 		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
 	}
