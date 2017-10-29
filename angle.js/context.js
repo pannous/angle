@@ -110,7 +110,6 @@ module.exports = {
     classes: classes,
     constructors: constructors,
     core_methods: core_methods,
-    current_expression: current_expression,
     current_file: current_file,
     current_line: current_line,
     current_node: current_node,

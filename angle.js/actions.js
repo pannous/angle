@@ -182,7 +182,7 @@ function method_call(obj = null) {
 
 function plusPlus(v = null) {
 	let pre, start;
-	// must_contain_substring("++");
+	must_contain_substring("++");
 	// start = pointer();
 	pre = (maybe_token("+") && token("+"));
 	v = (v || variable());
@@ -195,9 +195,13 @@ function plusPlus(v = null) {
 	return the.result;
 }
 
+function must_contain_substring(param) {
+	if(the.current_line.indexOf(param)<0)raise_not_matching("subs")
+}
+
 function minusMinus(v = null) {
 	let pre;
-	// must_contain_substring("--");
+	must_contain_substring("--");
 	pre = maybe_token("--") || (maybe_token("-") && token("-"));
 	v = (v || variable());
 	(pre || maybe_token("--") || (_("-") && token("-")));

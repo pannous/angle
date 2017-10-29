@@ -25,7 +25,7 @@ let {
 }=require('./power_parser')
 let {action,do_evaluate}= require('./actions')
 let {Variable, Argument} = require('./nodes')
-let {expression}= require('./expressions')
+let {expression,algebra}= require('./expressions')
 let {articles}=require('./angle_parser')
 let {loops} = require('./loops')
 let {
@@ -104,13 +104,10 @@ quick_expression=function quick_expression() {
 	if (look_1_ahead("=")) {
 		if (!context.in_condition) return setter();
 	}
-	if (!the.current_word.in)
-		console.log("HO")
-
 	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) {
 		return declaration();
 	}
-	if (the.current_word.in(operators + special_chars)) {
+	if (the.current_word.in(all_operators)) {
 		if (the.current_word !== "~") {
 			return false;
 		}
@@ -127,11 +124,11 @@ quick_expression=function quick_expression() {
 		result = quote();
 	} else if (the.current_word.in(the.token_map)) {
 		fun = the.token_map[the.current_word];
-		debug("token_map: %s -> %s".format(the.current_word, fun));
+		debug("token_map: %s -> %s".format(the.current_word, fun.name));
 		result = fun();
 	} else if (the.current_word.in(the.method_token_map)) {
 		fun = the.method_token_map[the.current_word];
-		debug("method_token_map: %s -> %s".format(the.current_word, fun));
+		debug("method_token_map: %s -> %s".format(the.current_word, fun.name));
 		result = fun();
 	} else if (the.current_word.in(the.method_names)) {
 		if (method_allowed(the.current_word)) {

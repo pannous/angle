@@ -32,6 +32,7 @@ let {
 	pronoun,
 	verb,
 	wordnet_is_adverb,
+	postjective
 } = require('./english_parser')
 
 let {
@@ -46,6 +47,7 @@ let {
 	known_variable,
 	variable,
 	quote,
+	word
 } = require('./values')
 
 
@@ -245,12 +247,13 @@ function endNode() {
 		maybe(selectable) ||
 		maybe(liste_selector) ||
 		maybe(known_variable) ||
-		maybe(article) && word() ||
 		maybe(ranger) ||
 		maybe(value) ||
 		maybe(typeNameMapped) ||
 		maybe(variable) ||
+		maybe(article) && word() ||
 		maybe_token("a") ||
+		maybe(word) || // any!
 		raise_not_matching("Not an endNode");
 	po = maybe(postjective);
 	if (po && interpreting()) {
@@ -261,32 +264,6 @@ function endNode() {
 
 
 
-function endNoun(included = null) {
-	let adjs, obj;
-	if (!included) {
-		included = [];
-	}
-	maybe(article);
-	adjs = star(adjective);
-	obj = maybe(() => {
-		return noun(included);
-	});
-	if (!obj) {
-		if (adjs && adjs.join(" ").is_noun) {
-			return adjs.join(" ");
-		} else {
-			throw new NotMatching("no endNoun");
-		}
-	}
-	if (context.use_tree) {
-		return obj;
-	}
-	if (adjs && (adjs instanceof list)) {
-		todo("adjectives in endNoun");
-		return ((" " + " ".join(adjs) + " ") + obj.toString());
-	}
-	return obj.toString();
-}
 
 
 
@@ -353,7 +330,7 @@ function functionalselector() {
 function liste(check = true, first = null) {
 	let all, start_brace;
 	if ((!first) && (the.current_word === ",")) {
-		throw new NotMatching();
+		throw new NotMatching("liste");
 	}
 	if (context.in_hash) {
 		must_not_contain(":");
@@ -489,6 +466,7 @@ function immediate_hash() {
 
 function subProperty(_context) {
 	let ext, properties, property;
+	must_contain(".")
 	maybe_token(".");
 	properties = dir(_context);
 	if (_context && Object.getPrototypeOf(_context).in(context.extensionMap)) {
@@ -583,7 +561,7 @@ function true_param() {
 	let v, vars;
 	vars = keys(the.params);
 	if (vars.length === 0) {
-		throw new NotMatching();
+		throw new NotMatching("true_param");
 	}
 	v = tokens(vars);
 	v = the.params[v];
@@ -861,4 +839,4 @@ function linuxPath() {
 
 
 
-module.exports = {expression,subProperty}
+module.exports = {expression,subProperty,algebra}

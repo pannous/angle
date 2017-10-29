@@ -21,7 +21,7 @@ LICENSE.txt
 SEE_pyparsing
 THREADS_ARE_JUST_FINE
 angle.egg-info/
-angle.js/
+#angle.js/
 angle/pyc_emitter.py.uiui
 ast_eval_inline.py
 build/

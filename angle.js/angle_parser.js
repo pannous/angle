@@ -998,20 +998,6 @@ function gerund() {
 	return current_value;
 }
 
-function postjective() {
-	let current_value, match, pr;
-	match = the.string.match(/^\s*(\w+)ed/);
-	if (!match) {
-		return false;
-	}
-	the.string = the.string.slice(match.end());
-	pr = (!checkEndOfLine() && maybe_tokens(prepositions));
-	if (pr && (!checkEndOfLine())) {
-		maybe(endNode);
-	}
-	current_value = match.group(1);
-	return current_value;
-}
 
 function get_class(x) {
 	if (x instanceof Variable) {

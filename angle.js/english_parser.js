@@ -191,6 +191,7 @@ function adverb() {
 }
 
 
+
 function drop_plural(x) {
 	if (x.endswith("s")) {
 		return x.slice(0, (-1));
@@ -225,6 +226,50 @@ function spo() {
 }
 
 
+function postjective() {
+	let current_value, match, pr;
+	match = the.string.match(/^\s*(\w+)ed/);
+	if (!match) {
+		return false;
+	}
+	the.string = the.string.slice(match.end());
+	pr = (!checkEndOfLine() && maybe_tokens(prepositions));
+	if (pr && (!checkEndOfLine())) {
+		maybe(endNode);
+	}
+	current_value = match.group(1);
+	return current_value;
+}
+
+
+function endNoun(included = null) {
+	let adjs, obj;
+	if (!included) {
+		included = [];
+	}
+	maybe(article);
+	adjs = star(adjective);
+	obj = maybe(() => {
+		return noun(included);
+	});
+	if (!obj) {
+		if (adjs && adjs.join(" ").is_noun) {
+			return adjs.join(" ");
+		} else {
+			throw new NotMatching("no endNoun");
+		}
+	}
+	if (context.use_tree) {
+		return obj;
+	}
+	if (adjs && (adjs instanceof list)) {
+		todo("adjectives in endNoun");
+		return ((" " + " ".join(adjs) + " ") + obj.toString());
+	}
+	return obj.toString();
+}
+
+
 module.exports = {
 	adjective,
 	adverb,
@@ -236,4 +281,5 @@ module.exports = {
 	verb,
 	spo,
 	wordnet_is_adverb,
+	postjective,
 }

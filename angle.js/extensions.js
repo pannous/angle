@@ -468,19 +468,16 @@ String_Extensions = { // StringExtensions
 		return len(this.replace(/[^a-zA-Z]/g, "")) > 0
 	},
 	in(xs) {
-		try{
+			if(!xs || empty(xs))return false
+			if(is_array(xs))return xs.includes(this+"")
 			if(xs.indexOf)return xs.indexOf(this+"") >=0
 			if(this in xs)return true
-			if(this+"" in xs)return true// TODO WTF WHY +"" NECCESSARY????
-			// if(xs.contains)return xs.contains(this)
-			// if(xs.has)return xs.has(this)
-			// if(xs.keys && this in xs.keys())return true
-			if(xs.values && xs.values().indexOf(this)>=0)return true
-			return xs.indexOf(this + "") >= 0 // TODO WTF WHY +"" NECCESSARY????
-		}catch(ex){
+			if(this+"" in xs){
+				if(!this in xs)
+					console.log("TODO WTF WHY +\"\" NECCESSARY????")
+				return true
+			}
 			return false
-			// console.error(ex)
-		}
 	},
 	next() {
 		todo("next")
@@ -1227,5 +1224,6 @@ module.exports.puts=puts
 is_type = x => x instanceof Function && x.constructor && true
 proto=x=>Object.getPrototypeOf(x)
 // proto2=x=>x.prototype
-todo=x=>console.log(x)
+todo=x=>console.log("TODO",x)
 warn=x=>console.log(x)
+debug=x=>console.log(x)

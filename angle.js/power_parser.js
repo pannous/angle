@@ -39,7 +39,7 @@ let app_path = () => "./"
 
 let dictionary_path = () => (app_path() + "word-lists/")
 
-let isnumeric = (start) => (((typeof start) === "number") || (start instanceof Number) || ((typeof start) === "number") || (start instanceof Number))
+let isnumeric = (start) => (((typeof start) == "number") || (start instanceof Number) || ((typeof start) == "number") || (start instanceof Number))
 
 function star(lamb, giveUp = false) {
 	let good, match, max, old, old_state;
@@ -55,7 +55,7 @@ function star(lamb, giveUp = false) {
 			if (!match) break;
 			old = current_token;
 			good.append(match);
-			if (the.current_word === ")") {
+			if (the.current_word == ")") {
 				break;
 			}
 			max = 20;
@@ -91,7 +91,7 @@ function star(lamb, giveUp = false) {
 			}
 		}
 	}
-	if (good.length === 1) {
+	if (good.length == 1) {
 		return good[0];
 	}
 	if (good) {
@@ -114,11 +114,13 @@ function pointer_string() {
 		l = 3;
 	} else {
 		offset = the.current_offset;
-		l = (the.current_token[3][1] - offset);
+		l=the.current_word.length
 	}
 	lineNo = the.current_token[2][0];
-	filep = the.current_file !== "(String)" ? "  File \"" + the.current_file + "\", line " + lineNo.toString() + "\n" : "";
-	return the.current_line.slice(offset) + "\n" + the.current_line + "\n" + " " * offset + "^" * l + "\n" + filep;
+	filep = the.current_file != "(String)" ? "  File \"" + the.current_file + "\", line " + lineNo.toString() + "\n" : "";
+	// the.current_line.slice(offset) + "\n" +
+	var poo= the.current_line + "\n" + " ".repeat(offset)+ "^".repeat(l) + "\n" + filep;
+	return poo
 }
 
 function print_pointer(force = false) {
@@ -170,7 +172,7 @@ function tokens(tokenz) {
 	raiseEnd();
 	let ok = maybe_tokens(tokenz);
 	if (ok) return ok;
-	throw new NotMatching(result);
+	throw new NotMatching("token"+tokenz+" "+result);
 	// throw new NotMatching(tokenz.toString() + "\n" + pointer_string());
 }
 
@@ -178,8 +180,8 @@ function maybe_tokens(tokens0) {
 	if (checkEndOfLine()) return false
 	if(!is_array(tokens0)) return maybe_token(tokens0)
 	for (var t of tokens0) {
-		if ((t === the.current_word) || (t.lower() === the.current_word.lower())) {
-			next_token();
+		if ((t == the.current_word) || (t.lower() == the.current_word.lower())) {
+			next_token(false);
 			return t;
 		}
 		if (" ".in(t)) {
@@ -189,7 +191,7 @@ function maybe_tokens(tokens0) {
 					t = null;
 					break;
 				} else {
-					next_token();
+					next_token(false);
 				}
 			}
 			if (!t) {
@@ -321,20 +323,20 @@ function drop_comments() {
 	i = 0;
 	prev = "";
 	for (let token of the.tokenstream) {
-		is_beginning_of_line = (token[2][1] === 0);
+		is_beginning_of_line = (token[2][1] == 0);
 		str = token[1];
 		token_type = token[0];
-		if ((str === "//") || (str === "#")) {
+		if ((str == "//") || (str == "#")) {
 			x_comment(token);
 			in_comment_line = true;
-		} else if (str === "\n") {
+		} else if (str == "\n") {
 			in_comment_line = false;
-		} else if ((prev === "*") && str.endswith("/")) {
+		} else if ((prev == "*") && str.endswith("/")) {
 			x_comment(token);
 			in_comment_block = false;
 		} else if (in_comment_block || in_comment_line) {
 			x_comment(token);
-		} else if ((prev === "/") && str.startswith("*")) {
+		} else if ((prev == "/") && str.startswith("*")) {
 			i = (i - 1);
 			x_comment(prev_token);
 			x_comment(token);
@@ -387,7 +389,7 @@ function error_position() {
 }
 
 function raiseEnd() {
-	if (current_type === _token.ENDMARKER) {
+	if (current_type == _token.ENDMARKER) {
 		throw new EndOfDocument();
 	}
 	if (the.token_number >= the.tokenstream.length) {
@@ -413,13 +415,13 @@ function must_contain(args, do_raise = true) {
 	pre = the.previous_word;
 	while (!checkEndOfLine()) {
 		for (let x of args) {
-			if (current_word === x) {
+			if (current_word == x) {
 				set_token(old);
 				return x;
 			}
 		}
 		next_token();
-		if (do_raise && ((current_word === ";") || (current_word === "\n"))) {
+		if (do_raise && ((current_word == ";") || (current_word == "\n"))) {
 			break;
 		}
 	}
@@ -464,7 +466,7 @@ function must_contain_before_old(before, ...args) {
 	for (let x of flatten(args)) {
 		if (x.match(/^\s*\w+\s*$/i)) {
 			good = (good || the.string.match("[^\w]%s[^\w]".format(x)))
-			if (Object.getPrototypeOf(good).__name__ === "SRE_Match") {
+			if (Object.getPrototypeOf(good).__name__ == "SRE_Match") {
 				good = good.start();
 			}
 			if (((good && before) && good.pre_match.in(before) && before.index(good.pre_match))) {
@@ -472,7 +474,7 @@ function must_contain_before_old(before, ...args) {
 			}
 		} else {
 			good = (good || the.string).match(escape_token(x))
-			if (Object.getPrototypeOf(good).__name__ === "SRE_Match") {
+			if (Object.getPrototypeOf(good).__name__ == "SRE_Match") {
 				good = good.start();
 			}
 			sub = the.string.slice(0, good);
@@ -506,7 +508,7 @@ function must_not_contain(words, before = ";") {
 	words = flatten(words);
 	while (!checkEndOfLine() && the.current_word != ";" && the.current_word !== before) {
 		for (let w of words)
-			if (w === the.current_word)
+			if (w == the.current_word)
 				throw new MustNotMatchKeyword(w);
 		next_token();
 	}
@@ -520,7 +522,7 @@ let starts_with = function starts_with(tokenz) {
 		return false;
 	}
 	if (is_string(tokenz)) {
-		return (tokenz === the.current_word);
+		return (tokenz == the.current_word);
 	}
 	if (the.current_word.in(tokenz)) {
 		return the.current_word;
@@ -530,13 +532,13 @@ let starts_with = function starts_with(tokenz) {
 
 function look_1_ahead(expect_next, doraise = false, must_not_be = false, offset = 1) {
 	let token;
-	if (the.current_word === "") {
+	if (the.current_word == "") {
 		return false;
 	}
 	if (the.token_number + 1 >= the.tokens_len)
 		return false
 	token = the.tokenstream[(the.token_number + offset)];
-	if (expect_next === token[1]) {
+	if (expect_next == token[1]) {
 		return true;
 	} else {
 		if ((expect_next instanceof list) && token[1].in(expect_next)) {
@@ -546,7 +548,7 @@ function look_1_ahead(expect_next, doraise = false, must_not_be = false, offset 
 				return OK;
 			}
 			if (doraise) {
-				throw new NotMatching(doraise);
+				throw new NotMatching("look_1_ahead");
 			}
 			return false;
 		}
@@ -630,7 +632,7 @@ function no_rollback() {
 
 function adjust_rollback(depth = (-1)) {
 	try {
-		if (depth === (-1)) {
+		if (depth == (-1)) {
 			depth = caller_depth();
 		}
 		if (depth <= the.no_rollback_depth) {
@@ -651,7 +653,7 @@ function allow_rollback(n = 0) {
 		the.no_rollback_depth = the.rollback_depths.slice(-1)[0];
 		while (the.rollback_depths.slice((-1)[0] >= depth)) {
 			the.no_rollback_depth = the.rollback_depths.pop();
-			if (the.rollback_depths.length === 0) {
+			if (the.rollback_depths.length == 0) {
 				if (the.no_rollback_depth >= depth) {
 					the.no_rollback_depth = (-1);
 				}
@@ -683,7 +685,7 @@ function beginning_of_line() {
 			return true;
 		}
 	}
-	return (the.current_type === _token.INDENT) || (the.current_offset === 0);
+	return (the.current_type == _token.INDENT) || (the.current_offset == 0);
 }
 
 
@@ -693,27 +695,17 @@ function end_block(type = null) {
 
 function done(_type = null) {
 	let ok;
-	if (checkEndOfFile()) {
-		return OK;
-	}
-	if (the.current_line === "\n") {
-		return OK;
-	}
-	if (the.current_line === "end\n") {
+	if (checkEndOfFile()) return OK;
+	if (the.current_line == "\n") return OK;
+	if (the.current_type == _token.DEDENT) return OK;
+	if (the.current_line == "end\n") {
 		next_token();
-		return OK;
-	}
-	if (the.current_type === _token.DEDENT) {
 		return OK;
 	}
 	checkNewline();
 	ok = maybe_tokens(done_words);
-	if (_type && (!_type.in(start_block_words))) {
-		token(_type);
-	}
-	if (_type && (the.previous_word === ";")) {
-		return OK;
-	}
+	if (_type && (!_type.in(start_block_words))) token(_type);
+	if (_type && (the.previous_word == ";")) return OK;
 	return ok;
 }
 
@@ -737,13 +729,13 @@ function block(multiple = false) {
 		if (multiple) maybe_newline();
 		// noinspection JSAnnotator
 		function block_lambda() {
+			try {// todo undo
 			let s;
-			try {
 				maybe_indent();
 				s = statement();
 				statements.append(s);
 			} catch (e) {
-				if (e instanceof NotMatching) {
+				if (e instanceof NotMatching || e==NotMatching) {
 					if (starts_with(done_words) || checkNewline())
 						return false;
 					console.log("Giving up block");
@@ -765,7 +757,7 @@ function block(multiple = false) {
 	if (interpreting()) {
 		return statements.slice(-1)[0];
 	}
-	if (statements.length === 1) {
+	if (statements.length == 1) {
 		statements = statements[0];
 	}
 	if (context.use_tree) {
@@ -779,35 +771,31 @@ function end_of_statement(){
 	return beginning_of_line() ||
 		maybe_newline() ||
 		starts_with(done_words) ||
-		the.current_offset === 0 ||
-		the.current_word === ";" ||
-		the.previous_word === ";" ||
-		the.previous_word === "\n" ||
-		check_end_of_statement()
+		the.current_offset == 0 ||
+		the.current_word == ";" ||
+		the.previous_word == ";" ||
+		the.previous_word == "\n" ||
+		check_end_of_statement() && next_token(false)
 }
 
 
-function todo(x) {
-	console.log("TODO", x)// TODO
-}
 
 var depth;
 
 function maybe(expr) {
 	let cc, current_value, ex, last_node, old, rb, result;
-	if (!(expr instanceof Function))
-		return maybe_tokens(expr);
+	if (!(expr instanceof Function)) return maybe_tokens(expr);
+	if(checkEndOfLine())return false
 	depth = (depth + 1);
 	if (depth > context.max_depth) throw new SystemStackError(">max_depth)");
 	try {
 		old = current_token;
-		the.current_expression = expr;
 		result = expr();
 		adjust_rollback();
 		if (context._debug && (result instanceof Function) && !(result instanceof type)) {
 			throw new Error("BUG!? returned CALLABLE " + result.toString());
 		}
-		if (result || result === 0) { // || result===None
+		if (result || result === 0) { // || result==None  not:false!
 			verbose((("GOT result " + expr.name + " : ") + result.toString()));
 		} else {
 			verbose("No result " + expr.name);
@@ -862,9 +850,7 @@ function one_or_more(expressions) {
 	let all, more;
 	all = [expressions()];
 	more = (the.current_offset && star(expressions));
-	if (more) {
-		all.append(more);
-	}
+	if (more) all.append(more);
 	return all;
 }
 
@@ -933,7 +919,7 @@ parse = function (s, target_file = null, clean = true) {
 		source_file = s.name;
 		s = readlines(s);
 	} else {
-		if (s.endswith(".e") || s.endswith(".an")) {
+		if (s.endswith("\\.e") || s.endswith("\.an")) {
 			target_file = (target_file || (s + ".pyc"));
 			source_file = s;
 			s = readlines(s);
@@ -1005,11 +991,11 @@ function token(t, expected = "") {
 		return tokens(t);
 	}
 	raiseEnd();
-	if (current_word === t) {
+	if (current_word == t) {
 		next_token();
 		return t;
 	} else {
-		throw new NotMatching((((expected + " ") + t) + "\n") + pointer_string());
+		throw new NotMatching() //(((expected + " ") + t) + "\n") + pointer_string());
 	}
 }
 
@@ -1024,22 +1010,22 @@ function raiseNewline() {
 let checkNewline = () => checkEndOfLine()
 
 let checkEndOfLine = () =>
-	current_type === _token.NEWLINE ||
-	current_type === _token.ENDMARKER ||
-	the.current_word === "\n" ||
-	the.current_word === "" ||
+	current_type == _token.NEWLINE ||
+	current_type == _token.ENDMARKER ||
+	the.current_word == "\n" ||
+	the.current_word == "" ||
 	the.token_number >= the.tokenstream.length
 
 let maybe_newline = () => (checkEndOfFile() || newline(/*doraise*/ false))
 
 function newline(doraise = false) {
 	let found;
-	if (((checkNewline() === NEWLINE) || (the.current_word === ";") || (the.current_word === ""))) {
+	if (((checkNewline() == NEWLINE) || (the.current_word == ";") || (the.current_word == ""))) {
 		next_token();
-		if (the.current_type === 54) {
+		if (the.current_type == 54) {
 			next_token();
 		}
-		while (the.current_type === _token.INDENT) {
+		while (the.current_type == _token.INDENT) {
 			next_token();
 		}
 		return NEWLINE;
@@ -1048,7 +1034,7 @@ function newline(doraise = false) {
 	if (found) {
 		return found;
 	}
-	if (checkNewline() === NEWLINE) {
+	if (checkNewline() == NEWLINE) {
 		next_token();
 		return found;
 	}
@@ -1060,7 +1046,7 @@ function newline(doraise = false) {
 
 let newlines = () => star(newline);
 
-let checkEndOfFile = () => (current_type === _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
+let checkEndOfFile = () => (current_type == _token.ENDMARKER) || (the.token_number >= the.tokenstream.length)
 
 let NL = () => tokens("\n", "\r");
 
@@ -1076,7 +1062,7 @@ function rest_of_statement() {
 function rest_of_line() {
 	let rest;
 	rest = "";
-	while ((!checkEndOfLine() && (!(current_word === ";")))) {
+	while ((!checkEndOfLine() && (!(current_word == ";")))) {
 		rest += (current_word + " ");
 		next_token(false);
 	}
@@ -1087,9 +1073,9 @@ function comment_block() {
 	token("/");
 	token("*");
 	while (true) {
-		if (the.current_word === "*") {
+		if (the.current_word == "*") {
 			next_token();
-			if (the.current_word === "/") {
+			if (the.current_word == "/") {
 				return true;
 			}
 		}
@@ -1101,21 +1087,21 @@ new Starttokens(["//", "#", "'", "--"]);
 
 function skip_comments() {
 	let l;
-	if (the.current_word === null) {
+	if (the.current_word == null) {
 		return;
 	}
 	l = the.current_word.length;
-	if (l === 0) {
+	if (l == 0) {
 		return;
 	}
-	if (the.current_type === _token.COMMENT) {
+	if (the.current_type == _token.COMMENT) {
 		next_token();
 	}
 	if (l > 1) {
-		if (the.current_word.slice(0, 2) === "--") {
+		if (the.current_word.slice(0, 2) == "--") {
 			return rest_of_line();
 		}
-		if (the.current_word.slice(0, 2) === "//") {
+		if (the.current_word.slice(0, 2) == "//") {
 			return rest_of_line();
 		}
 	}
@@ -1128,7 +1114,7 @@ function raise_not_matching(msg = null) {
 let _try = maybe;
 
 function maybe_indent() {
-	while ((the.current_type === _token.INDENT) || (the.current_word === " ")) {
+	while ((the.current_type == _token.INDENT) || (the.current_word == " ")) {
 		next_token();
 	}
 }
@@ -1231,8 +1217,8 @@ function space() {
 
 
 maybe_token=function maybe_token(x) {
-	if (x === the.current_word) {
-		next_token();
+	if (x == the.current_word) {
+		next_token(false);
 		return x;
 	}
 	return false;

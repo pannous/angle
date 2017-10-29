@@ -1,7 +1,7 @@
-require('./angle_base_test')
+let {assert_has_error}=require('./angle_base_test')
 // "use strict"
 // class SetterTest extends (ParserBaseTest) {
-no_exports=nexports={}//IGNORE
+no_exports = nexports = {}//IGNORE
 no_exports.test_samples = test => {
 	let x = parse(`samples/basics.e`);
 	assert(x == 6)
@@ -9,21 +9,29 @@ no_exports.test_samples = test => {
 }
 
 exports.test_a_setter_article_vs_variable = test => {
-	// console.log(test)
-	// test.skip()
-	// skip();
-	// dont_
+	assert_has_error(`a=green`, UndeclaredVariable)
+	test.done()
+}
+
+nexports.test_a_setter_article_vs_variable_ANY = test => {
 	parse(`a=green`);
 	test.equals(variables['a'], 'green');
 	assert_equals(variables['a'], 'green');
 	test.done()
 }
 
+
 exports.test_a_setter_article_vs_variable2 = test => {
-		parse(`a dog=green`);
+	assert_has_error(`a dog=green`,UndeclaredVariable)
+	test.done()
+}
+// vs
+no_exports.test_a_setter_article_vs_variable2 = test => {
+	parse(`a dog=green`);
 	assert_equals(variables['dog'], 'green');
 	test.done()
 }
+
 exports.test_alias = test => {
 	skip('aliases sit between methods and variables. do we really want them?');
 	parse(`alias x=y*y`);
@@ -147,7 +155,7 @@ exports.test_variable_type_safety_no_autocast = test => {
 }
 
 exports.test_variable_type_safety_NaN = test => {
-	if(!assert_result_is('int i="hi"', NaN))
+	if (!assert_result_is('int i="hi"', NaN))
 		assert_has_error('int i="hi"', WrongType);
 }
 exports.test_variable_type_safety0 = test => {

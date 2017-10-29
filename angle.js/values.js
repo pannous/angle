@@ -98,7 +98,7 @@ function word(include = null) {
 	match = the.current_word.match(word_regex);
 	if (match) {
 		current_value = the.current_word;
-		next_token();
+		next_token(false);
 		return current_value;
 	}
 	raise_not_matching("word");
@@ -135,7 +135,7 @@ function known_variable(node = true) {
 	let v, v0, vars;
 	vars = keys(the.variables);
 	if (vars.length === 0) {
-		throw new NotMatching();
+		throw new NotMatching(known_variable);
 	}
 	v0 = tokens(vars);
 	if (!interpreting()) {
@@ -147,13 +147,13 @@ function known_variable(node = true) {
 
 function boole() {
 	let b;
-	b = tokens(["True", "False", "true", "false"]);
-	the.result = b === "True" || b === "true" && TRUE || FALSE;
+	b = tokens(boolean_words);
+	the.result = (b == "True" || b == "true" || b == "yes" || b == "ok") && TRUE || FALSE;
 	return the.result;
 }
 
 function constant() {
-	return constantMap.get(tokens(constants));
+	return constantMap[tokens(constants)];
 }
 
 
@@ -176,12 +176,27 @@ function current_context() {
 	return todo("current_context")
 }
 
+function new_variable(name,typ,ctx=ast.Store) {
+	if (name.in(the.variables)) return the.variables[name];
+	oldVal = null;
+	the.result = new Variable({
+		name: name,
+		type: (typ || null),
+		scope: null,
+		module: current_context(),
+		value: oldVal,
+		ctx: ctx
+	});
+	the.variables[name] = the.result;
+	return the.result;
+}
+
 function variable(a = null, ctx = ast.Load, isParam = false) {
 	let all, name, oldVal, p, param, typ;
 	a = (a || maybe_tokens(article_words));
-	if (a !== "a") a = null;
+	if(a&&the.current_word.in(be_words))return new_variable(a)
 	no_keyword()
-	must_not_start_with(the.method_names)
+	must_not_start_with(the.method_names)// unless overwrite!!
 	typ = maybe(typeNameMapped);
 	p = maybe_tokens(possessive_pronouns);
 	no_keyword();
@@ -191,9 +206,7 @@ function variable(a = null, ctx = ast.Load, isParam = false) {
 	if (!typ && all.length > 1 && isType(all[0])) {
 		name = all.slice(1, (-1)).join(" ");
 	}
-	if (p) {
-		name = ((p + " ") + name);
-	}
+	if (p) name = ((p + " ") + name);
 	name = name.strip();
 	if (!name) throw new NotMatching("no variable")
 	if (isParam || (ctx instanceof ast.Param)) {
@@ -216,20 +229,7 @@ function variable(a = null, ctx = ast.Load, isParam = false) {
 		}
 	}
 	if (ctx instanceof ast.Store || ctx == ast.Store) {
-		if (name.in(the.variables)) {
-			return the.variables[name];
-		}
-		oldVal = null;
-		the.result = new Variable({
-			name: name,
-			type: (typ || null),
-			scope: null,
-			module: current_context(),
-			value: oldVal,
-			ctx: ctx
-		});
-		the.variables[name] = the.result;
-		return the.result;
+		return new_variable(name,typ)
 	}
 	throw new Error("Unknown variable context " + ctx);
 }
@@ -249,13 +249,9 @@ function fraction() {
 	f = maybe(integer) || 0;
 	m = starts_with(["\u00bc", "\u00bd", "\u00be", "\u2153", "\u2154", "\u2155", "\u2156", "\u2157", "\u2158", "\u2159", "\u215a", "\u215b", "\u215c", "\u215d", "\u215e"]);
 	if (!m) {
-		if (f !== 0) {
-			next_token();
-			return f;
-		}
-		throw new NotMatching();
+		if (f !== 0) return f;
+		throw new NotMatching(fraction);
 	} else {
-		next_token();
 		m = xstr(m).parse_number();
 	}
 	the.result = (f + m);
@@ -317,22 +313,23 @@ function complex() {
 function classConstDefined() {
 	let c;
 	try {
-		c = word().capitalize();
+		c = the.current_word.capitalize();
 		if (!const_defined(c)) {
 			throw new NotMatching("Not a class Const");
 		}
 	} catch (e) {
 		if (e instanceof IgnoreException) {
-			throw new NotMatching();
+			throw new NotMatching(classConstDefined);
 		} else {
 			throw e;
 		}
 	}
+	next_token()
 	if (interpreting()) {
 		c = do_get_class_constant(c);
 	}
 	if (!c) {
-		throw new NotMatching();
+		throw new NotMatching(classConstDefined);
 	}
 	return c;
 }
