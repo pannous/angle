@@ -861,6 +861,7 @@ module.exports = {
 	// bash_action,
 	// call_unbound,
 	// do_call,
+	method_call,
 	do_evaluate,
 	do_math,
 	// do_self_modify,

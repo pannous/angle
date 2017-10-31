@@ -1,11 +1,13 @@
 #!/usr/local/bin/node
 // "use strict"
+let {maybe_tokens} = require("./power_parser")
+
 let result
 let used_operators
 let used_ast_operators
 
 the = require("./context");
-require("./power_parser")
+let parser=require("./power_parser")
 let {block,tokens} = require("./power_parser")
 require("./english_tokens")
 require("./ast")
@@ -977,27 +979,13 @@ function resolve_netbase(n) {
 	return n;
 }
 
-
-
-
-
-
-
 function gerund() {
 	let current_value, match, pr;
 	match = the.string.match(/^\s*(\w+)ing/);
-	if (!match) {
-		return false;
-	}
-	the.string = the.string.slice(match.end());
-	pr = maybe_tokens(prepositions);
-	if (pr) {
-		maybe(endNode);
-	}
-	current_value = match.group(1);
-	return current_value;
+	if (!match) return false;
+	pr = maybe_tokens(prepositions) && maybe(endNode);// todo?
+	return match[1]
 }
-
 
 function get_class(x) {
 	if (x instanceof Variable) {
@@ -1006,32 +994,6 @@ function get_class(x) {
 	return Object.getPrototypeOf(x);
 }
 
-function do_evaluate_property(attr, node) {
-	if (!attr) {
-		return false;
-	}
-	verbose("do_evaluate_property '" + attr + "' in " + node);
-	// verbose("do_evaluate_property '" + attr.toString() + "' in " + node.toString());
-	the.result = null;
-	if (attr.in(dir(node))) {
-		return node.__getattribute__(attr);
-	}
-	if (attr.in(["type", "class", "kind"])) {
-		return get_class(node);
-	}
-	if (node instanceof list) {
-		return node.map(x => do_evaluate_property(attr, x))
-	}
-	if (attr instanceof ast.AST) {
-		return todo("do_evaluate_property");
-	}
-	try {
-		the.result = do_call(node, attr);
-		return the.result;
-	} catch (e) {
-		verbose("do_send(node,attr) failed");
-	}
-}
 
 let match_path = x => x.match(/^\/\w+/)
 
@@ -1190,8 +1152,10 @@ let setVerbose = (ok = 1) => context._verbose = ok;
 
 module.exports = {
 	setVerbose,
+	clear:parser.clear,
 	main,
 	rooty,
 	// interpretation,
 	articles,
+	gerund,
 }

@@ -71,3 +71,4 @@ class TreeTest extends (ParserBaseTest) {
 
 	}
 }
+register(TreeTest, module)

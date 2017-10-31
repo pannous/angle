@@ -1,7 +1,7 @@
 #!/usr/bin/env python;
 // var angle = require('angle');
 
-
+// Todo library: block functions{}, not special Grammar!
 class ObserverTest extends (ParserBaseTest) {
 	_test_every_date1() {
 		parse(`every 1 seconds { say "Ja!" }`);
@@ -33,3 +33,4 @@ class ObserverTest extends (ParserBaseTest) {
 
 	}
 }
+register(ObserverTest, module)

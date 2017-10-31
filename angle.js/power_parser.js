@@ -276,24 +276,24 @@ function parse_tokens(s) {
 		// console.log(type, value, strange_number, matches)
 	}
 
-	s = s.replace("\u29a0", "");
+	s = s.replace("⦠", "");// ⦠ \u29a0
 	_lines = s.split("\n");
 	i = (-1);
 	let tokenz = tokenizer().input(s)
-		.token(_token.NUMBER, /\d*\.\d+/, token_helper)
-		.token(_token.NUMBER, /\d+/, token_helper)
-		.token(_token.WORD, /\w+/, token_helper)
-		.token(_token.STRING, /"(.*?)"/, token_helper)
-		.token(_token.STRING, /`(.*?)`/)
-		.token(_token.STRING, /'(.*?)'/)
+		.token(_token.NUMBER, /\d*\.\d+/u, token_helper)
+		.token(_token.NUMBER, /\d+/u, token_helper)
+		.token(_token.WORD, /\w+/u, token_helper)
+		.token(_token.STRING, /"(.*?)"/u, token_helper)// no UTF8 wtf
+		.token(_token.STRING, /`(.*?)`/u)
+		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
 		.token(_token.NEWLINE, /;/)
 		.token(_token.NEWLINE, /:/)
 		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
-		.token(_token.COMMENT, /\/\*(.*)\*\//)
-		.token(_token.COMMENT, /<!--(.*)-->/)
-		.token(_token.OPERATOR, /[=\+\-\*\/]/, token_helper)
+		.token(_token.COMMENT, /\/\*(.*)\*\//u)
+		.token(_token.COMMENT, /<!--(.*)-->/u)
+		.token(_token.OPERATOR, /[=\+\-\*\/]/u, token_helper)
 		.walk(token_eater)
 	var tokens = tokenz.resolve()//.debug()
 	// .tokens('operators', math_operators)// logic_operators
@@ -611,7 +611,7 @@ function read_source(x) {
 	res = (((x.source_location[0] + ":") + x.source_location[1].to_s) + "\n");
 	lines = IO.readlines(x.source_location[0]);
 	i = (x.source_location[1] - 1);
-	while (i < lines.length && !lines[i].match(/}/) && !lines[i].match(/end/i)) {
+	while (i < lines.length && !lines[i].match(/}/u) && !lines[i].match(/end/i)) {
 		res += lines[i];
 		i = (i + 1);
 	}
@@ -711,12 +711,7 @@ function done(_type = null) {
 
 
 function block(multiple = false) {
-	// import {
-	let {
-		// statement,
-		// end_of_statement,
-	} = require('./statements')
-	// } from 'english_parser';
+	// let {statement} = require('./statements')
 	let end_of_block, start, statement0, statements;
 	maybe_newline() || !"=>".in(the.current_line) && maybe_tokens(start_block_words);
 	start = pointer();
@@ -727,7 +722,6 @@ function block(multiple = false) {
 		end_of_statement();
 		no_rollback();
 		if (multiple) maybe_newline();
-		// noinspection JSAnnotator
 		function block_lambda() {
 			try {// todo undo
 			let s;
@@ -738,8 +732,8 @@ function block(multiple = false) {
 				if (e instanceof NotMatching || e==NotMatching) {
 					if (starts_with(done_words) || checkNewline())
 						return false;
-					console.log("Giving up block");
-					print_pointer(true);
+					// console.log("Giving up block");
+					// print_pointer(true);
 					throw new Error(e + "\nGiving up block\n") + pointer_string();
 				}
 				throw e;
@@ -768,14 +762,14 @@ function block(multiple = false) {
 
 
 function end_of_statement(){
-	return beginning_of_line() ||
+	return (beginning_of_line() ||
 		maybe_newline() ||
 		starts_with(done_words) ||
 		the.current_offset == 0 ||
 		the.current_word == ";" ||
 		the.previous_word == ";" ||
 		the.previous_word == "\n" ||
-		check_end_of_statement() && next_token(false)
+		check_end_of_statement()) && next_token(false)
 }
 
 
@@ -1000,7 +994,7 @@ function token(t, expected = "") {
 }
 
 function escape_token(t) {
-	return t.replace(/([^\w])/, "\\1");
+	return t.replace(/([^\w])/u, "\\1");
 }
 
 function raiseNewline() {
@@ -1231,6 +1225,7 @@ module.exports = {
 	raiseNewline,
 	dont_interpret,
 	do_interpret,
+	init,
 	look_1_ahead,
 	maybe,
 	maybe_indent,
@@ -1251,6 +1246,8 @@ module.exports = {
 	starts_with,
 	skip_comments,
 	tokens,
-	token
+	token,
+	Interpretation,
+	verbose
 }
 

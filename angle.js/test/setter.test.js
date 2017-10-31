@@ -182,8 +182,6 @@ exports.test_variable_type_declaration_safety = test => {
 
 	test.done()
 }
-// register(SetterTest ,module)
-// register(new SetterTest(), module)
 
 exports.quick_test = x => {
 	assert_result_is(`x=nil or 'c'`, 'c') //  value side to guard!
@@ -191,3 +189,5 @@ exports.quick_test = x => {
 	// assert_result_is(`char x=3 else 'c'`,3);
 	x.done()
 }
+
+// register(SetterTest, module)

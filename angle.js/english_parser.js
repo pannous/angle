@@ -1,3 +1,5 @@
+let {star} = require("./power_parser")
+
 let {
 	adjust_interpret,
 	block,
@@ -136,9 +138,7 @@ function comparison_word() {
 function noun(include = []) {
 	let a;
 	a = maybe_tokens(article_words);
-	if (!a) {
-		must_not_start_with(keywords, include);
-	}
+	if (!a) must_not_start_with(keywords, include);
 	// if (!context.use_wordnet) {
 	// 	return word(include);
 	// }
@@ -242,16 +242,15 @@ function postjective() {
 }
 
 
-function endNoun(included = null) {
+function article() {
+	maybe_tokens(article_words)
+}
+
+function endNoun(included = []) {
 	let adjs, obj;
-	if (!included) {
-		included = [];
-	}
 	maybe(article);
 	adjs = star(adjective);
-	obj = maybe(() => {
-		return noun(included);
-	});
+	obj = maybe_tokens(included) || maybe(() => noun(included));
 	if (!obj) {
 		if (adjs && adjs.join(" ").is_noun) {
 			return adjs.join(" ");
@@ -262,7 +261,7 @@ function endNoun(included = null) {
 	if (context.use_tree) {
 		return obj;
 	}
-	if (adjs && (adjs instanceof list)) {
+	if (adjs && (adjs instanceof Array)) {
 		todo("adjectives in endNoun");
 		return ((" " + " ".join(adjs) + " ") + obj.toString());
 	}
@@ -282,4 +281,5 @@ module.exports = {
 	spo,
 	wordnet_is_adverb,
 	postjective,
+	endNoun
 }

@@ -20,3 +20,4 @@ class SamplesTest extends (ParserBaseTest) {
 		assert_equals(x, 'hello world');
 	}
 }
+register(SamplesTest, module)

@@ -1,3 +1,7 @@
+let {do_evaluate_property} = require("./values")
+
+let {endNoun} = require("./english_parser")
+
 let {
 	block,
 	checkNewline,
@@ -85,6 +89,13 @@ function expression(fallback = null, resolve = true) {
 	return the.result;
 }
 
+
+let bracelet=function () {
+	tokens("(");
+	let a = expression();
+	tokens(")");
+	return a;
+}
 
 function algebra(val = null) {
 	if (context.in_algebra) return false;
@@ -485,9 +496,7 @@ function evaluate_property(x = null) {
 	let y;
 	maybe_token("all");
 	must_contain_before(["of", "in", "."], "(");
-	x = (x || endNoun({
-		included: type_keywords
-	}));
+	x = (x || endNoun(type_keywords));
 	tokens(["of", "in"]);
 	y = expression();
 	if (!interpreting()) {
@@ -839,4 +848,4 @@ function linuxPath() {
 
 
 
-module.exports = {expression,subProperty,algebra}
+module.exports = {expression,subProperty,property,algebra,evaluate_property,nth_item}

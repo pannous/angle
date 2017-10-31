@@ -133,3 +133,4 @@ class TypeTest extends (ParserBaseTest) {
 	//         return str(sum(nums))
 	//     print(sum_and_stringify([1,'b']))
 }
+register(TypeTest, module)

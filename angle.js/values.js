@@ -1,4 +1,6 @@
 // values / end-nodes vs expression!
+let {verbose} = require("./power_parser")
+
 let {Variable, Argument} = require('./nodes')
 let {
 	block,
@@ -173,8 +175,37 @@ function no_keyword(except) {
 }
 
 function current_context() {
-	return todo("current_context")
+	return module
+	// return todo("current_context")
 }
+
+function do_evaluate_property(attr, node) {
+	if (!attr) {
+		return false;
+	}
+	verbose("do_evaluate_property '" + attr + "' in " + node);
+	// verbose("do_evaluate_property '" + attr.toString() + "' in " + node.toString());
+	the.result = null;
+	if (attr.in(dir(node))) {
+		return node.__getattribute__(attr);
+	}
+	if (attr.in(["type", "class", "kind"])) {
+		return get_class(node);
+	}
+	if (node instanceof Array) {
+		return node.map(x => do_evaluate_property(attr, x))
+	}
+	if (attr instanceof ast.AST) {
+		return todo("do_evaluate_property");
+	}
+	try {
+		the.result = do_call(node, attr);
+		return the.result;
+	} catch (e) {
+		verbose("do_send(node,attr) failed");
+	}
+}
+
 
 function new_variable(name,typ,ctx=ast.Store) {
 	if (name.in(the.variables)) return the.variables[name];
@@ -393,6 +424,8 @@ function mapType(x0) {
 
 function parse_integer(x) {
 	if (!x) return 0
+	if(!x.replace)
+		return x
 	x = x.replace(/([a-z])-([a-z])/, "$1+$2")  // WHOOOT???
 	x = x.replace("last", "-1")  // index trick
 	// x = x.replace("last", "0")  // index trick
@@ -542,6 +575,10 @@ module.exports = {
 	boole,
 	bracelet,
 	constant,
+	complex,
+	do_evaluate_property,
+	fraction,
+	integer,
 	known_variable,
 	nill,
 	// nod,
@@ -554,9 +591,6 @@ module.exports = {
 	number,
 	number_word,
 	parse_integer,
-	fraction,
-	integer,
 	real,
-	complex,
 	special_blocks,// DATA!
 }

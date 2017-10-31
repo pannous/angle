@@ -135,3 +135,4 @@ class VariableTest extends (ParserBaseTest) {
 
 	}
 }
+register(VariableTest, module)

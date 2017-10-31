@@ -1,4 +1,10 @@
 // "use strict"
+let {nth_item} = require("./expressions")
+
+let {property} = require("./expressions")
+
+let {method_call} = require("./actions")
+
 let {
 	adjust_interpret,
 	block,
@@ -417,7 +423,7 @@ function imports() {
 	tokens(import_keywords);
 	_type = (_type || maybe_tokens(require_types));
 	maybe_tokens("file script header source src".split());
-	maybe_tokens(["gem", "package", "library", "module", "context"]);
+	maybe_tokens(["gem", "package", "library", "modul", "context"]);
 	_type = (_type || maybe_tokens(require_types));
 	dependency = maybe(quote);
 	no_rollback();
@@ -436,7 +442,7 @@ function imports() {
 	return the.result;
 }
 
-function module() {
+function modul() {
 	let _context;
 	tokens(context_keywords);
 	_context = word();
@@ -453,9 +459,7 @@ function method_definition(name = null, return_type = null) {
 		return_type = maybe(typeName);
 		tokens(method_tokens);
 		no_rollback();
-		name = word({
-			include: english_operators
-		});
+		name = word(english_operators)
 	}
 	brace = maybe_token("(");
 	context.in_params = true;
@@ -484,6 +488,7 @@ function method_definition(name = null, return_type = null) {
 	f = new FunctionDef({
 		name: name,
 		arguments: args,
+		modifiers:modifiers,
 		return_type: return_type,
 		body: "allow pre-recursion"
 	});
@@ -670,7 +675,7 @@ function breaks() {
 }
 
 
-module.exports = {
+modul.exports = {
 	add_variable,
 	assert_that,
 	assure_same_type,
@@ -681,7 +686,7 @@ module.exports = {
 	imports,
 	isType,
 	method_definition,
-	module,
+	module: modul,
 	piped_actions,
 	returns,
 	setter,

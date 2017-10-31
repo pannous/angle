@@ -246,19 +246,7 @@ function removeXfromArrayXS(x, xs) {
 	let index = xs.indexOf(x);
 	if (index > -1) xs.splice(index, 1);
 	return xs
-} // selfmodifying! 
-Array.prototype.remove = function (x) {
-	let i;
-	if (Array.isArray(x)) {
-		for(let a in x) {
-			i = this.indexOf(a);
-			if (i > -1) this.splice(i, 1);
-		}
-	}
-	i = this.indexOf(x);
-	if (i > -1) this.splice(i, 1);
-	return this
-} // THIS NOT AVAILABLE FOR LAMDA!
+} // selfmodifying!
 
 // > Object.values(x)
 // [ 'a', 'b' ]
@@ -329,16 +317,27 @@ Array_Extensions = {
 		return len(all) > 0
 	},
 	has(x) {
-		return this.indexOf(x) >= 0
+		return this==x || this.indexOf(x) >= 0
 	},
-	removex(x) {
-		let i = this.indexOf(x);
-		if (i > -1) this.splice(i, 1);
+	// delete(x){}
+	remove(...xs) {
+		for(let x of xs) {
+			if (Array.isArray(x)) {
+				for(let a in x) {
+					let i = this.indexOf(a);
+					if (i > -1) this.splice(i, 1);
+				}
+			}
+			let i = this.indexOf(x);
+			if (i > -1) this.splice(i, 1);
+		}
 		return this
-	}, // selfmodifying! delete array[index];
-
+	}, // selfmodifying like delete array[index] (leaves holes)
 	minus(xs) {
 		return this.filter(y => !xs.has(y))
+	},
+	without(...xs){// not selfmodifying
+		return this.filter(x=>!xs.has(x))
 	},
 	intersection(xs) {
 		return this.filter(y => !xs.has(y))
@@ -374,9 +373,9 @@ Array_Extensions = {
 	strip() {
 		return this.filter(x => x.length > 0)
 	},
-	sub(x, y) {
+	sub(x, y=0) {
 		echo('use slice');
-		return this.slice(x, y)
+		return y?this.slice(x, y):this.slice(x)
 	}, // substring  cannot handle negative values!!
 	values(x) {
 		return this
@@ -661,7 +660,7 @@ var all = all_extensions = function () { // needs to be assigned per context !?
 	//     configurable:true
 	//    });
 	if(!extensions_version.match("!"))
-	console.log(`extensions ${extensions_version} loaded\n`)
+	// console.info(`extensions ${extensions_version} loaded\n`)
 	extensions_version+="!"
 	return this
 }
@@ -1078,10 +1077,19 @@ function getCallerLine() {
 	var clean = caller_line.slice(index + 2, caller_line.length);
 	return clean
 }
-
+assert_that = function (prog) {
+	assert(parse(prog))
+}
 assert_equals = function assert_equals(left, right) {
+	// if(left instanceof Interpretation)left=left.result
+	// if(right instanceof Interpretation)right=right.result
+	left=left.result||left
+	right=right.result||right
+	left=left.value||left
+	right=right.value||right
+
 	if (left != right) {
-		let message = `Assertion failed: ${readCallerLine()}   ${left}!=${right}`
+		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left}!=${right}`
 		throw (typeof Error !== "undefined") ? new Error(message) : message;
 	}
 	else return true

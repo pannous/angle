@@ -2,6 +2,7 @@
 // parser=
 // let {parse}=
 let {setVerbose} = require('../angle_parser')
+let parser= require('../angle_parser')
 // console.log(parser) // setVerbose,
 // parser.dont_interpret=()=>dont_interpret() // why??
 // parser.clear=()=>clear() // why??
@@ -42,7 +43,8 @@ assert_has_no_error = (prog) => {
 	x = parse(prog)
 	console.log(x)
 }
-module.exports.assert_has_error = (prog, type = "") => {
+// module.exports.assert_has_error =
+function assert_has_error(prog, type = ""){
 	try {
 		parse(prog)
 	} catch (ex) {
@@ -52,7 +54,8 @@ module.exports.assert_has_error = (prog, type = "") => {
 	throw new TestError("should have raised [" + type.name + "]: " + the.current_line)
 }
 
-module.exports.assert_result_is = (prog, val) => {
+// module.exports.assert_result_is =
+function assert_result_is(prog, val){
 	let interpretation = parse(prog);
 	let result = interpretation.result
 	assert(result == val, prog + " ==== " + val)
@@ -84,10 +87,12 @@ module.exports.register = register = function (instance, modul) {
 	for (let test of Object.getOwnPropertyNames(clazz)) {
 		try {
 			if (!test.match(/test/)) continue
+			if (test.match(/^no_/)) continue
+			if (test.match(/^dont/)) continue
 			instance[test]()
 			modulus.exports[test] = ok => {
 				try {
-					parser.clear()
+					// parser.clear()
 					instance[test](ok);
 				} catch (ex) {
 					if (ex instanceof SkipException)
@@ -114,4 +119,4 @@ function register_tests() {
 }
 
 setTimeout(() => register_tests(), 100)
-// module.exports={assert_has_error}
+module.exports={assert_has_error,assert_that,assert_result_is,register}

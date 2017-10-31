@@ -45,3 +45,5 @@ class SelectorTest extends (ParserBaseTest) {
 
     }
 }
+
+register(SelectorTest, module)

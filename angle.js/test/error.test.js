@@ -71,3 +71,4 @@ class ErrorTest extends (ParserBaseTest) {
 		assert_has_error(`z=x ' ' w`);
 	}
 }
+register(ErrorTest,module)

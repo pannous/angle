@@ -262,3 +262,4 @@ class ListTest extends (ParserBaseTest) {
 
 	}
 }
+register(ListTest, module)

@@ -73,3 +73,4 @@ class HashTest extends (ParserBaseTest) {
 
 	}
 }
+register(HashTest, module)

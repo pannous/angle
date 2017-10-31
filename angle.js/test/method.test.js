@@ -2,7 +2,7 @@
 // var angle = require('angle');
 
 
-
+// see FunctionTest
 class MethodTest extends (ParserBaseTest) {
 	test_result() {
 		parse(`alias show = puts;show 3`);

@@ -64,3 +64,6 @@ class LoopTest extends (ParserBaseTest) {
 	};
 
 }
+
+register(LoopTest, module)
+

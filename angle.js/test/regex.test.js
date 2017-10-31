@@ -2,7 +2,7 @@
 
 
 
-class LoopTest extends (ParserBaseTest) {
+class RegExpTest extends (ParserBaseTest) {
 	test_match(){
 		self.assert_that(`'beep' ~ r'ee'`);
 	}
@@ -12,6 +12,12 @@ class LoopTest extends (ParserBaseTest) {
 	test_match3(){
 		// skip()
 		self.assert_that(`'be4ep' ~ '\d' == 4`);
+	}
 
+	test_match4(){
+		// skip()
+		self.assert_that(`'be4ep' ~ /\d/ == 4`);
 	}
 }
+
+register(RegExpTest, module)
