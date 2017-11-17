@@ -748,15 +748,9 @@ function block(multiple = false) {
 		}
 	}
 	the.last_result = the.result;
-	if (interpreting()) {
-		return statements.slice(-1)[0];
-	}
-	if (statements.length == 1) {
-		statements = statements[0];
-	}
-	if (context.use_tree) {
-		the.result = statements;
-	}
+	if (interpreting()) return statements.slice(-1)[0];
+	if (statements.length == 1) statements = statements[0];
+	if (context.use_tree) the.result = statements;
 	return statements;
 }
 
@@ -1133,6 +1127,7 @@ function load_module_methods() {
 	// let pickle = require('pickle')
 	// import * as warnings from 'warnings';
 	let ex;
+	the.moduleMethods={} // skip reload
 	// warnings.filterwarnings("ignore", {category: UnicodeWarning});
 	// the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb") || {}
 	// the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb") || {}
@@ -1161,9 +1156,9 @@ function load_module_methods() {
 	the.method_names = keys(the.methods).plus(c_methods).add(keys(methods))
 	the.method_names.add(core_methods).add(builtin_methods).add(moduleKeys)
 	the.method_names.add(keys(String.prototype))
-	the.methods.join(String.prototype)
-	the.methods.join(Array.prototype)
-	the.methods.join(Object.prototype)
+	Object.assign(the.methods,String.prototype)
+	Object.assign(the.methods,Array.prototype)
+	Object.assign(the.methods,Object.prototype)
 	for(f of String.prototype)
 		the.methodToModulesMap[f]=String.prototype
 	for (let x of dir(extensions)) {

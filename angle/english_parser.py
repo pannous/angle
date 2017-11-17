@@ -902,6 +902,7 @@ def post_operations(result):  # see quick_expression !!
         if not context.in_condition:
             if isinstance(result, Variable):
                 return setter(result)
+            else: return algebra(result)
         # else:
         #     raise_not_matching("better try setter")
         elif the.token == 'are':

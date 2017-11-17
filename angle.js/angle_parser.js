@@ -70,9 +70,7 @@ function raiseSyntaxError() {
 
 function rooty() {
 	// power_parser.
-	block({
-		multiple: true
-	});
+	block(/*multiple:*/ true);
 	return the.result;
 }
 
@@ -125,34 +123,6 @@ function fix_context(x) {
 		x = ast.name(x.name);
 	}
 	return x;
-}
-
-
-
-
-
-
-function is_a(x, type0) {
-	let _type;
-	_type = mapType(type0);
-	debug(_type);
-	if (is_string(_type)) {
-		throw new Error("BAD TYPE %s" % type0);
-	}
-	if (x instanceof _type) {
-		return true;
-	}
-	if ((x instanceof unicode) && (_type === types.StringType)) {
-		return true;
-	}
-	if ((x instanceof unicode) && _type === xchar && x.length === 1) {
-		return true;
-	}
-	if ((x instanceof unicode) && (_type === str)) {
-		return true;
-	}
-	return (xx(x) instanceof _type);
-
 }
 
 

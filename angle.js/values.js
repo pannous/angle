@@ -584,17 +584,18 @@ module.exports = {
 	fraction,
 	integer,
 	known_variable,
+	mapType,
+	number,
+	number_word,
 	nill,
 	// nod,
+	parse_integer,
 	quote,
+	real,
+	special_blocks,// DATA!
 	typeName,
 	typeNameMapped,
 	value,
 	variable,
 	word,
-	number,
-	number_word,
-	parse_integer,
-	real,
-	special_blocks,// DATA!
 }

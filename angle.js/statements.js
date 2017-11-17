@@ -85,47 +85,23 @@ statement =function statement (doraise = true) {
 quick_expression=function quick_expression() {
 	let fun, result, z;
 	result = false;
-	if (!the.current_word) {
-		throw new EndOfLine();
-	}
-	if (the.current_word === ";") {
-		throw new EndOfStatement();
-	}
-	if (the.current_word === ",") {
-		return liste({
-			first: the.result
-		});
-	}
-	if ((!context.in_params) && look_1_ahead(":")) {
-		return immediate_hash();
-	}
+	if (!the.current_word) throw new EndOfLine();
+	if (the.current_word === ";") throw new EndOfStatement();
+	if (the.current_word === ",") return liste(the.result);
+	if ((!context.in_params) && look_1_ahead(":")) return immediate_hash();
 	if (the.current_word === "{") {
-		if (look_1_ahead("}")) {
-			return empty_map();
-		}
-		if (contains("=>") || contains(":")) {
-			return hash_map();
-		}
+		if (look_1_ahead("}")) return empty_map();
+		if (contains("=>") || contains(":")) return hash_map();
 	}
-	if (look_1_ahead([".", "'s", "of"])) {
-		return (maybe(method_call) || property());
-	}
-	if (look_1_ahead("=")) {
-		if (!context.in_condition) return setter();
-	}
-	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) {
-		return declaration();
-	}
-	if (the.current_word.in(all_operators)) {
-		if (the.current_word !== "~") {
-			return false;
-		}
-	}
-	if (the.current_type === _token.NUMBER) {
+	if (look_1_ahead([".", "'s", "of"])) return (maybe(method_call) || property());
+	if (look_1_ahead("=")) if (!context.in_condition) return setter();
+	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) return declaration();
+	if (the.current_word.in(all_operators) && the.current_word !== "~") return false;
+	if (the.current_word.in(number_selectors)){
+		result = nth_item()
+	} else if (the.current_type === _token.NUMBER) {
 		result = number();
-		if (maybe_tokens(["rd", "nd", "th"])) {
-			result = nth_item(result);
-		}
+		if (maybe_tokens(["rd", "nd", "th"])) result = nth_item(result);
 	} else if (the.current_word.startsWith("r'")) {
 		result = regexp(the.current_word);
 		next_token(false);
@@ -150,17 +126,11 @@ quick_expression=function quick_expression() {
 	} else if (the.current_word.in(type_names)) {
 		return (maybe(setter) || method_definition());
 	}
-	if (look_1_ahead("of")) {
-		result = evaluate_property(result);
-	}
-	if (!result) {
-		return false;
-	}
+	if (look_1_ahead("of")) result = evaluate_property(result);
+	if (!result) return false;
 	while (true) {
 		z = post_operations(result);
-		if ((!z) || (z === result)) {
-			break;
-		}
+		if (!z || z === result) break;
 		result = z;
 	}
 	return result;
@@ -195,7 +165,8 @@ post_operations=function post_operations(result) {
 		if (!context.in_condition) {
 			if (result instanceof Variable) {
 				return setter(result);
-			}
+			} else
+				return algebra(result)
 		} else {
 			if (the.current_word === "are") {
 				return false;

@@ -41,17 +41,18 @@ let {
 } = require('./english_parser')
 
 let {
-	action, do_evaluate,do_math,selfModify
+	action, do_evaluate, do_math, selfModify
 } = require('./actions')
 
 let {
-	value,
+	known_variable,
+	mapType,
 	number,
 	parse_integer,
-	typeNameMapped,
-	known_variable,
-	variable,
 	quote,
+	typeNameMapped,
+	value,
+	variable,
 	word
 } = require('./values')
 
@@ -71,7 +72,7 @@ function expression(fallback = null, resolve = true) {
 		maybe(evaluate_property) ||
 		maybe(selfModify) ||
 		maybe(true_param) ||
-		maybe(the_noun_that)|| // english!
+		maybe(the_noun_that) || // english!
 		maybe(endNode) ||
 		maybe(passing) ||
 		raise_not_matching("Not an expression: " + pointer_string());
@@ -91,7 +92,7 @@ function expression(fallback = null, resolve = true) {
 }
 
 
-let bracelet=function () {
+let bracelet = function () {
 	tokens("(");
 	let a = expression();
 	tokens(")");
@@ -111,9 +112,7 @@ function algebra(val = null) {
 		let neg, op, va;
 		if (the.current_word.in(be_words) && context.in_args) return false;
 		op = (maybe(comparation) || operator());
-		// if (op === "=") {
-		// 	throw NotMatching;
-		// }
+		if (op === "=") throw NotMatching//see setter!
 		neg = maybe_token("not");
 		va = (maybe(value) || maybe(bracelet));
 		context.in_algebra = true;
@@ -245,7 +244,9 @@ function passing() {
 	ok = tokens(["pass", ";"]);
 	return (interpreting() ? ok : new ast.Pass());
 }
-var article=x=>maybe_tokens(article_words)
+
+var article = x => maybe_tokens(article_words)
+
 function endNode() {
 	let po, x;
 	raiseEnd();
@@ -274,43 +275,38 @@ function endNode() {
 	return x;
 }
 
-
-
-
-
+function is_a(x, type0) {
+	let _type = mapType(type0);
+	if (_type == String) return is_string(x)
+	if (_type == Map) return true // in Javascript all objects are hashes
+	if (_type == Object) return true // not by default!!
+	if (_type == Boolean) return truthy(x)
+	return typeof x == type0 || x instanceof _type
+}
 
 function nth_item(val = 0) {
 	let l, n, set, type;
 	set = maybe_token("set");
-	n = (val || tokens(number_selectors + ["first", "last", "middle"]));
+	n = val || tokens(number_selectors.plus(["last", "middle"]));
 	n = parse_integer(n);
-	if (n > 0) {
-		n = (n - 1);
-	}
+	if (n > 0) n = (n - 1);
 	raiseEnd();
 	maybe_tokens([".", "rd", "st", "nd"]);
-	type = maybe_tokens(["item", "element", "object", "word", "char", "character"] + type_names);
+	type = maybe_tokens(["item", "element", "object", "word", "char", "character"])
+	type = type || maybe_tokens(type_names)
 	maybe_tokens(["in", "of"]);
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
 	if (type.match(/^char/)) {
 		the.result = "".join(l).__getitem__(n);
 		return the.result;
 	}
-	else {
-		if (is_string(l)) {
-			l = l.split(" ");
-		}
-	}
+	else if (is_string(l)) l = l.split(" ");
 	if ((l instanceof Array) && type.in(type_names)) {
-		l = l.map(x => is_a(x, type))
+		l = l.filter(x => is_a(x, type))
 	}
-	if (n > l.length) {
-		throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
-	}
-	the.result = l[n];
-	if (context.in_condition) {
-		return the.result;
-	}
+	if (n > l.length) throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
+	the.result = n>0?l[n]:l.splice(n)[0]
+	if (context.in_condition) return the.result;
 	if (set && _("to")) {
 		val = endNode();
 		the.result = do_evaluate(val);
@@ -492,6 +488,7 @@ function subProperty(_context) {
 	property = (maybe_token(".") && subProperty(property) || property);
 	return [property, null];
 }
+
 // <> VS?
 function evaluate_property(x = null) {
 	let y;
@@ -577,7 +574,8 @@ function true_param() {
 	v = the.params[v];
 	return v;
 }
-let articles=x=>tokens(article_words)
+
+let articles = x => tokens(article_words)
 
 function the_noun_that() {
 	let criterium, n;
@@ -722,8 +720,6 @@ function do_compare(a, comp, b) {
 }
 
 
-
-
 function do_get_class_constant(c) {
 	try {
 		for (let module of sys.modules) {
@@ -848,5 +844,4 @@ function linuxPath() {
 }
 
 
-
-module.exports = {expression,subProperty,property,algebra,evaluate_property,nth_item}
+module.exports = {expression, subProperty, property, algebra, evaluate_property, nth_item}
