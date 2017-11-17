@@ -1179,6 +1179,7 @@ module.exports = {
 	adjust_interpret,
 	block,
 	checkNewline,
+	checkEndOfLine,
 	raiseNewline,
 	dont_interpret,
 	do_interpret,

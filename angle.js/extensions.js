@@ -1105,9 +1105,6 @@ function getCallerLine() {
 	return clean
 }
 
-assert_that = function (prog) {
-	assert(parse(prog))
-}
 assert_equals = function assert_equals(left, right) {
 	if (!left && !right) return true
 	// if(left instanceof Interpretation)left=left.result

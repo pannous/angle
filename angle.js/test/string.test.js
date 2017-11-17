@@ -7,17 +7,15 @@ let {do_interpret, init} = require("../power_parser")
 let {register} = require("./angle_base_test")
 let {result, variableValues} = require("../context")
 let {postjective} = require("../english_parser")
-let {} = require("../statements")
 let the = require("../context")
 let {setter} = require("../statements")
 let {algebra} = require("../expressions")
 let {expression} = require("../expressions")
-let {assert_result_is} = require("./angle_base_test")
-let parser = require("../angle_parser")
-var angle = require('./angle_base_test');
+let {assert_result_is,assert_that,parser} = require("./angle_base_test")
+// let parser = require("../angle_parser")
+// let {assert_that} = require('./angle_base_test');
 
 setVerbose(0)
-let assert_that = angle.assert_that
 
 class StringTest extends (ParserBaseTest) {
 	test_string_methods() {
@@ -60,7 +58,8 @@ class StringTest extends (ParserBaseTest) {
 		init('gerunding');
 		let x = gerund();
 		init('gerunded');
-		x = postjective();
+		let y = postjective();
+		assert_equals(x,y)
 	}
 
 	test_concatenation() {
@@ -75,7 +74,7 @@ class StringTest extends (ParserBaseTest) {
 
 	test_concatenation_b() {
 		init('x is "hi"');
-		setter();
+		setter&&setter()||parser.setter();
 		assert_equals("hi", the.variables['x']);
 		init(`x + ' world'`);
 		r = algebra();
@@ -219,5 +218,5 @@ class StringTest extends (ParserBaseTest) {
 }
 
 setVerbose()
-// register(StringTest, module)
-module.exports.test_current = new StringTest().test_type1
+register(StringTest, module)
+// module.exports.test_current = new StringTest().test_select_character

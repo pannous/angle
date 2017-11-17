@@ -212,7 +212,7 @@ function isType(x) {
 function assure_same_type(var_, _type) {
 	let oldType;
 	if (var_.name.in(the.variableTypes)) {
-		oldType = (the.variableTypes[var_.name] || var_.value && Object.getPrototypeOf(var_.value));
+		oldType = (the.variableTypes[var_.name] || var_.value && type(var_.value));
 	} else {
 		if (var_.type) {
 			oldType = var_.type;

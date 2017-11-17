@@ -1016,4 +1016,5 @@ module.exports = {
 	// interpretation,
 	articles,
 	gerund,
+	parser
 }

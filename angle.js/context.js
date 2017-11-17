@@ -176,8 +176,6 @@ module.exports = {
 }
 
 interpreting=function interpreting() {
-	if (context.use_tree) {
-		return false;
-	}
+	if (context.use_tree) return false;
 	return context.interpret;
 }

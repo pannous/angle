@@ -297,7 +297,9 @@ function nth_item(val = 0) {
 	maybe_tokens(["in", "of"]);
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
 	if (type.match(/^char/)) {
-		the.result = "".join(l).splice(n)[0];
+		l="".join(l)
+		if(n<0)n=l.length+n
+		the.result = l[n]
 		return the.result;
 	}
 	else if (is_string(l)) l = l.split(" ");

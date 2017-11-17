@@ -4,6 +4,7 @@ let {
 	adjust_interpret,
 	block,
 	checkNewline,
+	checkEndOfLine,
 	raiseNewline,
 	dont_interpret,
 	look_1_ahead,
@@ -235,7 +236,7 @@ function postjective() {
 	if (pr && (!checkEndOfLine())) {
 		maybe(endNode);
 	}
-	current_value = match.group(1);
+	current_value = match[1]//.group(1);
 	return current_value;
 }
 

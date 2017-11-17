@@ -526,7 +526,7 @@ function parse_integer(x) {
 	x = x.replace("thousand ", "*1000")
 	x = x.replace("million ", "*1000000")
 	x = x.replace("billion ", "*1000000000")
-	return x
+	return parseFloat(x)
 }
 
 

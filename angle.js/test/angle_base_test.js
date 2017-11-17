@@ -54,6 +54,16 @@ function assert_has_error(prog, type = ""){
 	throw new TestError("should have raised [" + type.name + "]: " + the.current_line)
 }
 
+
+function assert_that(x) {
+	assert(parse(x))
+}
+
+// function assert_equals(result,val) {
+// 	assert(result == val, prog + " == " + val)
+// 	console.log(prog + " ==== " + val + "   ... OK!")
+// }
+
 // module.exports.assert_result_is =
 function assert_result_is(prog, val){
 	let interpretation = parse(prog);
