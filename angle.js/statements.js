@@ -330,9 +330,7 @@ function setter(var_ = null) {
 	maybe_tokens(["var", "val", "value of"]);
 	mod = mod || maybe_tokens(modifier_words);
 	var_ = var_ || variable(a, ast.Store);
-	if (current_word === "[") {
-		return evaluate_index(var_);
-	}
+	if (current_word === "[") return evaluate_index(var_);
 	setta = maybe_tokens(["to"]) || tokens(be_words);
 	if (!setta) throw new NotMatching("BE!?");
 	if (setta === ":=" || _let === "alias") return alias(var_);

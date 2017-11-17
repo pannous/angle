@@ -25,7 +25,7 @@ class StringTest extends (ParserBaseTest) {
 		assert_equals(the.result, 'ih');
 	}
 
-	test_string_methods2() {
+	skip_test_string_methods2() {
 		assert_that("invert 'hi' is 'ih'") // todo HIGHER BINDING OF CALL!
 	}
 
@@ -50,15 +50,9 @@ class StringTest extends (ParserBaseTest) {
 		assert_that(`second character of "hi" is 'i'`);
 	}
 
-	_test_select_word() {
+	test_select_word() {
 		assert_that(`first word of 'hi you' is "hi"`);
-	}
-
-	_test_select_word2() {
 		assert_that(`second word of 'hi you' is 'you'`);
-	}
-
-	_test_select_word3() {
 		assert_that(`last word of 'hi you' is 'you'`);
 	}
 
@@ -67,17 +61,14 @@ class StringTest extends (ParserBaseTest) {
 		let x = gerund();
 		init('gerunded');
 		x = postjective();
-		x;
 	}
 
 	test_concatenation() {
-		do_interpret();
 		parse(`z is "Hi" plus "World"`);
 		assert_equals(the.variables['z'], 'HiWorld');
 	}
 
 	test_concatenation2a() {
-		do_interpret();
 		parse(`x is "Hi"; y is "World";z is x plus y`);
 		assert_equals(the.variables['z'], 'HiWorld');
 	}
@@ -231,4 +222,4 @@ setVerbose()
 // register(StringTest, module)
 // module.exports=StringTest.prototype
 // module.exports.test_string_methods=new StringTest().test_string_methods3
-module.exports.test_current = new StringTest()._test_select_word3
+module.exports.test_current = new StringTest().test_concatenation2a

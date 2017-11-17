@@ -52,7 +52,7 @@ function star(lamb, giveUp = false) {
 	try {
 		while (!checkEndOfLine()) {
 			match = lamb();
-			if (!match) break;
+			if (!match || match==EndOfDocument) break;
 			old = current_token;
 			good.append(match);
 			if (the.current_word == ")") {
@@ -287,6 +287,7 @@ function parse_tokens(s) {
 		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
 		.token(_token.NEWLINE, /:/)
+		.token(_token.NEWLINE, /;/)// end of statement/block
 		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
 		.token(_token.COMMENT, /\/\*(.*)\*\//u)

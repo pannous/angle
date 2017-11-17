@@ -87,6 +87,9 @@ module.exports.register = register = function (instance, modul) {
 	for (let test of Object.getOwnPropertyNames(clazz)) {
 		try {
 			if (!test.match(/test/)) continue
+			if (test.match(/^_test/)) continue
+			if (test.match(/^ignore_/)) continue
+			if (test.match(/^skip_/)) continue
 			if (test.match(/^no_/)) continue
 			if (test.match(/^dont/)) continue
 			instance[test]()
