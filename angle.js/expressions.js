@@ -477,10 +477,9 @@ function subProperty(_context) {
 	must_contain(".")
 	maybe_token(".");
 	properties = dir(_context);
-	if (_context && Object.getPrototypeOf(_context).in(context.extensionMap)) {
-		ext = context.extensionMap[Object.getPrototypeOf(_context)];
-		properties += dir(ext);
-	}
+	let extensions = context.extensionMap;
+	ext=extensions[_context] || extensions[typeof(_context)] || extensions[type(_context)]
+	if(ext) properties += dir(ext);
 	property = maybe_tokens(properties);
 	if (!property || (property instanceof Function) || is_method(property)) {
 		return [_context, property];

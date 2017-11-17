@@ -754,7 +754,7 @@ ForwardingHandler.prototype = {
 		return Object.keys(this.target);
 	},
 };
-// Proxy.wrap = (obj) => Proxy.create(new ForwardingHandler(obj),Object.getPrototypeOf(obj));
+// Proxy.wrap = (obj) => Proxy.create(new ForwardingHandler(obj),type(obj));
 // x
 
 
@@ -1155,7 +1155,7 @@ function rgba(r, g, b, a = 1) { // what the actual fuck, es6 !
 // doesn't work : 'this' 
 // function defineGetters(object,getters) {
 //   Object.keys(getters).forEach(function(prop){
-//     Object.defineProperty(Object.getPrototypeOf(object), prop, {
+//     Object.defineProperty(type(object), prop, {
 //         get:()=>{return getters[prop]();}// has to be wrapped
 //     });
 //   });
@@ -1262,7 +1262,7 @@ mkdir = path => {
 module.exports.puts = puts
 
 is_type = x => x instanceof Function && x.constructor && true
-proto = x => Object.getPrototypeOf(x)
+proto = x => type(x)
 type = x => x.constructor
 // proto2=x=>x.prototype
 // function type(x) {

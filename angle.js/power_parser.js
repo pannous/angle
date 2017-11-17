@@ -453,52 +453,8 @@ function must_contain_before(args, before) {
 	return good;
 }
 
-function must_contain_before_old(before, ...args) {
-	var args, good, sub;
-	raiseEnd();
-	good = false;
-	if (before && is_string(before)) {
-		before = [before];
-	}
-	if (before) {
-		before = (flatten(before) + [";"]);
-	}
-	for (let x of flatten(args)) {
-		if (x.match(/^\s*\w+\s*$/i)) {
-			good = (good || the.string.match("[^\w]%s[^\w]".format(x)))
-			if (Object.getPrototypeOf(good).__name__ == "SRE_Match") {
-				good = good.start();
-			}
-			if (((good && before) && good.pre_match.in(before) && before.index(good.pre_match))) {
-				good = null;
-			}
-		} else {
-			good = (good || the.string).match(escape_token(x))
-			if (Object.getPrototypeOf(good).__name__ == "SRE_Match") {
-				good = good.start();
-			}
-			sub = the.string.slice(0, good);
-			if (((good && before) && sub.in(before) && before.index(sub))) {
-				good = null;
-			}
-		}
-		if (good) {
-			break;
-		}
-	}
-	if (!good) {
-		throw NotMatching;
-	}
-	for (let nl of newline_tokens) {
-		if (nl.in(good.toString())) {
-			throw NotMatching;
-		}
-	}
-	return OK;
-}
-
 function flatten(words) {
-	// todo("flatten")
+	todo("flatten")
 	return words
 }
 

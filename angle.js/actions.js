@@ -110,7 +110,7 @@ function has_args(method, clazz = object, assume = 0) {
 	if (method.in(["increase", "++", "--"])) return 0;
 	try {
 		let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
-		is_builtin = (Object.getPrototypeOf(method) === types.BuiltinFunctionType) || (Object.getPrototypeOf(method) === types.BuiltinMethodType);
+		is_builtin = (type(method) === types.BuiltinFunctionType) || (type(method) === types.BuiltinMethodType);
 		if (is_builtin) {
 			doku = method.__doc__;
 			if (doku) {
@@ -456,7 +456,7 @@ function import_module(module_name) {
 }
 
 function classOf(obj) {
-	return Object.getPrototypeOf(obj) || mapType(typeof obj)
+	return obj.constructor || Object.getPrototypeOf(obj) || mapType(typeof obj) || typeof obj
 }
 
 function raise(err) {
@@ -521,7 +521,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		verbose("CAN'T CALL ARGUMENT WISE");
 	}
 	if (!(method instanceof Function)) {
-		throw new MethodMissingError(Object.getPrototypeOf(obj), method, args);
+		throw new MethodMissingError(type(obj), method, args);
 	}
 	if (is_math(method_name)) {
 		return do_math(obj, method_name, args);
@@ -570,7 +570,7 @@ function call_unbound(method, args, number_of_arguments) {
 		if ((is_unbound(method) && (args.length === 1) && (number_of_arguments === 1))) {
 			// import * as types from 'types';
 			arg0 = args[0];
-			obj_type = Object.getPrototypeOf(arg0);
+			obj_type = type(arg0);
 			if (method.__self__.__class__.in(extensionMap.values())) {
 				the.result = (method(xx(arg0)) || NILL);
 			} else {
@@ -695,7 +695,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 	if (!obj0 && (args0 instanceof Array) && args0.length === 1) {
 		obj0 = args0[0];
 	}
-	if (obj0) _type = Object.getPrototypeOf(obj0);
+	if (obj0) _type = type(obj0);
 	if (obj0 instanceof Variable) {
 		_type = obj0.type;
 		obj0 = obj0.value;
