@@ -297,7 +297,7 @@ function nth_item(val = 0) {
 	maybe_tokens(["in", "of"]);
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote());
 	if (type.match(/^char/)) {
-		the.result = "".join(l).__getitem__(n);
+		the.result = "".join(l).splice(n)[0];
 		return the.result;
 	}
 	else if (is_string(l)) l = l.split(" ");
@@ -305,7 +305,7 @@ function nth_item(val = 0) {
 		l = l.filter(x => is_a(x, type))
 	}
 	if (n > l.length) throw new IndexError("%d > %d in %s[%d]".format(n, l.length, l, n));
-	the.result = n>0?l[n]:l.splice(n)[0]
+	the.result = l.splice(n)[0]
 	if (context.in_condition) return the.result;
 	if (set && _("to")) {
 		val = endNode();

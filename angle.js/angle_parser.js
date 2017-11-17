@@ -852,13 +852,6 @@ function gerund() {
 	return match[1]
 }
 
-function get_class(x) {
-	if (x instanceof Variable) {
-		return x.type;
-	}
-	return Object.getPrototypeOf(x);
-}
-
 
 let match_path = x => x.match(/^\/\w+/)
 

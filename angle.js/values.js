@@ -180,6 +180,13 @@ function current_context() {
 	// return todo("current_context")
 }
 
+function get_class(x) {
+	if (x instanceof Variable) return x.type;
+	return x.constructor
+	// return Object.getPrototypeOf(x);
+}
+
+
 function do_evaluate_property(attr, node) {
 	if (!attr) {
 		return false;

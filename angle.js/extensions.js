@@ -1217,10 +1217,6 @@ function parseHex(b) {
 	return parseInt(b, 16)
 }
 
-function type(x) {
-	console.log("use typeof")
-	return typeof x
-}
 
 // setTimeout(callback, delay[, arg][, ...])
 // setInterval(callback, delay[, arg][, ...])#Schedules repeated execution of callback every delay milliseconds. Returns a intervalObject for possible
@@ -1267,7 +1263,15 @@ module.exports.puts = puts
 
 is_type = x => x instanceof Function && x.constructor && true
 proto = x => Object.getPrototypeOf(x)
+type = x => x.constructor
 // proto2=x=>x.prototype
+// function type(x) {
+// 	console.log("use typeof")
+// 	return typeof x
+// }
+
+
+
 todo = x => console.log("TODO", x)
 warn = x => console.log(x)
 debug = x => console.log(x)

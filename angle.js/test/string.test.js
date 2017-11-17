@@ -220,6 +220,4 @@ class StringTest extends (ParserBaseTest) {
 
 setVerbose()
 // register(StringTest, module)
-// module.exports=StringTest.prototype
-// module.exports.test_string_methods=new StringTest().test_string_methods3
-module.exports.test_current = new StringTest().test_concatenation2a
+module.exports.test_current = new StringTest().test_type1

@@ -261,7 +261,7 @@ function endNoun(included = []) {
 	}
 	if (adjs && (adjs instanceof Array)) {
 		todo("adjectives in endNoun");
-		return ((" " + " ".join(adjs) + " ") + obj.toString());
+		return (" ".join(adjs) + " " + obj.toString()).trim();
 	}
 	return obj.toString();
 }
