@@ -3,7 +3,7 @@ let {setVerbose} = require("../angle_parser")
 
 let {gerund} = require("../angle_parser")
 let {evaluate_property} = require("../expressions")
-let {do_interpret} = require("../power_parser")
+let {do_interpret,init} = require("../power_parser")
 let {register} = require("./angle_base_test")
 let {result, variableValues} = require("../context")
 let {postjective} = require("../english_parser")
@@ -13,19 +13,22 @@ let {setter} = require("../statements")
 let {algebra} = require("../expressions")
 let {expression} = require("../expressions")
 let {assert_result_is} = require("./angle_base_test")
-let {init} = require("../power_parser")
 let parser = require("../angle_parser")
 var angle = require('./angle_base_test');
 
 setVerbose(0)
 let assert_that=angle.assert_that
 class StringTest extends (ParserBaseTest) {
-    test_string_methods(){
-        parse(`invert "hi"`);
-        assert_equals(the.result, 'ih');
-        assert_that(`invert("hi") is 'ih'`);
-        // assert_that("invert "hi" is 'ih'") # todo HIGHER BINDING OF CALL!
+    test_string_methods() {
+	    parse(`invert "hi"`);
+	    assert_equals(the.result, 'ih');
     }
+	test_string_methods2(){
+		assert_that("invert 'hi' is 'ih'") // todo HIGHER BINDING OF CALL!
+	}
+	test_string_methods3(){
+		assert_that(`invert("hi") is 'ih'`);
+	}
     test_nth_word(){
         assert_that(`3rd word in 'hi my friend !!!' is 'friend'`);
         assert_that(`3rd word in 'hi my friend !!!' is 'friend'`);
@@ -70,7 +73,7 @@ class StringTest extends (ParserBaseTest) {
         r = algebra();
         assert_equals(r, 'hi world');
         parse(`x + ' world'`);
-        assert_equals(result(), 'hi world');
+        assert_equals(the.result, 'hi world');
         parse(`y is ' world'`);
         parse(`z is x + y`);
         assert_equals(the.variables['z'], 'hi world');
@@ -89,7 +92,7 @@ class StringTest extends (ParserBaseTest) {
         r = algebra();
         assert_equals(r, 'hi world');
         parse(`x + ' world'`);
-        assert_equals(result(), 'hi world');
+        assert_equals(the.result, 'hi world');
         parse(`y is ' world'`);
         parse(`z is x + y`);
         assert_equals(the.variables['z'], 'hi world');
@@ -166,22 +169,22 @@ class StringTest extends (ParserBaseTest) {
     }
     test_type1(){
         init('class of "hi"');
-        evaluate_property();
-        assert_equals(result(), String);
-        // assert_equals(result(), Quote)
+	    let result=evaluate_property();
+        assert_equals(result, String);
+        // assert_equals(result, Quote)
         init('class of "hi"');
-        expression();
-        assert_equals(result(), String);
-        // assert_equals(result(), Quote)
-        parse(`class of "hi"`);
-        assert_equals(result(), String);
-        // assert_equals(result(), Quote)
+	    expression();
+        assert_equals(the.result, String);
+        // assert_equals(result, Quote)
+	    parse(`class of "hi"`);
+        assert_equals(the.result, String);
+        // assert_equals(result, Quote)
     }
     test_type2b(){
         parse(`x="hi";\n      class of x`);
-        parse(`x="hi";class of x`);
-        assert_equals(result(), String);
-        // assert_equals(result(), Quote)
+	    let result=parse(`x="hi";class of x`);
+        assert_equals(result, String);
+        // assert_equals(result, Quote)
     }
     test_result(){
         parse(`x be 'hello world';show x;x; class of x`);
@@ -192,4 +195,8 @@ class StringTest extends (ParserBaseTest) {
 
     }
 }
-register(StringTest, module)
+setVerbose()
+// register(StringTest, module)
+// module.exports=StringTest.prototype
+// module.exports.test_string_methods=new StringTest().test_string_methods3
+module.exports.test_current=new StringTest()._test_select_word

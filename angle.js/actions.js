@@ -14,14 +14,17 @@ var {
 	must_contain_before,
 	maybe_tokens,
 	next_token,
+	no_rollback,
 	one_or_more,
 	pointer,
 	raiseEnd,
 	skip_comments,
+	star,
 	starts_with,
 	tokens,
+	verbose,
 } = require('./power_parser')
-let {variable} = require('./values')
+let {variable, typeNameMapped} = require('./values')
 let {verb, spo} = require('./english_parser')
 // todo : untangle ^^
 
@@ -70,13 +73,7 @@ function true_method(obj = null) {
 			name = findMethod(nil, variable.value);
 			if (!name) [obj, name] = subProperty(variable.value);
 		}
-	} else {
-		todo("subProperty")
-			// [obj, property] = subProperty(obj);
-		name = (maybe_tokens(the.method_names) || maybe(verb));
-	}
-	if (!name) throw new NotMatching("no method found");
-	if (maybe_tokens(article_words)) {
+	} else if (maybe_tokens(article_words)) {
 		obj = " ".join(one_or_more(word));
 		longName = ((name + " ") + obj);
 		if (longName.in(the.method_names)) {
@@ -85,8 +82,77 @@ function true_method(obj = null) {
 		if (obj.in(the.variables)) {
 			obj = the.variables[obj];
 		}
+	} else {
+		// todo("subProperty")
+		[obj, property] = maybe(_ => subProperty(obj))
+		name = (maybe_tokens(the.method_names) || maybe(verb));
 	}
+	if (!name) name = tokens(the.method_names)
+	if (!name) throw new NotMatching("no method found");
 	return [xmodule, obj, name];
+}
+
+function is_object_method(method_name) {
+	let object_method;
+	if (!method_name.toString().in(global)) {
+		return false;
+	}
+	object_method = global[method_name.toString()];
+	return object_method;
+}
+
+function has_args(method, clazz = object, assume = 0) {
+	if (!method) raise_not_matching("method has_args")
+	method = findMethod(clazz, method);
+	let bound_to_this = method.toString().match(/this/) && 1 // TODO! toSource
+	if (method instanceof Function) return method.length + bound_to_this
+	if (method instanceof FunctionDef) return method.length
+	if (method.in(["increase", "++", "--"])) return 0;
+	try {
+		let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
+		is_builtin = (Object.getPrototypeOf(method) === types.BuiltinFunctionType) || (Object.getPrototypeOf(method) === types.BuiltinMethodType);
+		if (is_builtin) {
+			doku = method.__doc__;
+			if (doku) {
+				convention = doku.split("\n")[0];
+				num = convention.split(",").length;
+				return num;
+			}
+			warn("BuiltinMethodType => no idea about the method arguments!");
+			return assume;
+		}
+		[args, varargs, varkw, defaults] = inspect.getargspec(method);
+		alle = (args.length + ((defaults && defaults.length) || 0) + (varkw && varkw.length) || 0);
+		return alle;
+	} catch (e) {
+		return (assume || 0);
+	}
+}
+
+function call_arg(position = 1) {
+	let name, pre, type, value;
+	pre = (maybe_tokens(prepositions) || "");
+	maybe_tokens(article_words);
+	type = maybe(typeNameMapped);
+	if (look_1_ahead("=")) {
+		name = maybe(word);
+		maybe_token("=");
+	} else {
+		name = null;
+	}
+	let {expression} = require('./expressions')
+	value = expression(null, false)
+	if (value instanceof Variable) {
+		name = value.name;
+		type = (type || value.type);
+	}
+	return new Argument({
+		"preposition": pre,
+		"name": name,
+		"type": type,
+		"position": position,
+		"value": value
+	});
 }
 
 
@@ -105,6 +171,7 @@ function method_call(obj = null) {
 		maybe_token("of");
 		obj = maybe(the.classes) || maybe(the.moduleNames);
 		if (!context.in_args) {
+			let {liste} = require('./expressions')
 			obj = (obj || maybe(liste));
 		}
 		maybe_token(",");
@@ -119,14 +186,10 @@ function method_call(obj = null) {
 		// noinspection JSAnnotator
 		function call_args() {
 			let arg;
-			if (args.length > 0) {
-				maybe_tokens([",", "and"]);
-			}
-			if (starts_with(";")) {
-				return false;
-			}
+			if (args.length > 0) maybe_tokens([",", "and"]);
+			if (starts_with(";")) return false;
 			arg = call_arg();
-			if (arg instanceof list) {
+			if (arg instanceof Array) {
 				args.extend(arg);
 			} else {
 				args.append(arg);
@@ -196,7 +259,7 @@ function plusPlus(v = null) {
 }
 
 function must_contain_substring(param) {
-	if(the.current_line.indexOf(param)<0)raise_not_matching("subs")
+	if (the.current_line.indexOf(param) < 0) raise_not_matching("subs")
 }
 
 function minusMinus(v = null) {
@@ -349,6 +412,63 @@ function map_list(x) {
 }
 
 
+function first_is_self(method) {
+	let args, defaults, varargs, varkw;
+	try {
+		[args, varargs, varkw, defaults] = inspect.getargspec(method);
+		return (args[0] === "self");
+	} catch (e) {
+		return false;
+	}
+}
+
+
+function c_method() {
+	return tokens(c_methods);
+}
+
+function builtin_method() {
+	let m, w;
+	w = word;
+	if (!w) {
+		raise_not_matching("no word");
+	}
+	m = is_object_method(w);
+	return m;
+}
+
+function is_method(name) {
+	return (name.in(the.method_names) || maybe(verb));
+}
+
+function import_module(module_name) {
+	let module, moduleMethods;
+	try {
+		console.log("TRYING MODULE " + module_name);
+		// import * as importlib from 'importlib';
+		importlib.import_module(module_name);
+		module = sys.modules[module_name];
+		moduleMethods = the.moduleMethods[module_name];
+		return [module, moduleMethods];
+	} catch (e) {
+		throw e;
+	}
+}
+
+function classOf(obj) {
+	return Object.getPrototypeOf(obj) || mapType(typeof obj)
+}
+
+function raise(err) {
+	throw new Error(err)
+}
+
+function bindMethod(method, obj) {
+	let owner = the.methodToModulesMap[method] || the.methodToModulesMap[method.name]
+	owner = owner || obj && classOf(obj) || raise("CANT BIND " + method)
+	return method.bind(/* this = */ owner)// , curry args!
+}
+
 function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
 	method_name = method_name0 || (method instanceof Function) && method.name || method0;
@@ -369,7 +489,6 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		return evaluate_property(args0, obj0);
 	}
 	is_builtin = false
-	bound = is_bound(method);
 	if (self_modifying(method)) {
 		obj = obj0;
 	} else {
@@ -378,16 +497,20 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	args = align_args(args, obj, method);
 	number_of_arguments = has_args(method, obj, (!(!args)));
 	is_first_self = first_is_self(method);
+	bound=bindMethod(method, obj || args && args[0] || args)
+	// bound = is_bound(method);
+
 	if (method instanceof ast.FunctionDef) {
 		the.result = do_execute_block(method.body, args);
 		return the.result;
 	}
-	console.log("CALLING %s %s with %s".format((obj || ""), method, args));
+	verbose("CALLING %s %s with %s".format((obj || ""), method, args));
+	console.log("CALLING %s %s with %s".format((obj || ""), method.name, args));// .length
 	if (!args && !(method instanceof Function) && method.in(dir(obj))) {
 		return obj.__getattribute__(method);
 	}
 	try {
-		if ((!(method instanceof Function) && (args instanceof list))) {
+		if (!(method instanceof Function) && (args instanceof Array)) {
 			// noinspection JSAnnotator
 			the.result = map(map_list, args);
 			verbose("GOT RESULT %s " % the.result);
@@ -405,7 +528,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	}
 	if (!obj) {
 		if (args && (number_of_arguments > 0)) {
-			the.result = call_unbound(method, args, number_of_arguments);
+			the.result = method.call(...args);//call_unbound
 		} else {
 			the.result = method();
 		}
@@ -421,7 +544,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 				if (bound || is_builtin) {
 					call_unbound(method, args, number_of_arguments);
 				} else {
-					if ((args instanceof list) && (args.length === 1)) {
+					if ((args instanceof Array) && (args.length === 1)) {
 						args = args[0];
 					}
 					the.result = (method(obj, args) || NILL);
@@ -440,16 +563,10 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 
 function call_unbound(method, args, number_of_arguments) {
 	let arg0, bound_method, obj_type;
-	if (args instanceof dict) {
-		try {
-			the.result = (method({
-				None: args
-			}) || NILL);
-		} catch (e) {
-			the.result = (method(...list(args.values())) || NILL);
-		}
-	}
-	if ((args instanceof list) || (args instanceof tuple)) {
+	// if (args instanceof Object /*todo*/) {
+	// 		the.result = (method(...list(args.values())) || NILL);
+	// }
+	if ((args instanceof Array) || (args instanceof tuple)) {
 		if ((is_unbound(method) && (args.length === 1) && (number_of_arguments === 1))) {
 			// import * as types from 'types';
 			arg0 = args[0];
@@ -479,7 +596,7 @@ function align_args(args, clazz, method) {
 		if (method.__self__ === args) {
 			args = null;
 		}
-		if ((args && (args instanceof list) && (args.length > 0))) {
+		if ((args && (args instanceof Array) && (args.length > 0))) {
 			if (method.__self__ === args[0]) {
 				args.remove(args[0]);
 			}
@@ -493,10 +610,10 @@ function align_args(args, clazz, method) {
 			[margs, varargs, varkw, defaults] = inspect.getargspec(method);
 			expect = (margs.length - ((defaults && defaults.length) || 0) + (varkw && varkw.length) || 0);
 		}
-		if (!((args instanceof list) || (args instanceof list) || (args instanceof dict))) {
+		if (!((args instanceof Array) || (args instanceof Array) || (args instanceof Object /*todo*/))) {
 			args = [args];
 		}
-		if (args instanceof list) {
+		if (args instanceof Array) {
 			if ((args.length > expect) && (args.length > 1)) {
 				args = [args];
 			}
@@ -532,17 +649,17 @@ function align_args(args, clazz, method) {
 function align_function_args(args, clazz, method) {
 	let newArgs;
 	newArgs = {};
-	if ((args instanceof dict) || (args instanceof tuple) || (args instanceof list) && method.arguments.length === 1) {
+	if ((args instanceof Object /*todo*/) || (args instanceof tuple) || (args instanceof Array) && method.arguments.length === 1) {
 		let key = method.arguments[0].name;
 		return {
 			key: args
 		};
 	}
-	if (!((args instanceof dict) || (args instanceof list))) {
+	if (!((args instanceof Object /*todo*/) || (args instanceof Array))) {
 		args = [args];
 	}
 	for (let param of method.arguments) {
-		if (args instanceof dict) {
+		if (args instanceof Object /*todo*/) {
 			if (param.name.in(args)) {
 				param.value = args[param.name];
 			} else {
@@ -553,7 +670,7 @@ function align_function_args(args, clazz, method) {
 				}
 			}
 		} else {
-			if (args instanceof list) {
+			if (args instanceof Array) {
 				if (param.position < args.length) {
 					param.value = args[param.position];
 				} else {
@@ -571,15 +688,11 @@ function align_function_args(args, clazz, method) {
 }
 
 function findMethod(obj0, method0, args0 = null, bind = true) {
-	let _type, ex, function_, method;
-	method = method0;
-	if (method instanceof Function) {
-		return method;
-	}
-	if (method instanceof ast.FunctionDef) {
-		return method;
-	}
-	if (!obj0 && (args0 instanceof list) && args0.length === 1) {
+	let method = method0;
+	if (method instanceof Function) return method;
+	if (method instanceof ast.FunctionDef) return method;
+	let _type, ex, function_;
+	if (!obj0 && (args0 instanceof Array) && args0.length === 1) {
 		obj0 = args0[0];
 	}
 	if (obj0) _type = Object.getPrototypeOf(obj0);
@@ -623,7 +736,7 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 		}
 		return method;
 	}
-	if (!(method instanceof Function) && (args0 instanceof list) && args0.length > 0) {
+	if (!(method instanceof Function) && (args0 instanceof Array) && args0.length > 0) {
 		function_ = findMethod((obj0 || args0[0]), method0, args0[0], {
 			bind: false
 		});
@@ -729,19 +842,6 @@ function is_math(method) {
 }
 
 
-function is_bound(method) {
-	let _is_bound = ("im_self".in(dir(method)) && method.__self__);
-	_is_bound = (_is_bound || "bound".in(method.toString()));
-	return _is_bound;
-}
-
-function is_unbound(method) {
-	return ("im_class" in method) && (method.__self__ === null);
-}
-
-function instance(bounded_method) {
-	return bounded_method.__self__;
-}
 let match_path = x => x.match(/^\/\w+/)
 
 function do_evaluate(x, _type = null) {
@@ -808,7 +908,7 @@ function do_evaluate(x, _type = null) {
 	// if (x instanceof ast.AST) {
 	// 	return pyc_emitter.evalast([x]);
 	// }
-	// if ((x instanceof list) && (x[0] instanceof ast.AST)) {
+	// if ((x instanceof Array) && (x[0] instanceof ast.AST)) {
 	// 	return pyc_emitter.evalast(x);
 	// }
 	return x;
@@ -818,10 +918,10 @@ function eval_args(args) {
 	if (!args) {
 		return [];
 	}
-	if ((args instanceof list) || (args instanceof tuple)) {
-		args = map(do_evaluate, args);
+	if ((args instanceof Array) || (args instanceof tuple)) {
+		args = args.map(do_evaluate)
 	} else {
-		if (args instanceof dict) {
+		if (args instanceof Object /*todo*/) {
 		} else {
 			args = [do_evaluate(args)];
 		}

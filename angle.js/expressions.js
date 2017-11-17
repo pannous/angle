@@ -16,6 +16,7 @@ let {
 	must_contain_before,
 	maybe_tokens,
 	next_token,
+	no_rollback,
 	one_or_more,
 	pointer,
 	pointer_string,
@@ -300,7 +301,7 @@ function nth_item(val = 0) {
 			l = l.split(" ");
 		}
 	}
-	if ((l instanceof list) && type.in(type_names)) {
+	if ((l instanceof Array) && type.in(type_names)) {
 		l = l.map(x => is_a(x, type))
 	}
 	if (n > l.length) {
@@ -361,7 +362,7 @@ function liste(check = true, first = null) {
 	if (!first) {
 		raise_not_matching();
 	}
-	if (first instanceof list) {
+	if (first instanceof Array) {
 		all = first;
 	} else {
 		all = [first];
@@ -767,7 +768,7 @@ function property() {
 	sett = (maybe_token("=") && expression());
 	if (sett) {
 		if (interpreting()) {
-			if (container instanceof dict) {
+			if (container instanceof Object /*todo*/) {
 				container[properti] = sett;
 			} else {
 				container[properti] = sett;
@@ -777,7 +778,7 @@ function property() {
 		return new Assign([new Attribute(container, properti, (sett && new Store() || new Load())), sett]);
 	}
 	if (interpreting()) {
-		if (container instanceof dict) {
+		if (container instanceof Object /*todo*/) {
 			return container[properti];
 		} else {
 			return container[properti];

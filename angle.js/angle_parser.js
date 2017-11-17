@@ -254,14 +254,6 @@ function print_variables() {
 	}
 }
 
-function is_object_method(method_name) {
-	let object_method;
-	if (!method_name.toString().in(global)) {
-		return false;
-	}
-	object_method = global[method_name.toString()];
-	return object_method;
-}
 
 function has_object(m) {
 	return m.toString().in(global);
@@ -276,76 +268,6 @@ function get_module(module) {
 		return sys.modules[module];
 	}
 }
-
-function first_is_self(method) {
-	let args, defaults, varargs, varkw;
-	try {
-		[args, varargs, varkw, defaults] = inspect.getargspec(method);
-		return (args[0] === "self");
-	} catch (e) {
-		return false;
-	}
-}
-
-function has_args(method, clazz = object, assume = 0) {
-	if (!method) raise_not_matching("method has_args")
-	let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
-	if (method instanceof Function) return method.length
-	if (method instanceof FunctionDef) return method.length
-	if (method.in(["increase", "++", "--"])) return 0;
-	method = findMethod(clazz, method);
-	try {
-		is_builtin = (Object.getPrototypeOf(method) === types.BuiltinFunctionType) || (Object.getPrototypeOf(method) === types.BuiltinMethodType);
-		if (is_builtin) {
-			doku = method.__doc__;
-			if (doku) {
-				convention = doku.split("\n")[0];
-				num = convention.split(",").length;
-				return num;
-			}
-			warn("BuiltinMethodType => no idea about the method arguments!");
-			return assume;
-		}
-		[args, varargs, varkw, defaults] = inspect.getargspec(method);
-		alle = (args.length + ((defaults && defaults.length) || 0) + (varkw && varkw.length) || 0);
-		return alle;
-	} catch (e) {
-		return (assume || 0);
-	}
-}
-
-function c_method() {
-	return tokens(c_methods);
-}
-
-function builtin_method() {
-	let m, w;
-	w = word;
-	if (!w) {
-		raise_not_matching("no word");
-	}
-	m = is_object_method(w);
-	return m;
-}
-
-function is_method(name) {
-	return (name.in(the.method_names) || maybe(verb));
-}
-
-function import_module(module_name) {
-	let module, moduleMethods;
-	try {
-		console.log("TRYING MODULE " + module_name);
-		// import * as importlib from 'importlib';
-		importlib.import_module(module_name);
-		module = sys.modules[module_name];
-		moduleMethods = the.moduleMethods[module_name];
-		return [module, moduleMethods];
-	} catch (e) {
-		throw e;
-	}
-}
-
 
 
 
@@ -429,7 +351,7 @@ function prepare_named_args(args) {
 	// import * as copy from 'copy';
 	let context_variables, v;
 	context_variables = copy.copy(the.variables);
-	if (!(args instanceof dict)) {
+	if (!(args instanceof Object /*todo*/)) {
 		return {
 			"arg": args
 		};
@@ -476,7 +398,7 @@ function do_execute_block(b, args = {}) {
 	if (b instanceof ast.AST) {
 		return evalast(b, args);
 	}
-	if ((b instanceof list) && (b[0] instanceof ast.AST)) {
+	if ((b instanceof Array) && (b[0] instanceof ast.AST)) {
 		return evalast(b, args);
 	}
 	if (!is_string(b)) {
@@ -538,7 +460,7 @@ function go_thread() {
 		thread.start();
 	} else {
 		body = [];
-		if (!(a instanceof list)) {
+		if (!(a instanceof Array)) {
 			a = [a];
 		}
 		body.append(new ast.Import([ast.alias({
@@ -632,33 +554,6 @@ function param(position = 1) {
 	});
 }
 
-function call_arg(position = 1) {
-	let name, pre, type, value;
-	pre = (maybe_tokens(prepositions) || "");
-	maybe_tokens(article_words);
-	type = maybe(typeNameMapped);
-	if (look_1_ahead("=")) {
-		name = maybe(word);
-		maybe_token("=");
-	} else {
-		name = null;
-	}
-	value = expression({
-		fallback: null,
-		resolve: false
-	});
-	if (value instanceof Variable) {
-		name = value.name;
-		type = (type || value.type);
-	}
-	return new Argument({
-		"preposition": pre,
-		"name": name,
-		"type": type,
-		"position": position,
-		"value": value
-	});
-}
 
 function compareNode() {
 	let c, right;
@@ -883,7 +778,7 @@ function condition() {
 		return left;
 	}
 	negate = negated;
-	if ((left instanceof list) && (!(right instanceof list))) {
+	if ((left instanceof Array) && (!(right instanceof Array))) {
 		quantifier = (quantifier || "all");
 	}
 	cond = new Compare({

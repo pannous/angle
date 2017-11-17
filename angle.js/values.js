@@ -110,6 +110,7 @@ function word(include = null) {
 
 function bracelet() {
 	tokens("(");
+	let {expression}= require('./expressions')
 	let a = expression();
 	tokens(")");
 	return a;
@@ -256,7 +257,8 @@ function variable(a = null, ctx = ast.Load, isParam = false) {
 		if (name.in(the.params)) {
 			return the.params[name];
 		} else {
-			throw new UndeclaredVariable("Unknown variable " + name);
+			throw new NotMatching("Unknown variable " + name);
+			// throw new UndeclaredVariable("Unknown variable " + name);
 		}
 	}
 	if (ctx instanceof ast.Store || ctx == ast.Store) {
@@ -377,10 +379,12 @@ function typeNameMapped() {
 	return mapType(name);
 }
 
+// obj.prototype doesnt
 function mapType(x0) {
 	if(the.classes[x0]) return the.classes[x0]
 	let x = x0.lower();
 	if(the.classes[x0]) return the.classes[x0]
+	if (x === "str") return String
 	if (x === "str") return String
 	if (x === "string") return String;
 	if (x === "char") return String

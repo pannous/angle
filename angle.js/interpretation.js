@@ -11,7 +11,7 @@ function add_trigger(condition, action) {
 function substitute_variables(args) {
     var value, variable;
 	for (let variable of the.variableValues.keys) {
-        if ((variable instanceof list)) {
+        if ((variable instanceof Array)) {
             variable = variable.join(" ");
         }
         value = (the.variableValues[variable] || "None");

@@ -58,7 +58,7 @@ function assert_has_error(prog, type = ""){
 function assert_result_is(prog, val){
 	let interpretation = parse(prog);
 	let result = interpretation.result
-	assert(result == val, prog + " ==== " + val)
+	assert(result == val, prog + " == " + val)
 	console.log(prog + " ==== " + val + "   ... OK!")
 	// console.log(val)
 	// console.log(result)
@@ -95,18 +95,22 @@ module.exports.register = register = function (instance, modul) {
 					// parser.clear()
 					instance[test](ok);
 				} catch (ex) {
+					console.error(""+instance[test]+" THREW")
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
 					// console.error(ex)
-					else throw ex
+					// else throw ex
 				}
 				finally {
-					ok.done()
 				}
+				ok.done()
 			}
 		} catch (ex) {
 			console.error(ex)
-			console.error(test)
+			// ok.done()
+			// if(ex instanceof NotMatching || ex==NotMatching)
+			// 	throw ex
+			// console.error(test)
 		}
 	}
 }

@@ -275,7 +275,7 @@ class PrepareTreeVisitor extends ast.NodeTransformer {
 _pj.set_properties(PrepareTreeVisitor, {"parents": []});
 function fix_ast_module(my_ast, fix_body = true) {
     if ((! (Object.getPrototypeOf(my_ast) === ast.Module))) {
-        if ((! (my_ast instanceof list))) {
+        if ((! (my_ast instanceof Array))) {
             my_ast = [my_ast];
         }
         my_ast = new ast.Module({body: my_ast});
@@ -301,7 +301,7 @@ function fix_block(body, returns = true, prints = false) {
     var last_statement;
     body.insert(0, new ast.Global({names: ["it"]}));
     last_statement = body.slice((- 1))[0];
-    if (((last_statement instanceof list) && (last_statement.length === 1))) {
+    if (((last_statement instanceof Array) && (last_statement.length === 1))) {
         last_statement = last_statement[0];
         console.log("HOW??");
     }
@@ -339,7 +339,7 @@ function get_globals(args) {
     my_globals.update(the.params);
     my_globals.update(the.methods);
     my_globals.update(globals());
-    if ((args instanceof dict)) {
+    if ((args instanceof Object /*todo*/)) {
         the.params.update(args);
     } else {
         console.log("What the hell do you think you're doing, I need a dictionary as args (not a list)");
@@ -369,7 +369,7 @@ function print_ast(my_ast, source_file = "out/inline", with_line_numbers = false
     } catch(e) {
         console.log(e);
         console.log(("CAN'T DUMP ast / print_ast %s" % my_ast));
-        if ((! (my_ast instanceof list))) {
+        if ((! (my_ast instanceof Array))) {
             console.log(my_ast.body);
         }
     }

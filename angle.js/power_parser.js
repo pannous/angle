@@ -1,5 +1,5 @@
 // "use strict"
-context =  require('./context')
+context = require('./context')
 let the = context
 let nodes = require('./nodes')
 
@@ -13,7 +13,7 @@ let list = Array
 
 class Starttokens {
 	constructor(starttokens) {
-		if (!(starttokens instanceof list)) {
+		if (!(starttokens instanceof Array)) {
 			starttokens = [starttokens];
 		}
 		this.starttokens = starttokens;
@@ -114,12 +114,12 @@ function pointer_string() {
 		l = 3;
 	} else {
 		offset = the.current_offset;
-		l=the.current_word.length
+		l = the.current_word.length
 	}
 	lineNo = the.current_token[2][0];
 	filep = the.current_file != "(String)" ? "  File \"" + the.current_file + "\", line " + lineNo.toString() + "\n" : "";
 	// the.current_line.slice(offset) + "\n" +
-	var poo= the.current_line + "\n" + " ".repeat(offset)+ "^".repeat(l) + "\n" + filep;
+	var poo = the.current_line + "\n" + " ".repeat(offset) + "^".repeat(l) + "\n" + filep;
 	return poo
 }
 
@@ -132,18 +132,16 @@ function print_pointer(force = false) {
 }
 
 function error(e, force = false) {
-	if (e instanceof GivingUp) {
-		throw e;
+	if (e instanceof GivingUp) throw e;
+	if (e instanceof NotMatching) throw e;
+	if (e instanceof Exception) print_pointer();
+	if (e) {
+		console.log(e)
+		// console.log(e.message)
+		// console.log(e.stack)
 	}
-	if (e instanceof NotMatching) {
-		throw e;
-	}
-	if (is_string(e)) {
-		console.log(e);
-	}
-	if (e instanceof Exception) {
-		print_pointer();
-	}
+	// else
+		// console.log("NO MESSAGE")
 }
 
 
@@ -172,13 +170,13 @@ function tokens(tokenz) {
 	raiseEnd();
 	let ok = maybe_tokens(tokenz);
 	if (ok) return ok;
-	throw new NotMatching("token"+tokenz+" "+result);
+	throw new NotMatching("token" + tokenz + " " + result);
 	// throw new NotMatching(tokenz.toString() + "\n" + pointer_string());
 }
 
 function maybe_tokens(tokens0) {
 	if (checkEndOfLine()) return false
-	if(!is_array(tokens0)) return maybe_token(tokens0)
+	if (!is_array(tokens0)) return maybe_token(tokens0)
 	for (var t of tokens0) {
 		if ((t == the.current_word) || (t.lower() == the.current_word.lower())) {
 			next_token(false);
@@ -280,6 +278,7 @@ function parse_tokens(s) {
 	_lines = s.split("\n");
 	i = (-1);
 	let tokenz = tokenizer().input(s)
+		.token(_token.BRACE, /\(/,token_helper)
 		.token(_token.NUMBER, /\d*\.\d+/u, token_helper)
 		.token(_token.NUMBER, /\d+/u, token_helper)
 		.token(_token.WORD, /\w+/u, token_helper)
@@ -287,13 +286,13 @@ function parse_tokens(s) {
 		.token(_token.STRING, /`(.*?)`/u)
 		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
-		.token(_token.NEWLINE, /;/)
 		.token(_token.NEWLINE, /:/)
 		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
 		.token(_token.COMMENT, /\/\*(.*)\*\//u)
 		.token(_token.COMMENT, /<!--(.*)-->/u)
 		.token(_token.OPERATOR, /[=\+\-\*\/]/u, token_helper)
+		.token(_token.BRACER, /\)/,token_helper)
 		.walk(token_eater)
 	var tokens = tokenz.resolve()//.debug()
 	// .tokens('operators', math_operators)// logic_operators
@@ -351,14 +350,14 @@ function drop_comments() {
 }
 
 function init(strings) {
-	let{number}= require('./values')
+	let {number} = require('./values')
 	let comp, left, right;
 	if (!the.moduleMethods || !the.moduleMethods.length)
 		load_module_methods();
 	the.no_rollback_depth = (-1);
 	the.rollback_depths = [];
 	the.line_number = 0;
-	if (strings instanceof list) {
+	if (strings instanceof Array) {
 		the.lines = strings;
 		if (strings[0].endswith("\n")) {
 			parse_tokens("".join(strings));
@@ -449,7 +448,7 @@ function must_contain_before(args, before) {
 		next_token();
 	}
 	set_token(old);
-	if (!good) throw NotMatching;
+	if (!good) throw new NotMatching(must_contain_before);
 	return good;
 }
 
@@ -541,7 +540,7 @@ function look_1_ahead(expect_next, doraise = false, must_not_be = false, offset 
 	if (expect_next == token[1]) {
 		return true;
 	} else {
-		if ((expect_next instanceof list) && token[1].in(expect_next)) {
+		if ((expect_next instanceof Array) && token[1].in(expect_next)) {
 			return true;
 		} else {
 			if (must_not_be) {
@@ -722,14 +721,15 @@ function block(multiple = false) {
 		end_of_statement();
 		no_rollback();
 		if (multiple) maybe_newline();
+
 		function block_lambda() {
 			try {// todo undo
-			let s;
+				let s;
 				maybe_indent();
 				s = statement();
 				statements.append(s);
 			} catch (e) {
-				if (e instanceof NotMatching || e==NotMatching) {
+				if (e instanceof NotMatching || e == NotMatching) {
 					if (starts_with(done_words) || checkNewline())
 						return false;
 					// console.log("Giving up block");
@@ -761,7 +761,7 @@ function block(multiple = false) {
 }
 
 
-function end_of_statement(){
+function end_of_statement() {
 	return (beginning_of_line() ||
 		maybe_newline() ||
 		starts_with(done_words) ||
@@ -773,13 +773,12 @@ function end_of_statement(){
 }
 
 
-
 var depth;
 
 function maybe(expr) {
 	let cc, current_value, ex, last_node, old, rb, result;
 	if (!(expr instanceof Function)) return maybe_tokens(expr);
-	if(checkEndOfLine())return false
+	if (checkEndOfLine()) return false
 	depth = (depth + 1);
 	if (depth > context.max_depth) throw new SystemStackError(">max_depth)");
 	try {
@@ -953,7 +952,7 @@ parse = function (s, target_file = null, clean = true) {
 		if (the.result instanceof nodes.Variable) the.result = the.result.value;
 		// import * as ast from 'ast';
 		// got_ast = (the.result instanceof ast.AST);
-		// if ((the.result instanceof list) && (the.result.length > 0)) {
+		// if ((the.result instanceof Array) && (the.result.length > 0)) {
 		// 	got_ast = (the.result[0] instanceof ast.AST);
 		// }
 		if (context.use_tree && got_ast) {
@@ -981,7 +980,7 @@ parse = function (s, target_file = null, clean = true) {
 }
 
 function token(t, expected = "") {
-	if (t instanceof list) {
+	if (t instanceof Array) {
 		return tokens(t);
 	}
 	raiseEnd();
@@ -989,7 +988,7 @@ function token(t, expected = "") {
 		next_token();
 		return t;
 	} else {
-		throw new NotMatching() //(((expected + " ") + t) + "\n") + pointer_string());
+		throw new NotMatching(t) //(((expected + " ") + t) + "\n") + pointer_string());
 	}
 }
 
@@ -1130,15 +1129,15 @@ function method_allowed(meth) {
 }
 
 function load_module_methods() {
-	return []
-	let pickle = require('pickle')
+	// return []
+	// let pickle = require('pickle')
 	// import * as warnings from 'warnings';
 	let ex;
 	// warnings.filterwarnings("ignore", {category: UnicodeWarning});
-	the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb") || {}
-	the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb") || {}
-	the.moduleNames = pickle.loads(open(context.home + "/data/module_names.bin"), "rb") || []
-	the.moduleClasses = pickle.loads(open(context.home + "/data/module_classes.bin"), "rb") || {}
+	// the.methodToModulesMap = pickle.loads(open(context.home + "/data/method_modules.bin"), "rb") || {}
+	// the.moduleMethods = pickle.loads(open(context.home + "/data/module_methods.bin"), "rb") || {}
+	// the.moduleNames = pickle.loads(open(context.home + "/data/module_names.bin"), "rb") || []
+	// the.moduleClasses = pickle.loads(open(context.home + "/data/module_classes.bin"), "rb") || {}
 	for (let [mo, mes] of the.moduleMethods) {
 		if (!method_allowed(mo)) {
 			continue;
@@ -1161,6 +1160,12 @@ function load_module_methods() {
 	let moduleKeys = keys(the.methodToModulesMap);
 	the.method_names = keys(the.methods).plus(c_methods).add(keys(methods))
 	the.method_names.add(core_methods).add(builtin_methods).add(moduleKeys)
+	the.method_names.add(keys(String.prototype))
+	the.methods.join(String.prototype)
+	the.methods.join(Array.prototype)
+	the.methods.join(Object.prototype)
+	for(f of String.prototype)
+		the.methodToModulesMap[f]=String.prototype
 	for (let x of dir(extensions)) {
 		the.method_names.append(x);
 	}
@@ -1184,17 +1189,17 @@ function is_number(n) {
 	return (str(n).parse_number() !== 0);
 }
 
-function must_not_start_with(words,whitelist) {
+function must_not_start_with(words, whitelist) {
 	let bad = starts_with(words);
 	if (!bad) return OK
-	if(bad.in(whitelist)) return OK
+	if (bad.in(whitelist)) return OK
 	if (bad) info("should_not_match DID match %s" % bad);
 	if (bad) throw new NotMatching("should_not_match DID match %s" % bad);
 }
 
 
 function no_keyword_except(excepty = null) {
-	return must_not_start_with(keywords,excepty);
+	return must_not_start_with(keywords, excepty);
 }
 
 function no_keyword() {
@@ -1210,7 +1215,7 @@ function space() {
 }
 
 
-maybe_token=function maybe_token(x) {
+maybe_token = function maybe_token(x) {
 	if (x == the.current_word) {
 		next_token(false);
 		return x;
@@ -1229,6 +1234,7 @@ module.exports = {
 	look_1_ahead,
 	maybe,
 	maybe_indent,
+	method_allowed,
 	must_not_start_with,
 	must_contain_before_,
 	must_contain_before,

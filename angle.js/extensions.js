@@ -8,12 +8,14 @@ require('./extensions.js')()
 // "use strict"
 // <script src="extensions.js" type="text/javascript" charset="utf-8"></script>
 function extension(url = 'http://pannous.net/extensions.js') {
-	var script = document.createElement('script');
+	const script = document.createElement('script');
 	script.src = url;
 	document.head.appendChild(script);
 }; //extension()
 extensions_version = "1.2.6"
-const util = require('util') // NODE.JS extensions
+print = x => process.stdout.write(x) // supports \r
+// print=process.stdout.write // supports \r
+const util = require('util') // NODE.JS extensions 
 
 array_empty = a => !+a // YAY
 object_empty = x => !+Object.keys(x)
@@ -21,7 +23,7 @@ falsey = x => !x || !Object.keys(x).length
 truthy = x => !(!x || typeof x == 'object' && !Object.keys(x).length)
 empty = falsy = falsey
 not_empty = truthy
-Int=Integer=Float=Real=Number
+Int = Integer = Float = Real = Number
 
 // If we wrap our code, we can use await expressions anywhere in our codebase.
 // (async () => {await (2 + 3)})()
@@ -39,7 +41,6 @@ json = (x) => {
 	else return JSON.stringify(x)
 }
 
-window = global // = this IN NODE.JS!
 log_levels = {
 	"ERROR": "ERROR",
 	"WARN": "WARN",
@@ -91,8 +92,8 @@ cl = x => console.log(x)
 
 
 function shuffle(a) {
-	var j, x, i;
-	for(let i = a.length; i; i -= 1) {
+	let j, x, i;
+	for (let i = a.length; i; i -= 1) {
 		j = Math.floor(Math.random() * i);
 		x = a[i - 1];
 		a[i - 1] = a[j];
@@ -105,27 +106,26 @@ fullscreen = x => document.getElementsByTagName('html')[0].mozRequestFullScreen(
 ignore = nop = pass = () => {
 }
 p = puts = log = echo = console.log
-hex = x => x.toString(16)
-print = p = function (x) {
-	console.log(x);
-	return x
-};
+
+hex = x => x.toString(16) // '0x' + not for xdotool
+
 dir = function (x) {
-	if(!x) return []
+	if (!x) return []
 	return Object.getOwnPropertyNames(x)
 }
 // dir=xs=>{for(key in xs){if (!xs.hasOwnProperty(key))continue;console.log(key+":"+xs[key])}}
 all = (xs) => {
-	for(let key in xs) console.log(key + ":" + xs[key])
+	for (let key in xs) console.log(key + ":" + xs[key])
 }
-// map=(f,xs)=>xs.map(f)  
+// map=(f,xs)=>xs.map(f)
 map = (f, xs) => {
-	for(let key in xs) {
+	if (xs instanceof Array) return xs.map(f)
+	for (let key in xs) {
 		if (xs.hasOwnProperty(key)) xs[key] = f(xs[key])
 	}
 }
 do_map = (f, xs) => {
-	for(let key in xs) {
+	for (let key in xs) {
 		if (xs.hasOwnProperty(key)) xs[key] = f(xs[key])
 	}
 }
@@ -139,11 +139,11 @@ is_file = isfile = exists = (path) => {
 
 
 keys = function (x) {
-	if(!x)return []
+	if (!x) return []
 	return Object.keys(x)
 }
 len = function (x) {
-	if(!x) return -1
+	if (!x) return -1
 	console.log("use .length");
 	return x.length
 }
@@ -208,13 +208,13 @@ help = x => {
 Function_Extensions = {
 	getArguments(func) {
 		func = func || this
-		var symbols = func.toString()
-		var start, end, register;
+		const symbols = func.toString();
+		let start, end, register;
 		start = symbols.indexOf('function');
 		if (start !== 0 && start !== 1) return ['ERROR', symbols] //undefined;
 		start = symbols.indexOf('(', start);
 		end = symbols.indexOf(')', start);
-		var args = [];
+		const args = [];
 		symbols.substr(start + 1, end - start - 1).split(',').forEach(function (argument) {
 			args.push(argument);
 		});
@@ -226,19 +226,26 @@ Function_Extensions = {
 
 // for([key, value] of map){NO} // WTFFFFFFFFF [Symbol.iterator] is not a function ===> FIX:
 Object.prototype[Symbol.iterator] = function* () {
-	for(let kv of Object.entries(this)) yield kv
+	for (let kv of Object.entries(this)) yield kv
 } // enables:
 // for([key, value] of map) {}
 
+join=(a,b)=>Object.assign(a,b)
+assign=(a,b)=>Object.assign(a,b)
 // use keys(o) or x in map
-Object_Extensions = { // DONT USE!! FUCKS UP STUFF !! SEQUALIZE and ACE and probably others
-                      // to_map(){return new Map(Object.entries(this));},//entriesArray
-                      // in(xs){return xs.indexOf(this)>=0},
-                      // is_a(x){return this instanceof x},
-                      // keys(){return Object.keys(this)}, // NO Map/Dict type :(
-                      // methods(){return Object.getOwnPropertyNames(this)},
-                      // toJson(){return JSON.stringify(this)}
-                      // select(){return Object.keys(this)}
+Object_Extensions_DONT_USE = { // DONT USE!! EVERY ENTRY FUCKS UP STUFF!! because not native? SEQUALIZE and ACE and Web3 probably others
+	// to_map(){return new Map(Object.entries(this));},//entriesArray
+	// keys(){return Object.keys(this)}, // NO Map/Dict type :(
+	// values(){return Object.entries(this);},//entriesArray
+	// join(map) {return Object.assign(this, map) }
+	// entries(){return new Map(Object.entries(this));},//entriesArray
+	// in(xs){return xs.indexOf(this)>=0},
+	// is_a(x){return this instanceof x},
+	// methodNames(){return Object.getOwnPropertyNames(this)},
+	// methodsDescriptors(){return Object.getOwnPropertyDescriptors(this)},
+	// methods(){return Object.getOwnPropertyDescriptors(this)},
+	// toJson(){return JSON.stringify(this)}
+	// select(){return Object.keys(this)}
 }
 
 
@@ -258,12 +265,12 @@ function removeXfromArrayXS(x, xs) {
 
 function stack() {
 	// return arguments.callee.caller
-	var _stack = [];
-	var maxStackSize = 30;
-	var curr = arguments.callee;
+	const _stack = [];
+	const maxStackSize = 30;
+	let curr = arguments.callee;
 	while (curr && stack.length < maxStackSize) {
-		var c = curr.toString()
-		var m = c.match("function ([a-zA-Z0-9_]*).*")
+		const c = curr.toString();
+		const m = c.match("function ([a-zA-Z0-9_]*).*");
 		if (m) _stack.push(m[1])
 		else _stack.push(c)
 		try {
@@ -291,11 +298,12 @@ Array_Extensions = {
 	g(x) {
 		return this.filter(a => a == x || ("" + a).match(x))
 	},
-	clear(){while(this.length > 0) this.pop()
+	clear() {
+		while (this.length > 0) this.pop()
 	},
 	fold(fun, prim) {
 		let a = prim
-		for(let i of this) a = fun(i, a)
+		for (let i of this) a = fun(i, a)
 		return a
 	},
 	grep(x) {
@@ -308,8 +316,8 @@ Array_Extensions = {
 		all = this.filter(a => a == x || ("" + a).match(x) || x.match("" + a));
 		return len(all) > 0 ? all : false
 	},
-	removeAt(i){ // delete leaves holes!!
-		this.splice(i,1)
+	removeAt(i) { // delete leaves holes!!
+		this.splice(i, 1)
 		return this
 	},
 	match(x) {
@@ -317,13 +325,13 @@ Array_Extensions = {
 		return len(all) > 0
 	},
 	has(x) {
-		return this==x || this.indexOf(x) >= 0
+		return this == x || this.indexOf(x) >= 0
 	},
 	// delete(x){}
 	remove(...xs) {
-		for(let x of xs) {
+		for (let x of xs) {
 			if (Array.isArray(x)) {
-				for(let a in x) {
+				for (let a in x) {
 					let i = this.indexOf(a);
 					if (i > -1) this.splice(i, 1);
 				}
@@ -336,8 +344,8 @@ Array_Extensions = {
 	minus(xs) {
 		return this.filter(y => !xs.has(y))
 	},
-	without(...xs){// not selfmodifying
-		return this.filter(x=>!xs.has(x))
+	without(...xs) {// not selfmodifying
+		return this.filter(x => !xs.has(x))
 	},
 	intersection(xs) {
 		return this.filter(y => !xs.has(y))
@@ -365,7 +373,7 @@ Array_Extensions = {
 	}, // push,
 	merge(xs) {
 		trace('merge is selfmodifying (unlike concat)');
-		for(let x of xs) this.push(x)
+		for (let x of xs) this.push(x)
 		return this
 	}, // [1]+[2] '12' WTF!!!
 	// DONT USE join!! danger ~ like python!! [1,2,3].join('0') == 10203 !!!
@@ -373,9 +381,9 @@ Array_Extensions = {
 	strip() {
 		return this.filter(x => x.length > 0)
 	},
-	sub(x, y=0) {
+	sub(x, y = 0) {
 		echo('use slice');
-		return y?this.slice(x, y):this.slice(x)
+		return y ? this.slice(x, y) : this.slice(x)
 	}, // substring  cannot handle negative values!!
 	values(x) {
 		return this
@@ -385,6 +393,14 @@ Array_Extensions = {
 	},
 	each(x) {
 		return this.forEach(x)
+	},
+	collect(fun) {
+		console.log("USE map(transform) or filter(select)")
+		return this.map(fun)
+	},
+	select(fun) {
+		console.log("USE map(transform) or filter(select)")
+		return this.filter(fun)
 	},
 	deduplicate() {
 		return this.filter((item, pos) => this.indexOf(item) == pos)
@@ -435,10 +451,10 @@ String_Extensions = { // StringExtensions
 	at(i) {
 		return unicode(this.codePointAt(i))
 	},
-	join(xs){// python style
-		if(is_string(xs)) return this+xs
-		if(is_array(xs)) return xs.join(this)
-		this+xs
+	join(xs) {// python style
+		if (is_string(xs)) return this + xs
+		if (is_array(xs)) return xs.join(this)
+		this + xs
 	},
 	capitalizeFirstLetter() {
 		return this.charAt(0).toUpperCase() + this.slice(1);
@@ -455,8 +471,8 @@ String_Extensions = { // StringExtensions
 	endswith(x) {
 		return this.match(x + "$")
 	},
-	format(a="", b="", c="", d="", e="", f="", g="") {
-		return util.format(this+"", a, b, c, d, e, f, g).strip()// Todo WHY +"" NECCESSARY????
+	format(a = "", b = "", c = "", d = "", e = "", f = "", g = "") {
+		return util.format(this + "", a, b, c, d, e, f, g).strip()// Todo WHY +"" NECCESSARY????
 	},
 	grep(x) {
 		return this.split("\n").grep(x)
@@ -471,16 +487,16 @@ String_Extensions = { // StringExtensions
 		return len(this.replace(/[^a-zA-Z]/g, "")) > 0
 	},
 	in(xs) {
-			if(!xs || empty(xs))return false
-			if(is_array(xs))return xs.includes(this+"")
-			if(xs.indexOf)return xs.indexOf(this+"") >=0
-			if(this in xs)return true
-			if(this+"" in xs){
-				if(!this in xs)
-					console.log("TODO WTF WHY +\"\" NECCESSARY????")
-				return true
-			}
-			return false
+		if (!xs || empty(xs)) return false
+		if (is_array(xs)) return xs.includes(this + "")
+		if (xs.indexOf) return xs.indexOf(this + "") >= 0
+		if (this in xs) return true
+		if (this + "" in xs) {
+			if (!this in xs)
+				console.log("TODO WTF WHY +\"\" NECCESSARY????")
+			return true
+		}
+		return false
 	},
 	next() {
 		todo("next")
@@ -495,6 +511,9 @@ String_Extensions = { // StringExtensions
 	lines() {
 		return this.split("\n")
 	},
+	map(fun) {
+		return Array.from(this).map(fun).join("")
+	}, // unicode OK
 	// first(){return this.split("\n ")[0]},
 	contains(x) {
 		return this.match(x)
@@ -572,10 +591,10 @@ Reflect_Extensions = { //_Extensions
 
 var all = all_extensions = function () { // needs to be assigned per context !?
 	// Object.assign DOES NOT assign PROPERTIES (getters / setters ) !
-	Object.assign(Object.prototype, Object_Extensions) // merge into!
-	Object.assign(Array.prototype, Array_Extensions)
+	Object.assign(Array.prototype, Array_Extensions) // join / merge into!
 	Object.assign(Function.prototype, Function_Extensions)
 	Object.assign(Buffer.prototype, Buffer_Extensions)
+	// Object.assign(Object.prototype, Object_Extensions) DONT USE!
 	try {
 		Object.assign(String.prototype, String_Extensions)
 	} catch (exc) {
@@ -659,9 +678,9 @@ var all = all_extensions = function () { // needs to be assigned per context !?
 	//     set(x){p("NOOO use typeof "+x)},
 	//     configurable:true
 	//    });
-	if(!extensions_version.match("!"))
+	if (!extensions_version.match("!"))
 	// console.info(`extensions ${extensions_version} loaded\n`)
-	extensions_version+="!"
+		extensions_version += "!"
 	return this
 }
 try {
@@ -671,8 +690,8 @@ try {
 }
 
 function loadScript(url, callback) {
-	var head = document.getElementsByTagName('head')[0];
-	var script = document.createElement('script');
+	const head = document.getElementsByTagName('head')[0];
+	const script = document.createElement('script');
 	script.type = 'text/javascript';
 	script.src = url;
 	script.onreadystatechange = callback;
@@ -714,16 +733,16 @@ ForwardingHandler.prototype = {
 		return delete this.target[name];
 	},
 	enumerate: function () {
-		var props = [];
-		for(let name in this.target) {
+		const props = [];
+		for (let name in this.target) {
 			props.push(name);
 		}
 		;
 		return props;
 	},
 	iterate: function () {
-		var props = this.enumerate(),
-			i = 0;
+		const props = this.enumerate();
+		let i = 0;
 		return {
 			next: function () { // nice, on the fly objects!!
 				if (i === props.length) throw StopIteration;
@@ -738,66 +757,71 @@ ForwardingHandler.prototype = {
 // Proxy.wrap = (obj) => Proxy.create(new ForwardingHandler(obj),Object.getPrototypeOf(obj));
 // x
 
-try {
-	sleeps = require('sleep').sleep // Seconds; blocking, there is no way around this !! setTimeout just ADDS to cycles!
-	sleep = x => require('sleep').usleep(x * 1000) //  ms blocking there is no way around this !! setTimeout just ADDS to cycles!
-} catch (ex) {
+
+getIp = function getIp() {
+	const interfaces = require('os').networkInterfaces();
+	for (let k in interfaces)
+		for (let k2 in interfaces[k]) {
+			const address = interfaces[k][k2];
+			if (address.family === 'IPv4' && !address.internal)
+				return (address.address);
+		}
 }
 
-try {
-	// SERVER STUFF, NOT BROWSER STUFF
 
-	getIp = function getIp() {
-		var interfaces = require('os').networkInterfaces();
-		for(var k in interfaces)
-			for(let k2 in interfaces[k]) {
-				var address = interfaces[k][k2];
-				if (address.family === 'IPv4' && !address.internal)
-					return (address.address);
-			}
-	}
-
-	curl = require('request');
-	spawn = require('child_process').spawn;
-	runAsync = execAsync = x => require('child_process').exec(x) && "OK" // suppress stupid return object
-	runSync = execSync = run = exec = sys = system = x => require('child_process').execSync(x).toString() // raw output
-	run = exec = sys = system = x => require('child_process').execSync(x).toString().split('\n')
-	// execSync=require('execSync')
-	// conflict sys{ ls: [Function],
-	// print=process.stdout.write
-	fs = require("fs")
-	o = open = x => execAsync('open ' + (x || '')) // danger: read!!
-	my = path => path.replace("~", "/Users/me")
-	r = read = load = path => fs.readFileSync(my(path)).toString()
-	w = wb = write = save = dump = (file, data) => fs.writeFileSync(file, new Buffer(data))
-	json5 = parse_json5 = (js5) => JSON5.parse(js5);
-	load_json5 = read_json5 = (file) => JSON5.parse(read(file));
-	dump_json5 = write_json5 = save_json5 = (file, obj) => save(file, JSON5.stringify(obj));
-	ap = append = (file, text) => fs.appendFileSync(file, text + "\n") // , err=>{p(err)}
-	rl = read_lines = readlines = read_list = cat = loads = read_array = lines = function (path) {
-		return fs.readFileSync(my(path)).toString().split('\n')
-	}
-	rb = read_buffer = read_binary = load_binary = open_rb = path => fs.readFileSync(my(path))
-	read_csv = load_csv = (x, sep = ',') => read_lines(x).map(x => x.split(sep))
-	read_tsv = load_csv = x => read_lines(x).map(x => x.split("\t"))
-
-} catch (ex) {
-	console.log(ex); // ex
-	console.log("file system extensions only supported on client");
-	r = extension;
-	rr = reload = () => {
-		location.reload();
-		extension()
+if (typeof(window) == 'undefined') {
+	try {
+		window = self = global // = this IN NODE.JS!
+		window.WebSocket = require('websocket').w3cwebsocket
+		// SERVER STUFF, NOT BROWSER STUFF
+		curl = require('request');
+		spawn = require('child_process').spawn;
+		runAsync = execAsync = x => require('child_process').exec(x) && "OK" // suppress stupid return object
+		runSync = execSync = run = exec = sys = system = x => require('child_process').execSync(x).toString() // raw output
+		run = exec = sys = system = x => require('child_process').execSync(x).toString().split('\n')
+		// execSync=require('execSync')
+		// conflict sys{ ls: [Function],
+		// print=process.stdout.write
+		fs = require("fs")
+		o = open = x => execAsync('open ' + (x || '')) // danger: read!!
+		my = path => path.replace("~", "/Users/me")
+		r = read = load = path => fs.readFileSync(my(path)).toString()
+		w = wb = write = save = dump = (file, data) => fs.writeFileSync(file, new Buffer(data))
+		json5 = parse_json5 = (js5) => JSON5.parse(js5);
+		load_json5 = read_json5 = (file) => JSON5.parse(read(file));
+		dump_json5 = write_json5 = save_json5 = (file, obj) => save(file, JSON5.stringify(obj));
+		ap = append = (file, text) => fs.appendFileSync(file, text + "\n") // , err=>{p(err)}
+		rl = read_lines = readlines = read_list = cat = loads = read_array = lines = function (path) {
+			return fs.readFileSync(my(path)).toString().split('\n')
+		}
+		rb = read_buffer = read_binary = load_binary = open_rb = path => fs.readFileSync(my(path))
+		read_csv = load_csv = (x, sep = ',') => read_lines(x).map(x => x.split(sep))
+		read_tsv = load_csv = x => read_lines(x).map(x => x.split("\t"))
+		try {
+			sleeps = require('sleep').sleep // Seconds; blocking, there is no way around this !! setTimeout just ADDS to cycles!
+			sleep = x => require('sleep').usleep(x * 1000) //  ms blocking there is no way around this !! setTimeout just ADDS to cycles!
+		} catch (ex) {
+			console.log('npm install sleep')
+		}
+	} catch (ex) {
+		console.log(ex); // ex
+		console.log("file system extensions only supported on client");
+		r = extension;
+		rr = reload = () => {
+			location.reload();
+			extension()
+		}
 	}
 }
 
-range = function* (start = 0, end, step = 1) {
+// optimised for long iterations but ranger(1,30)[10] NOT OK
+ranger = function* (start = 0, end, step = 1) {
 	if (!end) {
 		end = start;
 		start = 0;
 	}
 	if (end < start) step = -Math.abs(step)
-	for(let i = start; i < end; i += step) yield i;
+	for (let i = start; i < end; i += step) yield i;
 }
 next = gen => gen.next().value
 
@@ -805,8 +829,7 @@ function yield(gen) {
 	return gen.next().value
 }
 
-// range=(start, stop, step=1)=>{
-function range2(start, stop, step = 1) {
+range = (start, stop, step = 1) => {
 	if (!stop) {
 		stop = start;
 		start = 0
@@ -823,11 +846,15 @@ function range2(start, stop, step = 1) {
 // };
 
 downloadFile = (url, dest) => {
-	var http = require('http');
-	var fs = require('fs');
-	var file = fs.createWriteStream(dest);
-	var request = http.get(url, response => response.pipe(file));
+	const http = require('http');
+	const fs = require('fs');
+	const file = fs.createWriteStream(dest);
+	const request = http.get(url, response => response.pipe(file));
 }
+
+
+// let response = await fetch(url).text()
+
 
 if (typeof(fetch) == 'undefined') {
 	fetch = require('node-fetch')
@@ -889,7 +916,7 @@ mail_me = (subject, txt) => run(`echo "${txt}" | mail -s '${subject}' info@panno
 
 // Convert a hex string to a byte array
 hexToBytes = (hex) => {
-	for(let bytes = [], c = 0; c < hex.length; c += 2) {
+	for (let bytes = [], c = 0; c < hex.length; c += 2) {
 		if (c == 0 && hex[1] == 'x') continue
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	}
@@ -898,7 +925,7 @@ hexToBytes = (hex) => {
 
 // Convert a byte array to a hex string
 bytesToHex = (bytes) => {
-	for(let hex = [], i = 0; i < bytes.length; i++) {
+	for (let hex = [], i = 0; i < bytes.length; i++) {
 		hex.push((bytes[i] >>> 4).toString(16));
 		hex.push((bytes[i] & 0xF).toString(16));
 	}
@@ -923,7 +950,7 @@ is_string = (s) => s && s.constructor == String
 is_int = parseInt
 
 globalize = clazz => {
-	for(let k of keys(clazz)) global[k] = clazz[k]
+	for (let k of keys(clazz)) global[k] = clazz[k]
 }
 is_empty = object => !Object.keys(object).length || len(object) == 0
 
@@ -939,8 +966,8 @@ wat = `(module
 )`
 
 wasm = async (_wasm, imports = {}) => {
-	var memory = new WebAssembly.Memory({initial: 16384, maximum: 65536}); //  Property value 100000000 is above the upper bound wtf
-	var table = new WebAssembly.Table({initial: 2, element: "anyfunc"})
+	const memory = new WebAssembly.Memory({initial: 16384, maximum: 65536}); //  Property value 100000000 is above the upper bound wtf
+	const table = new WebAssembly.Table({initial: 2, element: "anyfunc"});
 	// if (imports == {} ) // if(imports.length==0)
 	if (!Object.keys(imports).length) imports = {
 		util: {
@@ -960,7 +987,7 @@ wasm = async (_wasm, imports = {}) => {
 	instance = await WebAssembly.instantiate(module, imports)
 	global.instance = instance
 	// for([k,v] of instance.exports){console.log(k)}// TypeError: undefined is not a function WTF!?!
-	for(let k of keys(instance.exports)) {
+	for (let k of keys(instance.exports)) {
 		if (k == '__post_instantiate') continue
 		if (k == 'runPostSets') continue
 		console.log(k)
@@ -982,7 +1009,7 @@ function wast(input) {
 	Binaryen = require('binaryen.js')
 	module = new Binaryen.Module(input)
 
-	var parser = require('wast-parser'); // NON-OFFICIAL TOY!
+	const parser = require('wast-parser'); // NON-OFFICIAL TOY!
 	let ast = parser.parse(input)
 
 	wasm_buffer = Binaryen.compileWast(wast)
@@ -993,8 +1020,8 @@ function wast(input) {
 
 //or just  import add from 'add.wasm' !!! +++
 printBytesHex = printHexes = buffer => {
-	let s=""
-	for(let b of buffer) s += "0x" + b.toString(16) + ", "
+	let s = ""
+	for (let b of buffer) s += "0x" + b.toString(16) + ", "
 	console.log(s)
 }
 
@@ -1042,52 +1069,57 @@ cl = console.log
 
 
 function simulate_keypress(char, keyCode = 0, ctrl = 0, alt = 0, shift = 0, bubbles = 1, cancelable = 1) {
-	var keyboardEvent = document.createEvent("KeyboardEvent");
-	var initMethod = keyboardEvent.initKeyboardEvent ? "initKeyboardEvent" : "initKeyEvent";
+	const keyboardEvent = document.createEvent("KeyboardEvent");
+	const initMethod = keyboardEvent.initKeyboardEvent ? "initKeyboardEvent" : "initKeyEvent";
 	keyboardEvent[initMethod]("keypress", true, true, window, ctrl, alt, shift, ctrl, keyCode, char);
 	return document.dispatchEvent(keyboardEvent);
 }
 
 function readCallerLine() {
-	var err;
+	let err;
 	try {
 		throw Error('')
 	} catch (err0) {
 		err = err0
 	}
-	var caller_line = err.stack.split("\n")[3];
+	const caller_line = err.stack.split("\n")[3];
 	if (caller_line.match(/repl/)) return ""
-	var index = caller_line.indexOf("(") || caller_line.indexOf("at ");
-	var to = caller_line.indexOf(")") || caller_line.length
-	var clean = caller_line.slice(index + 1, to);
+	const index = caller_line.indexOf("(") || caller_line.indexOf("at ");
+	const to = caller_line.indexOf(")") || caller_line.length;
+	const clean = caller_line.slice(index + 1, to);
 	var [file, line, col] = clean.split(":")
-	var text = read_lines(file)[line - 1]
+	const text = read_lines(file)[line - 1];
 	return text
 }
 
 function getCallerLine() {
-	var err;
+	let err;
 	try {
 		throw Error('')
 	} catch (err0) {
 		err = err0
 	}
-	var caller_line = err.stack.split("\n")[3];
-	var index = caller_line.indexOf("at ");
-	var clean = caller_line.slice(index + 2, caller_line.length);
+	const caller_line = err.stack.split("\n")[3];
+	const index = caller_line.indexOf("at ");
+	const clean = caller_line.slice(index + 2, caller_line.length);
 	return clean
 }
+
 assert_that = function (prog) {
 	assert(parse(prog))
 }
 assert_equals = function assert_equals(left, right) {
+	if (!left && !right) return true
 	// if(left instanceof Interpretation)left=left.result
 	// if(right instanceof Interpretation)right=right.result
-	left=left.result||left
-	right=right.result||right
-	left=left.value||left
-	right=right.value||right
-
+	if (left) {
+		left = left.result || left
+		left = left.value || left
+	}
+	if (right) {
+		right = right.result || right
+		right = right.value || right
+	}
 	if (left != right) {
 		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left}!=${right}`
 		throw (typeof Error !== "undefined") ? new Error(message) : message;
@@ -1098,7 +1130,7 @@ assert_equals = function assert_equals(left, right) {
 assert = function assert(condition, message) {
 	// err.stack
 	if (!condition) {
-		message = "Assertion failed " + (message || readCallerLine());
+		message = "Assertion failed: " + (message || readCallerLine());
 		throw (typeof Error !== "undefined") ? new Error(message) : message;
 	}
 	else return true
@@ -1112,7 +1144,7 @@ assert = function assert(condition, message) {
 
 
 function rgb(r, g, b, a = 1) { // what the actual fuck, es6 !
-                               // return "rgb("+r+","+g+","+b+")";
+	// return "rgb("+r+","+g+","+b+")";
 	return "rgba(" + r + "," + g + "," + b + "," + a + ")";
 }
 
@@ -1165,7 +1197,7 @@ try {
 // }catch(ex){console.log(ex)}
 
 imageToDataUri = function (image) {
-	var canvas
+	let canvas;
 	try {
 		canvas = document.createElement('canvas');
 	} catch (ex) {
@@ -1216,7 +1248,7 @@ function $1(selector, context) {
 // }
 
 function beep() {
-	var player = require('play-sound')(/*opts =*/ {})
+	const player = require('play-sound')(/*opts =*/ {});
 	player.play('/data/bell.wav')
 }
 
@@ -1231,11 +1263,22 @@ mkdir = path => {
 	} catch (ex) {
 	}
 }
-module.exports.puts=puts
+module.exports.puts = puts
 
 is_type = x => x instanceof Function && x.constructor && true
-proto=x=>Object.getPrototypeOf(x)
+proto = x => Object.getPrototypeOf(x)
 // proto2=x=>x.prototype
-todo=x=>console.log("TODO",x)
-warn=x=>console.log(x)
-debug=x=>console.log(x)
+todo = x => console.log("TODO", x)
+warn = x => console.log(x)
+debug = x => console.log(x)
+
+
+// return new Promise((ok,no)=>no)// NOT A CALL!
+// return new Promise((ok,no)=>no())
+// test_promise_rejector=new Promise((ok,no)=>ok())
+// return new Promise((ok,no)=>setTimeout(ok,1000))
+
+var wait = ms => new Promise((r, j) => setTimeout(r, ms))
+// sleep in async functions
+// await wait(2000)
+keys = Object.keys

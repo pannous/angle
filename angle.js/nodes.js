@@ -166,7 +166,7 @@ class FunctionCall extends ast.Assign {
         if ((this.arguments === null)) {
             this.arguments = [];
         } else {
-            if ((! ((this.arguments instanceof list) || (this.arguments instanceof dict)))) {
+            if ((! ((this.arguments instanceof Array) || (this.arguments instanceof Object /*todo*/)))) {
                 this.arguments = [this.arguments];
             }
         }
@@ -340,7 +340,7 @@ class Pointer {
         return this.content_between(start, this);
     }
     __gt__(x) {
-        if ((x instanceof list)) {
+        if ((x instanceof Array)) {
             return true;
         }
         return ((this.line_number >= x.line_number) && (this.offset > x.offset()));

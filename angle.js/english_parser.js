@@ -229,10 +229,8 @@ function spo() {
 function postjective() {
 	let current_value, match, pr;
 	match = the.string.match(/^\s*(\w+)ed/);
-	if (!match) {
-		return false;
-	}
-	the.string = the.string.slice(match.end());
+	if (!match) return false;
+	the.string = match[1]
 	pr = (!checkEndOfLine() && maybe_tokens(prepositions));
 	if (pr && (!checkEndOfLine())) {
 		maybe(endNode);

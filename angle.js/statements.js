@@ -1,7 +1,7 @@
 // "use strict"
 let {nth_item} = require("./expressions")
 
-let {property} = require("./expressions")
+let {property,evaluate_property} = require("./expressions")
 
 let {method_call} = require("./actions")
 
@@ -15,6 +15,7 @@ let {
 	look_1_ahead,
 	maybe,
 	maybe_indent,
+	method_allowed,
 	must_not_start_with,
 	must_contain_before_,
 	must_contain_before,
@@ -25,6 +26,7 @@ let {
 	next_token,
 	no_rollback,
 	one_or_more,
+	pointer_string,
 	skip_comments,
 	starts_with,
 	tokens,
@@ -70,7 +72,7 @@ statement =function statement (doraise = true) {
 		maybe(action) ||
 		maybe(returns) ||
 		maybe(expression) ||
-		raise_not_matching("Not a statement %s".format(pointer_string()));
+		raise_not_matching("Not a statement: %s".format(pointer_string()));
 	context.in_condition = false;
 	the.result = x;
 	the.last_result = x;
@@ -78,6 +80,7 @@ statement =function statement (doraise = true) {
 	adjust_interpret();
 	return the.result;
 }
+
 
 quick_expression=function quick_expression() {
 	let fun, result, z;
@@ -499,7 +502,7 @@ function method_definition(name = null, return_type = null) {
 	look_1_ahead("return", "Return statement out of method {block}, are you missing curlies?", {
 		must_not_be: true
 	});
-	if (!(b instanceof list)) {
+	if (!(b instanceof Array)) {
 		b = [b];
 	}
 	if (!((b.slice((-1)[0] instanceof ast.Print) || (b.slice(-1)[0] instanceof ast.Return)))) {
@@ -618,7 +621,7 @@ function if_then() {
 				orelse: []
 			});
 		} else {
-			if (!(b instanceof list)) {
+			if (!(b instanceof Array)) {
 				b = [b];
 			}
 			if (!((b.slice((-1)[0] instanceof ast.Expr) || (b.slice(-1)[0] instanceof ast.Return)))) {

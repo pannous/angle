@@ -64,9 +64,9 @@ ALPHA, partly usable, some [tests](tests) not yet passing:
 ⏳ In progress
 --------------
 
-`add one to every odd number in 1,2,3 == 2,2,4`
+<!-- `add one to every odd number in 1,2,3 == 2,2,4` -->
 
-The implicit list filter '**that**' applies a selection criterion to all elements. 
+Angles implicit list filter '**that**' applies a selection criterion to all elements:
 
 `delete all files in my home folder that end with 'bak'` 
 
