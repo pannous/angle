@@ -33,7 +33,7 @@ let {
 }=require('./power_parser')
 let {action,do_evaluate}= require('./actions')
 let {Variable, Argument} = require('./nodes')
-let {expression,algebra}= require('./expressions')
+let {expression,algebra,liste}= require('./expressions')
 let {articles}=require('./angle_parser')
 let {loops} = require('./loops')
 let {
@@ -51,7 +51,8 @@ let {
 	variable,
 } = require('./values')
 
-statement =function statement (doraise = true) {
+statement =
+function statement (doraise = true) {
 	let x;
 	if (starts_with(done_words) || checkNewline())
 		return !doraise || raise_not_matching("end of block ok")
@@ -101,7 +102,7 @@ quick_expression=function quick_expression() {
 		result = nth_item()
 	} else if (the.current_type === _token.NUMBER) {
 		result = number();
-		if (maybe_tokens(["rd", "nd", "th"])) result = nth_item(result);
+		if (maybe_tokens(["st","nd", "rd", "th", "nth"])) result = nth_item(result);
 	} else if (the.current_word.startsWith("r'")) {
 		result = regexp(the.current_word);
 		next_token(false);
@@ -147,10 +148,7 @@ post_operations=function post_operations(result) {
 		return method_call(result);
 	}
 	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
-		return liste({
-			check: false,
-			first: result
-		});
+		return liste(/*check:*/ false, /*first: */result);
 	}
 	if (the.current_word.in(self_modifying_operators)) {
 		return self_modify(result);
@@ -166,7 +164,8 @@ post_operations=function post_operations(result) {
 			if (result instanceof Variable) {
 				return setter(result);
 			} else
-				return algebra(result)
+				return comparative(result)
+			// return algebra(result)
 		} else {
 			if (the.current_word === "are") {
 				return false;
@@ -663,5 +662,5 @@ modul.exports = {
 	returns,
 	setter,
 	quick_expression,
-	statement
+	// statement
 }

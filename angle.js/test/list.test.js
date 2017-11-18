@@ -1,4 +1,7 @@
+let context= require("../context")
 context.use_tree = false;
+require("../statements")
+let {assert_result_is,assert_has_error,assert_that,parser,init} = require("./angle_base_test")
 
 class ListTest extends (ParserBaseTest) {
 	setUp(){
@@ -17,7 +20,7 @@ class ListTest extends (ParserBaseTest) {
 		assert_equals(parse(`third element in x`), 3);
 	}
 	test_lists(){
-		x = parse(`1 , 2 , 3`);
+		let x = parse(`1 , 2 , 3`);
 		assert_equals(x, [1, 2, 3]);
 		x = parse(`1,2,3`);
 		assert_equals(x, [1, 2, 3]);
@@ -33,28 +36,28 @@ class ListTest extends (ParserBaseTest) {
 		assert_equals(x, [1, 2, 3]);
 	}
 	test_type0(){
+		let {liste}=require('../expressions')
 		init('1 , 2 , 3');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('1,2,3');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('[1,2,3]');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('{1,2,3}');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('1,2 and 3');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('[1,2 and 3]');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 		init('{1,2 and 3}');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(liste(), [1, 2, 3]);
 	}
 	test_list_methods(){
 		parse(`invert [1,2,3]`);
-		assert_equals(result(), [3, 2, 1]);
+		assert_equals(the.result, [3, 2, 1]);
 	}
-	test_error(){
-		assert_has_error(`first item in 'hi,'you' is 'hi'`);
-		assert_has_error(`first item in 'hi,'you' is 'hi'`);
+	why_test_error(){
+		// assert_has_error(`first int in 'hi,'you' is 'hi'`);
 	}
 	test_last(){
 		assert_that(`last item in 'hi','you' is equal to 'you'`);
@@ -101,29 +104,24 @@ class ListTest extends (ParserBaseTest) {
 	}
 	test_concatenation() {
 		parse(`x is 1,2,3;y=4,5,6`);
-		assert(equals([1, 2, 3], the.variableValues['x'],));
-		assert(equals(3, len(the.variableValues['y'],),));
-		init('x + y');
-		z = parser.algebra();
-		if (context.use_tree) {
-			z = parser.eval_ast(z);
-			assert_equals(len(z), 6);
-			z = parse(`x + y`);
-			assert_equals(len(z), 6);
-			assert_equals(len(result(),), 6);
-			z = parse(`x plus y`);
-			assert_equals(len(z), 6);
-		}
+		assert_equals([1, 2, 3], the.variableValues['x']);
+		assert_equals(3, len(the.variableValues['y']));
+		let z = parse(`x + y`);
+		assert_equals(len(z), 6);
+		assert_equals(z, [1,2,3,4,5,6]);
+		z = parse(`x plus y`);
+		assert_equals(len(z), 6);
+		assert_equals(z, [1,2,3,4,5,6]);
 	}
 	test_concatenation_plus(){
 		parse(`x is 1,2;y=3,4`);
-		z = parse(`x plus y`);
+		let z = parse(`x plus y`);
 		assert_equals(z, [1, 2, 3, 4]);
 	}
 	test_concatenation2(){
 		parse(`x is 1,2,3;y=4,5,6`);
 		parse(`x + y`);
-		assert (equals(6, len(result(), )));
+		assert_equals(6, len(the.result));
 		parse(`z is x + y`);
 		assert_equals(the.variables['z'], [1, 2, 3, 4, 5, 6]);
 	}
@@ -149,17 +147,17 @@ class ListTest extends (ParserBaseTest) {
 	test_type1(){
 		init('class of 1,2,3');
 		parser.evaluate_property();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 		init('class of [1,2,3]');
 		parser.expression();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 		skip();
 		parse(`class of 1,2,3`);
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 	test_type2(){
 		parse(`x=1,2,3;class of x`);
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 	test_type(){
 		setUp();
@@ -256,10 +254,11 @@ class ListTest extends (ParserBaseTest) {
 	}
 	test_hasht(){
 		init('{1,2,3}');
-		assert_equals(parser.liste(), [1, 2, 3]);
+		assert_equals(parser.list(), [1, 2, 3]);
 		init('{a:1,b:2,c:3}');
 		assert_equals(parser.hash_map(), {'b': 2, 'a': 1, 'c': 3, });
 
 	}
 }
-register(ListTest, module)
+// register(ListTest, module)
+module.exports.test_current=new ListTest().test_list_syntax2

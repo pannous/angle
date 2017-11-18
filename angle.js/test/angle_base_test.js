@@ -1,8 +1,8 @@
 // require('./angle_base_test') // include in test files
 // parser=
 // let {parse}=
-let {setVerbose} = require('../angle_parser')
-let parser= require('../angle_parser')
+let {setVerbose,clear} = require('../angle_parser')
+let parser = require('../angle_parser')
 // console.log(parser) // setVerbose,
 // parser.dont_interpret=()=>dont_interpret() // why??
 // parser.clear=()=>clear() // why??
@@ -43,8 +43,9 @@ assert_has_no_error = (prog) => {
 	x = parse(prog)
 	console.log(x)
 }
+
 // module.exports.assert_has_error =
-function assert_has_error(prog, type = ""){
+function assert_has_error(prog, type = "") {
 	try {
 		parse(prog)
 	} catch (ex) {
@@ -55,8 +56,18 @@ function assert_has_error(prog, type = ""){
 }
 
 
-function assert_that(x) {
-	assert(parse(x))
+function assert_that(condition, message) {
+	var ok=0
+	try{
+		ok=parse(condition)
+	}catch(ex){
+		console.error(trimStack(ex,2))
+	}
+	if (!ok) {
+		message = "Assertion failed: " + (message || readCallerLine());
+		throw trimStack(new Error(message));
+	}
+	else return true
 }
 
 // function assert_equals(result,val) {
@@ -65,7 +76,7 @@ function assert_that(x) {
 // }
 
 // module.exports.assert_result_is =
-function assert_result_is(prog, val){
+function assert_result_is(prog, val) {
 	let interpretation = parse(prog);
 	let result = interpretation.result
 	assert(result == val, prog + " == " + val)
@@ -102,23 +113,28 @@ module.exports.register = register = function (instance, modul) {
 			if (test.match(/^skip_/)) continue
 			if (test.match(/^no_/)) continue
 			if (test.match(/^dont/)) continue
+			clear();
+			// parser.clear();
 			instance[test]()
 			modulus.exports[test] = ok => {
 				try {
 					// parser.clear()
 					instance[test](ok);
+					ok.done()
 				} catch (ex) {
-					console.error(""+instance[test]+" THREW")
+					trimStack(ex)
+					console.error("" + instance[test] + " THREW")
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
 					// console.error(ex)
 					// else throw ex
+					ok.done(ex)
 				}
 				finally {
 				}
-				ok.done()
 			}
 		} catch (ex) {
+			trimStack(ex)
 			console.error(ex)
 			// ok.done()
 			// if(ex instanceof NotMatching || ex==NotMatching)
@@ -136,4 +152,4 @@ function register_tests() {
 }
 
 setTimeout(() => register_tests(), 100)
-module.exports={assert_has_error,assert_that,assert_result_is,register}
+module.exports = {assert_has_error, assert_that, assert_result_is, register, parser, init: parser.init}

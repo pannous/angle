@@ -151,6 +151,10 @@ function verbose(info) {
 	context._verbose && console.log(info);
 }
 
+function trace(info) {
+	context.trace && console.log(info);
+}
+
 function debug(info) {
 	context._debug && console.log(info);
 }
@@ -278,6 +282,7 @@ function parse_tokens(s) {
 	_lines = s.split("\n");
 	i = (-1);
 	let tokenz = tokenizer().input(s)
+		.token(_token.BRACE, /\[/,token_helper)
 		.token(_token.BRACE, /\(/,token_helper)
 		.token(_token.NUMBER, /\d*\.\d+/u, token_helper)
 		.token(_token.NUMBER, /\d+/u, token_helper)
@@ -286,6 +291,7 @@ function parse_tokens(s) {
 		.token(_token.STRING, /`(.*?)`/u)
 		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
+		.token(_token.COMMA, /,/,token_helper)
 		.token(_token.NEWLINE, /:/)
 		.token(_token.NEWLINE, /;/)// end of statement/block
 		.token(_token.NEWLINE, /\n/, token_helper)
@@ -294,6 +300,7 @@ function parse_tokens(s) {
 		.token(_token.COMMENT, /<!--(.*)-->/u)
 		.token(_token.OPERATOR, /[=\+\-\*\/]/u, token_helper)
 		.token(_token.BRACER, /\)/,token_helper)
+		.token(_token.BRACER, /\]/,token_helper)
 		.walk(token_eater)
 	var tokens = tokenz.resolve()//.debug()
 	// .tokens('operators', math_operators)// logic_operators
@@ -437,7 +444,7 @@ function must_contain_before_({args, before}) {
 	return must_contain_before(args, before)
 }
 
-function must_contain_before(args, before) {
+function must_contain_before(args, before=[]) {
 	let good, old;
 	old = current_token;
 	good = null;
@@ -666,8 +673,51 @@ function done(_type = null) {
 }
 
 
+function argumentz() {
+	return star(param);
+}
+
+
+function action_or_expression(fallback = null) {
+	let {action}= require('./actions')
+	let {expression}=require('./expressions')
+	let ok = maybe(action);
+	if (ok) return ok;
+	return expression(fallback);
+}
+
+function expression_or_block() {
+	return action_or_block();
+}
+
+function action_or_block(started = false) {
+	let _start, ab;
+	_start = (maybe_tokens(start_block_words) || started);
+	if (_start) {
+		if (maybe_newline() || must_contain(done_words, false)) {
+			ab = block();
+		} else {
+			ab = action_or_expression();
+		}
+	} else {
+		if (maybe_newline()) {
+			ab = block();
+		} else {
+			maybe_indent();
+			ab = action_or_expression();
+		}
+	}
+	if ((_start === "then") && (the.current_word === "else")) {
+		return ab;
+	}
+	(maybe_newline() || end_block(_start));
+	return ab;
+}
+
+
 function block(multiple = false) {
-	// let {statement} = require('./statements')
+	// let {statement} =
+	require('./statements')
 	let end_of_block, start, statement0, statements;
 	maybe_newline() || !"=>".in(the.current_line) && maybe_tokens(start_block_words);
 	start = pointer();
@@ -740,9 +790,9 @@ function maybe(expr) {
 			throw new Error("BUG!? returned CALLABLE " + result.toString());
 		}
 		if (result || result === 0) { // || result==None  not:false!
-			verbose((("GOT result " + expr.name + " : ") + result.toString()));
+			trace((("GOT result " + expr.name + " : ") + result.toString()));
 		} else {
-			verbose("No result " + expr.name);
+			trace("No result " + expr.name);
 			set_token(old);
 		}
 		last_node = current_node;
@@ -778,8 +828,7 @@ function maybe(expr) {
 					verbose(e);
 					break;
 				default:
-					error(e);
-					throw e;
+					throw e
 			}
 	} finally {
 		// NotMatching
@@ -854,7 +903,7 @@ function interpretation() {
 	return i;
 };
 
-parse = function (s, target_file = null, clean = true) {
+parse = function (s, target_file = null, clean = false) {
 	if (clean) clear()
 	let got_ast, source_file;
 	if (!s) return;
@@ -921,9 +970,9 @@ parse = function (s, target_file = null, clean = true) {
 		}
 		the.last_result = the.result;
 	} catch (e) {
-		error(target_file);
-		print_pointer(true);
-		throw e;
+		print_pointer(true) // --
+		throw e // or show
+		// error(target_file);
 	}
 	verbose("PARSED SUCCESSFULLY!!");
 	verbose("RESULT = " + the.result);
@@ -936,7 +985,7 @@ function token(t, expected = "") {
 	}
 	raiseEnd();
 	if (current_word == t) {
-		next_token();
+		next_token(false);
 		return t;
 	} else {
 		throw new NotMatching(t) //(((expected + " ") + t) + "\n") + pointer_string());
@@ -1144,7 +1193,7 @@ function is_number(n) {
 function must_not_start_with(words, whitelist) {
 	let bad = starts_with(words);
 	if (!bad) return OK
-	if (bad.in(whitelist)) return OK
+	if (whitelist&&whitelist[bad]) return OK
 	if (bad) info("should_not_match DID match %s" % bad);
 	if (bad) throw new NotMatching("should_not_match DID match %s" % bad);
 }
@@ -1176,8 +1225,10 @@ maybe_token = function maybe_token(x) {
 }
 
 module.exports = {
+	action_or_block,
 	adjust_interpret,
 	block,
+	clear,
 	checkNewline,
 	checkEndOfLine,
 	raiseNewline,

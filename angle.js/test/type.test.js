@@ -23,51 +23,51 @@ class TypeTest extends (ParserBaseTest) {
 	test_class11() {
 		init('class of 1,2,3');
 		parser.evaluate_property();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 		init('class of [1,2,3]');
 		parser.expression();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_class1() {
 		// skip()
 		parse(`class of 1,2,3`)  // [<class 'int'>, 2, 3] SHOULD BE <class 'list'>  BUG
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_class22() {
 		parse(`x=1;class of x`);
-		assert_equals(result(), Number);
+		assert_equals(the.result, Number);
 	}
 
 	test_class2() {
 		parse(`x=1,2,3;class of x`);
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_type11() {
 		init('type of 1,2,3');
 		parser.evaluate_property();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 		init('type of [1,2,3]');
 		parser.expression();
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_type1() {
 		// skip()
 		parse(`type of 1,2,3`)  // [<type 'int'>, 2, 3] SHOULD BE <type 'list'>  BUG
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_type22() {
 		parse(`x=1;type of x`);
-		assert_equals(result(), Number);
+		assert_equals(the.result, Number);
 	}
 
 	test_type2() {
 		parse(`x=1,2,3;type of x`);
-		assert_equals(result(), list);
+		assert_equals(the.result, list);
 	}
 
 	test_type() {
@@ -114,7 +114,7 @@ class TypeTest extends (ParserBaseTest) {
 	test_type_cast() {
 		// assert_result_is('2.3', None)
 		parse(`int z=2.3 as int`);
-		assert_equals(result(), 2);
+		assert_equals(the.result, 2);
 	}
 
 	test_no_type_cast() {

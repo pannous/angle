@@ -46,6 +46,8 @@ function action() {
 }
 
 function true_method(obj = null) {
+	if (obj && obj[the.current_word] instanceof Function)
+		return [module, obj, the.current_word]
 	let {subProperty} = require('./expressions')
 	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
 	ex = english_operators;
@@ -465,8 +467,9 @@ function raise(err) {
 
 function bindMethod(method, obj) {
 	let owner = the.methodToModulesMap[method] || the.methodToModulesMap[method.name]
+	// if(obj instanceof owner)
 	owner = owner || obj && classOf(obj) || raise("CANT BIND " + method)
-	return method.bind(/* this = */ owner)// , curry args!
+	return method.bind(/* this = */ obj || owner)// , curry args!
 }
 
 function do_call(obj0, method0, args0 = [], method_name0 = 0) {
@@ -497,7 +500,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	args = align_args(args, obj, method);
 	number_of_arguments = has_args(method, obj, (!(!args)));
 	is_first_self = first_is_self(method);
-	bound=bindMethod(method, obj || args && args[0] || args)
+	bound = bindMethod(method, obj || args && args[0] || args)
 	// bound = is_bound(method);
 
 	if (method instanceof ast.FunctionDef) {
@@ -561,32 +564,38 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	return the.result;
 }
 
-function call_unbound(method, args, number_of_arguments) {
-	let arg0, bound_method, obj_type;
-	// if (args instanceof Object /*todo*/) {
-	// 		the.result = (method(...list(args.values())) || NILL);
-	// }
-	if ((args instanceof Array) || (args instanceof tuple)) {
-		if ((is_unbound(method) && (args.length === 1) && (number_of_arguments === 1))) {
-			// import * as types from 'types';
-			arg0 = args[0];
-			obj_type = type(arg0);
-			if (method.__self__.__class__.in(extensionMap.values())) {
-				the.result = (method(xx(arg0)) || NILL);
-			} else {
-				bound_method = new types.MethodType(method, obj_type, xx(args[0]));
-				the.result = bound_method(args.slice(1));
-			}
-		} else {
-			if ((is_bound(method) && (args.length >= 1) && (method.__self__ === args[0]))) {
-				args = args.slice(1);
-			}
-			the.result = (method(...args) || NILL);
+function is_unbound(method) {
+	//Both bound functions and arrow functions do not have a prototype property:
+	return !method.prototype
+}
+
+function is_bound(method) { // todo
+	return method.prototype
+}
+
+
+function call_unbound(method, args = [], number_of_arguments) {
+	if (empty(args))
+		return method()
+	if (args instanceof Array) {
+		if (is_unbound(method)) {
+			var [obj, ...args] = args
+			let clazz = type(obj);
+			if (has_instance_method(clazz, method))
+				return method.bind(obj)(args)
+			else if (has_class_method(clazz, method))
+				return method.bind(clazz)(args)
+			else
+				return method(...args)
+			// todo 'method missing'?
 		}
+		return method(...args)
 	} else {
-		the.result = (method(args) || NILL);
+		if (is_unbound(method))
+			return method.bind(args)()
+		else
+			return method(args)
 	}
-	return the.result;
 }
 
 function align_args(args, clazz, method) {
@@ -687,22 +696,23 @@ function align_function_args(args, clazz, method) {
 	return newArgs;
 }
 
-function findMethod(obj0, method0, args0 = null, bind = true) {
+function findMethod(obj, method0, args0 = null, bind = true) {
 	let method = method0;
 	if (method instanceof Function) return method;
 	if (method instanceof ast.FunctionDef) return method;
+	if (obj && obj[method] instanceof Function) return obj[method].bind(obj)
 	let _type, ex, function_;
-	if (!obj0 && (args0 instanceof Array) && args0.length === 1) {
-		obj0 = args0[0];
+	if (!obj && (args0 instanceof Array) && args0.length === 1) {
+		obj = args0[0];
 	}
-	if (obj0) _type = type(obj0);
-	if (obj0 instanceof Variable) {
-		_type = obj0.type;
-		obj0 = obj0.value;
+	if (obj) _type = type(obj);
+	if (obj instanceof Variable) {
+		_type = obj.type;
+		obj = obj.value;
 	}
-	if (obj0 instanceof Argument) {
-		_type = obj0.type;
-		obj0 = obj0.value;
+	if (obj instanceof Argument) {
+		_type = obj.type;
+		obj = obj.value;
 	}
 	if (args0 instanceof Argument) {
 		args0 = args0.value;
@@ -716,28 +726,28 @@ function findMethod(obj0, method0, args0 = null, bind = true) {
 	if (method.in(global)) {
 		return global[method];
 	}
-	if (method.in(dir(obj0))) {
-		return obj0[method];
+	if (method.in(dir(obj))) {
+		return obj[method];
 	}
 	if (_type && _type.in(context.extensionMap)) {
 		ex = context.extensionMap[_type];
 		if (method.in(dir(ex))) {
 			method = ex[method];
 			if (bind) {
-				method = method.__get__(obj0, ex);
+				method = method.__get__(obj, ex);
 			}
 			return method;
 		}
 	}
-	if ((obj0 instanceof type) && method.in(obj0.__dict__)) {
-		method = obj0.__dict__[method];
+	if ((obj instanceof type) && method.in(obj.__dict__)) {
+		method = obj.__dict__[method];
 		if (bind) {
-			method.__get__(null, obj0);
+			method.__get__(null, obj);
 		}
 		return method;
 	}
 	if (!(method instanceof Function) && (args0 instanceof Array) && args0.length > 0) {
-		function_ = findMethod((obj0 || args0[0]), method0, args0[0], {
+		function_ = findMethod((obj || args0[0]), method0, args0[0], {
 			bind: false
 		});
 		return function_;
@@ -882,10 +892,10 @@ function do_evaluate(x, _type = null) {
 		return do_evaluate(x[0]);
 	}
 	if (x instanceof Array) {
-		return Array(map(do_evaluate, x));
+		return x.map(do_evaluate);
 	}
 	if (is_string(x)) {
-		if (_type && (_type instanceof extensions.Numeric)) {
+		if (_type && (_type instanceof Number)) {
 			return float_(x);
 		}
 		if (x.in(the.variableValues)) {
@@ -894,7 +904,7 @@ function do_evaluate(x, _type = null) {
 		if (match_path(x)) {
 			return do_evaluate(x);
 		}
-		if (_type && (_type === float_)) {
+		if (_type && (_type === float)) {
 			return float_(x);
 		}
 		if (_type && (_type === Number)) {

@@ -8,7 +8,7 @@ let used_ast_operators
 
 the = require("./context");
 let parser=require("./power_parser")
-let {block,tokens} = require("./power_parser")
+let {block,do_interpret, init,tokens} = require("./power_parser")
 require("./english_tokens")
 require("./ast")
 require("./loops")
@@ -267,48 +267,6 @@ function applescript() {
 }
 
 
-function argumentz() {
-	return star(param);
-}
-
-
-
-
-
-
-function action_or_expression(fallback = null) {
-	let ok = maybe(action);
-	if (ok) return ok;
-	return expression(fallback);
-}
-
-function expression_or_block() {
-	return action_or_block();
-}
-
-function action_or_block(started = false) {
-	let _start, ab;
-	_start = (maybe_tokens(start_block_words) || started);
-	if (_start) {
-		if (maybe_newline() || must_contain(done_words, false)) {
-			ab = block();
-		} else {
-			ab = action_or_expression();
-		}
-	} else {
-		if (maybe_newline()) {
-			ab = block();
-		} else {
-			maybe_indent();
-			ab = action_or_expression();
-		}
-	}
-	if ((_start === "then") && (the.current_word === "else")) {
-		return ab;
-	}
-	(maybe_newline() || end_block(_start));
-	return ab;
-}
 
 function close_tag(type) {
 	_("</");
@@ -1008,7 +966,9 @@ context.starttokens_done = true;
 //// sourceMappingURL=js.map
 let setVerbose = (ok = 1) => context._verbose = ok;
 
+
 module.exports = {
+	init,
 	setVerbose,
 	clear:parser.clear,
 	main,

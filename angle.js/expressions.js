@@ -24,6 +24,7 @@ let {
 	skip_comments,
 	starts_with,
 	star,
+	token,
 	tokens,
 } = require('./power_parser')
 
@@ -55,7 +56,7 @@ let {
 	variable,
 	word
 } = require('./values')
-
+let _=token
 
 function expression(fallback = null, resolve = true) {
 	let ex;
@@ -145,7 +146,7 @@ function fold_algebra(stack) {
 		stack = stack.filter(x => x) // compress
 	}
 	if ((stack.length > 1) && (used_operators.length > 0)) {
-		throw new Error("NOT ALL OPERATORS CONSUMED IN %s ONLY %s".format(stack, used_operators));
+		throw new Error("Not all operators consumed in %s ,only %s".format(stack, used_operators));
 	}
 	return result//stack[0]
 }
@@ -250,7 +251,7 @@ var article = x => maybe_tokens(article_words)
 function endNode() {
 	let po, x;
 	raiseEnd();
-	x = maybe(liste) ||
+	x = !context.in_list&&maybe(liste) ||
 		maybe(fileName) ||
 		maybe(linuxPath) ||
 		maybe(quote) ||
@@ -346,7 +347,7 @@ function liste(check = true, first = null) {
 		must_not_contain(":");
 	}
 	if (check) {
-		must_contain_before(",", (be_words + operators) + ["of"]);
+		must_contain_before(",")//, (be_words.plus( operators) + ["of"]);
 	}
 	start_brace = maybe_tokens(["[", "{", "("]);
 	if ((!start_brace) && (context.in_list || in_args)) {
@@ -845,4 +846,4 @@ function linuxPath() {
 }
 
 
-module.exports = {expression, subProperty, property, algebra, evaluate_property, nth_item}
+module.exports = {expression, subProperty, property, algebra,liste, evaluate_property, nth_item}

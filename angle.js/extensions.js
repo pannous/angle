@@ -295,6 +295,9 @@ add = (x, y) => x + y
 
 // Object.assign DOES NOT assign PROPERTIES (getters / setters ) !
 Array_Extensions = {
+	equals( array ) {
+		return this.length == array.length && this.every((j,i)=>j== array[i]) // !!++
+	},
 	g(x) {
 		return this.filter(a => a == x || ("" + a).match(x))
 	},
@@ -343,6 +346,9 @@ Array_Extensions = {
 	}, // selfmodifying like delete array[index] (leaves holes)
 	minus(xs) {
 		return this.filter(y => !xs.has(y))
+	},
+	invert() {
+		return this.reverse()
 	},
 	without(...xs) {// not selfmodifying
 		return this.filter(x => !xs.has(x))
@@ -1075,7 +1081,7 @@ function simulate_keypress(char, keyCode = 0, ctrl = 0, alt = 0, shift = 0, bubb
 	return document.dispatchEvent(keyboardEvent);
 }
 
-function readCallerLine() {
+readCallerLine=function () {
 	let err;
 	try {
 		throw Error('')
@@ -1117,11 +1123,14 @@ assert_equals = function assert_equals(left, right) {
 		right = right.result || right
 		right = right.value || right
 	}
-	if (left != right) {
-		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left}!=${right}`
-		throw (typeof Error !== "undefined") ? new Error(message) : message;
+
+	let are_equal = left == right;
+	are_equal = right instanceof Array? left.equals(right) : are_equal
+	if (!are_equal) {
+		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left} != ${right}`
+		throw (typeof Error !== "undefined") ? trimStack(new Error(message),4) : message;
 	}
-	else return true
+	else return console.log("assert_equals OK")||true
 }
 
 assert = function assert(condition, message) {
@@ -1283,3 +1292,14 @@ var wait = ms => new Promise((r, j) => setTimeout(r, ms))
 // sleep in async functions
 // await wait(2000)
 keys = Object.keys
+
+
+trimStack=function (ex,more=0) {
+	let keep = true
+	let stack = ex.stack?ex.stack.split("\n"):(ex.message||"").split("\n")
+	ex.stack = stack.filter(x => {
+		if (x.match(trimStack.caller.name)||x.match("Module._compile")) keep = false
+		return keep||more-->0
+	}).join("\n")
+	return ex
+}
