@@ -164,8 +164,8 @@ post_operations=function post_operations(result) {
 			if (result instanceof Variable) {
 				return setter(result);
 			} else
-				return comparative(result)
-			// return algebra(result)
+				// return comparative(result)
+			return algebra(result)
 		} else {
 			if (the.current_word === "are") {
 				return false;

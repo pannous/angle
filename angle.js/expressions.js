@@ -340,27 +340,21 @@ function functionalselector() {
 
 function liste(check = true, first = null) {
 	let all, start_brace;
-	if ((!first) && (the.current_word === ",")) {
-		throw new NotMatching("liste");
-	}
-	if (context.in_hash) {
-		must_not_contain(":");
-	}
-	if (check) {
-		must_contain_before(",")//, (be_words.plus( operators) + ["of"]);
-	}
+	if ((!first) && (the.current_word === ","))
+		throw new NotMatching(liste)
+
+	if (context.in_hash) must_not_contain(":");
+	if (check) must_contain_before(",")
+
 	start_brace = maybe_tokens(["[", "{", "("]);
-	if ((!start_brace) && (context.in_list || in_args)) {
+	if ((!start_brace) && (context.in_list || in_args))
 		throw new NotMatching("not a deep list");
-	}
+
 	context.in_list = true;
+
 	first = (first || maybe(endNode));
-	if (!first) {
-		context.in_list = false;
-	}
-	if (!first) {
-		raise_not_matching();
-	}
+	if (!first) context.in_list = false;
+	if (!first) raise_not_matching();
 	if (first instanceof Array) {
 		all = first;
 	} else {
