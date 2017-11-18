@@ -24,7 +24,8 @@ var {
 	tokens,
 	verbose,
 } = require('./power_parser')
-let {variable, typeNameMapped} = require('./values')
+require('./ast')
+let {variable, typeNameMapped,word} = require('./values')
 let {verb, spo} = require('./english_parser')
 // todo : untangle ^^
 
@@ -75,20 +76,16 @@ function true_method(obj = null) {
 			name = findMethod(nil, variable.value);
 			if (!name) [obj, name] = subProperty(variable.value);
 		}
-	} else if (maybe_tokens(article_words)) {
-		obj = " ".join(one_or_more(word));
-		longName = ((name + " ") + obj);
-		if (longName.in(the.method_names)) {
-			name = longName;
-		}
-		if (obj.in(the.variables)) {
-			obj = the.variables[obj];
-		}
-	} else {
-		// todo("subProperty")
-		[obj, property] = maybe(_ => subProperty(obj))
-		name = (maybe_tokens(the.method_names) || maybe(verb));
+	}else if(obj && obj[the.current_word]){
+		name=the.current_word
+		next_token()
+		// 	todo("subProperty")
+
 	}
+	// } else if (maybe_tokens(article_words)) {
+	// 	name = " ".join(one_or_more(word));
+	// 	if (name.in(the.variables))
+	// 		obj = the.variables[name];
 	if (!name) name = tokens(the.method_names)
 	if (!name) throw new NotMatching("no method found");
 	return [xmodule, obj, name];
@@ -108,7 +105,7 @@ function has_args(method, clazz = object, assume = 0) {
 	method = findMethod(clazz, method);
 	let bound_to_this = method.toString().match(/this/) && 1 // TODO! toSource
 	if (method instanceof Function) return method.length + bound_to_this
-	if (method instanceof FunctionDef) return method.length
+	// if (method instanceof FunctionDef) return method.length
 	if (method.in(["increase", "++", "--"])) return 0;
 	try {
 		let alle, args, convention, defaults, doku, is_builtin, num, varargs, varkw;
@@ -729,7 +726,7 @@ function findMethod(obj, method0, args0 = null, bind = true) {
 	if (method.in(dir(obj))) {
 		return obj[method];
 	}
-	if (_type && _type.in(context.extensionMap)) {
+	if (_type && context.extensionMap[_type]) {
 		ex = context.extensionMap[_type];
 		if (method.in(dir(ex))) {
 			method = ex[method];
@@ -760,6 +757,13 @@ function do_math(a, op, b) {
 	b = do_evaluate(b) || 0;
 	if (a instanceof Variable) a = a.value;
 	if (b instanceof Variable) b = b.value;
+	if(a instanceof Array && op.in(be_words))
+		return a.equals(b)
+	if(a instanceof Array && op.in(['+','add','plus']))
+		return a.concat(b)
+	if(a instanceof Array && op.in(['-','\\','minus','subtract','without']))
+		return a.remove(b)
+	if (op === 'in') return b.contains(a)
 	if (op === '+') return a + b
 	if (op === 'plus') return a + b
 	if (op === 'add') return a + b

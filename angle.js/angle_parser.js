@@ -6,18 +6,17 @@ let result
 let used_operators
 let used_ast_operators
 
-the = require("./context");
 let parser=require("./power_parser")
 let {block,do_interpret, init,tokens} = require("./power_parser")
 require("./english_tokens")
 require("./ast")
 require("./loops")
+let {Variable, Argument} = require('./nodes')
 let extensions = require('./extensions')();
 let exceptions = require('./exceptionz');
-let context = require('./context.js');
+let context = require('./context');
 let nodes = require('./nodes')
-let {Variable, Argument} = require('./nodes')
-
+the = context
 // let Variable = nodes.Variable
 // let Argument = nodes.Argument
 
@@ -662,6 +661,7 @@ function condition_new() {
 	return c;
 }
 
+// for(q of quantifiers) the.token_map[q]=condition
 function condition() {
 	let brace, comp, cond, filter, left, negate, negated, quantifier, right, start, use_verb;
 	start = pointer();
@@ -973,8 +973,11 @@ module.exports = {
 	clear:parser.clear,
 	main,
 	rooty,
+
+	// TEST ONLY:
 	// interpretation,
 	articles,
 	gerund,
-	parser
+	parser,
+	condition
 }

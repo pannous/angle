@@ -707,9 +707,9 @@ function loadScript(url, callback) {
 
 // export const 
 sqrt = Math.sqrt;
-// export function square(x) {
-//     return x * x;
-// }
+function square(x) {
+    return x * x;
+}
 // export function diag(x, y) {
 //     return sqrt(square(x) + square(y));
 // }
@@ -1125,12 +1125,12 @@ assert_equals = function assert_equals(left, right) {
 	}
 
 	let are_equal = left == right;
-	are_equal = right instanceof Array? left.equals(right) : are_equal
+	are_equal = left instanceof Array? left.equals(right) : are_equal
 	if (!are_equal) {
 		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left} != ${right}`
 		throw (typeof Error !== "undefined") ? trimStack(new Error(message),4) : message;
 	}
-	else return console.log("assert_equals OK")||true
+	else return true // console.log("assert_equals OK")||
 }
 
 assert = function assert(condition, message) {

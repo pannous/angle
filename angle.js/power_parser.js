@@ -298,7 +298,7 @@ function parse_tokens(s) {
 		.token(_token.COMMENT, /\/\/.*/)
 		.token(_token.COMMENT, /\/\*(.*)\*\//u)
 		.token(_token.COMMENT, /<!--(.*)-->/u)
-		.token(_token.OPERATOR, /[=\+\-\*\/]/u, token_helper)
+		.token(_token.OPERATOR, /[=\+\-\*\^%\/]+/u, token_helper)
 		.token(_token.BRACER, /\)/,token_helper)
 		.token(_token.BRACER, /\]/,token_helper)
 		.walk(token_eater)
@@ -859,7 +859,7 @@ function pointer() {
 
 function clear() {
 	let variableValues, variables;
-	verbose("clear all variables, methods, ...");
+	trace("clear all variables, methods, ...");
 	variables = {};
 	variableValues = {};
 	context.testing = true;

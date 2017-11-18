@@ -83,127 +83,6 @@ function statement (doraise = true) {
 }
 
 
-quick_expression=function quick_expression() {
-	let fun, result, z;
-	result = false;
-	if (!the.current_word) throw new EndOfLine();
-	if (the.current_word === ";") throw new EndOfStatement();
-	if (the.current_word === ",") return liste(the.result);
-	if ((!context.in_params) && look_1_ahead(":")) return immediate_hash();
-	if (the.current_word === "{") {
-		if (look_1_ahead("}")) return empty_map();
-		if (contains("=>") || contains(":")) return hash_map();
-	}
-	if (look_1_ahead([".", "'s", "of"])) return (maybe(method_call) || property());
-	if (look_1_ahead("=")) if (!context.in_condition) return setter();
-	if (type_names.has(the.current_word) || the.current_word.in(the.classes)) return declaration();
-	if (the.current_word.in(all_operators) && the.current_word !== "~") return false;
-	if (the.current_word.in(number_selectors)){
-		result = nth_item()
-	} else if (the.current_type === _token.NUMBER) {
-		result = number();
-		if (maybe_tokens(["st","nd", "rd", "th", "nth"])) result = nth_item(result);
-	} else if (the.current_word.startsWith("r'")) {
-		result = regexp(the.current_word);
-		next_token(false);
-	} else if ((the.current_type === _token.STRING) || the.current_word.startsWith("'")) {
-		result = quote();
-	} else if (the.current_word.in(the.token_map)) {
-		fun = the.token_map[the.current_word];
-		debug("token_map: %s -> %s".format(the.current_word, fun.name));
-		result = fun();
-	} else if (the.current_word.in(the.method_token_map)) {
-		fun = the.method_token_map[the.current_word];
-		debug("method_token_map: %s -> %s".format(the.current_word, fun.name));
-		result = fun();
-	} else if (the.current_word.in(the.method_names)) {
-		if (method_allowed(the.current_word)) {
-			result = method_call();
-		}
-	} else if (the.current_word.in(the.params)) {
-		result = true_param();
-	} else if (the.current_word.in(the.variables)) {
-		result = known_variable();
-	} else if (the.current_word.in(type_names)) {
-		return (maybe(setter) || method_definition());
-	}
-	if (look_1_ahead("of")) result = evaluate_property(result);
-	if (!result) return false;
-	while (true) {
-		z = post_operations(result);
-		if (!z || z === result) break;
-		result = z;
-	}
-	return result;
-}
-
-post_operations=function post_operations(result) {
-	if (the.current_word === "") {
-		return result;
-	}
-	if (the.current_word === ";") {
-		return result;
-	}
-	if (the.current_word === ".") {
-		return method_call(result);
-	}
-	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
-		return liste(/*check:*/ false, /*first: */result);
-	}
-	if (the.current_word.in(self_modifying_operators)) {
-		return self_modify(result);
-	}
-	if ((the.current_word === "+") && look_1_ahead("+")) {
-		return plusPlus(result);
-	}
-	if ((the.current_word === "-") && look_1_ahead("-")) {
-		return minusMinus(result);
-	}
-	if (the.current_word.in(be_words)) {
-		if (!context.in_condition) {
-			if (result instanceof Variable) {
-				return setter(result);
-			} else
-				// return comparative(result)
-			return algebra(result)
-		} else {
-			if (the.current_word === "are") {
-				return false;
-			}
-		}
-	}
-	if (the.current_word === "|") {
-		return piped_actions(result || the.last_result);
-	}
-	if (the.current_word.in(operators)) {
-		return algebra(result);
-	}
-	if (the.current_word === "[") {
-		return evaluate_index(result);
-	}
-	if (the.current_word.in((operators + special_chars) + ["element", "item"])) {
-		return false;
-	}
-	if (result && (the.current_word === "to")) {
-		return ranger(result);
-	}
-	if (result && (the.current_word === "if")) {
-		return action_if(result);
-	}
-	if (the.current_line.endswith("times")) {
-		return action_n_times(result);
-	}
-	if (the.current_word.in(be_words)) {
-		return setter(result);
-	}
-	if (the.current_word === "if") {
-		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
-	}
-	if (the.current_word === "as") {
-		return maybe_cast(result);
-	}
-	return false;
-}
 
 function isType(x) {
 	return is_type(x) || type_names.has(x)
@@ -314,7 +193,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 	return var_;
 }
 
-
+setter=
 function setter(var_ = null) {
 	let _cast, _let, _type, guard, mod, setta, val;
 	must_contain_before_({

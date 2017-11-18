@@ -59,7 +59,7 @@ function assert_has_error(prog, type = "") {
 function assert_that(condition, message) {
 	var ok=0
 	try{
-		ok=parse(condition)
+		ok=parse(condition).result
 	}catch(ex){
 		console.error(trimStack(ex,2))
 	}
@@ -114,6 +114,8 @@ module.exports.register = register = function (instance, modul) {
 			if (test.match(/^no_/)) continue
 			if (test.match(/^dont/)) continue
 			clear();
+			console.log("++++++++++++++++++++++++++++++")
+			console.log(test)
 			// parser.clear();
 			instance[test]()
 			modulus.exports[test] = ok => {
@@ -152,4 +154,4 @@ function register_tests() {
 }
 
 setTimeout(() => register_tests(), 100)
-module.exports = {assert_has_error, assert_that, assert_result_is, register, parser, init: parser.init}
+module.exports = {assert_has_error, assert_that, assert_result_is, register, parser, init: parser.init,clear:parser.clear}

@@ -78,7 +78,8 @@ core_methods = ["show", "now", "yesterday", "help", "print"];
 methods = {
     "p": extensions.puts,
     "print": extensions.puts,
-    "length": len,
+	"length": len,
+	"square": x=>x*x,
     "size": len,
     "count": len,
     "beep": extensions.beep,

@@ -1,7 +1,7 @@
 let context= require("../context")
 context.use_tree = false;
 require("../statements")
-let {assert_result_is,assert_has_error,assert_that,parser,init} = require("./angle_base_test")
+let {assert_result_is,assert_has_error,assert_that,parser,init,clear} = require("./angle_base_test")
 
 class ListTest extends (ParserBaseTest) {
 	setUp(){
@@ -100,16 +100,16 @@ class ListTest extends (ParserBaseTest) {
 		assert_that(`1,2,3 is the same as [1,2,3]`);
 		assert_that(`1,2 and 3 is the same as [1,2,3]`);
 		assert_that(`1,2 and 3 are the same as [1,2,3]`);
-		assert_that(`1,2 and 3 is [1,2,3]`);
+		assert_that(`1,2 and 3 is [1,2,4]`);
 	}
 	test_concatenation() {
 		parse(`x is 1,2,3;y=4,5,6`);
 		assert_equals([1, 2, 3], the.variableValues['x']);
 		assert_equals(3, len(the.variableValues['y']));
-		let z = parse(`x + y`);
+		let z = parse(`x + y`).result
 		assert_equals(len(z), 6);
 		assert_equals(z, [1,2,3,4,5,6]);
-		z = parse(`x plus y`);
+		z = parse(`x plus y`).result
 		assert_equals(len(z), 6);
 		assert_equals(z, [1,2,3,4,5,6]);
 	}
@@ -135,7 +135,8 @@ class ListTest extends (ParserBaseTest) {
 		variables['x'] = [1, 2];
 		variables['y'] = [3, 4];
 		init('x + y == 1,2,3,4');
-		parser.condition();
+		// let {condition}= require('../angle_parser')
+		condition();
 		assert ('x + y == 1,2,3,4');
 		assert_equals(parse(`x plus y`), [1, 2, 3, 4]);
 		assert ('x plus y == [1,2,3,4]');
@@ -144,20 +145,23 @@ class ListTest extends (ParserBaseTest) {
 		assert ('1,2 and 3 == 1,2,3');
 		assert ('1,2 and 3 == 1,2,3');
 	}
-	test_type1(){
+	test_type1() {
 		init('class of 1,2,3');
-		parser.evaluate_property();
-		assert_equals(the.result, list);
+		let {evaluate_property, expression} = require('../expressions')
+		evaluate_property();
+		assert_equals(the.result, Array)
 		init('class of [1,2,3]');
-		parser.expression();
-		assert_equals(the.result, list);
-		skip();
+		expression();
+		assert_equals(the.result, Array)
+	}
+	test_type0(){
+		// skip();
 		parse(`class of 1,2,3`);
-		assert_equals(the.result, list);
+		assert_equals(the.result, Array)
 	}
 	test_type2(){
 		parse(`x=1,2,3;class of x`);
-		assert_equals(the.result, list);
+		assert_equals(the.result, Array)
 	}
 	test_type(){
 		setUp();
@@ -166,15 +170,16 @@ class ListTest extends (ParserBaseTest) {
 	}
 	test_type3(){
 		parse(`x be 1,2,3;y= class of x`);
-		assert (equals(list, the.variables['y'].value));
-		assert (isinstance(the.variables['x'].value, list));
-		assert_equals(the.variables['x'].type, list);
+		assert_equals(the.variables['y'].value,Array);
+		assert (isinstance(the.variables['x'].value, Array));
+		assert_equals(the.variables['x'].type, Array)
 	}
 	test_type3b(){
+		clear()
 		parse(`x be 1,2,3;y= class of x`);
-		assert_equals(type(the.variableValues['x']), list);
+		assert_equals(type(the.variableValues['x']), Array)
 		// assert_equals(kind(the.variableValues['x'], list)
-		assert_equals(the.variables['y'].value, list);
+		assert_equals(the.variables['y'].value, Array)
 		assert_that(`y is a Array`);
 		assert_that(`y is an Array`);
 		assert_that(`y is Array`);
@@ -254,11 +259,12 @@ class ListTest extends (ParserBaseTest) {
 	}
 	test_hasht(){
 		init('{1,2,3}');
-		assert_equals(parser.list(), [1, 2, 3]);
+		let {liste}= require('../power_parser')
+		assert_equals(liste(), [1, 2, 3]);
 		init('{a:1,b:2,c:3}');
-		assert_equals(parser.hash_map(), {'b': 2, 'a': 1, 'c': 3, });
-
+		let {hash_map}= require('../expressions')
+		assert_equals(hash_map(), {'b': 2, 'a': 1, 'c': 3, });
 	}
 }
 // register(ListTest, module)
-module.exports.test_current=new ListTest().test_list_syntax2
+module.exports.test_current=new ListTest().test_every_selector_no_braces
