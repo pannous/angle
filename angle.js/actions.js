@@ -22,10 +22,11 @@ var {
 	star,
 	starts_with,
 	tokens,
+	trace,
 	verbose,
 } = require('./power_parser')
 require('./ast')
-let {variable, typeNameMapped,word} = require('./values')
+let {variable, typeNameMapped,word,quote} = require('./values')
 let {verb, spo} = require('./english_parser')
 // todo : untangle ^^
 
@@ -293,18 +294,23 @@ function self_modify(v = null, exp = null) {
 	}
 }
 
+
+function execute(command) {
+	return require('child_process').execSync(command).toString() // raw output
+}
+
+
 function bash_action() {
 	let command, ok;
 	if (starts_with("`") && beginning_of_line()) {
 		throw new DidYouMean("shell <bash command ...>");
 	}
-	ok = starts_with(["bash", "exec", "`"] + bash_commands);
-	if (!ok) {
-		raise_not_matching("no bash commands");
-	}
+	ok = starts_with(["bash", "exec", "`"])
+	command=maybe_tokens(bash_commands)
+	if (!ok&&!command) raise_not_matching("no bash command");
 	no_rollback();
 	maybe_tokens(["execute", "exec", "command", "commandline", "run", "shell", "shellscript", "script", "bash"]);
-	command = maybe(quote);
+	command = command||maybe(quote);
 	command = (command || rest_of_line());
 	if (interpreting()) {
 		try {
@@ -318,7 +324,7 @@ function bash_action() {
 				return true;
 			}
 		} catch (e) {
-			console.log("error (e)xecuting bash_action");
+			console.log("error executing bash action");
 		}
 	}
 	return false;
@@ -465,6 +471,7 @@ function raise(err) {
 function bindMethod(method, obj) {
 	let owner = the.methodToModulesMap[method] || the.methodToModulesMap[method.name]
 	// if(obj instanceof owner)
+	if(obj instanceof Argument)obj=obj.value
 	owner = owner || obj && classOf(obj) || raise("CANT BIND " + method)
 	return method.bind(/* this = */ obj || owner)// , curry args!
 }
@@ -504,10 +511,10 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		the.result = do_execute_block(method.body, args);
 		return the.result;
 	}
-	verbose("CALLING %s %s with %s".format((obj || ""), method, args));
-	console.log("CALLING %s %s with %s".format((obj || ""), method.name, args));// .length
-	if (!args && !(method instanceof Function) && method.in(dir(obj))) {
-		return obj.__getattribute__(method);
+	trace("CALLING %s ON %s WITH %s\n%s\n%s".format(method_name,(typeof obj || ""), args,method,obj));
+	verbose("CALLING %s ON %s WITH %s".format(method_name,(typeof obj || ""), args));
+	if (!args && !(method instanceof Function) && obj[method]) {
+		return obj[method]; // method.in(dir(obj))
 	}
 	try {
 		if (!(method instanceof Function) && (args instanceof Array)) {
@@ -517,7 +524,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 			return the.result;
 		}
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 		verbose("CAN'T CALL ARGUMENT WISE");
 	}
 	if (!(method instanceof Function)) {
@@ -541,12 +548,11 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 			}
 		} else {
 			if (has_args(method, obj, true)) {
+				if ((args instanceof Array) && (args.length === 1)) args = args[0];
 				if (bound || is_builtin) {
-					call_unbound(method, args, number_of_arguments);
+					the.result = method(args) //.call(args)
 				} else {
-					if ((args instanceof Array) && (args.length === 1)) {
-						args = args[0];
-					}
+					// call_unbound(method, args, number_of_arguments);
 					the.result = (method(obj, args) || NILL);
 				}
 			} else {
@@ -655,7 +661,7 @@ function align_args(args, clazz, method) {
 function align_function_args(args, clazz, method) {
 	let newArgs;
 	newArgs = {};
-	if ((args instanceof Object /*todo*/) || (args instanceof tuple) || (args instanceof Array) && method.arguments.length === 1) {
+	if ((args instanceof Object /*todo*/) || (args instanceof Array) && method.arguments.length === 1) {
 		let key = method.arguments[0].name;
 		return {
 			key: args
@@ -932,13 +938,13 @@ function eval_args(args) {
 	if (!args) {
 		return [];
 	}
-	if ((args instanceof Array) || (args instanceof tuple)) {
+	if ((args instanceof Array)) {
 		args = args.map(do_evaluate)
 	} else {
-		if (args instanceof Object /*todo*/) {
-		} else {
+		// if (args instanceof Map /*todo !!*/) {
+		// } else {
 			args = [do_evaluate(args)];
-		}
+		// }
 	}
 	return args;
 }
@@ -967,17 +973,43 @@ function selfModify() {
 	return (maybe(self_modify) || maybe(plusPlus) || minusMinus());
 }
 
+
+function piped_actions(a = false) {
+	let args, name, obj, xmodule;
+	if (context.in_pipe) return false;
+	must_contain(["|", "pipe"]);
+	context.in_pipe = true;
+	a = (a || statement());
+	tokens(["|", "pipe"]);
+	no_rollback();
+	// todo later: build real pipe in node.js
+	[xmodule, obj, name] = (true_method() || bash_action());
+	args = star(call_arg);
+	context.in_pipe = false;
+	if (name instanceof Function)
+		args = [args, new Argument(a)];
+	if (interpreting()) {
+		the.result = do_call(a, name, args);
+		verbose(the.result);
+		return the.result;
+	} else {
+		return OK;
+	}
+}
+
 module.exports = {
 	action,
 	// action_if,
 	// align_args,
 	// align_function_args,
-	// bash_action,
+	bash_action,
 	// call_unbound,
 	// do_call,
 	method_call,
 	do_evaluate,
+	piped_actions,
 	do_math,
+	true_method,
 	// do_self_modify,
 	// english_to_math,
 	// eval_args,

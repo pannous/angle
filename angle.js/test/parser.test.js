@@ -13,7 +13,7 @@ class ParserTest{//} extends (unittest.TestCase){  // PASS ParserBaseTest): #Eng
 				parse(open(path + f));
 			} catch (e) {
 				console.log('ERROR in ' + f);
-				console.log(e);
+				console.error(e);
 				console.log(('OK, parsed %s successfully!' % f));
 			}
 		}

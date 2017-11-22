@@ -206,11 +206,6 @@ function addMethodNames(f) {
 }
 
 
-function execute(command) {
-	// import * as os from 'os';
-	return os.popen(command).read();
-}
-
 
 function isStatementOrExpression(b) {
 	return (b instanceof ast.stmt) || (b instanceof ast.Expr);
@@ -422,7 +417,7 @@ function toString(x) {
 	if (x.to_s) return x.to_s()
 	if (x.name) return x.name
 	if (x.__str__) return x.__str__()
-	if (x.__repr__) return x.__repr__()
+	if (x.__repr__) return x.__str__()
 	return `${x}`
 }
 
@@ -942,7 +937,7 @@ function main() {
 		}
 	} catch (e) {
 		if (e instanceof NotMatching) {
-			console.log(e);
+			console.error(e);
 			console.log("Syntax Error");
 		} else if (e instanceof KeyboardInterrupt) {
 

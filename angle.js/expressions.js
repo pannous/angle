@@ -713,7 +713,7 @@ function do_get_class_constant(c) {
 			if (c in module) return module[c];
 		}
 	} catch (e) {
-		console.log(e)
+		console.error(e)
 	}
 }
 
@@ -838,7 +838,6 @@ quick_expression=function quick_expression() {
 	let word = the.current_word;
 	if (!word) throw new EndOfLine();
 	if (word === ";") throw new EndOfStatement();
-	if (word === ",") return liste(the.result);
 	if ((!context.in_params) && look_1_ahead(":")) return immediate_hash();
 	if (word === "{") {
 		if (look_1_ahead("}")) return empty_map();
@@ -846,10 +845,15 @@ quick_expression=function quick_expression() {
 	}
 	if (look_1_ahead([".", "'s", "of"])) return (maybe(method_call) || property());
 	if (look_1_ahead("=")) if (!context.in_condition) return setter();
+
 	if (type_names.has(word) || word.in(the.classes)) return declaration();
 	if (word.in(all_operators) && the.current_word !== "~") return false;
 
-	if (word.in(number_selectors)){
+	if (word === ",")
+		result = liste(the.result);
+	else if (look_1_ahead(","))
+		result = liste();
+	else if (word.in(number_selectors)){
 		result = nth_item()
 	} else if (the.current_type === _token.NUMBER) {
 		result = number();
@@ -894,29 +898,28 @@ quick_expression=function quick_expression() {
 }
 
 post_operations=function post_operations(result) {
-	let word = the.current_word;
-	if (word === "") {
+	if (the.current_word === "") {
 		return result;
 	}
-	if (word === ";") {
+	if (the.current_word === ";") {
 		return result;
 	}
-	if (word === ".") {
+	if (the.current_word === ".") {
 		return method_call(result);
 	}
-	if ((word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
+	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
 		return liste(/*check:*/ false, /*first: */result);
 	}
-	if (word.in(self_modifying_operators)) {
+	if (the.current_word.in(self_modifying_operators)) {
 		return self_modify(result);
 	}
-	if ((word === "+") && look_1_ahead("+")) {
+	if ((the.current_word === "+") && look_1_ahead("+")) {
 		return plusPlus(result);
 	}
-	if ((word === "-") && look_1_ahead("-")) {
+	if ((the.current_word === "-") && look_1_ahead("-")) {
 		return minusMinus(result);
 	}
-	if (word.in(be_words)) {
+	if (the.current_word.in(be_words)) {
 		if (!context.in_condition) {
 			if (result instanceof Variable) {
 				return setter(result);
@@ -924,39 +927,39 @@ post_operations=function post_operations(result) {
 			// return comparative(result)
 				return algebra(result)
 		} else {
-			if (word === "are") {
+			if (the.current_word === "are") {
 				return false;
 			}
 		}
 	}
-	if (word === "|") {
+	if (the.current_word === "|") {
 		return piped_actions(result || the.last_result);
 	}
-	if (word.in(operators)) {
+	if (the.current_word.in(operators)) {
 		return algebra(result);
 	}
-	if (word === "[") {
+	if (the.current_word === "[") {
 		return evaluate_index(result);
 	}
-	if (word.in((operators + special_chars) + ["element", "item"])) {
+	if (the.current_word.in((operators + special_chars) + ["element", "item"])) {
 		return false;
 	}
-	if (result && (word === "to")) {
+	if (result && (the.current_word === "to")) {
 		return ranger(result);
 	}
-	if (result && (word === "if")) {
+	if (result && (the.current_word === "if")) {
 		return action_if(result);
 	}
 	if (the.current_line.endswith("times")) {
 		return action_n_times(result);
 	}
-	if (word.in(be_words)) {
+	if (the.current_word.in(be_words)) {
 		return setter(result);
 	}
-	if (word === "if") {
+	if (the.current_word === "if") {
 		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
 	}
-	if (word === "as") {
+	if (the.current_word === "as") {
 		return maybe_cast(result);
 	}
 	return false;

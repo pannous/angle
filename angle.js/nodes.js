@@ -16,7 +16,7 @@ class Compare extends ast.Compare {
         this.ops = [this.comp];
         this.comparators = [this.right];
     }
-    __repr__() {
+    toString() {
         return ("%s %s %s" % [this.left, this.comp, this.right]);
     }
 }
@@ -39,7 +39,7 @@ class Quote extends ast.Str {
         }
         false;
     }
-    __eq__(x) {
+    equals(x) {
         if ((x.toString() === "str")) {
             return true;
         }
@@ -83,7 +83,7 @@ class FunctionDef extends ast.FunctionDef {
         }
         this.args = ast.arguments({args: pyc_emitter.map_values(this.arguments), vararg: null, kwarg: null, defaults: []});
     }
-    __repr__() {
+    toString() {
         if (this.clazz) {
             return ("<Function %s %s>" % [this.clazz, this.name]);
         }
@@ -104,7 +104,7 @@ class FunctionDef extends ast.FunctionDef {
         }
         return ("<Function %s>" % this.name);
     }
-    __eq__(other) {
+    equals(other) {
         var body_ok, ok;
         if ((other instanceof FunctionDef)) {
             ok = (this.name === other.name);
@@ -177,7 +177,7 @@ class FunctionCall extends ast.Assign {
             this.value = kast.call(func, this.arguments);
         }
     }
-    __repr__() {
+    toString() {
         return ((this.name.toString() + " ") + this.arguments.toString());
     }
     resolve_return_type() {
@@ -195,11 +195,8 @@ class FunctionCall extends ast.Assign {
 }
 class Argument{//} extends kast.arg {
     constructor(...margs) {
-	    // super()
 	    var args;
-        if ((! args)) {
-            args = margs[0];
-        }
+        if ((! args)) args = margs[0];
         this.name = (args["name"]  || null);
         this.preposition = (args["preposition"]  || null);
         this.position = (args["position"]  || 0);
@@ -208,7 +205,7 @@ class Argument{//} extends kast.arg {
         this.value = (args["value"]  || null);
         this.id = this.name;
     }
-    __repr__() {
+    toString() {
         if (this.value) {
             if ((! this.name)) {
                 return this.value.toString();
@@ -217,7 +214,7 @@ class Argument{//} extends kast.arg {
         }
         return this.name.toString();
     }
-    __eq__(other) {
+    equals(other) {
         var has_type, ok;
         if ((! other)) {
             return false;
@@ -258,13 +255,13 @@ class Variable extends ast.Name {
         this.finale =  args["final"];
         this.typed =  args["typed"];
     }
-	// __repr__() {
+	// toString() {
      //    return ("xzcv %s" % this.name).toString();
 	// }
 	// toString() {
 	// 	return ("xzcv %s" % this.name).toString();
 	// }
-	__repr__() {
+	toString() {
 		return ("<Variable %s %s=%s>" % [(this.type || ""), this.name, this.value]);
 	}
 	toString() {
@@ -283,7 +280,7 @@ class Variable extends ast.Name {
         this.value = (this.value + 1);
         return this.value;
     }
-    __eq__(x) {
+    equals(x) {
         if ((x instanceof Variable)) {
             return (this.value === x.value);
         } else {

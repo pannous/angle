@@ -29,9 +29,10 @@ let {
 	pointer_string,
 	skip_comments,
 	starts_with,
+	star,
 	tokens,
 }=require('./power_parser')
-let {action,do_evaluate}= require('./actions')
+let {action,do_evaluate,piped_actions}= require('./actions')
 let {Variable, Argument} = require('./nodes')
 let {expression,algebra,liste}= require('./expressions')
 let {articles}=require('./angle_parser')
@@ -77,6 +78,10 @@ function statement (doraise = true) {
 	context.in_condition = false;
 	the.result = x;
 	the.last_result = x;
+	// if(!checkNewline())
+	// if (the.current_word === "|")
+	// 	the.result = post_operations(x)
+		// the.result = piped_actions(x)
 	skip_comments();
 	adjust_interpret();
 	return the.result;
@@ -405,32 +410,6 @@ function if_then_else() {
 	return the.result;
 }
 
-function piped_actions(a = false) {
-	let args, name, obj, xmodule;
-	if (context.in_pipe) {
-		return false;
-	}
-	must_contain(["|", "pipe"]);
-	context.in_pipe = true;
-	a = (a || statement());
-	tokens(["|", "pipe"]);
-	no_rollback();
-	[xmodule, obj, name] = (true_method() || bash_action());
-	args = star(call_arg);
-	context.in_pipe = false;
-	if (name instanceof Function) {
-		args = [args, new Argument({
-			value: a
-		})];
-	}
-	if (interpreting()) {
-		the.result = do_call(a, name, args);
-		verbose(the.result);
-		return the.result;
-	} else {
-		return OK;
-	}
-}
 
 function if_then() {
 	let b, c, started;
@@ -537,7 +516,6 @@ modul.exports = {
 	isType,
 	method_definition,
 	module: modul,
-	piped_actions,
 	returns,
 	setter,
 	quick_expression,

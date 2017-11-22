@@ -136,7 +136,7 @@ function error(e, force = false) {
 	if (e instanceof NotMatching) throw e;
 	if (e instanceof Exception) print_pointer();
 	if (e) {
-		console.log(e)
+		console.error(e)
 		// console.log(e.message)
 		// console.log(e.stack)
 	}
@@ -292,6 +292,7 @@ function parse_tokens(s) {
 		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
 		.token(_token.COMMA, /,/,token_helper)
+		.token(_token.OPERATOR, /\|/)
 		.token(_token.NEWLINE, /:/)
 		.token(_token.NEWLINE, /;/)// end of statement/block
 		.token(_token.NEWLINE, /\n/, token_helper)
@@ -413,7 +414,8 @@ function remove_tokens(...tokenz) {
 function must_contain(args, do_raise = true) {
 	let old, pre;
 	if (args.last) {
-		return must_contain_before(args.slice(0, -2), args.last()["before"]);
+		todo("NIX")
+		// return must_contain_before(args.slice(0, -2), args.last()["before"]);
 	}
 	if (is_string(args)) {
 		args = [args];
@@ -976,7 +978,8 @@ parse = function (s, target_file = null, clean = false) {
 	}
 	verbose("PARSED SUCCESSFULLY!!");
 	verbose("RESULT = " + the.result);
-	return interpretation();
+	the.result.result=the.result // todo : DONT!
+	return the.result//interpretation();
 }
 
 function token(t, expected = "") {
@@ -1055,10 +1058,10 @@ function rest_of_statement() {
 function rest_of_line() {
 	let rest;
 	rest = "";
-	while ((!checkEndOfLine() && (!(current_word == ";")))) {
-		rest += (current_word + " ");
-		next_token(false);
-	}
+	while (!checkEndOfLine() && !(current_word == ";") && !(current_word == "|")) {
+	rest += (current_word + " ");
+	next_token(false);
+}
 	return rest.strip();
 }
 
@@ -1171,6 +1174,10 @@ function load_module_methods() {
 		the.method_names.append(x);
 	}
 	context.extensionMap = extensionMap;
+
+	for (let [name,fun] of the.methods) {
+		the.method_names.append(name)
+	}
 	for (let _type of context.extensionMap) {
 		ex = context.extensionMap[_type];
 		for (let method of dir(ex)) {
@@ -1258,6 +1265,7 @@ module.exports = {
 	tokens,
 	token,
 	Interpretation,
-	verbose
+	verbose,
+	trace
 }
 

@@ -295,6 +295,20 @@ add = (x, y) => x + y
 
 // Object.assign DOES NOT assign PROPERTIES (getters / setters ) !
 Array_Extensions = {
+	item(number){
+		return this[number]
+	},
+	row(number){
+		return this[number]
+	},
+	column(number){
+		if(!is_string(this[0]) && !is_array(this[0]))throw new Error("column needs [string] or [list], got ["+typeof this[0]+"]")
+		if(is_string(this[0])){
+			let sep=this[0].detect_separator()
+			return this.map(ro=>ro.columns(sep)[number])
+		}
+		return this.map(ro=>ro[number])
+	},
 	equals( array ) {
 		return this.length == array.length && this.every((j,i)=>j== array[i]) // !!++
 	},
@@ -513,6 +527,18 @@ String_Extensions = { // StringExtensions
 	}, // substring  cannot handle negative values!!
 	words() {
 		return this.split(" ")
+	},
+	columns(separator=null) {
+		return this.split(separator||this.detect_separator())
+	},
+	detect_separator() {
+		if(this.contains("\t")) return "\t"
+		if(this.indexOf("|")>0) return "|"
+		if(this.contains(",")) return ","
+		if(this.contains(";")) return ";"
+		if(this.contains("\n")) return "\n"
+		if(this.contains(" ")) return " "
+		return false
 	},
 	lines() {
 		return this.split("\n")
@@ -1302,4 +1328,8 @@ trimStack=function (ex,more=0) {
 		return keep||more-->0
 	}).join("\n")
 	return ex
+}
+
+assert_contains=function assert_contains(string,pattern) {
+	assert(string.contains(pattern),string+" should contain "+pattern)
 }

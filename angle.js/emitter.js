@@ -114,7 +114,7 @@ class Reflector extends object {
     }
 }
 class PrepareTreeVisitor extends ast.NodeTransformer {
-    __repr__() {
+    toString() {
         return "<PrepareTreeVisitor>";
     }
     generic_visit(node, wrap = false) {
@@ -367,7 +367,7 @@ function print_ast(my_ast, source_file = "out/inline", with_line_numbers = false
         console.log(x);
         console.log("");
     } catch(e) {
-        console.log(e);
+        console.error(e);
         console.log(("CAN'T DUMP ast / print_ast %s" % my_ast));
         if ((! (my_ast instanceof Array))) {
             console.log(my_ast.body);
@@ -408,7 +408,7 @@ function eval_ast(my_ast, args = {}, source_file = "out/inline", target_file = n
         the.params.clear();
         return ret;
     } catch(e) {
-        console.log(e);
+        console.error(e);
         console.log(my_ast);
         print_ast(my_ast, source_file);
         print_source(my_ast, source_file);
