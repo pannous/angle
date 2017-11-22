@@ -166,7 +166,7 @@ function apply_op(stack, i, op) {
 		stack[i] = [(!do_evaluate(right))];
 		delete stack[i + 1]
 	} else {
-		replaceI12(stack, do_math(left, op, right))
+		replaceI12(stack, do_math(left, op, right)||FALSE)
 	} else if ((op === "!") || (op === "not")) {
 		result = ast.Not(right)
 		stack[(i)] = [result];
@@ -185,7 +185,7 @@ function apply_op(stack, i, op) {
 			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]))
 		}
 	}
-	return result
+	return result === 0 ? ZERO: result
 }
 
 

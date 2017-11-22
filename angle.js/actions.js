@@ -159,7 +159,8 @@ function call_arg(position = 1) {
 function method_call(obj = null) {
 	let args, assume_args, method, method_name, modul, more, start_brace;
 	[modul, obj, method_name] = true_method(obj);
-	if (!method_name) raise_not_matching("no method_call")
+	if (!method_name || method_name==FALSE|| method_name==TRUE)
+		raise_not_matching("no method_call")
 	context.in_algebra = false;
 	start_brace = maybe_tokens(["(", "{"]);
 	if (start_brace) {
@@ -531,7 +532,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		throw new MethodMissingError(type(obj), method, args);
 	}
 	if (is_math(method_name)) {
-		return do_math(obj, method_name, args);
+		return do_math(obj, method_name, args)||FALSE
 	}
 	if (!obj) {
 		if (args && (number_of_arguments > 0)) {
@@ -564,7 +565,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		throw new MethodMissingError(obj, method, args);
 	}
 	verbose("GOT RESULT %s " % the.result);
-	return the.result;
+	return the.result || FALSE
 }
 
 function is_unbound(method) {
@@ -701,6 +702,7 @@ function align_function_args(args, clazz, method) {
 
 function findMethod(obj, method0, args0 = null, bind = true) {
 	let method = method0;
+	if(!method) raise_not_matching(findMethod)
 	if (method instanceof Function) return method;
 	if (method instanceof ast.FunctionDef) return method;
 	if (obj && obj[method] instanceof Function) return obj[method].bind(obj)
@@ -720,15 +722,15 @@ function findMethod(obj, method0, args0 = null, bind = true) {
 	if (args0 instanceof Argument) {
 		args0 = args0.value;
 	}
-	if (method.in(the.methods)) {
+	if (the.methods[method]) {
 		return the.methods[method];
 	}
 	// if (method.in(locals())) {// geht nicht in js!!!
 	// 	return locals()[method];
 	// }
-	if (method.in(global)) {
-		return global[method];
-	}
+	// if (method.in(global)) {
+	// 	return global[method];
+	// }
 	if (method.in(dir(obj))) {
 		return obj[method];
 	}
@@ -761,6 +763,7 @@ function findMethod(obj, method0, args0 = null, bind = true) {
 function do_math(a, op, b) {
 	a = do_evaluate(a) || 0;
 	b = do_evaluate(b) || 0;
+
 	if (a instanceof Variable) a = a.value;
 	if (b instanceof Variable) b = b.value;
 	if(a instanceof Array && op.in(be_words))
@@ -792,27 +795,27 @@ function do_math(a, op, b) {
 	if (op === 'power') return a ** b
 	if (op === 'pow') return a ** b
 	if (op === '^^') return a ** b
-	if (op === '^') return a ** b
-	// if(op == '^') return a ^ b
-	if (op === 'xor') return a ^ b
-	if (op === 'and') return a && b || FALSE
-	if (op === '&&') return a && b
+	if (op === '^')
+		return typeof a == 'boolean'? a^b : a ** b
+	if (op === 'xor') return a ^ b //|| FALSE
+	if (op === 'and') return a && b// || FALSE
+	if (op === '&&') return a && b//|| FALSE
 	if (op === 'but not')
-		return a && !b
+		return a && !b//|| FALSE
 	if (op === 'nor')
-		return !a && !b
+		return !a && !b//|| FALSE
 	if (op === 'neither')
-		return !a && !b
+		return !a && !b//|| FALSE
 	if (op === 'but')
 		if (isinstance(a, list))
 			return a.remove(b)
 		else
-			return a && b
+			return a && b//|| FALSE
 	// if(op == '&') return a and b
 	if (op === '&') return a & b
 	if (op === '|') return a | b
 	if (op === '||') return a | b
-	if (op === 'or') return a || b
+	if (op === 'or') return a || b //|| FALSE
 	if (op === 'else') return a || b // x = nil else 1
 	if (op === '<') return a < b
 	if (op === 'smaller') return a < b
@@ -872,7 +875,9 @@ function do_evaluate(x, _type = null) {
 		return true;
 	}
 	if (x === FALSE) {
-		return FALSE;
+		todo("do_evaluate FALSE")
+		return false // 22.11.2017
+		// return FALSE;
 	}
 	if (x === NILL) {
 		return null;
