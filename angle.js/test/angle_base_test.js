@@ -77,12 +77,9 @@ function assert_that(condition, message) {
 
 // module.exports.assert_result_is =
 function assert_result_is(prog, val) {
-	let interpretation = parse(prog);
-	let result = interpretation.result
-	assert(result == val, prog + " == " + val)
+	let result = parse(prog);
+	assert(result == val, prog + " == " + val+", got "+result)
 	console.log(prog + " ==== " + val + "   ... OK!")
-	// console.log(val)
-	// console.log(result)
 }
 
 result_be = function (a, b) {
@@ -93,7 +90,8 @@ result_be = function (a, b) {
 // module.exports={ParserBaseTest:ParserBaseTest}
 
 registered = {}
-module.exports.register = register = function (instance, modul) {
+// module.exports.register =
+register = function (instance, modul) {
 	if (instance instanceof Function) {
 		clazz = instance
 		instance = new clazz() //.constructor()
@@ -117,15 +115,15 @@ module.exports.register = register = function (instance, modul) {
 			console.log("++++++++++++++++++++++++++++++")
 			console.log(test)
 			// parser.clear();
-			instance[test]()
 			modulus.exports[test] = ok => {
 				try {
 					// parser.clear()
 					instance[test](ok);
 					ok.done()
 				} catch (ex) {
-					trimStack(ex)
-					console.error("" + instance[test] + " THREW")
+					console.log("" + instance[test] + " THREW")
+					trimStack(ex,4)
+					// console.error(ex)
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
 					// console.error(ex)
@@ -137,6 +135,7 @@ module.exports.register = register = function (instance, modul) {
 			}
 		} catch (ex) {
 			trimStack(ex)
+			console.log("WHY HERE")
 			console.error(ex)
 			// ok.done()
 			// if(ex instanceof NotMatching || ex==NotMatching)
@@ -154,4 +153,4 @@ function register_tests() {
 }
 
 setTimeout(() => register_tests(), 100)
-module.exports = {assert_has_error, assert_that, assert_result_is, register, parser, init: parser.init,clear:parser.clear}
+module.exports = {assert_has_error,register, assert_that, assert_result_is, parser, init: parser.init,clear:parser.clear}

@@ -891,6 +891,9 @@ function clear() {
 
 
 class Interpretation {
+	valueOf(){
+		return this.result
+	}
 }
 
 function interpretation() {
@@ -978,8 +981,8 @@ parse = function (s, target_file = null, clean = false) {
 	}
 	verbose("PARSED SUCCESSFULLY!!");
 	verbose("RESULT = " + the.result);
-	the.result.result=the.result // todo : DONT!
-	return the.result//interpretation();
+	// the.result.result=the.result // todo : DONT!
+	return interpretation();
 }
 
 function token(t, expected = "") {

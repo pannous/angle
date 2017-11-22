@@ -1,6 +1,6 @@
 let {register,assert_has_error,assert_result_is}=require('./angle_base_test');
 
-class BlankTest extends (ParserBaseTest) {
+class BasicsTest extends (ParserBaseTest) {
 
 	test_now(){
 
@@ -29,4 +29,4 @@ class BlankTest extends (ParserBaseTest) {
 		assert_result_is("'⦠'", '⦠')//filtered ok
 	}
 }
-register(BlankTest,module)
+register(BasicsTest,module)

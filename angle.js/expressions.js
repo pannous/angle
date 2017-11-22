@@ -846,7 +846,7 @@ quick_expression=function quick_expression() {
 	if (look_1_ahead([".", "'s", "of"])) return (maybe(method_call) || property());
 	if (look_1_ahead("=")) if (!context.in_condition) return setter();
 
-	if (type_names.has(word) || word.in(the.classes)) return declaration();
+	// if (type_names.has(word) || word.in(the.classes)) return require("./statements").declaration();
 	if (word.in(all_operators) && the.current_word !== "~") return false;
 
 	if (word === ",")

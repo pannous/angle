@@ -59,7 +59,8 @@ function statement (doraise = true) {
 		return !doraise || raise_not_matching("end of block ok")
 	if (checkNewline()) return NEWLINE;
 	maybe_indent();
-	x = maybe(quick_expression) ||
+	x = maybe(quick_statement)||
+		maybe(quick_expression) ||
 		maybe(setter) ||
 		maybe(returns) ||
 		maybe(imports) ||
@@ -87,6 +88,10 @@ function statement (doraise = true) {
 	return the.result;
 }
 
+function quick_statement() {
+	let word=the.current_word
+	if (type_names.has(word) || word.in(the.classes)) return declaration()
+}
 
 
 function isType(x) {
