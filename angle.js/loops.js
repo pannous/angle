@@ -16,6 +16,7 @@ let {
 	one_or_more,
 	starts_with,
 	tokens,
+	raise_not_matching
 }=require('./power_parser')
 
 let _=tokens

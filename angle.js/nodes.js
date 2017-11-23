@@ -243,7 +243,7 @@ class Variable extends ast.Name {
             args = margs[0];
         }
         this.name = args["name"];
-	    this.ctx = args["ctx"] || ast.Load();
+	    this.ctx = args["ctx"] || new ast.Load();
 	    this.value = args["value"] || null;
 	    this.type = args["type"] || args["typed"]
 	    this.type = this.type || this.value &&Object.getPrototypeOf(this.value)

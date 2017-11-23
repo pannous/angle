@@ -896,8 +896,8 @@ function interpretation() {
 	let i = new Interpretation();
 	i.result = the.result;
 	i.tree = the.result;
-	i.error_position = error_position();
-	i.methods = the.methods;
+	// i.error_position = error_position();
+	// i.methods = the.methods;
 	i.ruby_methods = builtin_methods;
 	i.variables = the.variables;
 	i.svg = svg;
@@ -1230,8 +1230,18 @@ maybe_token = function maybe_token(x) {
 	return false;
 }
 
+function check_end_of_statement() {
+	return (checkEndOfLine() || (the.current_word === ";") || maybe_tokens(done_words));
+}
+
+raise_not_matching=function raise_not_matching(msg = null) {
+	throw new NotMatching(msg)
+}
+
+
 module.exports = {
 	action_or_block,
+	action_or_expression,
 	adjust_interpret,
 	block,
 	clear,
@@ -1257,6 +1267,7 @@ module.exports = {
 	pointer,
 	pointer_string,
 	raiseEnd,
+	raise_not_matching,
 	star,
 	starts_with,
 	skip_comments,

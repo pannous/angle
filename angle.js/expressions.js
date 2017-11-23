@@ -1,7 +1,7 @@
 let {do_evaluate_property} = require("./values")
 
 let {Variable, Argument} = require('./nodes')
-let {endNoun} = require("./english_parser")
+let {endNoun,verb_comparison} = require("./english_parser")
 
 let {
 	block,
@@ -28,6 +28,7 @@ let {
 	star,
 	token,
 	tokens,
+	action_or_expression
 } = require('./power_parser')
 
 let {
@@ -837,6 +838,129 @@ function contains_any(tokens) {
 	}
 }
 
+
+function condition() {
+	let brace, comp, cond, filter, left, negate, negated, quantifier, right, start, use_verb;
+	// start = pointer();
+	brace = maybe_token("(");
+	maybe_token("either");
+	negated = maybe_token("not");
+	if (negated) {
+		brace = (brace || maybe_token("("));
+	}
+	quantifier = maybe_tokens(quantifiers);
+	filter = null;
+	if (quantifier) {
+		filter = (maybe(element_in) || maybe_tokens(["of", "in"]));
+	}
+	context.in_condition = true;
+	left = action_or_expression(quantifier);
+	if (left instanceof ast.BinOp) {
+		left = new Compare({
+			left: left.left,
+			comp: left.op,
+			right: left.right
+		});
+	}
+	if (starts_with("then")) {
+		if (quantifier.in(negative_quantifiers)) {
+			return (!left);
+		}
+		return left;
+	}
+	comp = use_verb = maybe(verb_comparison);
+	if (!use_verb) {
+		comp = maybe(comparation);
+	}
+	if (comp) {
+		right = action_or_expression(null);
+	}
+	if (brace) {
+		_(")");
+	}
+	context.in_condition = false;
+	if (!comp) {
+		return left;
+	}
+	negate = negated;
+	if ((left instanceof Array) && (!(right instanceof Array))) {
+		quantifier = (quantifier || "all");
+	}
+	cond = new Compare({
+		left: left,
+		comp: comp,
+		right: right
+	});
+	if (interpreting()) {
+		if (quantifier) {
+			if (negate) {
+				return (!check_list_condition(quantifier, left, comp, right));
+			} else {
+				return check_list_condition(quantifier, left, comp, right);
+			}
+		}
+		if (negate) {
+			return (!check_condition(cond));
+		} else {
+			return check_condition(cond);
+		}
+	} else {
+		return cond;
+	}
+}
+
+function condition_tree(recurse = true) {
+	let brace, c, cs, negate;
+	brace = maybe_token("(");
+	maybe_token("either");
+	negate = maybe_token("neither");
+	if (brace) {
+		c = condition_tree(false);
+	} else {
+		c = condition();
+	}
+	cs = [c];
+
+	function lamb() {
+		let c2, op;
+		op = tokens(["and", "or", "nor", "xor", "nand", "but"]);
+		if (recurse) {
+			c2 = condition_tree(false);
+		}
+		if (!interpreting()) {
+			return current_node;
+		}
+		if (op === "or") {
+			cs[0] = (cs[0] || c2);
+		}
+		if ((op === "and") || (op === "but")) {
+			cs[0] = (cs[0] && c2);
+		}
+		if (op === "nor") {
+			cs[0] = (cs[0] && (!c2));
+		}
+		return (cs[0] || false);
+	}
+
+	star(lamb);
+	if (brace) {
+		_(")");
+	}
+	return cs[0];
+}
+
+function otherwise() {
+	let e, pre;
+	maybe_newline();
+	must_contain(["else", "otherwise"]);
+	pre = maybe_tokens(["else", "otherwise"]);
+	maybe_token(":");
+	e = expression();
+	(!pre) || (maybe_tokens(["else", "otherwise"]) && newline());
+	return e;
+}
+
+
 quick_expression = function quick_expression() {
 	let fun, result, z;
 	result = false;
@@ -970,4 +1094,4 @@ post_operations = function post_operations(result) {
 	return false;
 }
 
-module.exports = {expression, subProperty, property, algebra, liste, evaluate_property, nth_item, hash_map}
+module.exports = {expression, subProperty, property, algebra, liste, evaluate_property, nth_item, hash_map,condition}

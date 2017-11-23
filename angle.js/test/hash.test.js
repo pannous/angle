@@ -101,11 +101,4 @@ class HashTest extends (ParserBaseTest) {
 }
 
 register(HashTest, module)
-// module.exports.test=new HashTest().test_invariance5
-// try{
-// 	new HashTest().test_invariance4b()
-// }catch(ex){
-// 	trimStack(ex,2)
-// console.error(ex)
-// }
 // module.exports.test=new HashTest().test_invariance4b

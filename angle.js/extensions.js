@@ -1140,8 +1140,6 @@ function getCallerLine() {
 
 assert_equals = function assert_equals(left, right) {
 	if (!left && !right) return true
-	// if(left instanceof Interpretation)left=left.result
-	// if(right instanceof Interpretation)right=right.result
 	if (left) {
 		left = left.result || left
 		left = left.value || left
@@ -1153,7 +1151,7 @@ assert_equals = function assert_equals(left, right) {
 
 	let are_equal = left == right;
 	are_equal = left instanceof Array? left.equals(right) : are_equal
-	are_equal = are_equal || json(left)==json(right)
+	are_equal = are_equal || JSON.stringify((left)==JSON.stringify(right))
 	if (!are_equal) {
 
 		left=util.inspect(left, {showHidden: false, depth: null})

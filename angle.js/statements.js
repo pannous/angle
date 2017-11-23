@@ -147,9 +147,9 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 	if (val instanceof ast.FunctionCall) {
 		if ((val.return_type !== "Unknown") && (val.return_type !== oldType))
 			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(oldType, oldValue, val, val.return_type));
-	} else if (oldType) {
+	} else if (oldType && val_type) {
 		try {
-			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
+			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType.name, oldValue.name, val_type, val));
 			let types_match = (oldType == val_type || oldType == val_type.prototype || oldType.prototype == val_type);
 			if (!types_match) {
 				if (auto_cast) return do_cast(val, oldType);

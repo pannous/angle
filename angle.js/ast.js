@@ -54,6 +54,8 @@ class Eq {
 
 class BitOr {
 }
+class BinOp{
+}
 
 class NotEq {
 }
@@ -100,6 +102,7 @@ module.exports = {
 	Not: Not,
 	And: And,
 	BitOr: BitOr,
+	BinOp: BinOp,
 	Pow: Pow,
 	GtE: GtE,
 	Lt: Lt,

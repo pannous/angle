@@ -23,6 +23,7 @@ var {
 	tokens,
 	trace,
 	verbose,
+	raise_not_matching
 } = require('./power_parser')
 require('./ast')
 let {variable, typeNameMapped,word,quote} = require('./values')

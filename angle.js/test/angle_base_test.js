@@ -65,7 +65,7 @@ function assert_that(condition, message) {
 	}
 	if (!ok) {
 		message = "Assertion failed: " + (message || readCallerLine());
-		throw trimStack(new Error(message));
+		throw trimStack(new Error(message),3);
 	}
 	else return true
 }

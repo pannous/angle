@@ -16,6 +16,7 @@ let {
 	maybe_tokens,
 	next_token,
 	one_or_more,
+	raise_not_matching,
 	starts_with,
 	tokens,
 	token

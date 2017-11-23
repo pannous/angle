@@ -21,6 +21,7 @@ let {
 	starts_with,
 	skip_comments,
 	tokens,
+	raise_not_matching,
 }= require('./power_parser')
 
 // let {word} = require('./values')
@@ -279,5 +280,6 @@ module.exports = {
 	spo,
 	wordnet_is_adverb,
 	postjective,
-	endNoun
+	endNoun,
+	verb_comparison
 }
