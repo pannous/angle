@@ -144,6 +144,7 @@ keys = function (x) {
 }
 len = function (x) {
 	if (!x) return -1
+	if(!x.length)return keys(x).length
 	console.log("use .length");
 	return x.length
 }
@@ -1152,7 +1153,11 @@ assert_equals = function assert_equals(left, right) {
 
 	let are_equal = left == right;
 	are_equal = left instanceof Array? left.equals(right) : are_equal
+	are_equal = are_equal || json(left)==json(right)
 	if (!are_equal) {
+
+		left=util.inspect(left, {showHidden: false, depth: null})
+		right=util.inspect(right, {showHidden: false, depth: null})
 		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left} != ${right}`
 		throw (typeof Error !== "undefined") ? trimStack(new Error(message),4) : message;
 	}
@@ -1168,7 +1173,10 @@ assert = function assert(condition, message) {
 	else return true
 	// else if (message) console.log("assertion ok: "+message)
 }
-
+pretty=function (obj) {
+	return util.inspect(obj, {showHidden: false, depth: null})
+}
+pp=(x)=>console.log(pretty(x))
 // try{require('netbase')}catch(x){
 // try{require('./nodes.js')}catch(y){console.log(y) } }
 
@@ -1323,9 +1331,13 @@ keys = Object.keys
 trimStack=function (ex,more=0) {
 	let keep = true
 	let stack = ex.stack?ex.stack.split("\n"):(ex.message||"").split("\n")
+	let caller = trimStack.caller.name;
 	ex.stack = stack.filter(x => {
-		if (x.match(trimStack.caller.name)||x.match("Module._compile")) keep = false
-		return keep||more-->0
+		if(caller&&x.match(caller))keep=false
+		if (x.match("Module._compile")) keep = false
+		if (x.match("modulus.exports")) keep = false// todo
+		if(!keep && x.match("at "))more--
+		return keep||more>0
 	}).join("\n")
 	return ex
 }

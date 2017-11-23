@@ -12,7 +12,6 @@ let {
 	maybe,
 	maybe_indent,
 	must_not_start_with,
-	must_contain_before_,
 	must_contain_before,
 	maybe_tokens,
 	next_token,
@@ -94,16 +93,16 @@ let word_regex = "^\s*[a-zA-Z]+[\w_]*";
 
 function word(include = null) {
 	let current_value, match;
-	maybe_tokens(article_words);
+	// let a=maybe_tokens(article_words) todo
 	must_not_start_with(keywords, include);
-	raiseNewline();
+	// raiseNewline();
 	match = the.current_word.match(word_regex);
 	if (match) {
 		current_value = the.current_word;
 		next_token(false);
 		return current_value;
 	}
-	raise_not_matching("word");
+	raise_not_matching("word: "+the.current_word);
 }
 
 

@@ -10,7 +10,6 @@ var {
 	maybe_indent,
 	must_not_start_with,
 	must_contain,
-	must_contain_before_,
 	must_contain_before,
 	maybe_tokens,
 	next_token,
@@ -744,7 +743,7 @@ function findMethod(obj, method0, args0 = null, bind = true) {
 			return method;
 		}
 	}
-	if ((obj instanceof type) && method.in(obj.__dict__)) {
+	if (_type && (obj instanceof _type) && method.in(obj.__dict__)) {
 		method = obj.__dict__[method];
 		if (bind) {
 			method.__get__(null, obj);

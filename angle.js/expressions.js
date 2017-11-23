@@ -13,8 +13,8 @@ let {
 	maybe_indent,
 	must_not_start_with,
 	must_contain,
-	must_contain_before_,
 	must_contain_before,
+	must_not_contain,
 	maybe_tokens,
 	method_allowed,
 	next_token,
@@ -44,7 +44,7 @@ let {
 } = require('./english_parser')
 
 let {
-	action, do_evaluate, do_math, selfModify,method_call
+	action, do_evaluate, do_math, selfModify, method_call
 } = require('./actions')
 
 let {
@@ -59,7 +59,7 @@ let {
 	variable,
 	word,
 } = require('./values')
-let _=token
+let _ = token
 
 function expression(fallback = null, resolve = true) {
 	let ex;
@@ -104,7 +104,7 @@ let bracelet = function () {
 
 function algebra(val = null) {
 	if (context.in_algebra) return false;
-	if (!val) must_contain_before_(operators,be_words)// + ["then", ",", ";", ":"])
+	if (!val) must_contain_before(operators, be_words)// + ["then", ",", ";", ":"])
 	val = val || maybe(value) || bracelet()
 	let stack = [val];
 
@@ -166,7 +166,7 @@ function apply_op(stack, i, op) {
 		stack[i] = [(!do_evaluate(right))];
 		delete stack[i + 1]
 	} else {
-		replaceI12(stack, do_math(left, op, right)||FALSE)
+		replaceI12(stack, do_math(left, op, right) || FALSE)
 	} else if ((op === "!") || (op === "not")) {
 		result = ast.Not(right)
 		stack[(i)] = [result];
@@ -185,7 +185,7 @@ function apply_op(stack, i, op) {
 			replaceI12(stack, new ast.Compare(left, [ast_operator(op)], [right]))
 		}
 	}
-	return result === 0 ? ZERO: result
+	return result === 0 ? ZERO : result
 }
 
 
@@ -227,18 +227,6 @@ function isUnary(op) {
 }
 
 
-let hash_assign = [":", "to", "=>", "->"];
-
-function hash_map() {
-	must_contain_before_({
-		args: hash_assign,
-		before: ["}"]
-	})
-	let z = (starts_with("{") ? regular_hash() : immediate_hash())
-	return z;
-}
-
-
 function passing() {
 	let ok;
 	ok = tokens(["pass", ";"])
@@ -250,7 +238,7 @@ var article = x => maybe_tokens(article_words)
 function endNode() {
 	let po, x;
 	raiseEnd()
-	x = !context.in_list&&maybe(liste) ||
+	x = !context.in_list && maybe(liste) ||
 		maybe(fileName) ||
 		maybe(linuxPath) ||
 		maybe(quote) ||
@@ -297,8 +285,8 @@ function nth_item(val = 0) {
 	maybe_tokens(["in", "of"])
 	l = (do_evaluate(maybe(known_variable) || maybe(liste)) || quote())
 	if (type.match(/^char/)) {
-		l="".join(l)
-		if(n<0)n=l.length+n
+		l = "".join(l)
+		if (n < 0) n = l.length + n
 		the.result = l[n]
 		return the.result;
 	}
@@ -412,25 +400,32 @@ function swift_hash() {
 	return h;
 }
 
+
+function hash_map() {
+	must_contain_before(hash_assign, ["}"])
+	let z = (starts_with("{") ? regular_hash() : immediate_hash())
+	return z;
+}
+
+
 function regular_hash() {
 	let h;
 	_("{")
+	no_rollback()
 	context.in_hash = true;
 	(maybe_tokens(hash_assign) && no_rollback())
 	h = {};
 
 	function lamb() {
 		let key, val;
-		if (h.length > 0) {
-			tokens([";", ","])
-		}
-		key = (maybe(quote) || word())
-		(maybe_tokens(hash_assign) || starts_with("{"))
+		// if (len(h) > 0) tokens([";", ","])
+		key = maybe(quote) || word()
+		maybe_tokens(hash_assign) || starts_with("{")
 		val = expression()
 		h[key] = val;
-		return {
-			key: val
-		};
+		maybe_tokens([",",";"," "])
+		if(checkNewline())next_token(false)
+		return h
 	}
 
 	star(lamb)
@@ -457,9 +452,9 @@ function immediate_hash() {
 		}
 	}
 	if (interpreting()) {
-		return {
-			w: r
-		};
+		let dict = {}
+		dict[w] = r
+		return dict
 	}
 	return new ast.Dict([w], [r])
 }
@@ -470,8 +465,8 @@ function subProperty(_context) {
 	maybe_token(".")
 	properties = dir(_context)
 	let extensions = context.extensionMap;
-	ext=extensions[_context] || extensions[typeof(_context)] || extensions[type(_context)]
-	if(ext) properties += dir(ext)
+	ext = extensions[_context] || extensions[typeof(_context)] || extensions[type(_context)]
+	if (ext) properties += dir(ext)
 	property = maybe_tokens(properties)
 	if (!property || (property instanceof Function) || is_method(property)) {
 		return [_context, property];
@@ -550,7 +545,7 @@ function maybe_param(method, classOrModule) {
 		return (param.value || param)
 	}
 	method = findMethod(classOrModule, method)
-	[args, varargs, varkw, defaults] = inspect.getargspec(method)
+		[args, varargs, varkw, defaults] = inspect.getargspec(method)
 	param = maybe_tokens(varkw + defaults)
 	return param;
 }
@@ -625,7 +620,7 @@ function liste_selector() {
 			xs = xs.value;
 		}
 		console.log("FILTERING %s in %s".format(typ, xs))
-		xs = xs.filter(x =>  is_a(x, typ))
+		xs = xs.filter(x => is_a(x, typ))
 		console.log(xs)
 		return xs;
 	}
@@ -830,9 +825,19 @@ function linuxPath() {
 	return false;
 }
 
+function contains(token) {
+	return token.in(the.current_line);
+}
 
+function contains_any(tokens) {
+	for (let token of tokens) {
+		if (token.in(the.current_line)) {
+			return true;
+		}
+	}
+}
 
-quick_expression=function quick_expression() {
+quick_expression = function quick_expression() {
 	let fun, result, z;
 	result = false;
 	let word = the.current_word;
@@ -851,19 +856,19 @@ quick_expression=function quick_expression() {
 
 	if (word === ",")
 		result = liste(the.result);
-	else if (look_1_ahead(","))
+	else if (!context.in_hash && look_1_ahead(","))
 		result = liste();
-	else if (word.in(number_selectors)){
+	else if (word.in(number_selectors)) {
 		result = nth_item()
 	} else if (the.current_type === _token.NUMBER) {
 		result = number();
-		if (maybe_tokens(["st","nd", "rd", "th", "nth"])) result = nth_item(result);
+		if (maybe_tokens(["st", "nd", "rd", "th", "nth"])) result = nth_item(result);
 		// if (the.current_word.in(all_operators)) return condition()
 	} else if (word.in(quantifiers)) {
 		result = liste_selector() // both should work
 		// result = condition()
 		// result = maybe(condition)||liste_selector()
-	} else if (word.startsWith("r'")||word.startsWith("/")) {
+	} else if (word.startsWith("r'") || word.startsWith("/")) {
 		result = regexp(word);
 		next_token(false);
 	} else if ((the.current_type === _token.STRING) || word.startsWith("'")) {
@@ -897,7 +902,7 @@ quick_expression=function quick_expression() {
 	return result;
 }
 
-post_operations=function post_operations(result) {
+post_operations = function post_operations(result) {
 	if (the.current_word === "") {
 		return result;
 	}
@@ -965,4 +970,4 @@ post_operations=function post_operations(result) {
 	return false;
 }
 
-module.exports = {expression, subProperty, property, algebra,liste, evaluate_property, nth_item}
+module.exports = {expression, subProperty, property, algebra, liste, evaluate_property, nth_item, hash_map}

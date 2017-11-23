@@ -77,8 +77,9 @@ function assert_that(condition, message) {
 
 // module.exports.assert_result_is =
 function assert_result_is(prog, val) {
-	let result = parse(prog);
-	assert(result == val, prog + " == " + val+", got "+result)
+	let result = parse(prog).result
+	let condition = result == val || json(result)==json(val)
+	assert(condition, prog + " == " + pretty(val)+", got "+pretty(result))
 	console.log(prog + " ==== " + val + "   ... OK!")
 }
 
@@ -111,36 +112,24 @@ register = function (instance, modul) {
 			if (test.match(/^skip_/)) continue
 			if (test.match(/^no_/)) continue
 			if (test.match(/^dont/)) continue
-			clear();
 			console.log("++++++++++++++++++++++++++++++")
 			console.log(test)
-			// parser.clear();
 			modulus.exports[test] = ok => {
 				try {
-					// parser.clear()
+					clear();
 					instance[test](ok);
 					ok.done()
 				} catch (ex) {
 					console.log("" + instance[test] + " THREW")
-					trimStack(ex,4)
-					// console.error(ex)
+					trimStack(ex)
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
-					// console.error(ex)
-					// else throw ex
 					ok.done(ex)
-				}
-				finally {
 				}
 			}
 		} catch (ex) {
 			trimStack(ex)
-			console.log("WHY HERE")
 			console.error(ex)
-			// ok.done()
-			// if(ex instanceof NotMatching || ex==NotMatching)
-			// 	throw ex
-			// console.error(test)
 		}
 	}
 }

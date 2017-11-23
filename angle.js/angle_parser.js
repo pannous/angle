@@ -168,17 +168,6 @@ function maybe_algebra(_context) {
 	return do_call(_context, op, z);
 }
 
-function contains(token) {
-	return token.in(the.current_line);
-}
-
-function contains_any(tokens) {
-	for (let token of tokens) {
-		if (token.in(the.current_line)) {
-			return true;
-		}
-	}
-}
 
 function addMethodNames(f) {
 	let args, f2, name, obj;

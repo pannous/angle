@@ -2,7 +2,7 @@
 context = require('./context')
 let the = context
 let nodes = require('./nodes')
-
+let util=require('util')
 var current_word;
 var current_token;
 var current_type;
@@ -55,9 +55,7 @@ function star(lamb, giveUp = false) {
 			if (!match || match==EndOfDocument) break;
 			old = current_token;
 			good.append(match);
-			if (the.current_word == ")") {
-				break;
-			}
+			if (the.current_word == ")"||the.current_word == "}") break;
 			max = 20;
 			if (good.length > max) {
 				throw new Error(" too many occurrences of " + lamb.name);// to_source(
@@ -284,6 +282,7 @@ function parse_tokens(s) {
 	let tokenz = tokenizer().input(s)
 		.token(_token.BRACE, /\[/,token_helper)
 		.token(_token.BRACE, /\(/,token_helper)
+		.token(_token.BRACE, /\{/,token_helper)
 		.token(_token.NUMBER, /\d*\.\d+/u, token_helper)
 		.token(_token.NUMBER, /\d+/u, token_helper)
 		.token(_token.WORD, /\w+/u, token_helper)
@@ -293,7 +292,7 @@ function parse_tokens(s) {
 		.token(_token.COMMENT, /#.*/)
 		.token(_token.COMMA, /,/,token_helper)
 		.token(_token.OPERATOR, /\|/)
-		.token(_token.NEWLINE, /:/)
+		.token(_token.OPERATOR, /:/)// or newline
 		.token(_token.NEWLINE, /;/)// end of statement/block
 		.token(_token.NEWLINE, /\n/, token_helper)
 		.token(_token.COMMENT, /\/\/.*/)
@@ -302,6 +301,7 @@ function parse_tokens(s) {
 		.token(_token.OPERATOR, /[=\+\-\*\^%\/]+/u, token_helper)
 		.token(_token.BRACER, /\)/,token_helper)
 		.token(_token.BRACER, /\]/,token_helper)
+		.token(_token.BRACER, /\}/,token_helper)
 		.walk(token_eater)
 	var tokens = tokenz.resolve()//.debug()
 	// .tokens('operators', math_operators)// logic_operators
@@ -442,10 +442,6 @@ function must_contain(args, do_raise = true) {
 	return false;
 }
 
-function must_contain_before_({args, before}) {
-	return must_contain_before(args, before)
-}
-
 function must_contain_before(args, before=[]) {
 	let good, old;
 	old = current_token;
@@ -458,7 +454,7 @@ function must_contain_before(args, before=[]) {
 		next_token();
 	}
 	set_token(old);
-	if (!good) throw new NotMatching(must_contain_before);
+	if (!good) throw new NotMatching('must_contain '+args+' BEFORE '+before+"'\n"+pointer_string());
 	return good;
 }
 
@@ -980,7 +976,7 @@ parse = function (s, target_file = null, clean = false) {
 		// error(target_file);
 	}
 	verbose("PARSED SUCCESSFULLY!!");
-	verbose("RESULT = " + the.result);
+	verbose("RESULT = " + util.inspect(the.result,{showHidden: false, depth: null}));
 	// the.result.result=the.result // todo : DONT!
 	return interpretation();
 }
@@ -1250,7 +1246,6 @@ module.exports = {
 	maybe_indent,
 	method_allowed,
 	must_not_start_with,
-	must_contain_before_,
 	must_contain_before,
 	must_not_contain,
 	maybe_token,

@@ -81,6 +81,7 @@ be_words = ["is", "be", "was", "are", "will be", "were", "have been", "shall be"
 class_be_words = ["is an", "is a"];
 comparison_words = ["be", "is of", "is in", "is a", "is", "subset of", "in", "are", "were", ">=", "==", "!=", "<=", "=<", "=", ">", "<", "\u2260", "\u2264", "\u2265", "~", "~=", "=~", "~~", "gt", "lt", "eq", "identical to", "smaller or equal", "greater or equal", "equal to", "bigger", "greater", "equals", "smaller", "less", "more", "the same as", "same as", "similar", "comes after", "inherits from", "implementscomes before", "exact", "exactly", "~>", "at least", "at most"];
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"];
+hash_assign = [":", "to", "=>", "->"];
 math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"];
 english_operators = ["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod", "modulo", "print"];
 true_operators = math_operators.plus(english_operators).plus(logic_operators);

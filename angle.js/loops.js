@@ -10,7 +10,6 @@ let {
 	maybe_indent,
 	must_contain,
 	must_not_start_with,
-	must_contain_before_,
 	must_contain_before,
 	maybe_tokens,
 	next_token,

@@ -17,7 +17,6 @@ let {
 	maybe_indent,
 	method_allowed,
 	must_not_start_with,
-	must_contain_before_,
 	must_contain_before,
 	must_not_contain,
 	must_contain,
@@ -206,10 +205,8 @@ function add_variable(var_, val, mod = null, _type = null) {
 setter=
 function setter(var_ = null) {
 	let _cast, _let, _type, guard, mod, setta, val;
-	must_contain_before_({
-		args: ["is", "be", "are", ":=", "=", "set", "to"],
-		before: [">", "<", "+", "-", "|", "/", "*", ";"]
-	});
+	must_contain_before(["is", "be", "are", ":=", "=", "set", "to"],
+		/*before:*/ [">", "<", "+", "-", "|", "/", "*", ";"])
 	_let = maybe_tokens(let_words);
 	if (_let) no_rollback();
 	let a = maybe(articles);
