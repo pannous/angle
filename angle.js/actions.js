@@ -49,7 +49,12 @@ function action() {
 
 function true_method(obj = null) {
 	if (obj && obj[the.current_word] instanceof Function)
-		return [module, obj, the.current_word]
+		return the.current_word//["W","T","F"]
+	if (obj && obj[the.current_word.replace(/ed$/,'e')] instanceof Function) // squared
+		return the.current_word.replace(/ed$/,'e')
+	if (obj && obj[the.current_word.replace(/ed$/,'')] instanceof Function) // listed -> list
+		return the.current_word.replace(/ed$/,'')
+	// return ["", obj, the.current_word]
 	let {subProperty} = require('./expressions')
 	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
 	ex = english_operators;
@@ -89,7 +94,8 @@ function true_method(obj = null) {
 	// 		obj = the.variables[name];
 	if (!name) name = tokens(the.method_names)
 	if (!name) throw new NotMatching("no method found");
-	return [xmodule, obj, name];
+	return name;
+	// return [xmodule, obj, name];
 }
 
 function is_object_method(method_name) {
@@ -158,7 +164,9 @@ function call_arg(position = 1) {
 
 function method_call(obj = null) {
 	let args, assume_args, method, method_name, modul, more, start_brace;
-	[modul, obj, method_name] = true_method(obj);
+	maybe_token(".") // todo
+	method_name = true_method(obj);
+	// [modul, _ , method_name] = true_method(obj);
 	if (!method_name || method_name==FALSE|| method_name==TRUE)
 		raise_not_matching("no method_call")
 	context.in_algebra = false;
@@ -474,6 +482,8 @@ function bindMethod(method, obj) {
 	// if(obj instanceof owner)
 	if(obj instanceof Argument)obj=obj.value
 	owner = owner || obj && classOf(obj) || raise("CANT BIND " + method)
+	if(!method.bind)
+		raise("!method.bind BUG")
 	return method.bind(/* this = */ obj || owner)// , curry args!
 }
 
@@ -766,13 +776,16 @@ function do_math(a, op, b) {
 
 	if (a instanceof Variable) a = a.value;
 	if (b instanceof Variable) b = b.value;
-	if(a instanceof Array && op.in(be_words))
-		return a.equals(b)
-	if(a instanceof Array && op.in(['+','add','plus']))
-		return a.concat(b)
-	if(a instanceof Array && op.in(['-','\\','minus','subtract','without']))
-		return a.remove(b)
-	if (op === 'in') return b.contains(a)
+	if (a instanceof Array) {
+		if (op.in(be_words)) return a.equals(b)
+		if (op.in(['+', 'add', 'plus', ',', '.'])) return a.concat(b) // []+a and []+[a] OK
+		if (op.in(['-', '\\', 'minus', 'subtract', 'without'])) return a.remove(b)
+	}
+	if (op === '.') return a[b] && do_evaluate_property(a,b)
+	if (op === "'s") return a[b] && do_evaluate_property(a,b)
+	if (op === 'in') return b.contains(a) || b[a] && do_evaluate_property(b,a)
+	if (op === 'of') return b[a] && do_evaluate_property(b,a)
+	if (op === ',') return [a,b] // [a] Array: see concat
 	if (op === '+') return a + b
 	if (op === 'plus') return a + b
 	if (op === 'add') return a + b

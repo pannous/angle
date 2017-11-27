@@ -11,10 +11,10 @@
 ast = require("./ast")
 extensions = require('./extensions')();
 
-function list(xs) { // Only in this context  don't make it global
-	if (xs instanceof String) return xs.split("")
-	return new Array(xs)
-}
+// function list(xs) { // Only in this context  don't make it global
+// 	if (xs instanceof String) return xs.split("")
+// 	return new Array(xs)
+// }
 
 True = true;
 False = false;
@@ -113,6 +113,7 @@ special_verbs = ["evaluate", "eval"];
 system_verbs = ((["contains", "contain"] ).plus(special_verbs) ).plus(auxiliary_verbs);
 invoke_keywords = ["call", "execute", "run", "start", "evaluate", "eval", "invoke"];
 context_keywords = ["context", "module", "package"];
+property_selectors = [".", "'s", "of","in"];
 self_modifying_operators = ["|=", "&=", "&&=", "||=", "+=", "-=", "/=", "^=", "%=", "#=", "*=", "**=", "<<", ">>"];
 newline_tokens = ["\n", "\r\n", ";", "\\.\n", "\\. "];
 ast_operator_map = {

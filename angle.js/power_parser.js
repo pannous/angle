@@ -9,7 +9,7 @@ var current_type;
 var current_line;
 var token_number;
 
-let list = Array
+// let list = Array
 
 class Starttokens {
 	constructor(starttokens) {
@@ -291,6 +291,7 @@ function parse_tokens(s) {
 		.token(_token.STRING, /'(.*?)'/u)
 		.token(_token.COMMENT, /#.*/)
 		.token(_token.COMMA, /,/,token_helper)
+		.token(_token.OPERATOR, /\./)// 'selector'
 		.token(_token.OPERATOR, /\|/)
 		.token(_token.OPERATOR, /:/)// or newline
 		.token(_token.NEWLINE, /;/)// end of statement/block
@@ -1115,13 +1116,17 @@ function maybe_indent() {
 }
 
 function method_allowed(meth) {
-	if (meth.length < 2) {
-		return false;
-	}
 	if (meth.in(["print"])) {
 		return true;
 	}
+	if (meth.length < 2) {
+		return false;
+	}
 	if (meth.in(["evaluate", "eval", "int", "True", "False", "true", "false", "the", "Invert", "char"])) {
+		return false;
+	}
+	if (meth[0] != meth[0].toLower()){
+		// todo("No Upcase Methods!")
 		return false;
 	}
 	if (meth.in(keywords)) {

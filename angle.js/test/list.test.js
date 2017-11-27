@@ -107,16 +107,20 @@ class ListTest extends (ParserBaseTest) {
 		assert_that(`1,2 == [1,2]`);
 	}
 
+	test_list_syntax2() {
+		assert_that(`1,2,3 is the same as [1,2,3]`);
+		assert_that(`1,2 and 3 is the same as [1,2,3]`);
+	}
+
 	test_list_syntax3() {
 		assert_that(`[1,2] is {1,2}`);
 		// assert_that(`1,2 = [1,2]`);
 	}
 
-	test_list_syntax2() {
-		assert_that(`1,2,3 is the same as [1,2,3]`);
-		assert_that(`1,2 and 3 is the same as [1,2,3]`);
-		assert_that(`1,2 and 3 are the same as [1,2,3]`);
+	test_list_syntax4() {
 		assert_that(`1,2 and 3 is [1,2,3]`);
+		assert_that(`1,2 and 3 are [1,2,3]`);
+		// assert_that(`1,2 and 3 are the same as [1,2,3]`);
 	}
 
 	test_concatenation() {
@@ -198,7 +202,7 @@ class ListTest extends (ParserBaseTest) {
 		parse(`x be 1,2,3;y= class of x`);
 		assert_equals(the.variables['y'].value, Array);
 		assert(the.variables['x'].value instanceof Array)
-		assert_equals(the.variables['x'].type, Array)
+		assert_equals(typeof the.variables['x'], Array)
 	}
 
 	test_type3b() {
@@ -274,13 +278,17 @@ class ListTest extends (ParserBaseTest) {
 	// assert_that('(all letters in 1,"a",2,"c",3) == "a","c"')
 	test_every_selector2() {
 		assert_that(`(all number in 1,"a",2,3) == 1,2,3`);
-		assert_that(`(all numbers in 1,"a",2,3) == 1,2,3`);
 		assert_that(`(every number in 1,"a",2,3) == 1,2,3`);
+	}
+
+	test_every_selector_plural() {
+		assert_that(`(all letters in 1,"a",2,"c",3) == "a","c"`);
+		assert_that(`(all numbers in 1,"a",2,3) == 1,2,3`);
+		assert_that(`all numbers in 1,"a",2,3 == 1,2,3`);
 	}
 
 	test_every_selector_no_braces() {
 		assert_that(`all number in 1,"a",2,3 == 1,2,3`);
-		assert_that(`all numbers in 1,"a",2,3 == 1,2,3`);
 		assert_that(`every number in 1,"a",2,3 == 1,2,3`);
 	}
 
@@ -305,8 +313,34 @@ class ListTest extends (ParserBaseTest) {
 		init('{a:1,b:2,c:3}');
 		assert_equals(hash_map(), {'a': 1, 'b': 2, 'c': 3,});
 	}
+
+	test_ops(){
+		assert_equals(parse('[ 1, 2, 3 ]-[1,3]'),[2])
+		assert_equals(parse('[ 1, 2, 3 ]-[2]'),[1,3])
+		assert_equals(parse('[ 1, 2, 3 ]+4'),[1,2,3,4])
+		assert_equals(parse('[ 1, 2, 3 ]+[4]'),[1,2,3,4])
+		assert_equals(parse('[ 1, 2, 3 ]-2'),[1,3])
+	}
+	test_funs() {
+		assert_equals(parse('[2,3] reversed'), [3, 2])
+		assert_equals(parse('[2,3].reverse'), [3, 2])
+		assert_equals(parse('reverse [2,3]'), [3, 2])
+		assert_equals(parse('reverse 2,3'), [3, 2])
+		assert_equals(parse('reverse of [2,3]'), [3, 2])
+		assert_equals(parse('reverse(2,3)'), [3, 2])
+		// assert_equals(parse('reverse of 2,3'), [3, 2])
+	}
+	test_harder_ops(){
+		assert_equals(parse('[2,3].reverse'),[3,2])
+		assert_equals(parse('[ 1, 2, 3 ]\\[2]'),[1,3])
+		assert_equals(parse('[ 1, [2,3], 3 ]'),[ 1, [2,3], 3 ])
+		assert_equals(parse('[ 1, [2,3], 3 ]-[2]'),[ 1, [2,3], 3 ])
+		assert_equals(parse('[ 1, [2], 3 ]-[2]'),[1,3])
+		assert_equals(parse('[ [2,3].reverse, 2, 3 ]'),[[3,2],[2,3]])
+	}
 }
 
-register(ListTest, module)
-module.exports.test_current=new ListTest().test_every_selector2
-// test_every_selector_no_braces
+// register(ListTest, module)
+module.exports.test_current=new ListTest().
+	test_type4
+// 	test_funs

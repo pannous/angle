@@ -349,7 +349,7 @@ Array_Extensions = {
 	remove(...xs) {
 		for (let x of xs) {
 			if (Array.isArray(x)) {
-				for (let a in x) {
+				for (let a of x) {
 					let i = this.indexOf(a);
 					if (i > -1) this.splice(i, 1);
 				}
@@ -456,6 +456,7 @@ Array_Extensions = {
 	head(n = 100) {
 		return this.slice(0, n)
 	},
+	// reverse() builtin
 	first(n = 0) {
 		if (n) return this.slice(0, n)
 		return this[0]
@@ -1151,9 +1152,8 @@ assert_equals = function assert_equals(left, right) {
 
 	let are_equal = left == right;
 	are_equal = left instanceof Array? left.equals(right) : are_equal
-	are_equal = are_equal || JSON.stringify((left)==JSON.stringify(right))
+	are_equal = are_equal || JSON.stringify(left)==JSON.stringify(right)
 	if (!are_equal) {
-
 		left=util.inspect(left, {showHidden: false, depth: null})
 		right=util.inspect(right, {showHidden: false, depth: null})
 		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left} != ${right}`

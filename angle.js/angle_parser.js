@@ -740,10 +740,8 @@ async function ask(rl) {
 async function start_shell(args = []) {
 	// process.on('unhandledRejection', () => {console.log("FUCK")});
 	// process.on('rejectionHandled', () => {console.log("FUCK")});
-// import * as readline from 'readline';
 	let home, input0, interpretation;
 	let readline = require('readline')
-	// let readline=require('readline-history')
 	var rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,
@@ -753,16 +751,8 @@ async function start_shell(args = []) {
 	rl.setPrompt("\u29a0 ")// '⦠ '
 	context._debug = (context._debug || "ANGLE_DEBUG".in(process.env));
 	home = "~" //expanduser("~");
-	// readline.read_history_file(home + "/.english_history");\\
-	while (1) {
+	while (1)
 		await ask(rl)
-	}
-	// console.log("Bye.");
-// exit(1);
-	// process.stdin.on("keypress",console.log)
-
-	// rl.on("line",line=>{
-
 }
 
 

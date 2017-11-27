@@ -26,6 +26,7 @@ let {
 	no_rollback,
 	one_or_more,
 	pointer_string,
+	raise_not_matching,
 	skip_comments,
 	starts_with,
 	star,

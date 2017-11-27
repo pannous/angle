@@ -56,10 +56,12 @@ function assert_has_error(prog, type = "") {
 }
 
 
-function assert_that(condition, message) {
+function assert_that(test, message) {
 	var ok=0
+	let {condition}= require('../expressions')
 	try{
-		ok=parse(condition).result
+		// ok=condition(test).result
+		ok=parse(test).result
 	}catch(ex){
 		console.error(trimStack(ex,2))
 	}
@@ -121,7 +123,7 @@ register = function (instance, modul) {
 					ok.done()
 				} catch (ex) {
 					console.log("" + instance[test] + " THREW")
-					trimStack(ex)
+					// trimStack(ex)
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
 					ok.done(ex)

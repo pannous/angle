@@ -1,7 +1,7 @@
 let {do_evaluate_property} = require("./values")
 
 let {Variable, Argument} = require('./nodes')
-let {endNoun,verb_comparison} = require("./english_parser")
+let {endNoun, verb_comparison} = require("./english_parser")
 
 let {
 	block,
@@ -23,6 +23,7 @@ let {
 	pointer,
 	pointer_string,
 	raiseEnd,
+	raise_not_matching,
 	skip_comments,
 	starts_with,
 	star,
@@ -109,14 +110,18 @@ function algebra(val = null) {
 	val = val || maybe(value) || bracelet()
 	let stack = [val];
 
+	// todo 1,2==[1,2] VS a>1,b==2,c>3
 	function lamb() {
 		let neg, op, va;
-		if (the.current_word.in(be_words) && context.in_args) return false;
+		if (the.current_word.in(be_words) && context.in_args) return false; // f(a=3) acts as micro variable
 		op = (maybe(comparation) || operator())
-		if (op === "=") throw NotMatching//see setter!
+		if (op === "=") throw NotMatching //see setter or comparison
 		neg = maybe_token("not")
 		va = (maybe(value) || maybe(bracelet))
-		context.in_algebra = true;
+		if (op.in(be_words)) // take everything on the right side of an equation as a full expression
+			context.in_algebra = false
+		else
+			context.in_algebra = true;
 		va = va || expression()
 		if (va === ZERO) va = 0;
 		stack.insert(op)
@@ -328,9 +333,9 @@ function liste(check = true, first = null) {
 		throw new NotMatching(liste)
 
 	if (context.in_hash) must_not_contain(":")
-	if (check) must_contain_before(",")
 
 	start_brace = maybe_tokens(["[", "{", "("])
+	if (!start_brace && check) must_contain_before(",")
 	if ((!start_brace) && (context.in_list || in_args))
 		throw new NotMatching("not a deep list")
 
@@ -349,6 +354,7 @@ function liste(check = true, first = null) {
 		let e;
 		tokens([",", "and"])
 		e = endNode()
+		// e = expression() todo
 		if (e === ZERO) {
 			e = 0;
 		}
@@ -424,8 +430,8 @@ function regular_hash() {
 		maybe_tokens(hash_assign) || starts_with("{")
 		val = expression()
 		h[key] = val;
-		maybe_tokens([",",";"," "])
-		if(checkNewline())next_token(false)
+		maybe_tokens([",", ";", " "])
+		if (checkNewline()) next_token(false)
 		return h
 	}
 
@@ -480,13 +486,12 @@ function subProperty(_context) {
 function evaluate_property(x = null) {
 	let y;
 	maybe_token("all")
-	must_contain_before(["of", "in", "."], "(")
+	must_contain_before(property_selectors, "(")
 	x = (x || endNoun(type_keywords))
-	tokens(["of", "in"])
+	tokens(property_selectors)
 	y = expression()
-	if (!interpreting()) {
-		return parent_node()
-	}
+	// if (!interpreting())
+	// 	return ast.BinOp()
 	try {
 		the.result = do_evaluate_property(x, y)
 	} catch (e) {
@@ -733,12 +738,11 @@ function simpleProperty() {
 	return new ast.Attribute(new ast.Name(module, new ast.Load()), prop, new ast.Load())
 }
 
-function property() {
-	let container, of_, properti, sett;
-	must_contain_before([".", "'s", "of"], special_chars)
-	let var_ = variable()
-	container = var_.value;
-	of_ = __`.`;
+function property(container) {
+	let of_, properti, sett;
+	must_contain_before(property_selectors, special_chars)
+	container = container || variable().value;
+	of_ = tokens(property_selectors)
 	no_rollback()
 	properti = word()
 	if (of_ === "of") {
@@ -965,15 +969,22 @@ quick_expression = function quick_expression() {
 	let fun, result, z;
 	result = false;
 	let word = the.current_word;
-	if (!word) throw new EndOfLine();
-	if (word === ";") throw new EndOfStatement();
-	if ((!context.in_params) && look_1_ahead(":")) return immediate_hash();
+	if (!word)
+		throw new EndOfLine();
+	if (word === ";")
+		throw new EndOfStatement();
+	if ((!context.in_params) && look_1_ahead(":"))
+		return immediate_hash();
 	if (word === "{") {
-		if (look_1_ahead("}")) return empty_map();
-		if (contains("=>") || contains(":")) return hash_map();
+		if (look_1_ahead("}"))
+			return empty_map();
+		if (contains("=>") || contains(":"))
+			return hash_map();
 	}
-	if (look_1_ahead([".", "'s", "of"])) return (maybe(method_call) || property());
-	if (look_1_ahead("=")) if (!context.in_condition) return setter();
+	if (look_1_ahead([".", "'s", "of"]))
+		return (maybe(method_call) || property());// method_call: a.b()
+	if (look_1_ahead("=")) if (!context.in_condition)
+		return setter();
 
 	// if (type_names.has(word) || word.in(the.classes)) return require("./statements").declaration();
 	if (word.in(all_operators) && the.current_word !== "~") return false;
@@ -1027,7 +1038,7 @@ quick_expression = function quick_expression() {
 }
 
 post_operations = function post_operations(result) {
-	if (the.current_word === "") {
+	if (!the.current_word || !result) {
 		return result;
 	}
 	if (the.current_word === ";") {
@@ -1036,20 +1047,20 @@ post_operations = function post_operations(result) {
 	if (the.current_word === ".") {
 		return method_call(result);
 	}
-	if ((the.current_word === ",") && (!((context.in_args || context.in_params) || context.in_hash))) {
+	if (the.current_word === "," && !(context.in_args || context.in_params || context.in_hash)) {
 		return liste(/*check:*/ false, /*first: */result);
 	}
-	if (the.current_word.in(self_modifying_operators)) {
+	if (the.current_word.in(self_modifying_operators)) {// += ..
 		return self_modify(result);
 	}
-	if ((the.current_word === "+") && look_1_ahead("+")) {
+	if (the.current_word === "++" || the.current_word === "+" && look_1_ahead("+")) {
 		return plusPlus(result);
 	}
-	if ((the.current_word === "-") && look_1_ahead("-")) {
+	if (the.current_word === "--" || the.current_word === "-" && look_1_ahead("-")) {
 		return minusMinus(result);
 	}
 	if (the.current_word.in(be_words)) {
-		if (!context.in_condition) {
+		if (!context.in_condition && !context.in_args && !context.in_params) {
 			if (result instanceof Variable) {
 				return setter(result);
 			} else
@@ -1067,6 +1078,9 @@ post_operations = function post_operations(result) {
 	if (the.current_word.in(operators)) {
 		return algebra(result);
 	}
+	if (the.current_word.in(property_selectors)) {
+		return property(result)
+	}
 	if (the.current_word === "[") {
 		return evaluate_index(result);
 	}
@@ -1079,19 +1093,19 @@ post_operations = function post_operations(result) {
 	if (result && (the.current_word === "if")) {
 		return action_if(result);
 	}
+	if (the.current_word === "if") {
+		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
+	}
 	if (the.current_line.endswith("times")) {
 		return action_n_times(result);
 	}
 	if (the.current_word.in(be_words)) {
 		return setter(result);
 	}
-	if (the.current_word === "if") {
-		return (_("if") && condition() ? result : (maybe("else") && expression() || null));
-	}
-	if (the.current_word === "as") {
-		return maybe_cast(result);
+	if (the.current_word.match(/ed$/)) {
+		return method_call(result)
 	}
 	return false;
 }
 
-module.exports = {expression, subProperty, property, algebra, liste, evaluate_property, nth_item, hash_map,condition}
+module.exports = {expression, subProperty, property, algebra, liste, evaluate_property, nth_item, hash_map, condition}
