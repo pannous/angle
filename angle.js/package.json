@@ -24,6 +24,8 @@
         "sync-request": "",
         "node-fetch": "",
         "request": "",
-        "fs-readfile-promise": ""
+        "websocket": "",
+        "fs-readfile-promise": "",
+        "string-tokenizer": ""
     }
 }

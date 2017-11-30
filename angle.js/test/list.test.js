@@ -340,7 +340,7 @@ class ListTest extends (ParserBaseTest) {
 	}
 }
 
-// register(ListTest, module)
-module.exports.test_current=new ListTest().
-	test_type4
+register(ListTest, module)
+// module.exports.test_current=new ListTest().
+// 	test_type4
 // 	test_funs

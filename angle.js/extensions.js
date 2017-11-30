@@ -106,7 +106,7 @@ fullscreen = x => document.getElementsByTagName('html')[0].mozRequestFullScreen(
 ignore = nop = pass = () => {
 }
 p = puts = log = echo = console.log
-
+home= path=>path.replace("~",process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'])//os.homedir())
 hex = x => x.toString(16) // '0x' + not for xdotool
 
 dir = function (x) {
@@ -311,7 +311,7 @@ Array_Extensions = {
 		return this.map(ro=>ro[number])
 	},
 	equals( array ) {
-		return this.length == array.length && this.every((j,i)=>j== array[i]) // !!++
+		return array && this.length == array.length && this.every((j,i)=>j== array[i]) // !!++
 	},
 	g(x) {
 		return this.filter(a => a == x || ("" + a).match(x))
@@ -833,7 +833,7 @@ if (typeof(window) == 'undefined') {
 		read_tsv = load_csv = x => read_lines(x).map(x => x.split("\t"))
 		try {
 			sleeps = require('sleep').sleep // Seconds; blocking, there is no way around this !! setTimeout just ADDS to cycles!
-			sleep = x => require('sleep').usleep(x * 1000) //  ms blocking there is no way around this !! setTimeout just ADDS to cycles!
+			sleep = x => require('sleep').usleep(x * 1000) // ms BLOCKING there is no way around this !! setTimeout just ADDS to cycles!
 		} catch (ex) {
 			console.log('npm install sleep')
 		}

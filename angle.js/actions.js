@@ -781,10 +781,12 @@ function do_math(a, op, b) {
 		if (op.in(['+', 'add', 'plus', ',', '.'])) return a.concat(b) // []+a and []+[a] OK
 		if (op.in(['-', '\\', 'minus', 'subtract', 'without'])) return a.remove(b)
 	}
-	if (op === '.') return a[b] && do_evaluate_property(a,b)
-	if (op === "'s") return a[b] && do_evaluate_property(a,b)
-	if (op === 'in') return b.contains(a) || b[a] && do_evaluate_property(b,a)
-	if (op === 'of') return b[a] && do_evaluate_property(b,a)
+	if (op === '.') return do_evaluate_property(a,b)  //  a['length'] ==0
+	if (op === "'s") return do_evaluate_property(a,b)
+	if (op === 'of') return do_evaluate_property(b,a)
+	if (op === 'in')
+		return b.contains(a) // dangerous selection "all those ... in"
+
 	if (op === ',') return [a,b] // [a] Array: see concat
 	if (op === '+') return a + b
 	if (op === 'plus') return a + b

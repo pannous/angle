@@ -80,13 +80,17 @@ to_be_words = ["is", "be", "are", ":=", "="];
 be_words = ["is", "be", "was", "are", "will be", "were", "have been", "shall be", "should be", ":=", "=", "==", "equals", "equal", "is equal to", "consist of", "consists of", "is made up of", "equal to", "same", "the same as", "same as", "the same"];
 class_be_words = ["is an", "is a"];
 comparison_words = ["be", "is of", "is in", "is a", "is", "subset of", "in", "are", "were", ">=", "==", "!=", "<=", "=<", "=", ">", "<", "\u2260", "\u2264", "\u2265", "~", "~=", "=~", "~~", "gt", "lt", "eq", "identical to", "smaller or equal", "greater or equal", "equal to", "bigger", "greater", "equals", "smaller", "less", "more", "the same as", "same as", "similar", "comes after", "inherits from", "implementscomes before", "exact", "exactly", "~>", "at least", "at most"];
-logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"];
 hash_assign = [":", "to", "=>", "->"];
+
+// decreasing precedence http://en.cppreference.com/w/cpp/language/operator_precedence
 math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"];
-english_operators = ["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod", "modulo", "print"];
+logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"];
+english_operators = ["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add", "subtract", "mod", "modulo", "print"] // precedence of English and math mixed, OR map and normal eyes (normalize)
 true_operators = math_operators.plus(english_operators).plus(logic_operators);
-operators = true_operators.plus(comparison_words)
+object_accessors = [".","of","in","'s"]
+operators = object_accessors.plus(true_operators).plus(comparison_words)//.plus()
 all_operators=operators.plus(special_chars)
+
 once_words = ["whenever", "wherever", "as soon as", "once"];
 if_words = ["if"];
 nill_words = ["None", "nil", "empty", "void", "nill", "nul", "nothing", "null", "undefined", "naught", "nought"];

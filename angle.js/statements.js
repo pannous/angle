@@ -1,7 +1,7 @@
 // "use strict"
 let {nth_item} = require("./expressions")
 
-let {property,evaluate_property} = require("./expressions")
+let {property, evaluate_property} = require("./expressions")
 
 let {method_call} = require("./actions")
 
@@ -31,11 +31,11 @@ let {
 	starts_with,
 	star,
 	tokens,
-}=require('./power_parser')
-let {action,do_evaluate,piped_actions}= require('./actions')
+} = require('./power_parser')
+let {action, do_evaluate, piped_actions} = require('./actions')
 let {Variable, Argument} = require('./nodes')
-let {expression,algebra,liste}= require('./expressions')
-let {articles}=require('./angle_parser')
+let {expression, algebra, liste} = require('./expressions')
+let {articles} = require('./angle_parser')
 let {loops} = require('./loops')
 let {
 	boole,
@@ -53,43 +53,43 @@ let {
 } = require('./values')
 
 statement =
-function statement (doraise = true) {
-	let x;
-	if (starts_with(done_words) || checkNewline())
-		return !doraise || raise_not_matching("end of block ok")
-	if (checkNewline()) return NEWLINE;
-	maybe_indent();
-	x = maybe(quick_statement)||
-		maybe(quick_expression) ||
-		maybe(setter) ||
-		maybe(returns) ||
-		maybe(imports) ||
-		maybe(method_definition) ||
-		maybe(assert_that) ||
-		maybe(breaks) ||
-		maybe(loops) ||
-		maybe(if_then_else) ||
-		maybe(piped_actions) ||
-		maybe(declaration) ||
-		maybe(neu) ||
-		maybe(action) ||
-		maybe(returns) ||
-		maybe(expression) ||
-		raise_not_matching("Not a statement: %s".format(pointer_string()));
-	context.in_condition = false;
-	the.result = x;
-	the.last_result = x;
-	// if(!checkNewline())
-	// if (the.current_word === "|")
-	// 	the.result = post_operations(x)
+	function statement(doraise = true) {
+		let x;
+		if (starts_with(done_words) || checkNewline())
+			return !doraise || raise_not_matching("end of block ok")
+		if (checkNewline()) return NEWLINE;
+		maybe_indent();
+		x = maybe(quick_statement) ||
+			maybe(quick_expression) ||
+			maybe(setter) ||
+			maybe(returns) ||
+			maybe(imports) ||
+			maybe(method_definition) ||
+			maybe(assert_that) ||
+			maybe(breaks) ||
+			maybe(loops) ||
+			maybe(if_then_else) ||
+			maybe(piped_actions) ||
+			maybe(declaration) ||
+			maybe(neu) ||
+			maybe(action) ||
+			maybe(returns) ||
+			maybe(expression) ||
+			raise_not_matching("Not a statement: %s".format(pointer_string()));
+		context.in_condition = false;
+		the.result = x;
+		the.last_result = x;
+		// if(!checkNewline())
+		// if (the.current_word === "|")
+		// 	the.result = post_operations(x)
 		// the.result = piped_actions(x)
-	skip_comments();
-	adjust_interpret();
-	return the.result;
-}
+		skip_comments();
+		adjust_interpret();
+		return the.result;
+	}
 
 function quick_statement() {
-	let word=the.current_word
+	let word = the.current_word
 	if (type_names.has(word) || word.in(the.classes)) return declaration()
 }
 
@@ -97,9 +97,10 @@ function quick_statement() {
 function isType(x) {
 	return is_type(x) || type_names.has(x)
 }
+
 function assure_same_type(var_, _type) {
 	let oldType;
-	if (var_.name.in(the.variableTypes)) {
+	if (the.variableTypes[var_.name]) {
 		oldType = (the.variableTypes[var_.name] || var_.value && type(var_.value));
 	} else {
 		if (var_.type) {
@@ -109,7 +110,7 @@ function assure_same_type(var_, _type) {
 		}
 	}
 	let types_match = !oldType || !_type || oldType == _type || oldType == _type.prototype || oldType.prototype == _type
-	if(types_match)return
+	if (types_match) return
 	if (_type === "Unknown")
 		return;
 	if (_type instanceof ast.AST) {
@@ -137,6 +138,7 @@ function assure_same_type(var_, _type) {
 	}
 	var_.type = _type;
 }
+
 function assure_same_type_overwrite(var_, val, auto_cast = false) {
 	let oldType, oldValue, wrong_type;
 	if (!val) {
@@ -173,7 +175,7 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 
 function get_type(val) {
 	return Object.getPrototypeOf(val)
-	 // val.prototype
+	// val.prototype
 	// return mapType(typeof val) // Stupid js?
 }
 
@@ -183,14 +185,14 @@ function add_variable(var_, val, mod = null, _type = null) {
 		return var_;
 	}
 	var_.typed = ((_type || var_.typed) || ("typed" === mod)) && true; // redundant? no: autotype vs 'typed!'
-	if(!_type)_type=get_type(val)
+	if (!_type) _type = get_type(val)
 	if (val instanceof ast.FunctionCall) {
 		assure_same_type(var_, val.returns);
 	} else {
 		assure_same_type(var_, _type);
 		assure_same_type_overwrite(var_, val);
 	}
-	if ((!var_.name.in(keys(variableValues)) || (mod !== "default"))) {
+	if (!variableValues[var_.name] || mod !== "default") {
 		the.variableValues[var_.name] = val;
 		the.variables[var_.name] = var_;
 		var_.value = val;
@@ -203,62 +205,62 @@ function add_variable(var_, val, mod = null, _type = null) {
 	return var_;
 }
 
-setter=
-function setter(var_ = null) {
-	let _cast, _let, _type, guard, mod, setta, val;
-	must_contain_before(["is", "be", "are", ":=", "=", "set", "to"],
-		/*before:*/ [">", "<", "+", "-", "|", "/", "*", ";"])
-	_let = maybe_tokens(let_words);
-	if (_let) no_rollback();
-	let a = maybe(articles);
-	mod = maybe_tokens(modifier_words);
-	_type = maybe(typeNameMapped);
-	maybe_tokens(["var", "val", "value of"]);
-	mod = mod || maybe_tokens(modifier_words);
-	var_ = var_ || variable(a, ast.Store);
-	if (current_word === "[") return evaluate_index(var_);
-	setta = maybe_tokens(["to"]) || tokens(be_words);
-	if (!setta) throw new NotMatching("BE!?");
-	if (setta === ":=" || _let === "alias") return alias(var_);
-	if (maybe_tokens(["a", "an"]) && !_type) {
-		_type = typeNameMapped();
-		val = _type();
-		return add_variable(var_, val, mod, _type);
-	}
-	/////////////////////
-	val = expression() // <<<<<< TODO: debug
-	/////////////////////
-	_cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) && typeNameMapped();
-	guard = maybe_token("else") && value();
-	if (_cast) {
-		if (interpreting()) {
-			val = do_cast(val, _cast);
-		} else {
-			_type = _cast;
+setter =
+	function setter(var_ = null) {
+		let _cast, _let, _type, guard, mod, setta, val;
+		must_contain_before(["is", "be", "are", ":=", "=", "set", "to"],
+			/*before:*/ [">", "<", "+", "-", "|", "/", "*", ";"])
+		_let = maybe_tokens(let_words);
+		if (_let) no_rollback();
+		let a = maybe(articles);
+		mod = maybe_tokens(modifier_words);
+		_type = maybe(typeNameMapped);
+		maybe_tokens(["var", "val", "value of"]);
+		mod = mod || maybe_tokens(modifier_words);
+		var_ = var_ || variable(a, ast.Store);
+		if (current_word === "[") return evaluate_index(var_);
+		setta = maybe_tokens(["to"]) || tokens(be_words);
+		if (!setta) throw new NotMatching("BE!?");
+		if (setta === ":=" || _let === "alias") return alias(var_);
+		if (maybe_tokens(["a", "an"]) && !_type) {
+			_type = typeNameMapped();
+			val = _type();
+			return add_variable(var_, val, mod, _type);
 		}
-	}
-	val = do_evaluate(val) || do_evaluate(guard);
-	if (setta.in(["are", "consist of", "consists of"])) {
-		val = flatten(val);
-	}
-	try {
-		add_variable(var_, val, mod, _type);
-	} catch (e) {
-		if (guard) {
-			val = guard;
-			add_variable(var_, guard, mod, _type);
-		} else {
-			throw e;
+		/////////////////////
+		val = expression() // <<<<<< TODO: debug
+		/////////////////////
+		_cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) && typeNameMapped();
+		guard = maybe_token("else") && value();
+		if (_cast) {
+			if (interpreting()) {
+				val = do_cast(val, _cast);
+			} else {
+				_type = _cast;
+			}
 		}
+		val = do_evaluate(val) || do_evaluate(guard);
+		if (setta.in(["are", "consist of", "consists of"])) {
+			val = flatten(val);
+		}
+		try {
+			add_variable(var_, val, mod, _type);
+		} catch (e) {
+			if (guard) {
+				val = guard;
+				add_variable(var_, guard, mod, _type);
+			} else {
+				throw e;
+			}
+		}
+		if (!interpreting()) {
+			return new ast.Assign([new ast.Name(var_.name, new ast.Store())], val);
+		}
+		if (interpreting() && (val !== 0)) {
+			return val;
+		}
+		return var_;
 	}
-	if (!interpreting()) {
-		return new ast.Assign([new ast.Name(var_.name, new ast.Store())], val);
-	}
-	if (interpreting() && (val !== 0)) {
-		return val;
-	}
-	return var_;
-}
 
 function returns() {
 	tokens(["return", "returns"]);
@@ -346,7 +348,7 @@ function method_definition(name = null, return_type = null) {
 	f = new FunctionDef({
 		name: name,
 		arguments: args,
-		modifiers:modifiers,
+		modifiers: modifiers,
 		return_type: return_type,
 		body: "allow pre-recursion"
 	});
@@ -368,7 +370,9 @@ function method_definition(name = null, return_type = null) {
 	the.params.clear();
 	return f;
 }
-let _=tokens
+
+let _ = tokens
+
 function assert_that() {
 	let s;
 	_("assert");
