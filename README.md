@@ -167,14 +167,16 @@ Why the new implementation in python🐍?
 We can **compile** English script / [Angle](https://github.com/pannous/angle/) directly to python byte-code:
 As opposed to Ruby, Python(3) comes with a very nice and clean abstract syntax tree as well as byte code capabilities preinstalled.
 Compiling is so much nicer & faster than interpreted code.
-Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited lamda capabilities are a painful limitation. 
+Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited block/lamda capabilities are a painful limitation. 
 
 
 "There should be one-- and preferably only one --obvious way to do it"
 Beautiful is better than ugly.
-Explicit is better than implicit.
 Simple is better than complex.
 Complex is better than complicated.
 Flat is better than nested.			
 
 For a background story/vision/philosophy/future of this project read the [DOSSIER](https://github.com/pannous/english-script/tree/master/DOSSIER.md)
+
+Also check out: [Program Synthesis from Natural Language
+Using Recurrent Neural Networks](https://github.com/TellinaTool/tellina)
