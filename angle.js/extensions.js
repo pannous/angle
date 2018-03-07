@@ -228,8 +228,7 @@ Function_Extensions = {
 // for([key, value] of map){NO} // WTFFFFFFFFF [Symbol.iterator] is not a function ===> FIX:
 Object.prototype[Symbol.iterator] = function* () {
 	for (let kv of Object.entries(this)) yield kv
-} // enables:
-// for([key, value] of map) {}
+} // enables for([key, value] of map) {}
 
 join=(a,b)=>Object.assign(a,b)
 assign=(a,b)=>Object.assign(a,b)
@@ -287,6 +286,14 @@ isList = Array.isArray
 isArray = Array.isArray
 is_array = Array.isArray
 
+Object.assign(Buffer.prototype, {
+	data(){
+		return Array.from(this)
+	},
+	bytes(){
+		return Array.from(this)
+	}
+})
 Object.assign(RegExp.prototype, {
 	match(x) {
 		return x.match(this);
@@ -803,7 +810,7 @@ getIp = function getIp() {
 }
 
 
-if (typeof(window) == 'undefined') {
+// if (typeof(window) == 'undefined') {
 	try {
 		window = self = global // = this IN NODE.JS!
 		window.WebSocket = require('websocket').w3cwebsocket
@@ -835,7 +842,7 @@ if (typeof(window) == 'undefined') {
 			sleeps = require('sleep').sleep // Seconds; blocking, there is no way around this !! setTimeout just ADDS to cycles!
 			sleep = x => require('sleep').usleep(x * 1000) // ms BLOCKING there is no way around this !! setTimeout just ADDS to cycles!
 		} catch (ex) {
-			console.log('npm install sleep')
+			// console.log('npm install sleep')
 		}
 	} catch (ex) {
 		console.log(ex); // ex
@@ -846,7 +853,7 @@ if (typeof(window) == 'undefined') {
 			extension()
 		}
 	}
-}
+// }
 
 // optimised for long iterations but ranger(1,30)[10] NOT OK
 ranger = function* (start = 0, end, step = 1) {
@@ -895,7 +902,7 @@ if (typeof(fetch) == 'undefined') {
 	try {
 		readFileAsync = require('fs-readfile-promise');
 	} catch (ex) {
-		console.log("npm install fs-readfile-promise  for readFileAsync")
+		// console.log("npm install fs-readfile-promise  for readFileAsync")
 	}
 	// wget = require('deasync')(require('node-fetch'))
 }
@@ -963,7 +970,7 @@ bytesToHex = (bytes) => {
 		hex.push((bytes[i] >>> 4).toString(16));
 		hex.push((bytes[i] & 0xF).toString(16));
 	}
-	return hex.join("");
+	return "".join(hex);
 }
 
 to_buffer = bytes => {
@@ -1342,4 +1349,20 @@ trimStack=function (ex,more=0) {
 
 assert_contains=function assert_contains(string,pattern) {
 	assert(string.contains(pattern),string+" should contain "+pattern)
+}
+strip=x=>x.trim()
+quit=_=>process.exit.bind(process, 0)
+
+wait_for_key=async function wait_for_key(msg="Press any key",callback){
+	// key=await wait_for_key().data()[0] for ascii, but can be long: <Buffer 1b 5b 32 33 3b 32 7e>
+		return new Promise((resolve, reject) => {
+		try{
+			console.log(msg);
+			process.stdin.setRawMode(true);
+			process.stdin.resume();
+			process.stdin.on('data', resolve);
+			if(callback instanceof Function)
+				 process.stdin.on('data',callback)
+		}catch(ex){console.log(ex);reject()}
+	})
 }

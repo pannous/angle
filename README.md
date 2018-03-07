@@ -1,4 +1,4 @@
-![ENGLISH SCRIPT](English script.png "ENGLISH SCRIPT")
+![ENGLISH SCRIPT](English_script.png)
 
 **[Angle](https://github.com/pannous/angle/)** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
 The main purpose of this language is to facilitate programming computers via voice.

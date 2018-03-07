@@ -8,7 +8,7 @@ let {register} = require("./angle_base_test")
 let {result, variableValues} = require("../context")
 let {postjective} = require("../english_parser")
 let the = require("../context")
-let {setter} = require("../statements")
+// let {setter} = require("../statements")
 let {algebra} = require("../expressions")
 let {expression} = require("../expressions")
 let {assert_result_is,assert_that,parser} = require("./angle_base_test")
@@ -72,7 +72,7 @@ class StringTest extends (ParserBaseTest) {
 		assert_equals(the.variables['z'], 'HiWorld');
 	}
 
-	test_concatenation_b() {
+	_test_concatenation_b() {
 		init('x is "hi"');
 		setter&&setter()||parser.setter();
 		assert_equals("hi", the.variables['x']);
@@ -93,7 +93,7 @@ class StringTest extends (ParserBaseTest) {
 		assert_equals(the.variables['z'], 'hi you');
 	}
 
-	test_concatenation_b1() {
+	_test_concatenation_b1() {
 		init('x is "hi"');
 		setter();
 		assert_equals("hi", the.variables['x']);
@@ -171,6 +171,16 @@ class StringTest extends (ParserBaseTest) {
 		assert_result_is(`type of x`, String);
 		assert_that(`type of x is string`);
 	}
+	DONT_test_kind() {// kind of  ~~ --
+		parse(`x="hi"`);
+		assert_result_is(`kind of x`, String);
+		assert_that(`kind of x is string`);
+	}
+	test_class() {
+		parse(`x="hi"`);
+		assert_result_is(`class of x`, String);
+		assert_that(`class of x is string`);
+	}
 
 	test_type3() {
 		parse(`x be 'hello world';`);
@@ -218,5 +228,7 @@ class StringTest extends (ParserBaseTest) {
 }
 
 setVerbose()
-register(StringTest, module)
-// module.exports.test_current = new StringTest().test_select_character
+// register(StringTest, module)
+module.exports.test_current = new StringTest().
+	test_class
+	// test_type

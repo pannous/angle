@@ -918,7 +918,11 @@ parse = function (s, target_file = null, clean = false) {
 			target_file = (target_file || (s + ".pyc"));
 			source_file = s;
 			s = readlines(s);
-		} else {
+		} else if (s.endswith(".md")) {
+			source_file = s;
+			s = readlines(s); // todo
+			in_template=true // `hi ${you}` == "hi `you`"
+		} else  {
 			source_file = "out/inline";
 			try {
 				open(source_file, "wt").write(s);
@@ -1190,7 +1194,7 @@ function load_module_methods() {
 	}
 	let all = []
 	for (let meth of the.method_names) {
-		if (method_allowed(meth))
+		// if (method_allowed(meth))
 			all.push(meth);
 	}
 	return all;
@@ -1269,6 +1273,7 @@ module.exports = {
 	next_token,
 	no_rollback,
 	one_or_more,
+	parse,
 	pointer,
 	pointer_string,
 	raiseEnd,

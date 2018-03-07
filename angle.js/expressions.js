@@ -741,7 +741,7 @@ function simpleProperty() {
 function property(container) {
 	let of_, properti, sett;
 	must_contain_before(property_selectors, special_chars)
-	container = container || variable().value;
+	container = container || maybe_tokens(["class","code","type","name","kind"]) || variable().value;
 	of_ = tokens(property_selectors)
 	no_rollback()
 	properti = word()
@@ -761,6 +761,12 @@ function property(container) {
 		return new Assign([new Attribute(container, properti, (sett && new Store() || new Load())), sett])
 	}
 	if (interpreting()) {
+		if(properti=="type"||properti=="kind"||properti=="class")
+			return mapType(container[properti]||typeof container)
+			// if(container instanceof Variable){
+			// 	if(container.type) return container.type
+			// 	container=container.value
+			// }
 		if (container instanceof Object /*todo*/) {
 			return container[properti];
 		} else {
@@ -983,8 +989,10 @@ quick_expression = function quick_expression() {
 	}
 	if (look_1_ahead([".", "'s", "of"]))
 		return (maybe(method_call) || property());// method_call: a.b()
-	if (look_1_ahead("=")) if (!context.in_condition)
+	if (look_1_ahead("=")) if (!context.in_condition){
+		// let {setter} = require('./statements')
 		return setter();
+	}
 
 	// if (type_names.has(word) || word.in(the.classes)) return require("./statements").declaration();
 	if (word.in(all_operators) && the.current_word !== "~") return false;

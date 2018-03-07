@@ -20,12 +20,13 @@
     },
     "homepage": "https://github.com/pannous/angle#readme",
     "dependencies": {
+        "binaryen": "^39.0.0",
+        "fs-readfile-promise": "",
         "json5": "",
-        "sync-request": "",
         "node-fetch": "",
         "request": "",
-        "websocket": "",
-        "fs-readfile-promise": "",
-        "string-tokenizer": ""
+        "string-tokenizer": "",
+        "sync-request": "",
+        "websocket": ""
     }
 }

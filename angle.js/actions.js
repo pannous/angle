@@ -26,6 +26,7 @@ var {
 	raise_not_matching
 } = require('./power_parser')
 require('./ast')
+const method_allowed = require("./power_parser").method_allowed;
 let {variable, typeNameMapped,word,quote} = require('./values')
 let {verb, spo} = require('./english_parser')
 // todo : untangle ^^
@@ -491,6 +492,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
 	method_name = method_name0 || (method instanceof Function) && method.name || method0;
 	if (!method0) throw new Error("NO METHOD GIVEN %s %s".format(obj0, args0));
+	if(!method_allowed(method_name))raise("not method_allowed "+method_name)
 	if (!interpreting()) {
 		return new FunctionCall({
 			func: method0,

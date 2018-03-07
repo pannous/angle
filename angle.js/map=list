@@ -1,0 +1,13 @@
+
+Preferably '=' should be used for leaves and ':' for nodes with children.
+color=blue color:{blue dark}
+As in js, even lists and entity/maps can be unified:
+```
+[a b c]={1:a 2:b 3:c}
+{a:1 b:2 c:3}=[a:1 b:2 c:3] // todo hash as list of pairs as in kotlin
+{a b c}=[a b c]
+```
+A list is just a special entity/map in which its keys are numbers
+A map is just a special list in which its entries are pairs.
+
+Preferably 

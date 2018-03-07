@@ -112,8 +112,8 @@ register = function (instance, modul) {
 			if (test.match(/^_test/)) continue
 			if (test.match(/^ignore_/)) continue
 			if (test.match(/^skip_/)) continue
-			if (test.match(/^no_/)) continue
-			if (test.match(/^dont/)) continue
+			if (test.match(/^no_/i)) continue
+			if (test.match(/^dont/i)) continue
 			console.log("++++++++++++++++++++++++++++++")
 			console.log(test)
 			modulus.exports[test] = ok => {
@@ -123,7 +123,7 @@ register = function (instance, modul) {
 					ok.done()
 				} catch (ex) {
 					console.log("" + instance[test] + " THREW")
-					// trimStack(ex)
+					trimStack(ex)
 					if (ex instanceof SkipException)
 						return console.log("SKIPPING:") && console.log(clazz)
 					ok.done(ex)
