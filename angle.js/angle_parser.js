@@ -814,7 +814,7 @@ context.starttokens_done = true;
 // module.exports.parse = parse
 // exports.parse = parse
 //// sourceMappingURL=js.map
-let setVerbose = (ok = 1) => context._verbose = ok;
+let setVerbose = (ok = 1) => ok.done?ok.done():context._verbose = ok;
 
 
 module.exports = {

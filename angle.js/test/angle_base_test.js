@@ -49,7 +49,9 @@ function assert_has_error(prog, type = "") {
 	try {
 		parse(prog)
 	} catch (ex) {
+		console.log(prog)
 		console.log("OK, exception raised: " + (ex.message || ex.name))
+		prog.done()
 		return
 	}
 	throw new TestError("should have raised [" + type.name + "]: " + the.current_line)
@@ -125,7 +127,7 @@ register = function (instance, modul) {
 					console.log("" + instance[test] + " THREW")
 					trimStack(ex)
 					if (ex instanceof SkipException)
-						return console.log("SKIPPING:") && console.log(clazz)
+						console.log("SKIPPING:") && console.log(clazz)
 					ok.done(ex)
 				}
 			}
