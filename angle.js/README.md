@@ -1,4 +1,4 @@
-[Angle script](https://github.com/pannous/angle.js)  browser variant of the [angle](https://github.com/pannous/angle) programming language
+[Angle script](https://github.com/pannous/angle.js)  browser variant of the [angle](https://github.com/pannous/angle) programming language inspired by [XTalk](https://en.wikipedia.org/wiki/XTalk)
 
 lisp with optional sigils `[({;$})]`
 

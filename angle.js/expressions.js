@@ -680,13 +680,13 @@ function do_compare(a, comp, b) {
 		return a <= b
 	else if (comp === 'bigger || equal' || comp === '>=' || isinstance(comp, ast.GtE))
 		return a >= b
-	else if (comp in ['!=', 'is not'] || isinstance(comp, ast.NotEq))
+	else if (comp.in(['!=', 'is not'] || isinstance(comp, ast.NotEq)))
 		return a === b
-	else if (comp in ['in', 'element of'] || isinstance(comp, ast.In))
-		return a in b
-	else if (comp in subtype_words)
+	else if (comp.in(['in', 'element of'] || isinstance(comp, ast.In)))
+		return a.in(b)
+	else if (comp.in(subtype_words))
 		return issubclass(a, b)
-	else if (comp in class_words) {
+	else if (comp.in(class_words)) {
 		if (a === b || isinstance(a, b)) return True
 		if (isinstance(a, Variable)) return issubclass(a.type, b) || isinstance(a.value, b)
 		if (isinstance(a, type)) return issubclass(a, b) // issubclass? a bird is an animal OK
@@ -696,7 +696,7 @@ function do_compare(a, comp, b) {
 		return a === b  //// Redundant
 	else if (comp === 'not equal' || comp === 'not the same' || comp === 'different' || comp === '!=' || comp === '≠')
 		return a !== b  //// Redundant
-	else if (comp in be_words || isinstance(comp, (ast.Eq, ast.Eq)) || 'same' in comp)
+	else if (comp.in(be_words) || isinstance(comp, (ast.Eq, ast.Eq)) || 'same'.in(comp))
 		return a === b || isinstance(b, type) && isinstance(a, b)
 	else
 		try {
@@ -711,7 +711,7 @@ function do_compare(a, comp, b) {
 function do_get_class_constant(c) {
 	try {
 		for (let module of sys.modules) {
-			if (c in module) return module[c];
+			if (c.in(module)) return module[c];
 		}
 	} catch (e) {
 		console.error(e)
@@ -748,6 +748,7 @@ function property(container) {
 	if (of_ === "of") {
 		[container, properti] = [properti, container];
 	}
+	container=do_evaluate(container)
 	sett = (maybe_token("=") && expression())
 	if (sett) {
 		if (interpreting()) {
@@ -761,16 +762,17 @@ function property(container) {
 		return new Assign([new Attribute(container, properti, (sett && new Store() || new Load())), sett])
 	}
 	if (interpreting()) {
+		let element = container[properti];
 		if(properti=="type"||properti=="kind"||properti=="class")
-			return mapType(container[properti]||typeof container)
+			return isArray(container)?Array:mapType(element|| typeof container)
 			// if(container instanceof Variable){
 			// 	if(container.type) return container.type
 			// 	container=container.value
 			// }
 		if (container instanceof Object /*todo*/) {
-			return container[properti];
+			return element;
 		} else {
-			return container[properti];
+			return element;
 		}
 	}
 	return new Attribute(container, properti, (sett && new Store() || new Load()))

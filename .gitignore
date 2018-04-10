@@ -38,3 +38,4 @@ upload_to_pip.sh
 package-lock.json
 node_modules/
 .idea/
+record.wav

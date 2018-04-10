@@ -360,6 +360,7 @@ function drop_comments() {
 }
 
 function init(strings) {
+	if(strings.done)strings.done()
 	let {number} = require('./values')
 	let comp, left, right;
 	if (!the.moduleMethods || !the.moduleMethods.length)
@@ -856,7 +857,8 @@ function pointer() {
 // let isnumeric = (start) =>start.isdigit()
 
 
-function clear() {
+function clear(ok) {
+	ok&&ok.done?ok.done():0
 	let variableValues, variables;
 	trace("clear all variables, methods, ...");
 	variables = {};

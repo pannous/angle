@@ -243,6 +243,8 @@ setter =
 		if (setta.in(["are", "consist of", "consists of"])) {
 			val = flatten(val);
 		}
+		if(isArray(val) && !_type)
+			_type=Array
 		try {
 			add_variable(var_, val, mod, _type);
 		} catch (e) {

@@ -61,6 +61,83 @@ Status:
 ALPHA, partly usable, some [tests](tests) not yet passing: 
 [![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
 
+Operators:
+--------------
+`|` pipe : output of last command as input for next command. `ls ~ | sort`
+`,` list : turn two nodes into a list. Append if one is a list. 'cons' in lisp
+`:` pair : turn two nodes into a pair, `a:3` (hashed+symbolic). almost identical to:
+`=` value : turn two nodes into a variable pair, `a=3`
+`;` list : end expressions/statements, list inside a block. if 1 : 0 ;
+`., of, in` selection: garden of house == house.garden
+space acts as comma in lists
+newline, dedent: acts as comma in lists or closing 'bracket' if matching block start
+
+usual math operators `add` `plus` `times` `^` … and logical `and` `or` `xor` `not`
+
+brackets: content of () is evaluated, {} is deferred (block/lambda)
+
+angle uses **mark** as data and code format:
+
+```
+cat{
+    size:3
+    color:{r=1 g=0 b=0}
+    form{
+        dimensions=3,size*2
+    }
+}
+
+All code is data and all data can be 'executed':
+cat().dimensions returns (3,6) because last statement == return value
+cat(!) returns cat fully evaluated: cat{size:3,…,form:dimensions:{3,6}}
+
+print(size) // prints value of size()
+print{size} // prints function size
+colors={red green blue}
+colors=(red green blue)
+sort{.size} // ok
+sort{it.size} // ok
+sort{it's size} // ok
+sort(size) // error unless value of size() returns lambda
+sort{size} // todo: read as it.size
+sort by size  // todo
+
+[] is evaluated as property index/match or deferred if assigned:
+cat[size] = 3
+cat[size:3] = true
+pattern=[size:3]
+cat[pattern] = true
+difference to cat.size : in cat[size], size can be a variable. to be sure use symbol or string cat[#size] cat['size']
+
+switch takes a usual hash in which keys can be patterns:
+switch :: a -> { b -> c } -> c()
+switch(time){
+    5pm: read
+    [hour<5am]: sleep
+    [it.minute=0]: smoke
+    other: work
+}
+switch(time,my_block)
+my_block[time()]
+
+fallthrough must be forced with … if desired
+
+how to force evaluation inside deferred block:
+cat{
+    born:=time()  // deferred
+    born:time()  // deferred
+    born=time()  // instant
+}
+
+blocks can be given 'arguments' when evaluated:
+cat(time:5pm) == cat{born:5pm}
+same rules apply: arguments can be values or blocks
+cat(time:calculate()) == cat{born:calculate()}
+cat(time=calculate()) == cat{born:5pm}
+
+
+```
+
 ⏳ In progress
 --------------
 
@@ -135,18 +212,16 @@ To check out the current capabilities of English Script have a look at the [test
 ---------
 English Script / Angle is currently running in the 
 * [ruby](https://github.com/pannous/english-script) and [python](https://github.com/pannous/angle) environment, but will soon compile to the 
-* WEB(!!) thanks to [WebAssembly](https://github.com/WebAssembly/design)
-* JVM thanks to [Mirah](https://github.com/mirah/mirah), [zippy](https://bitbucket.org/ssllab/zippy/overview) and [truffle](https://github.com/graalvm/truffle)
-* [.Net/CLR/DLR](https://en.wikipedia.org/wiki/Dynamic_Language_Runtime) (via [Cecil](https://github.com/jbevain/cecil), maybe [Mirah](https://github.com/mirah/mirah) too), 
-* As a final aim: run **natively**, maybe similar to [Crystal](https://github.com/manastech/crystal), [Vala](https://en.wikipedia.org/wiki/Vala_%28programming_language%29) or RPython
+* WEB and **natively** thanks to [WebAssembly](https://github.com/WebAssembly/design)
+* Pure [JavaScript](https://github.com/pannous/angle.js) version as intermediate.
 
 Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Bootstrapping_%28compilers%29) is an important mid-term goal.
 
 <!--
 **precedence**
-One very hot idea is to allow modifying the language grammar on the fly, at least till a limited extend.
-One first step would be to make possible setting the precedence of functions.
-This would enable very natural and sweet mathematical expressions, especially combined with Unicode names:
+One very hot idea is to allow modifying the language grammar on the fly, at least to a limited extend.
+One first step would be to enable setting the precedence of functions.
+This would yield very natural and sweet mathematical expressions, especially combined with Unicode names:
 ```
 class Complex alias ℂ (re, im)
 	to add number x

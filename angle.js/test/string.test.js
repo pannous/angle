@@ -182,6 +182,13 @@ class StringTest extends (ParserBaseTest) {
 		assert_that(`class of x is string`);
 	}
 
+	test_operations(){
+		assert_that(`reverse "ab" is "ba"`);
+		assert_that(`"ab" reversed is "ba"`);
+		assert_that(`trim " ab " is "ab"`);
+		assert_that(`" ab " trimmed is "ab"`);
+	}
+
 	test_type3() {
 		parse(`x be 'hello world';`);
 		assert_that(`x is a string`);
