@@ -86,7 +86,9 @@ class Load {
 
 class Store {
 }
+class Print{
 
+}
 // module.exports = [Add]
 module.exports = {
 	Add: Add,
@@ -103,6 +105,7 @@ module.exports = {
 	And: And,
 	BitOr: BitOr,
 	BinOp: BinOp,
+	Print: Print,
 	Pow: Pow,
 	GtE: GtE,
 	Lt: Lt,

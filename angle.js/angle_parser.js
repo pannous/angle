@@ -7,7 +7,7 @@ let used_operators
 let used_ast_operators
 
 let parser=require("./power_parser")
-let {block,do_interpret, init,tokens} = require("./power_parser")
+let {block,do_interpret, dont_interpret,init,tokens} = require("./power_parser")
 require("./english_tokens")
 require("./ast")
 require("./loops")
@@ -823,7 +823,7 @@ module.exports = {
 	clear:parser.clear,
 	main,
 	rooty,
-
+	dont_interpret, // forward power_parser
 	// TEST ONLY:
 	// interpretation,
 	articles,

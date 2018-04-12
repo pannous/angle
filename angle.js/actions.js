@@ -1,6 +1,8 @@
 "use strict"
+let nodes = require('./nodes')
 let {Variable, Argument} = require('./nodes')
-var {
+
+let {
 	block,
 	checkNewline,
 	raiseNewline,
@@ -27,7 +29,7 @@ var {
 } = require('./power_parser')
 require('./ast')
 const method_allowed = require("./power_parser").method_allowed;
-let {variable, typeNameMapped,word,quote} = require('./values')
+let {variable, typeNameMapped, word, quote} = require('./values')
 let {verb, spo} = require('./english_parser')
 // todo : untangle ^^
 
@@ -51,14 +53,14 @@ function action() {
 function true_method(obj = null) {
 	if (obj && obj[the.current_word] instanceof Function)
 		return the.current_word//["W","T","F"]
-	if (obj && obj[the.current_word.replace(/ed$/,'e')] instanceof Function) // squared
-		return the.current_word.replace(/ed$/,'e')
-	if (obj && obj[the.current_word.replace(/ed$/,'')] instanceof Function) // listed -> list
-		return the.current_word.replace(/ed$/,'')
+	if (obj && obj[the.current_word.replace(/ed$/, 'e')] instanceof Function) // squared
+		return the.current_word.replace(/ed$/, 'e')
+	if (obj && obj[the.current_word.replace(/ed$/, '')] instanceof Function) // listed -> list
+		return the.current_word.replace(/ed$/, '')
 	// return ["", obj, the.current_word]
 	let {subProperty} = require('./expressions')
 	let ex, longName, module, moduleMethods, name, property, variable, xmodule, xvariable;
-	ex = english_operators;
+	// ex = english_operators;
 	must_not_start_with(keyword_except_english_operators)
 	must_not_start_with(auxiliary_verbs);
 	xmodule = maybe_tokens(the.moduleNames);
@@ -83,8 +85,8 @@ function true_method(obj = null) {
 			name = findMethod(nil, variable.value);
 			if (!name) [obj, name] = subProperty(variable.value);
 		}
-	}else if(obj && obj[the.current_word]){
-		name=the.current_word
+	} else if (obj && obj[the.current_word]) {
+		name = the.current_word
 		next_token()
 		// 	todo("subProperty")
 
@@ -95,8 +97,8 @@ function true_method(obj = null) {
 	// 		obj = the.variables[name];
 	if (!name) name = tokens(the.method_names)
 	if (!name) throw new NotMatching("no method found");
-	return name;
-	// return [xmodule, obj, name];
+	// return name;
+	return [xmodule, obj, name];
 }
 
 function is_object_method(method_name) {
@@ -110,6 +112,9 @@ function is_object_method(method_name) {
 
 function has_args(method, clazz = object, assume = 0) {
 	if (!method) raise_not_matching("method has_args")
+
+	if (method == console.log) return true // todo why is method.length 0?
+
 	method = findMethod(clazz, method);
 	let bound_to_this = method.toString().match(/this/) && 1 // TODO! toSource
 	if (method instanceof Function) return method.length + bound_to_this
@@ -166,9 +171,9 @@ function call_arg(position = 1) {
 function method_call(obj = null) {
 	let args, assume_args, method, method_name, modul, more, start_brace;
 	maybe_token(".") // todo
-	method_name = true_method(obj);
-	// [modul, _ , method_name] = true_method(obj);
-	if (!method_name || method_name==FALSE|| method_name==TRUE)
+	// method_name = true_method(obj);
+	[modul, _ , method_name] = true_method(obj);
+	if (!method_name || method_name == FALSE || method_name == TRUE)
 		raise_not_matching("no method_call")
 	context.in_algebra = false;
 	start_brace = maybe_tokens(["(", "{"]);
@@ -225,17 +230,11 @@ function method_call(obj = null) {
 	method = findMethod(obj, method, args);
 	if (!method && interpreting()) raise_not_matching("no such method: " + method_name)
 	context.in_args = false;
-	if (start_brace === "(") {
-		_(")");
-	}
-	if (start_brace === "[") {
-		_("]");
-	}
-	if (start_brace === "{") {
-		_("}");
-	}
+	if (start_brace === "(") _(")");
+	if (start_brace === "[") _("]");
+	if (start_brace === "{") _("}");
 	if (!interpreting()) {
-		if ((method_name === "puts") || (method_name === "print")) {
+		if (method_name === "puts" || method_name === "print" || method_name === "printf" || method_name === "log" && modul == "console") {
 			return new ast.Print({
 				dest: null,
 				values: args,
@@ -316,11 +315,11 @@ function bash_action() {
 		throw new DidYouMean("shell <bash command ...>");
 	}
 	ok = starts_with(["bash", "exec", "`"])
-	command=maybe_tokens(bash_commands)
-	if (!ok&&!command) raise_not_matching("no bash command");
+	command = maybe_tokens(bash_commands)
+	if (!ok && !command) raise_not_matching("no bash command");
 	no_rollback();
 	maybe_tokens(["execute", "exec", "command", "commandline", "run", "shell", "shellscript", "script", "bash"]);
-	command = command||maybe(quote);
+	command = command || maybe(quote);
 	command = (command || rest_of_line());
 	if (interpreting()) {
 		try {
@@ -481,9 +480,9 @@ function raise(err) {
 function bindMethod(method, obj) {
 	let owner = the.methodToModulesMap[method] || the.methodToModulesMap[method.name]
 	// if(obj instanceof owner)
-	if(obj instanceof Argument)obj=obj.value
+	if (obj instanceof Argument) obj = obj.value
 	owner = owner || obj && classOf(obj) || raise("CANT BIND " + method)
-	if(!method.bind)
+	if (!method.bind)
 		raise("!method.bind BUG")
 	return method.bind(/* this = */ obj || owner)// , curry args!
 }
@@ -492,7 +491,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 	let args, bound, is_builtin, is_first_self, method, method_name, number_of_arguments, obj;
 	method_name = method_name0 || (method instanceof Function) && method.name || method0;
 	if (!method0) throw new Error("NO METHOD GIVEN %s %s".format(obj0, args0));
-	if(!method_allowed(method_name))raise("not method_allowed "+method_name)
+	if (!method_allowed(method_name)) raise("not method_allowed " + method_name)
 	if (!interpreting()) {
 		return new FunctionCall({
 			func: method0,
@@ -524,8 +523,8 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		the.result = do_execute_block(method.body, args);
 		return the.result;
 	}
-	trace("CALLING %s ON %s WITH %s\n%s\n%s".format(method_name,(typeof obj || ""), args,method,obj));
-	verbose("CALLING %s ON %s WITH %s".format(method_name,(typeof obj || ""), args));
+	trace("CALLING %s ON %s WITH %s\n%s\n%s".format(method_name, (typeof obj || ""), args, method, obj));
+	verbose("CALLING %s ON %s WITH %s".format(method_name, (typeof obj || ""), args));
 	if (!args && !(method instanceof Function) && obj[method]) {
 		return obj[method]; // method.in(dir(obj))
 	}
@@ -544,7 +543,7 @@ function do_call(obj0, method0, args0 = [], method_name0 = 0) {
 		throw new MethodMissingError(type(obj), method, args);
 	}
 	if (is_math(method_name)) {
-		return do_math(obj, method_name, args)||FALSE
+		return do_math(obj, method_name, args) || FALSE
 	}
 	if (!obj) {
 		if (args && (number_of_arguments > 0)) {
@@ -714,7 +713,7 @@ function align_function_args(args, clazz, method) {
 
 function findMethod(obj, method0, args0 = null, bind = true) {
 	let method = method0;
-	if(!method) raise_not_matching(findMethod)
+	if (!method) raise_not_matching(findMethod)
 	if (method instanceof Function) return method;
 	if (method instanceof ast.FunctionDef) return method;
 	if (obj && obj[method] instanceof Function) return obj[method].bind(obj)
@@ -783,13 +782,13 @@ function do_math(a, op, b) {
 		if (op.in(['+', 'add', 'plus', ',', '.'])) return a.concat(b) // []+a and []+[a] OK
 		if (op.in(['-', '\\', 'minus', 'subtract', 'without'])) return a.remove(b)
 	}
-	if (op === '.') return do_evaluate_property(a,b)  //  a['length'] ==0
-	if (op === "'s") return do_evaluate_property(a,b)
-	if (op === 'of') return do_evaluate_property(b,a)
+	if (op === '.') return do_evaluate_property(a, b)  //  a['length'] ==0
+	if (op === "'s") return do_evaluate_property(a, b)
+	if (op === 'of') return do_evaluate_property(b, a)
 	if (op === 'in')
 		return b.contains(a) // dangerous selection "all those ... in"
 
-	if (op === ',') return [a,b] // [a] Array: see concat
+	if (op === ',') return [a, b] // [a] Array: see concat
 	if (op === '+') return a + b
 	if (op === 'plus') return a + b
 	if (op === 'add') return a + b
@@ -813,7 +812,7 @@ function do_math(a, op, b) {
 	if (op === 'pow') return a ** b
 	if (op === '^^') return a ** b
 	if (op === '^')
-		return typeof a == 'boolean'? a^b : a ** b
+		return typeof a == 'boolean' ? a ^ b : a ** b
 	if (op === 'xor') return a ^ b //|| FALSE
 	if (op === 'and') return a && b// || FALSE
 	if (op === '&&') return a && b//|| FALSE
@@ -965,7 +964,7 @@ function eval_args(args) {
 	} else {
 		// if (args instanceof Map /*todo !!*/) {
 		// } else {
-			args = [do_evaluate(args)];
+		args = [do_evaluate(args)];
 		// }
 	}
 	return args;

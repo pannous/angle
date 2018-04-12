@@ -208,8 +208,7 @@ function add_variable(var_, val, mod = null, _type = null) {
 setter =
 	function setter(var_ = null) {
 		let _cast, _let, _type, guard, mod, setta, val;
-		must_contain_before(["is", "be", "are", ":=", "=", "set", "to"],
-			/*before:*/ [">", "<", "+", "-", "|", "/", "*", ";"])
+		must_contain_before(["is", "be", "are", ":=", "=", "set", "to"], /*before:*/ [">", "<", "+", "-", "|", "/", "*", ";"])
 		_let = maybe_tokens(let_words);
 		if (_let) no_rollback();
 		let a = maybe(articles);
@@ -243,8 +242,8 @@ setter =
 		if (setta.in(["are", "consist of", "consists of"])) {
 			val = flatten(val);
 		}
-		if(isArray(val) && !_type)
-			_type=Array
+		if (!_type && isArray(val))
+			_type = Array
 		try {
 			add_variable(var_, val, mod, _type);
 		} catch (e) {

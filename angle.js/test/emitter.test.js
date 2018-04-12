@@ -1,4 +1,5 @@
-require('./angle_base_test')
+let {parser}=require('./angle_base_test')
+let {emit}=require('../emitter')
 
 class EmitterTest extends (ParserBaseTest) {
 	setUp() {
@@ -9,13 +10,20 @@ class EmitterTest extends (ParserBaseTest) {
 			context.interpret = false;
 		}
 	}
+
 	assert_result_emitted(self, x, r){
 		assert_equals(context.last_result(parser.parse_tree(x)), r);
 	}
 
-	test_basic(){
+	test_emit() {
+		emit(2);
+	}
+
+		test_basic(){
 		assert_result_is(`2`, 2);
 	}
+
+
 	test_int(){
 		// Module(body=[Print(dest=None, values=[Num(n=1, lineno=1, col_offset=6)], nl=True, lineno=1, col_offset=0)])
 		// Module([Print(None, [Num(1)], True)])
@@ -67,8 +75,8 @@ class EmitterTest extends (ParserBaseTest) {
 		// skip()
 		parser.dont_interpret();
 		parse(`printf 'hello world'`, false);
-		parser.full_tree();
-	// result = emit(interpretation, {'run': True, }, NativeCEmitter())
+		// parser.full_tree();
+	// result = emit(interpretation, {'run': True, }, WasmEmitter())
 	// assert_equals(result, 'hello world')
 	}
 	
@@ -174,17 +182,6 @@ class EmitterTest extends (ParserBaseTest) {
 		// assert_result_emitted('if (3 > 0):1\nelse:0', 1)
 		assert_result_emitted('if 3 > 0 then 1 else 0', 1);
 	}
-	// IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))
-
-	// Module([Assign([Name('result', Store())], IfExp(Compare(Num(3), [Gt()], [Num(0)]), Num(1), Num(0)))])
-	// IfExp(test=Compare(left=Num(n=3, lineno=1, col_offset=12), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=14)], lineno=1, col_offset=12), body=Num(n=1, lineno=1, col_offset=7), orelse=Num(n=0, lineno=1, col_offset=21), lineno=1, col_offset=7), lineno=1, col_offset=0)])
-	//;
-	// Module(body=[If(test=Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=5)], lineno=1, col_offset=3), body=[Expr(value=Num(n=1, lineno=1, col_offset=7), lineno=1, col_offset=7)], orelse=[Expr(value=Num(n=0, lineno=2, col_offset=5), lineno=2, col_offset=5)], lineno=1, col_offset=0)])
-	// Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
-
-
-	// Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
-	//;
 	// Module([Assign([Name('it', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
 
 	test_array(){
@@ -192,16 +189,12 @@ class EmitterTest extends (ParserBaseTest) {
 		// assert_result_emitted('xs=[1,4,7];xs.reverse()', [7, 4, 1])
 		assert_result_emitted('xs=[1,4,7];reverse xs', [7, 4, 1]);
 	}
-	// assert_result_emitted('xs=[1,4,7];invert xs', [7, 4, 1])
+
 	test_array2(){
 		// skip()
-
-	// assert_result_emitted('def invert(x):x.reverse;return x;\nxs=[1,4,7];invert xs', [7, 4, 1])
 	assert_result_emitted(`def invert(x){x.reverse;return x;}\nxs=[1,4,7];invert xs`, [7, 4, 1]);
 	assert_result_emitted(`def invert(x){x.reverse;\nreturn x;}\nxs=[1,4,7];invert xs`, [7, 4, 1]);
 	}
-
-	// Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
 
 	test_if_in_loop(){
 		// skip()
@@ -209,10 +202,5 @@ class EmitterTest extends (ParserBaseTest) {
 		assert_equals(parse(`c=0;\nwhile c<3:\nc++;\nif c>1 then beep;\ndone`), 'beeped')
 	}
 }
-// If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
-
-
-// Module(body=[Assign(targets=[Name(id='xs', ctx=Store(), lineno=1, col_offset=0)], value=List(elts=[Num(n=1, lineno=1, col_offset=4), Num(n=2, lineno=1, col_offset=6), Num(n=3, lineno=1, col_offset=8)], ctx=Load(), lineno=1, col_offset=3), lineno=1, col_offset=0), Expr(value=Call(func=Attribute(value=Name(id='xs', ctx=Load(), lineno=1, col_offset=11), attr='reverse', ctx=Load(), lineno=1, col_offset=11), args=[], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=11), Print(dest=None, values=[Name(id='xs', ctx=Load(), lineno=1, col_offset=30)], nl=True, lineno=1, col_offset=24)])
-
-exports.test_type_cast_error=new EmitterTest().test_type_cast_error
-// register(EmitterTest,module)
+exports.test_type_cast_error=new EmitterTest().test_emit
+// exports.test_type_cast_error=new EmitterTest().test_type_cast_error

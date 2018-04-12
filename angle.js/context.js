@@ -94,7 +94,7 @@ builtin_methods = ["puts", "print", "printf"];
 nouns = ["window", "bug"];
 adjectives = ["funny", "big", "small", "good", "bad"];
 verbs = ["be", "have", "do", "get", "make", "want", "try", "buy", "take", "apply", "make", "get", "eat", "drink", "go", "know", "take", "see", "come", "think", "look", "give", "use", "find", "tell", "ask", "work", "seem", "feel", "leave", "call", "integrate", "print", "eat", "test", "say"];
-emit = false;
+do_emit = false;
 version = "0.6.4";
 starttokens_done = false;
 
@@ -121,7 +121,7 @@ module.exports = {
     current_word: current_word,
     depth: depth,
     did_interpret: did_interpret,
-    emit: emit,
+    do_emit: do_emit,
     extensionMap: extensionMap,
     home: home,
     in_algebra: in_algebra,

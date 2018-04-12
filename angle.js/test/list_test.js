@@ -157,8 +157,10 @@ class ListTest extends (ParserBaseTest) {
 	}
 
 	test_concatenation3() {
+		skip()
 		variables['x'] = [1, 2];
 		variables['y'] = [3, 4];
+		sync_variables()
 		// init('x + y == 1,2,3,4');
 		// let {condition} = require('../expressions')
 		// condition();
@@ -198,14 +200,16 @@ class ListTest extends (ParserBaseTest) {
 		assert('type of x is Array');
 	}
 
-	test_type3() {
-		result=parse(`x be 1,2,3;y= class of x`);
+	test_type3(ok) {
+		result=parse(`x be 1,2,3;y= class of x`).result; // grr result
 		assert(result instanceof Array || result instanceof Object ) // hehe;)
+		console.log(result)
 		assert(result  == Array || result == Object) // FUCK JS!!
 		assert_equals(the.variables['y'].value, Array);
 		assert(the.variables['x'].value instanceof Array)
 		assert_equals(the.variables['x'].type, Array)
 		console.log("OK")
+		// ok.done()
 		// assert_equals(typeof the.variables['x'], Array)
 	}
 
@@ -344,9 +348,11 @@ class ListTest extends (ParserBaseTest) {
 	}
 }
 
-// register(ListTest, module)
-module.exports.test_current=new ListTest().
+register(ListTest, module) // ALL tests
+current=new ListTest().
 	test_type3
 // 	test_concatenation3
 // 	test_type4
 // 	test_funs
+
+module.exports.test_current=ok=>{current&&current();ok.done()}
