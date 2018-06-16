@@ -172,7 +172,10 @@ function method_call(obj = null) {
 	let args, assume_args, method, method_name, modul, more, start_brace;
 	maybe_token(".") // todo
 	// method_name = true_method(obj);
-	[modul, _ , method_name] = true_method(obj);
+	let ok=true_method(obj);
+	// if(!ok) //!modul && !method_name)
+	// 	raise_not_matching()
+	[modul, obj , method_name]=ok
 	if (!method_name || method_name == FALSE || method_name == TRUE)
 		raise_not_matching("no method_call")
 	context.in_algebra = false;
@@ -235,11 +238,7 @@ function method_call(obj = null) {
 	if (start_brace === "{") _("}");
 	if (!interpreting()) {
 		if (method_name === "puts" || method_name === "print" || method_name === "printf" || method_name === "log" && modul == "console") {
-			return new ast.Print({
-				dest: null,
-				values: args,
-				nl: true
-			});
+			return new ast.Print(args.length == 1 ? args[0] : args)
 		}
 		return new nodes.FunctionCall({
 			func: method,

@@ -3,3 +3,6 @@
 astor
 dill
 stem
+
+pytest
+nose

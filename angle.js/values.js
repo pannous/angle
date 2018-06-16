@@ -34,6 +34,9 @@ let {
 	wordnet_is_adverb,
 } = require('./english_parser')
 
+function name(s) {
+	return {name: s}
+}
 function value() {
 	let current_value, typ;
 	if (the.current_type === _token.STRING) {
@@ -277,7 +280,7 @@ let number = () => maybe(real) || maybe(fraction) || maybe(integer) || maybe(num
 function number_word() {
 	let n;
 	n = tokens(numbers)
-	return xstr(n).parse_number()
+	return str(n).parse_number()
 }
 
 function fraction() {
@@ -288,7 +291,7 @@ function fraction() {
 		if (f !== 0) return f;
 		throw new NotMatching(fraction)
 	} else {
-		m = xstr(m).parse_number()
+		m = str(m).parse_number()
 	}
 	the.result = (f + m)
 	return the.result;
@@ -302,9 +305,10 @@ function integer() {
 	if (match) {
 		current_value = parseInt(match[0])
 		next_token(false)
-		if (context.use_tree) {
-			return new kast.Num(current_value)
-		}
+		// if (context.use_tree) {
+		// 	return current_value
+		// 	// return new ast.Num(current_value)// what for?
+		// }
 		if (current_value === 0) {
 			current_value = ZERO;
 		}
@@ -315,9 +319,9 @@ function integer() {
 
 function real() {
 	let current_value, match;
-	match = the.string.match(/^\s*(-?\d*\\.\d+)/i)
+	match = the.string.match(/^\s*(-?\d*\.\d+)/i)
 	if (match) {
-		current_value = parseFloat(match.groups()[0])
+		current_value = parseFloat(match[0])
 		next_token(false)
 		return current_value;
 	}
@@ -370,8 +374,7 @@ function classConstDefined() {
 	return c;
 }
 
-
-function typeName() {
+function typeName(typ) {
 	return maybe_tokens(type_names) || classConstDefined()
 }
 
@@ -385,6 +388,7 @@ function typeNameMapped() {
 // obj.prototype doesnt
 function mapType(x0) {
 	if(the.classes[x0]) return the.classes[x0]
+	if(!is_string(x0)) return x0
 	let x = x0.lower()
 	if(the.classes[x0]) return the.classes[x0]
 	if (x === "str") return String
@@ -398,7 +402,7 @@ function mapType(x0) {
 	if (x === "label") return String
 	if (x === "lable") return String
 	if (x === "type") return Function // todo
-	if (x === "int") return Number;
+	if (x === "int") return Integer;
 	if (x === "integer") return Number;
 	if (x === "long") return Number;
 	if (x === "double") return Number;

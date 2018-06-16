@@ -1,125 +1,164 @@
 class AST {
 }
 
-class FunctionCall {
+class FunctionCall extends AST {
 }
 
-class Param {
+class Param extends AST {
 }
 
-class Add {
+class BinOp extends AST {
+	constructor(left, op, right) {
+		super()
+		this.left = left
+		this.op = op
+		this.right = right
+	}
+
+	/** @field left */
+	left() {
+	} // field dummy
+
+	/** @field op */
+	op() {
+	} // field dummy
+
+// left:null // types are not supported
+// left=null // ES7 syntax
+
+	/** @field right*/
+	right() {
+	} // field dummy
 }
 
-class Sub {
+// usage:  new BinOp(name(v.name), new Add(), num(1))
+class Add extends AST {
 }
 
-class Mult {
+class Sub extends AST {
 }
 
-class Div {
+class Mult extends AST {
 }
 
-class BitXor {
+class Div extends AST {
 }
 
-class Pow {
+class BitXor extends AST {
 }
 
-class Mod {
+class Pow extends AST {
 }
 
-class Not {
+class Mod extends AST {
 }
 
-class And {
+class Not extends AST {
 }
 
-class Or {
+class And extends AST {
 }
 
-class Gt {
+class Or extends AST {
 }
 
-class GtE {
+class Gt extends AST {
 }
 
-class Lt {
+class GtE extends AST {
 }
 
-class LtE {
+class Lt extends AST {
 }
 
-class Eq {
+class LtE extends AST {
 }
 
-class BitOr {
-}
-class BinOp{
+class Eq extends AST {
 }
 
-class NotEq {
+class BitOr extends AST {
 }
 
-class In {
+class NotEq extends AST {
 }
 
-class Num {
+class In extends AST {
 }
 
-class Str {
+class Num extends AST { // what for?
+	constructor(value) {
+		super();
+		this.value = value
+	}
 }
 
-class Compare {
+class Str extends AST {
 }
 
-class FunctionDef {
+class Compare extends AST {
 }
 
-class Assign {
+class FunctionDef extends AST {
 }
 
-class Name {
+class Assign extends AST {
+	constructor(name,value){
+		super();
+		[this.name,this.value]=[name,value]
+	}
 }
 
-class Load {
+class Name extends AST {
+	constructor(name) {
+		super();
+		this.name=name
+	}
 }
 
-class Store {
+class Load extends AST {
 }
-class Print{
 
+class Store extends AST {
+}
+
+class Print extends AST {
+	constructor(expression) {
+		super();
+		this.expression = expression
+	}
 }
 // module.exports = [Add]
 module.exports = {
-	Add: Add,
-	Sub: Sub,
-	Mult: Mult,
-	Div: Div,
-	Eq: Eq,
-	Gt: Gt,
-	Or: Or,
-	BitXor: BitXor,
-	NotEq: NotEq,
-	Mod: Mod,
-	Not: Not,
-	And: And,
-	BitOr: BitOr,
-	BinOp: BinOp,
-	Print: Print,
-	Pow: Pow,
-	GtE: GtE,
-	Lt: Lt,
-	LtE: LtE,
-	In: In,
-	Name: Name,
-	Load: Load,
-	Store: Store,
-	Num: Num,
-	Str: Str,
-	Compare: Compare,
-	FunctionDef: FunctionDef,
-	FunctionCall: FunctionCall,
-	Assign: Assign,
-	Param: Param,
-	AST: AST
+	Add,
+	Sub,
+	Mult,
+	Div,
+	Eq,
+	Gt,
+	Or,
+	BitXor,
+	NotEq,
+	Mod,
+	Not,
+	And,
+	BitOr,
+	BinOp,
+	Print,
+	Pow,
+	GtE,
+	Lt,
+	LtE,
+	In,
+	Name,
+	Load,
+	Store,
+	Num,
+	Str,
+	Compare,
+	FunctionDef,
+	FunctionCall,
+	Assign,
+	Param,
+	AST
 }

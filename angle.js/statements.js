@@ -1,4 +1,5 @@
 // "use strict"
+const word = require("./values").word;
 let {nth_item} = require("./expressions")
 
 let {property, evaluate_property} = require("./expressions")
@@ -34,8 +35,8 @@ let {
 } = require('./power_parser')
 let {action, do_evaluate, piped_actions} = require('./actions')
 let {Variable, Argument} = require('./nodes')
-let {expression, algebra, liste} = require('./expressions')
-let {articles} = require('./angle_parser')
+let {expression, algebra, liste,condition} = require('./expressions')
+let {articles,do_cast} = require('./angle_parser')
 let {loops} = require('./loops')
 let {
 	boole,
@@ -139,24 +140,33 @@ function assure_same_type(var_, _type) {
 	var_.type = _type;
 }
 
-function assure_same_type_overwrite(var_, val, auto_cast = false) {
-	let oldType, oldValue, wrong_type;
+
+function typName(typ) {
+	return typ && (typ.name || typ.constructor.name) || '<T>'
+}
+
+function assure_same_type_overwrite(var_, val, auto_cast = false, oldType) {
+	let oldValue, wrong_type;
 	if (!val) {
 		return;
 	}
-	oldType = var_.type;
+	oldType = oldType || var_.type;
 	oldValue = var_.value;
-	let val_type = val && Object.getPrototypeOf(val) || null
+	let val_type = val && get_type(val) || null
 	if (val instanceof ast.FunctionCall) {
 		if ((val.return_type !== "Unknown") && (val.return_type !== oldType))
-			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(oldType, oldValue, val, val.return_type));
+			throw new WrongType("OLD: %s %s VS %s return_type: %s ".format(typName(oldType), oldValue, val, typName(val.return_type)));
 	} else if (oldType && val_type) {
 		try {
-			wrong_type = new WrongType("OLD: %s %s VS %s %s".format(oldType.name, oldValue.name, val_type, val));
-			let types_match = (oldType == val_type || oldType == val_type.prototype || oldType.prototype == val_type);
-			if (!types_match) {
-				if (auto_cast) return do_cast(val, oldType);
-				throw wrongType;
+			wrong_type = new WrongType("WrongType OLD: %s (%s) VS %s (%s)".format(typName(oldType), oldValue, typName(val_type), val));
+			let types_match = (oldType == val_type)
+			types_match = types_match || (oldType == val_type.prototype || oldType.prototype == val_type)
+			// types_match = types_match || (oldType.constructor.name == val_type.constructor.name)
+			if (oldType && !types_match) {
+				if (auto_cast)
+					val = do_cast(val, oldType);
+				else
+					throw wrongType;
 			}
 		} catch (e) {
 			if (!(val_type == ast.AST)) {
@@ -167,13 +177,15 @@ function assure_same_type_overwrite(var_, val, auto_cast = false) {
 		}
 	}
 	if ((var_.final && var_.value) && (!(val === var_.value))) {
-		throw new ImmutableVaribale("OLD: %s %s VS %s %s".format(oldType, oldValue, val_type, val));
+		throw new ImmutableVaribale("OLD: %s %s VS %s %s".format(typName(oldType), oldValue, typName(val_type), val));
 	}
 	var_.value = val;
+	return val
 }
 
 
 function get_type(val) {
+	if(!val) return null
 	return Object.getPrototypeOf(val)
 	// val.prototype
 	// return mapType(typeof val) // Stupid js?
@@ -185,12 +197,12 @@ function add_variable(var_, val, mod = null, _type = null) {
 		return var_;
 	}
 	var_.typed = ((_type || var_.typed) || ("typed" === mod)) && true; // redundant? no: autotype vs 'typed!'
-	if (!_type) _type = get_type(val)
+	if (!_type) _type = var_.type || get_type(val)
+	var_.type = _type
 	if (val instanceof ast.FunctionCall) {
 		assure_same_type(var_, val.returns);
 	} else {
 		assure_same_type(var_, _type);
-		assure_same_type_overwrite(var_, val);
 	}
 	if (!variableValues[var_.name] || mod !== "default") {
 		the.variableValues[var_.name] = val;
@@ -245,6 +257,8 @@ setter =
 		if (!_type && isArray(val))
 			_type = Array
 		try {
+			auto_cast = true
+			val = assure_same_type_overwrite(var_, val, auto_cast, _type);
 			add_variable(var_, val, mod, _type);
 		} catch (e) {
 			if (guard) {
@@ -255,7 +269,8 @@ setter =
 			}
 		}
 		if (!interpreting()) {
-			return new ast.Assign([new ast.Name(var_.name, new ast.Store())], val);
+			return new ast.Assign(var_.name, val);
+			// return new ast.Assign([new ast.Name(var_.name, new ast.Store())], val);
 		}
 		if (interpreting() && (val !== 0)) {
 			return val;

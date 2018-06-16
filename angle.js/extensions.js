@@ -1,9 +1,10 @@
+
 /*
 require('/me/dev/js/extensions.js')()
 ln /me/dev/script/javascript/extensions.js 
+ln -s /me/dev/script/javascript/extensions.js 
 require('./extensions.js')()
 // loadScript("http://pannous.net/extensions.js");
-
 */
 // "use strict"
 // <script src="extensions.js" type="text/javascript" charset="utf-8"></script>
@@ -11,11 +12,21 @@ function extension(url = 'http://pannous.net/extensions.js') {
 	const script = document.createElement('script');
 	script.src = url;
 	document.head.appendChild(script);
-}; //extension()
+} //extension()
 extensions_version = "1.2.6"
+try{
+if(typeof(XMLHttpRequest)=='undefined')
+	XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+}catch(ex){
+// console.error(ex)
+}
+
 print = x => process.stdout.write(x) // supports \r
 // print=process.stdout.write // supports \r
 const util = require('util') // NODE.JS extensions 
+const { lstatSync, readdirSync } = require('fs')
+isDir=x=>{try{return x&&lstatSync(x).isDirectory() }catch(ex){console.error(ex.message);return false;}}
+ls=readdirSync
 
 array_empty = a => !+a // YAY
 object_empty = x => !+Object.keys(x)
@@ -23,20 +34,26 @@ falsey = x => !x || !Object.keys(x).length
 truthy = x => !(!x || typeof x == 'object' && !Object.keys(x).length)
 empty = falsy = falsey
 not_empty = truthy
-Int = Integer = Float = Real = Number
+Integer = class Integer extends Number {
+}
+Float = Real = Number
+// Int = Integer = Float = Real = Number
+Regex = Regexp = RegEx = RegExp
 
 // If we wrap our code, we can use await expressions anywhere in our codebase.
 // (async () => {await (2 + 3)})()
 try {
 	JSON5 = require('json5'); // !!! http://json5.org/
-	json = JSON5.parse
+	json = json5= JSON5.parse
 	stringify = serialize = serial = JSON5.stringify
+	deserialize = JSON5.parse
 } catch (x) {
 	json = JSON.parse
 	stringify = serialize = serial = JSON.stringify
+	deserialize = JSON.parse
 }
 
-json = (x) => {
+json = x => {
 	if (is_string(x)) return json5(x)// JSON.parse
 	else return JSON.stringify(x)
 }
@@ -65,13 +82,15 @@ function trace(x) {
 		i += 1
 	}
 }
-// ∞ error
+// ∞ error infinity
 ထ = Infinity //max_number=Number.MAX_VALUE
 တ = max_int = Number.MAX_SAFE_INTEGER // 1/တ 1.11e-16
 ε = epsilon = Number.MIN_VALUE // BAD, practically zero! 5e-324 < 1/max_number = 5e-309 ! 
 
+is_file=isFile=test=>new File(test).isFile || is_string(test)&&test.match(/\.\w+/)
 
-defined = (x) => typeof x !== "undefined"
+my = path => path.replace("~", process.env.HOME)//.replace("*.",".*")
+defined = x => typeof x !== "undefined"
 
 // rsync --update -auz extensions.js pannous.net:/public/
 // document.head.innerHTML+="<script src='http://pannous.net/extensions.js'></script>";
@@ -101,16 +120,17 @@ function shuffle(a) {
 	}
 	return a;
 }
-
 fullscreen = x => document.getElementsByTagName('html')[0].mozRequestFullScreen()
 ignore = nop = pass = () => {
 }
 p = puts = log = echo = console.log
 home= path=>path.replace("~",process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'])//os.homedir())
-hex = x => x.toString(16) // '0x' + not for xdotool
+let hex = x => x >= 0 ? x.toString(16) : (0xFFFFFFFF + x + 1).toString(16) // '0x' + not for xdotool
+// hex = x => x.toString(16) // '0x' + not for xdotool
 
 dir = function (x) {
 	if (!x) return []
+	// if(is_string(x))return run('ls '+(x||'')) //ls(x) WTF NO
 	return Object.getOwnPropertyNames(x)
 }
 // dir=xs=>{for(key in xs){if (!xs.hasOwnProperty(key))continue;console.log(key+":"+xs[key])}}
@@ -129,7 +149,7 @@ do_map = (f, xs) => {
 		if (xs.hasOwnProperty(key)) xs[key] = f(xs[key])
 	}
 }
-is_file = isfile = exists = (path) => {
+is_file = isfile = exists = file_exists = (path) => {
 	try {
 		return fs.existsSync(path)
 	} catch (x) {
@@ -145,7 +165,7 @@ keys = function (x) {
 len = function (x) {
 	if (!x) return -1
 	if(!x.length)return keys(x).length
-	console.log("use .length");
+	// console.log("use .length");
 	return x.length
 }
 length = function (x) {
@@ -160,7 +180,7 @@ randi = randint = function (x) {
 }
 hasChars = x => len(x.replace(/[^a-zA-Z]/g, "")) > 0
 isNumber = n => !isNaN(parseFloat(n)) && isFinite(n); // parseInt() "SHOULD NOT BE USED".
-toNumber = s => +s // !! +"34" === 34    +new Date()===millis!
+toNumber = s => +s // !! +"34" === 34  +new Date()===millis!
 nil = null
 
 // puts=function(x){console.log(x);return x};
@@ -169,15 +189,16 @@ puts_hack = function (x) {
 	alert("NOO" + x);
 	return "OK"
 };
-int = x => parseInt(x)
+int = x => parseInt(x)|0 // 1.3|0==1
 float = x => parseFloat(x) //x.replace(",", "."))
 a_to_s = xs => console.log("[" + xs.join(",") + "]")
 // Uint8Array.prototype.to_s= xs => console.log("["+xs.join(",")+"]")
 str = x => x.toString()
 asc = x => x.charCodeAt(0) // asc('A')=65
 ord = x => x.charCodeAt(0) // ord('A')=65
-chr = char = x => String.fromCodePoint(x) // chr(65)='A' char DONT USE fromCharCode (only for ascii)!
-ascii = x => String.fromCodePoint(x) // chr(65)='A' char nee
+chr = char = x =>String.fromCodePoint(x) // chr(65)=chr(0x41)='A' char 
+char_or_null = x =>{try{return String.fromCodePoint(x)}catch(ex){return ""}}// Invalid code point -> ''
+ascii = x => String.fromCodePoint(x) // chr(65)='A' char nee DONT USE fromCharCode (only for ascii)!
 unicode = x => String.fromCodePoint(x) // chr(65)='A' char nee
 string = x => x.toString()
 
@@ -262,12 +283,20 @@ function removeXfromArrayXS(x, xs) {
 // > Object.entries(x)
 // [ [ '0', 'a' ], [ '1', 'b' ] ]
 
+function backtrace(){
+	try{throw new Error()}catch(ex){return trimStack(ex)}
+}
+
+function stacktrace(){
+	try{1/0}catch(ex){return trimStack(ex)}
+}
 
 function stack() {
 	// return arguments.callee.caller
 	const _stack = [];
 	const maxStackSize = 30;
 	let curr = arguments.callee;
+	try{1/0}catch(ex){stack=ex.stack}
 	while (curr && stack.length < maxStackSize) {
 		const c = curr.toString();
 		const m = c.match("function ([a-zA-Z0-9_]*).*");
@@ -286,6 +315,10 @@ isList = Array.isArray
 isArray = Array.isArray
 is_array = Array.isArray
 
+// if(typeof(Buffer)=='undefined')
+	// Buffer=require('http://pannous.net/files/buffer.js')// browser
+	// Buffer=require('./buffer.js')// browser
+if(typeof(Buffer)!='undefined')
 Object.assign(Buffer.prototype, {
 	data(){
 		return Array.from(this)
@@ -381,20 +414,20 @@ Array_Extensions = {
 	conjunction(xs) {
 		return xs.concat(this)
 	},
-	add(x) { // better than push  : returns MODIFYIED list!
+	add(x) { // better than push : returns MODIFYIED list!
 		if (isList(x)) this.merge(x)
 		else this[this.len] = (x);
 		return this
 	},
-	plus(x) { // NON MODIFYING  -> chainable!
+	plus(x) { // NON MODIFYING -> chainable!
 		if (!isList(x)) x = [x]
 		return this.concat(x)
 	},
 	append(x) {
 		if (isList(x)) this.merge(x)
-		else this[this.len] = (x);
+		else this.push(x) // this[this.len] = (x);
 		return this
-	}, //  selfmodifying! (vs concat)
+	}, // selfmodifying! (vs concat)
 	insert(x) { // at=this.len
 		this[this.len] = (x);
 		return this
@@ -409,13 +442,20 @@ Array_Extensions = {
 	strip() {
 		return this.filter(x => x.length > 0)
 	},
+	sort_by(row){
+		return this.sort((a,b)=>a[row]>b[row]&&1||-1)
+	},
 	sub(x, y = 0) {
 		echo('use slice');
 		return y ? this.slice(x, y) : this.slice(x)
-	}, // substring  cannot handle negative values!!
+	}, // substring cannot handle negative values!!
+	range(x, y = 0) {
+		echo('use slice');
+		return y ? this.slice(x, y) : this.slice(x)
+	}, // substring cannot handle negative values!!
 	values(x) {
 		return this
-	}, // WHY??? ~ clone?  <> Object.values(x)
+	}, // WHY??? ~ clone? <> Object.values(x)
 	clone() {
 		return this.slice()
 	},
@@ -474,11 +514,20 @@ Array_Extensions = {
 Buffer_Extensions = {
 	toHex() {
 		return bytesToHex(this);
+	},
+	join(b) {
+		return Buffer.concat([this, b])
+	},
+	append(b) {
+		return Buffer.concat([this, b])
 	}
 }
 String_Extensions = { // StringExtensions
 	at(i) {
 		return unicode(this.codePointAt(i))
+	},
+	to_buffer() {
+		return new Buffer(this)
 	},
 	join(xs) {// python style
 		if (is_string(xs)) return this + xs
@@ -533,7 +582,7 @@ String_Extensions = { // StringExtensions
 	},
 	sub(x, y) {
 		return this.slice(x, y)
-	}, // substring  cannot handle negative values!!
+	}, // substring cannot handle negative values!!
 	words() {
 		return this.split(" ")
 	},
@@ -542,7 +591,7 @@ String_Extensions = { // StringExtensions
 	},
 	detect_separator() {
 		if(this.contains("\t")) return "\t"
-		if(this.indexOf("|")>0) return "|"
+		if(this.indexOf("|")>=0) return "|"
 		if(this.contains(",")) return ","
 		if(this.contains(";")) return ";"
 		if(this.contains("\n")) return "\n"
@@ -605,7 +654,20 @@ String_Extensions = { // StringExtensions
 	},
 	invert() {
 		return Array.from(this.normalize()).reverse().join("")
+	},
+	tabs(num) {
+		return new Array(num + 1).join('\t');
+	},
+	indent(num) {
+		return new Array(num + 1).join('\t') + this;
+	},
+	repeat(times = 2) {
+		return new Array(times + 1).join(this);
+	},
+	times(num) {
+		return new Array(num + 1).join(this);
 	}
+
 }
 HTMLCollection_Extensions = {
 	filter(l) {
@@ -617,16 +679,16 @@ HTMLCollection_Extensions = {
 }
 
 // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API ALSO IN NODE.JS!!
-// https://github.com/estree/estree  Babel+Flow intend to target estree as well.
+// https://github.com/estree/estree Babel+Flow intend to target estree as well.
 Reflect_Extensions = { //_Extensions
 	toSource() {
-		return Reflect.stringify(this, "  ");
+		return Reflect.stringify(this, " ");
 	}, // AST to source !!
 	eval() {
-		return eval(Reflect.stringify(this, "  "))
+		return eval(Reflect.stringify(this, " "))
 	},
 	run() {
-		return eval(Reflect.stringify(this, "  "))
+		return eval(Reflect.stringify(this, " "))
 	},
 }
 
@@ -634,16 +696,12 @@ var all = all_extensions = function () { // needs to be assigned per context !?
 	// Object.assign DOES NOT assign PROPERTIES (getters / setters ) !
 	Object.assign(Array.prototype, Array_Extensions) // join / merge into!
 	Object.assign(Function.prototype, Function_Extensions)
+	if(typeof(Buffer)!='undefined')
 	Object.assign(Buffer.prototype, Buffer_Extensions)
 	// Object.assign(Object.prototype, Object_Extensions) DONT USE!
-	try {
-		Object.assign(String.prototype, String_Extensions)
-	} catch (exc) {
-	} //error(exc)}}
-	try {
-		Object.assign(HTMLCollection.prototype, HTMLCollection_Extensions)
-	} catch (exc) {
-	} //error(exc)}
+	Object.assign(String.prototype, String_Extensions)
+	if(typeof(HTMLCollection)!='undefined')
+	Object.assign(HTMLCollection.prototype, HTMLCollection_Extensions)
 
 	// use Properties carefully otherwise they can get very annoying:
 	// IMPORTANT: configurable:true FOR RELOADS!!
@@ -691,16 +749,16 @@ var all = all_extensions = function () { // needs to be assigned per context !?
 		configurable: true
 	});
 	// Object.defineProperty(String.prototype, 'upper', {
-	//   get() {
-	//     return this.toUpperCase()
-	//   },
-	//   configurable: true
+	//  get() {
+	//   return this.toUpperCase()
+	//  },
+	//  configurable: true
 	// });
 	// Object.defineProperty(String.prototype, 'lower', {
-	//   get() {
-	//     return this.toLowerCase()
-	//   },
-	//   configurable: true
+	//  get() {
+	//   return this.toLowerCase()
+	//  },
+	//  configurable: true
 	// });
 	// Object.defineProperty(Object.prototype,'kind', { get(){p('use typeof ');return typeof(this)},configurable:true });
 	// Object.defineProperty(Object.prototype,'kind', { get(){p('use typeof ');return typeof this});
@@ -708,17 +766,17 @@ var all = all_extensions = function () { // needs to be assigned per context !?
 	// Object.defineProperty(Object.prototype,'type', { get(){p('use typeof ');return typeof this},configurable:true});Conflicts with os.js:14 exports.type = binding.getOSType;
 	// Object.defineProperty(Object.prototype,'to_json', { get(){return JSON.stringify(this)}});
 	// Object.defineProperty(Object.prototype, 'to_s', {
-	//   get() {
-	//     console.log('use str()');
-	//     return this.toString()
-	//   },
-	//   configurable: true
+	//  get() {
+	//   console.log('use str()');
+	//   return this.toString()
+	//  },
+	//  configurable: true
 	// });
 	// Object.defineProperty(Object.prototype,'type', {
-	//     get(){p('use typeof ');return typeof(this)},
-	//     set(x){p("NOOO use typeof "+x)},
-	//     configurable:true
-	//    });
+	//   get(){p('use typeof ');return typeof(this)},
+	//   set(x){p("NOOO use typeof "+x)},
+	//   configurable:true
+	//  });
 	if (!extensions_version.match("!"))
 	// console.info(`extensions ${extensions_version} loaded\n`)
 		extensions_version += "!"
@@ -743,10 +801,10 @@ function loadScript(url, callback) {
 // export const 
 sqrt = Math.sqrt;
 function square(x) {
-    return x * x;
+  return x * x;
 }
 // export function diag(x, y) {
-//     return sqrt(square(x) + square(y));
+//   return sqrt(square(x) + square(y));
 // }
 
 // // ------ main.js ------
@@ -778,7 +836,6 @@ ForwardingHandler.prototype = {
 		for (let name in this.target) {
 			props.push(name);
 		}
-		;
 		return props;
 	},
 	iterate: function () {
@@ -808,12 +865,79 @@ getIp = function getIp() {
 				return (address.address);
 		}
 }
+csv_to_map = csv =>{
+		assert(is_array(csv))
+	// if(!is_array(csv))
+	let header=csv[0]
+	let rows=[]
+	let parse = x => parseInt(x)||x
+	for(let line of csv){//.lines()){
+			if(line==header)continue
+		let row={}
+		for(col of header){
+				if(col)
+				row[col]=parse(line[col]) // via Proxy
+		}
+		rows.append(row)
+	}
+	return rows
+}
 
+read_csv = load_csv = read_tsv = load_tsv = csv =function(file,sep) {
+	// if(is_file(file)){
+	let lines = read_lines(file)
+	let header = lines[0]
+	sep = sep || header.detect_separator()
+	lines = lines.map(x => x.split(sep))
+	header = lines[0] // now array
+	let header_ids=flip(header)
+	let parse = x => is_int(x)?int(x):x
+	lines = lines.map(line => new Proxy(line,{get:(x,col)=>parse(x[col])||parse(x[header_ids[col]])}))
+	return lines //new Proxy(lines,{get:(line,col)=>x[header_ids[col]]}))
+}
 
-// if (typeof(window) == 'undefined') {
+save_csv = function exportToCsv(filename, data, cols) {
+	if(!isString(filename)&&isString(data))
+		[filename,data]=[data,filename]
+	cols=cols||dir(data[0])
+	function processRow(row) {
+		let line = '';
+	// let rows=[]
+		for( col of cols){
+			let val =  row[col] || ''
+			// if (val instanceof Date) {
+			// 	val = val.toLocaleString();
+			// }
+			let result = val.toString().replace(/"/g, '""');
+			if (result.search(/("|,|\n)/g) >= 0)
+				result = '"' + result + '"';
+			// if (j > 0) line += ',';
+			// line += result;
+			line += result+",";
+		}
+		return '\n'+line ;
+	}
+
+	let text = '';
+	for( col of cols) {
+		text+=col+","
+	}
+		for (let i = 0; i < data.length; i++) {
+		text += processRow(data[i]);
+	}
+	writeFile(filename,text)
+}
+
+if (typeof(window) == 'undefined') {
 	try {
+		// read_csv = load_csv = (x, sep = ',') => read_lines(x).map(x => x.split(sep))
+		// read_tsv = load_tsv = x => read_lines(x).map(x => x.split("\t"))
 		window = self = global // = this IN NODE.JS!
-		window.WebSocket = require('websocket').w3cwebsocket
+		try{
+				window.WebSocket = require('websocket').w3cwebsocket
+		}catch(ex){
+			// console.error('npm install websocket');
+		}
 		// SERVER STUFF, NOT BROWSER STUFF
 		curl = require('request');
 		spawn = require('child_process').spawn;
@@ -825,9 +949,9 @@ getIp = function getIp() {
 		// print=process.stdout.write
 		fs = require("fs")
 		o = open = x => execAsync('open ' + (x || '')) // danger: read!!
-		my = path => path.replace("~", "/Users/me")
-		r = read = load = path => fs.readFileSync(my(path)).toString()
-		w = wb = write = save = dump = (file, data) => fs.writeFileSync(file, new Buffer(data))
+		r = read = load = path => deserialize(require("fs").readFileSync(my(path || ".")).toString())
+		w = wb = write = save = dump = dumb = writeFile =(data, file='data.bin') =>
+			isFile(data) ? write(file, data) : fs.writeFileSync(file, serialize(data), 'utf8')
 		json5 = parse_json5 = (js5) => JSON5.parse(js5);
 		load_json5 = read_json5 = (file) => JSON5.parse(read(file));
 		dump_json5 = write_json5 = save_json5 = (file, obj) => save(file, JSON5.stringify(obj));
@@ -836,8 +960,6 @@ getIp = function getIp() {
 			return fs.readFileSync(my(path)).toString().split('\n')
 		}
 		rb = read_buffer = read_binary = load_binary = open_rb = path => fs.readFileSync(my(path))
-		read_csv = load_csv = (x, sep = ',') => read_lines(x).map(x => x.split(sep))
-		read_tsv = load_csv = x => read_lines(x).map(x => x.split("\t"))
 		try {
 			sleeps = require('sleep').sleep // Seconds; blocking, there is no way around this !! setTimeout just ADDS to cycles!
 			sleep = x => require('sleep').usleep(x * 1000) // ms BLOCKING there is no way around this !! setTimeout just ADDS to cycles!
@@ -853,7 +975,7 @@ getIp = function getIp() {
 			extension()
 		}
 	}
-// }
+}
 
 // optimised for long iterations but ranger(1,30)[10] NOT OK
 ranger = function* (start = 0, end, step = 1) {
@@ -880,13 +1002,13 @@ range = (start, stop, step = 1) => {
 }
 
 // range=(start, stop, step=1)=>{
-//   if(!stop){stop=start; start=1; }
-//   var a=[start], b=start;
-//   while(b<stop){b+=step;a.push(b)}
-//   return a;
+//  if(!stop){stop=start; start=1; }
+//  var a=[start], b=start;
+//  while(b<stop){b+=step;a.push(b)}
+//  return a;
 // };
 
-downloadFile = (url, dest) => {
+downloadFile = (url, dest='out') => {
 	const http = require('http');
 	const fs = require('fs');
 	const file = fs.createWriteStream(dest);
@@ -898,11 +1020,13 @@ downloadFile = (url, dest) => {
 
 
 if (typeof(fetch) == 'undefined') {
-	fetch = require('node-fetch')
+	try {
+		fetch = file=>{file.match("//")? require('node-fetch')(file) : load(file)}
+	} catch (ex) {}
 	try {
 		readFileAsync = require('fs-readfile-promise');
 	} catch (ex) {
-		// console.log("npm install fs-readfile-promise  for readFileAsync")
+		// console.log("npm install fs-readfile-promise for readFileAsync")
 	}
 	// wget = require('deasync')(require('node-fetch'))
 }
@@ -934,14 +1058,17 @@ downloadSync2 = wget2 = (url) => {
 }
 
 
-browse = (url = "") => exec(`firefox ${url}`)
+browse = (url = "") => exec(`firefox '${url}'`)
+firefox = (url = "") => exec(`firefox '${url}'`)
+chrome = (url = "") => exec(`chromium-browser '${url}'`)
+chromium = (url = "") => exec(`chromium-browser '${url}'`)
 
 
 // fetch=(url)=>{
-//   if(url.startsWith(".")||url.startsWith("/")) 
-//     return readFileAsync(url);//Async
-//   else 
-//     return require('node-fetch')(url);
+//  if(url.startsWith(".")||url.startsWith("/")) 
+//   return readFileAsync(url);//Async
+//  else 
+//   return require('node-fetch')(url);
 // }
 split = (x, sep = ' ') => x.split(sep)
 // console.log('extensions.js loaded');
@@ -950,14 +1077,15 @@ split = (x, sep = ' ') => x.split(sep)
 mail_me = (subject, txt) => run(`echo "${txt}" | mail -s '${subject}' info@pannous.com`) // echse only!
 
 // function fast_array_to_buffer(stdlib, foreign, buffer){
-//     "use asm" // faster loop!!
-//     key=key|0
-//     // todo
+//   "use asm" // faster loop!!
+//   key=key|0
+//   // todo
 // }
 
 // Convert a hex string to a byte array
 hexToBytes = (hex) => {
-	for (let bytes = [], c = 0; c < hex.length; c += 2) {
+	let bytes = []
+	for (c = 0; c < hex.length; c += 2) {
 		if (c == 0 && hex[1] == 'x') continue
 		bytes.push(parseInt(hex.substr(c, 2), 16));
 	}
@@ -974,9 +1102,9 @@ bytesToHex = (bytes) => {
 }
 
 to_buffer = bytes => {
-	if (is_string(bytes)) bytes = hexToBytes(bytes)
+	// if (is_string(bytes)) bytes = hexToBytes(bytes) ??
 	return new Buffer(bytes)
-	return new Uint8Array(bytes)
+	// return new Uint8Array(bytes)
 	// slow/egal
 	// buffer=new ArrayBuffer(bytes) nope WTF JS!?!
 	// buffer=new ArrayBuffer(bytes.length)
@@ -985,10 +1113,12 @@ to_buffer = bytes => {
 }
 
 // is_string= (s)=>typeof(s) === 'string' || s instanceof String; // new String().valueOf();
-is_string = (s) => s && s.constructor == String
+is_string =  isString =(s) => s && s.constructor == String
 
-
-is_int = parseInt
+is_int = isInt = isInteger = Number.isInteger
+is_number = Number.isFinite
+is_float = Number.isFinite
+// is_int = parseInt
 
 globalize = clazz => {
 	for (let k of keys(clazz)) global[k] = clazz[k]
@@ -999,34 +1129,97 @@ is_empty = object => !Object.keys(object).length || len(object) == 0
 // wast2wasm simple.wat -o simple.wasm
 // wast2wasm simple.wat -v // show assembly
 wat = `(module
-  (func $i (import "imports" "imported_func") (param i32))
-  (func (export "exported_func")
-    i32.const 42
-    call $i
-  )
+ (func $i (import "imports" "imported_func") (param i32))
+ (func (export "exported_func")
+  i32.const 42
+  call $i
+ )
 )`
 
+// # /usr/bin/wasmx!
 wasm = async (_wasm, imports = {}) => {
-	const memory = new WebAssembly.Memory({initial: 16384, maximum: 65536}); //  Property value 100000000 is above the upper bound wtf
-	const table = new WebAssembly.Table({initial: 2, element: "anyfunc"});
-	// if (imports == {} ) // if(imports.length==0)
-	if (!Object.keys(imports).length) imports = {
-		util: {
-			printi: (x) => console.log(x)
-		},
-		env: {
-			DYNAMICTOP_PTR: 0, tempDoublePtr: 0, ABORT: 100, memoryBase: 0, tableBase: 0, abortStackOverflow: (x => {
-				throw "stack overflow:" + x
-			}), memory: memory, table: table
-		},
-		global: {NaN: NaN, Infinity: Infinity}
-	}
+
 	// if(is_string(wasm)) wasm =
-	if (is_file(_wasm)) _wasm = fs.readFileSync(_wasm)
+	if (is_file(_wasm)){
+		if(_wasm.endsWith("wast")){// --symbolmap wasm.sym --source-map wasm.src 
+			try{
+			ok=execSync("wasm-as --debuginfo --validate wasm "+_wasm)
+			if(ok.match(/Error/))return 
+			}catch(ex){return }
+		}
+		if(_wasm.endsWith("wat"))exec("wat2wasm "+_wasm)
+		 _wasm = fs.readFileSync(_wasm.replace('wast','wasm').replace('wat','wasm'))
+	}
 	else _wasm = new Uint8Array(_wasm)
+		
+	const memory = new WebAssembly.Memory({initial: 16384, maximum: 65536}); // 100000000 is above the upper bound wtf
+	const table = new WebAssembly.Table({initial: 2, element: "anyfunc"});
+	// var buffer = new Uint8Array(instance.exports.memory.buffer,offset,1000);
+
+	// if (imports == {} ) // if(imports.length==0)
+	stringy=(offset)=>{
+		let str = '';
+		if(!buffer)return "NOT INITED"
+		// return buffer.toString('utf8');
+		// return buffer.toString('utf16le');
+		// return new Buffer(buffer).toString('utf16le');
+		// if(!buffer)buffer=new Uint8Array(instance.exports.memory.buffer,offset,1000);
+		for (let i=offset; (buffer[i]||buffer[i+1]) && i<buffer.length; i++)
+	 	str += String.fromCharCode(buffer[i]);
+	 return str
+	}
+	str = function(x,len=-1){
+		buf=new Buffer(memory.buffer)
+		if(len<=0)while(buf[x+ ++len]);
+		return buf.slice(x,x+len).toString('utf16le')
+		// return buf.slice(x,x+len).toString('utf8')
+	}
+	arry=(offset)=>{
+		const arr = [];
+		for (let i=offset; buffer[i] && i<buffer.length; i++)
+			arr.push(buffer[i])
+		return arr
+	}
+	parse=(x,type)=>{
+		if(!type)return x // raw value: int/bool/null
+		switch (type%16) {
+	  case 0: return x
+	  case 1: return x
+	  case 3: return x // float double
+	  case 4: return parsePson(x)
+	  case 5: return json5(stringy(x))
+	  case 9: return stringy(x)
+	  default:
+				console.log(hex(type))
+				console.log(hex(x))
+	  break
+	 }
+	}
+	nop=(x)=>console.log('nop',x)
+
+	logc = x => process.stdout.write(x?String.fromCodePoint(x):"\n"),
+	logs = (x,len) => console.log(str(x,len)) 
+	// logs: x => console.log(stringy(x)),
+	if (!Object.keys(imports).length) imports = {
+		global: {NaN: NaN, Infinity: Infinity},
+		console:{
+			raise:(x)=>{console.error(backtrace());exit() },
+			// raise:(x)=>{throw new Error("WASM threw ERROR "+x)},
+			// log:(x,type) => console.log(parse(x,type)),// todo : any pointer
+			logc, _logc:logc, logs, _logs:logs, logi: log, _logi:log, log, _log:log,
+			logx: x => console.log(hex(x)),
+
+		},
+		env: {memory,table,abort:nop, nullFunc_X: log, abortStackOverflow: log, // (x => {throw "stack overflow:" + x }),
+			DYNAMICTOP_PTR: 100, tempDoublePtr: 0, ABORT: 100, memoryBase: 0, tableBase: 0, 
+		},
+	}
+		try{
 	module = await WebAssembly.compile(_wasm)// global
-	instance = await WebAssembly.instantiate(module, imports)
+	instance = await WebAssembly.instantiate(module, imports,memory).catch(ex=>console.error(trimStack(ex))||quit())
 	global.instance = instance
+		}catch(ex){console.error(trimStack(ex));return}
+	// memory=module.exports.memory
 	// for([k,v] of instance.exports){console.log(k)}// TypeError: undefined is not a function WTF!?!
 	for (let k of keys(instance.exports)) {
 		if (k == '__post_instantiate') continue
@@ -1034,10 +1227,37 @@ wasm = async (_wasm, imports = {}) => {
 		console.log(k)
 		global[k] = instance.exports[k]
 	}
+	buffer = new Uint8Array(memory.buffer,0 ,memory.length);
+	// for (let k of keys(instance.exports.globals)) {
+	// 	console.log(k,instance.globals[k])
+	// // }
+	new_string=(s)=>{
+		if(!s)return
+		const offset = instance.exports.offset && instance.exports.offset() || 1; // 0 == NUL pointer!
+		if(offset==0)console.log("Danger NULL offset! "+offset)
+		if(offset>1)console.log("memory offset: "+offset)
+		// instance.exports.new_string("Test")
+		for (let i=0; (i+offset)<buffer.length && i<arg.length; i++){
+			if(buffer[i+offset]){console.log("wasm memory not empty");break}
+			else buffer[i+offset]=ord(arg[i])
+		}
+		instance.exports.offset&&instance.exports.offset(arg.length)
+		return offset
+	}
+	var arg="Test";//process.argv[3] // todo : wasmx file -- args
+	s=new_string(arg); // int 'pointer' to wasm memory
+	result="NO MAIN"
 	if (instance.exports.main)
-		console.log(">>>", instance.exports.main())
+		console.log(">>>", result=instance.exports.main(s))
 	if (instance.exports._main) // extern "C"
-		console.log(">>>", instance.exports._main())
+		console.log(">>>", result=instance.exports._main())
+	console.log("result",result)
+	if(result>0){
+	log(stringy(result));
+	log(new Buffer(buffer.slice(result,40)).toString('utf8'))
+	// log(arry(result));
+	// log(buffer[result]);
+}
 	return instance
 }
 
@@ -1059,7 +1279,7 @@ function wast(input) {
 	// instance.exports.addTwo(1,2)
 }
 
-//or just  import add from 'add.wasm' !!! +++
+//or just import add from 'add.wasm' !!! +++
 printBytesHex = printHexes = buffer => {
 	let s = ""
 	for (let b of buffer) s += "0x" + b.toString(16) + ", "
@@ -1067,23 +1287,23 @@ printBytesHex = printHexes = buffer => {
 }
 
 // downloadAsync=async function(url) {// ES7
-//   let result = await fetch(url||"http://hi.net");//somethingThatReturnsAPromise();
-//   console.log("OK"); 
-//   // console.log(result); // cool, we have a result, THANK GOD!!!!!! 
-//   it=result // nice, get result via side effect lol
-//   return result // PROMISE!!! NOOO! still a promise WTF HOW CAN THIS BE? what if we modify result?
+//  let result = await fetch(url||"http://hi.net");//somethingThatReturnsAPromise();
+//  console.log("OK"); 
+//  // console.log(result); // cool, we have a result, THANK GOD!!!!!! 
+//  it=result // nice, get result via side effect lol
+//  return result // PROMISE!!! NOOO! still a promise WTF HOW CAN THIS BE? what if we modify result?
 // }
 // await=async function(promise){
-//   result=await promise // available in REPL via side effect (workaround)
-//   return result // still PROMISE in return, but ok otherwise 
+//  result=await promise // available in REPL via side effect (workaround)
+//  return result // still PROMISE in return, but ok otherwise 
 // }
 // await=promise=>promise.then(x=>it=x)
 
 // await=promise=>{
-//   ret = undefined
-//   promise.then(response=>ret=response)
-//   while(ret === undefined) {require('deasync').runLoopOnce();}
-//   return ret
+//  ret = undefined
+//  promise.then(response=>ret=response)
+//  while(ret === undefined) {require('deasync').runLoopOnce();}
+//  return ret
 // }
 exp = Math.pow
 exponent = Math.pow
@@ -1116,16 +1336,20 @@ function simulate_keypress(char, keyCode = 0, ctrl = 0, alt = 0, shift = 0, bubb
 	return document.dispatchEvent(keyboardEvent);
 }
 
-readCallerLine=function () {
+readCallerLine=function (skip=3) {
 	let err;
 	try {
 		throw Error('')
 	} catch (err0) {
 		err = err0
 	}
-	const caller_line = err.stack.split("\n")[3];
+	let caller_line
+	let stackElement = err.stack[skip];
+	if(!err.stack.split)
+		caller_line = stackElement.getFileName()+":"+stackElement.getLineNumber()+":";
+	else caller_line = err.stack.split("\n")[skip];
 	if (caller_line.match(/repl/)) return ""
-	const index = caller_line.indexOf("(") || caller_line.indexOf("at ");
+	const index = caller_line.indexOf("(") || caller_line.indexOf("at ")
 	const to = caller_line.indexOf(")") || caller_line.length;
 	const clean = caller_line.slice(index + 1, to);
 	var [file, line, col] = clean.split(":")
@@ -1163,8 +1387,10 @@ assert_equals = function assert_equals(left, right) {
 	if (!are_equal) {
 		left=util.inspect(left, {showHidden: false, depth: null})
 		right=util.inspect(right, {showHidden: false, depth: null})
-		let message = `Assertion failed:\n${readCallerLine().strip()}   \n${left} != ${right}`
-		throw (typeof Error !== "undefined") ? trimStack(new Error(message),4) : message;
+		let message = `Assertion failed:\n${readCallerLine()}  \n${left} != ${right}`
+		// throw (typeof Error !== "undefined") ? new Error(message) : message;
+		// throw (typeof Error !== "undefined") ? trimStack(new Error(message),4) : message;
+		throw (typeof Error !== "undefined") ? trimStack(new Error(message)) : message;
 	}
 	else return true // console.log("assert_equals OK")||
 }
@@ -1199,11 +1425,11 @@ function rgba(r, g, b, a = 1) { // what the actual fuck, es6 !
 
 // doesn't work : 'this' 
 // function defineGetters(object,getters) {
-//   Object.keys(getters).forEach(function(prop){
-//     Object.defineProperty(type(object), prop, {
-//         get:()=>{return getters[prop]();}// has to be wrapped
-//     });
+//  Object.keys(getters).forEach(function(prop){
+//   Object.defineProperty(type(object), prop, {
+//     get:()=>{return getters[prop]();}// has to be wrapped
 //   });
+//  });
 // }
 // defineGetters(Image.prototype,{width(){return this.bitmap.width}})
 try {
@@ -1219,21 +1445,21 @@ try {
 // Image = require("jimp");
 // Object.defineProperty(Image.prototype,'data', {get(){return this.bitmap.data;}})
 // Object.defineProperty(Image.prototype,'width', {
-//   get(){return this.bitmap.width;},
-//   set(width){this.resize(width,this.bitmap.height) }})
+//  get(){return this.bitmap.width;},
+//  set(width){this.resize(width,this.bitmap.height) }})
 // Object.defineProperty(Image.prototype,'height', {
-//   get(){return this.bitmap.height;},
-//   set(height){this.resize(this.bitmap.width,height)}})
+//  get(){return this.bitmap.height;},
+//  set(height){this.resize(this.bitmap.width,height)}})
 // Object.defineProperty(Image.prototype,'size',{
-//   get(){return [this.bitmap.width,this.bitmap.height];},
-//   set([width,height]){this.resize(width,height)}})
+//  get(){return [this.bitmap.width,this.bitmap.height];},
+//  set([width,height]){this.resize(width,height)}})
 // Image_Extensions={
-//   save(path){this.write(path)},
-//   show(){path="/tmp/image.jpg";this.write(path);Sys.preview(path)},
-//   load(path){img=new Image(path);img.src=path;return img},
+//  save(path){this.write(path)},
+//  show(){path="/tmp/image.jpg";this.write(path);Sys.preview(path)},
+//  load(path){img=new Image(path);img.src=path;return img},
 // }
 // Image_Globals={
-//   load(path){img=new Image(path);img.src=path;return img},
+//  load(path){img=new Image(path);img.src=path;return img},
 // }
 // Object.assign(Image.prototype,Image_Extensions) // merge into!
 // Object.assign(Image,Image_Globals) // merge into!
@@ -1252,7 +1478,7 @@ imageToDataUri = function (image) {
 	canvas.height = image.height; // or 'naturalHeight' if you want a special/scaled size
 	canvas.getContext('2d').drawImage(image, 0, 0);
 	return canvas.toDataURL('image/png')
-	// Get raw image data :  dataUrl.replace(/^data:image\/(png|jpg);base64,/, ''));
+	// Get raw image data : dataUrl.replace(/^data:image\/(png|jpg);base64,/, ''));
 }
 
 File = class File {
@@ -1266,7 +1492,9 @@ function parseHex(b) {
 // setTimeout(callback, delay[, arg][, ...])
 // setInterval(callback, delay[, arg][, ...])#Schedules repeated execution of callback every delay milliseconds. Returns a intervalObject for possible
 exit = function () {
-	throw "END OF UNIVERSE REACHED"
+	console.log() // ("exit called")
+	process.exit()
+	// throw "exit() called. END OF UNIVERSE REACHED"
 }
 
 // FAKE jQuery in one line!
@@ -1281,9 +1509,9 @@ function $1(selector, context) {
 }
 
 // try{
-//   var beep = require('beepbeep');
-//   var beep = require('node-beep');
-//   beep(1);
+//  var beep = require('beepbeep');
+//  var beep = require('node-beep');
+//  beep(1);
 // }catch(ex){
 // function beep() {console.log("\007");console.log("\u0007"); process.stdout.write("\x07");}
 // }
@@ -1294,7 +1522,7 @@ function beep() {
 }
 
 // function next(word) {
-//   return word.replace(/\w\s/,"")
+//  return word.replace(/\w\s/,"")
 // }
 
 js = JSON.stringify
@@ -1304,7 +1532,7 @@ mkdir = path => {
 	} catch (ex) {
 	}
 }
-module.exports.puts = puts
+// module.exports.puts = puts
 
 is_type = x => x instanceof Function && x.constructor && true
 proto = x => type(x)
@@ -1327,23 +1555,55 @@ debug = x => console.log(x)
 // test_promise_rejector=new Promise((ok,no)=>ok())
 // return new Promise((ok,no)=>setTimeout(ok,1000))
 
-var wait = ms => new Promise((r, j) => setTimeout(r, ms))
+const wait = ms => new Promise((r, j) => setTimeout(r, ms));
 // sleep in async functions
 // await wait(2000)
 keys = Object.keys
 
 
-trimStack=function (ex,more=0) {
-	let keep = true
-	let stack = ex.stack?ex.stack.split("\n"):(ex.message||"").split("\n")
-	let caller = trimStack.caller.name;
-	ex.stack = stack.filter(x => {
-		if(caller&&x.match(caller))keep=false
+
+trimStackHarder=function trimStackHarder(ex,caller) {
+	// var callsite = require('callsite');
+	let keep=1
+	let stack=ex.stack
+	let neu = "\n   at "+stack.filter(site => {
+		x=site.getFunctionName() || 'anonymous'
+		if(caller&&x.match(caller))return false
+		if (x.match("backtrace")) return false
+		if (x.match("raise")) return false
+		if (x.match("anonymous")) keep = false
 		if (x.match("Module._compile")) keep = false
-		if (x.match("modulus.exports")) keep = false// todo
+		if (x.match("nodeunit")) keep = false
+		if (x.match("modulus.exports")) keep = false// todo\
+		if(keep)
+		console.log(`    at ${x} (${site.getFileName()}:${site.getLineNumber()})`)
+		return keep
+	}).join("\n   at ") // really : array to string??
+	ex.stack = neu
+	return ex
+
+}
+
+trimStack=function (ex,more=0) {
+	let caller = trimStack.caller.name;
+	if(ex.stack && ! ex.stack.split)return trimStackHarder(ex,caller) // already array why?
+	let keep = true
+	let stack = ex.stack?(ex.stack.split?ex.stack.split("\n"):ex.stack):(ex.message||ex).split("\n")
+	let neu = stack.filter(x => {
+		if(!x.match)x= x.getFileName()
+		// if(!x.match)return true
+		if(caller&&x.match(caller))return false
+		if (x.match("assert")) return false // sure?
+		if (x.match("backtrace")) return false
+		if (x.match("raise")) return false
+		if (x.match("anonymous")) keep = false
+		if (x.match("Module._compile")) keep = false
+		if (x.match("nodeunit")) keep = false
+		if (x.match("module.exports")) keep = false// todo
 		if(!keep && x.match("at "))more--
 		return keep||more>0
 	}).join("\n")
+	ex.stack = neu
 	return ex
 }
 
@@ -1351,7 +1611,8 @@ assert_contains=function assert_contains(string,pattern) {
 	assert(string.contains(pattern),string+" should contain "+pattern)
 }
 strip=x=>x.trim()
-quit=_=>process.exit.bind(process, 0)
+// quit=_=>process.exit.bind(process, 0)||throw new Error("EXIT!")
+quit=_=>process.exit(0)
 
 wait_for_key=async function wait_for_key(msg="Press any key",callback){
 	// key=await wait_for_key().data()[0] for ascii, but can be long: <Buffer 1b 5b 32 33 3b 32 7e>
@@ -1366,3 +1627,38 @@ wait_for_key=async function wait_for_key(msg="Press any key",callback){
 		}catch(ex){console.log(ex);reject()}
 	})
 }
+
+argmax=( arr )=> {
+	const len = arr.length;
+	let max = arr[0], index = 0, val;
+	for (let i = 1; i < len; i++ ) {
+		val = arr[ i ];
+		if ( val > max ) {
+			max = val;
+			index=i
+		}
+	}
+	return index;
+}
+
+function switch_keys_and_values(map) {
+	const res = {};
+	if(is_array(map))
+			for(i in map){ if(map.hasOwnProperty(i)) res[map[i]]=i}
+		else
+			for([key, value] of map) res[value]=key
+  return res;
+}
+flip=invert=switch_keys_and_values
+
+searchModule=function searchModule(modul,symbol) {
+	for(let s of dir(modul)){
+		if(s==symbol) return s;
+	}
+	for(let s of dir(modul)){
+		searchModule(modul[symbol],modul)
+	}
+}
+
+// TypeScript 2.0 supports a new way to install typings with npm.
+// npm install -S @types/lodash

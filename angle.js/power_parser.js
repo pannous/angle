@@ -798,6 +798,8 @@ function maybe(expr) {
 		last_node = current_node;
 		return result;
 	} catch (e) {
+		if (!e)
+			throw Error("NO ERROR!? :) :(")
 		if (!(e instanceof NotMatching))
 			switch (e.constructor) {
 				case MustNotMatchKeyword: // does not inherit!! :(
@@ -905,8 +907,7 @@ function interpretation() {
 	i.variables = the.variables;
 	i.svg = svg;
 	return i;
-};
-
+}
 parse = function (s, target_file = null, clean = false) {
 	if (clean) clear()
 	let got_ast, source_file;

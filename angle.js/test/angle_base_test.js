@@ -12,7 +12,12 @@ ParserBaseTest = class ParserBaseTest {
 		// console.log("this.result_be OK")
 	}
 
-	// skip(){}
+	skip(msg) {
+		msg = msg || "SKIPPING " + (skip.callee || '')
+		throw new SkipException(msg);
+		// throw msg// new SkipException(msg);
+	}
+
 	setUp() {
 		context.testing = true;
 		// 	context.use_tree=False
@@ -30,15 +35,12 @@ class SkipException extends Error {
 class TestError extends Error {
 }
 
-skip = (msg = "") => {
-	throw msg// new SkipException(msg);
+skip = (msg) => {
+	msg = msg || "SKIPPING " + (skip.callee||'')
+	throw new SkipException(msg);
+	// throw msg// new SkipException(msg);
 }
-assert_result_emitted = (prog, val) => {
-	let result = parse(prog);
-	assert(result == val)
-	console.log(prog)
-	console.log(val)
-}
+
 assert_has_no_error = (prog) => {
 	x = parse(prog)
 	console.log(x)
@@ -94,8 +96,55 @@ result_be = function (a, b) {
 // export default ParserBaseTest
 // module.exports={ParserBaseTest:ParserBaseTest}
 
+
+function callerFile() {
+		var err = new Error();
+		var callerfile;
+		var currentfile;
+		Error.prepareStackTrace = function (err, stack) { return stack; };
+		currentfile = err.stack.shift().getFileName();
+		while (err.stack.length) {
+			let line = err.stack.shift();
+			callerfile = line.getFileName();
+			// if(line.match("unit"))continue
+			if(currentfile !== callerfile) return line;
+		}
+}
+var callsite= require('callsite');
 registered = {}
 // module.exports.register =
+registerTest = function (instance,test, modulus) {
+	console.log("++++++++++++++++++++++++++++++")
+	console.log(test)
+	modulus.exports[test] = function(ok) {
+		try {
+			clear();
+			console.log(`   at ${test} ${file}`)
+			// throw new Error("WHAAT?")
+			instance[test](ok);
+			ok.done()
+			console.log("OK")
+		} catch (exc) {
+
+			if (exc instanceof SkipException)
+				return console.log(exc.message + " " + test) || ok.done(exc)
+
+			console.error(exc.message)
+			let keep=1
+			exc.stack.forEach(function(site){
+				// if (site.match("anonymous")) keep = false
+					let functionName = site.getFunctionName();
+				if(!functionName) keep=false;
+				if(keep) console.error('  at \033[36m%s\033[90m (%s:%d)\033[0m', functionName, site.getFileName(), site.getLineNumber());
+			});
+			console.error(trimStack(exc))
+			// exc= trimStack(exc)
+			ok.done(exc)
+			// 	// console.log(trimStack(ex));
+			// 		throw exc
+		}
+	}
+}
 register = function (instance, modul) {
 	if (instance instanceof Function) {
 		clazz = instance
@@ -103,6 +152,7 @@ register = function (instance, modul) {
 	}
 	// if(registered[instance+""]) return
 	// registered[instance+""]=1
+	file=callerFile()
 	console.log("\n------------------------------")
 	console.log(instance)
 	console.log("------------------------------\n")
@@ -116,22 +166,10 @@ register = function (instance, modul) {
 			if (test.match(/^skip_/)) continue
 			if (test.match(/^no_/i)) continue
 			if (test.match(/^dont/i)) continue
-			console.log("++++++++++++++++++++++++++++++")
-			console.log(test)
-			modulus.exports[test] = ok => {
-				try {
-					clear();
-					instance[test](ok);
-					ok.done()
-				} catch (ex) {
-					console.log("" + instance[test] + " THREW")
-					trimStack(ex)
-					if (ex instanceof SkipException)
-						console.log("SKIPPING:") && console.log(clazz)
-					ok.done(ex)
-				}
-			}
+			registerTest(instance,test,modulus)
 		} catch (ex) {
+			console.log("CAUGHT")
+			console.error("WHERE???")
 			trimStack(ex)
 			console.error(ex)
 		}
@@ -146,4 +184,4 @@ function register_tests() {
 }
 
 setTimeout(() => register_tests(), 100)
-module.exports = {assert_has_error,register, assert_that, assert_result_is, parser, init: parser.init,clear:parser.clear}
+module.exports = {assert_has_error,register, assert_that,assert_result_is, parser, init: parser.init,clear:parser.clear}

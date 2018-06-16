@@ -269,12 +269,15 @@ function endNode() {
 	return x;
 }
 
-function is_a(x, type0) {
+is_a=function is_a(x, type0) {
 	let _type = mapType(type0)
+	if (_type == Number || _type == Float || _type == Real) return Number.isFinite(x)
+	if (_type == Integer) return Number.isInteger(x)
 	if (_type == String) return is_string(x)
+	if (_type == Array) return is_array(x)
+	if (_type == Boolean) return truthy(x)
 	if (_type == Map) return true // in Javascript all objects are hashes
 	if (_type == Object) return true // not by default!!
-	if (_type == Boolean) return truthy(x)
 	return typeof x == type0 || x instanceof _type
 }
 
@@ -608,7 +611,8 @@ function ranger(a = null) {
 	_("to")
 	b = number()
 	if (context.use_tree) {
-		return ast.call("range", [a, new ast.Num(b + 1)])
+		return ast.call("range", [a, b + 1])
+		// return ast.call("range", [a, new ast.Num(b + 1)])
 	}
 	return list(range(a, (b + 1)))
 }
@@ -814,7 +818,7 @@ function fileName() {
 	match = is_file(the.string, false)
 	if (match) {
 		path = match[0];
-		path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path)
+		// path = (stem.util.system.is_mac() ? path.gsub("^/home", "/Users") : path)
 		path = new extensions.File(path)
 		next_token()
 		the.current_value = path;
@@ -972,6 +976,16 @@ function otherwise() {
 	return e;
 }
 
+function _constructor() {
+	// return method_call() no 'true_method'
+	let typ = typeName()
+	_('(')
+	let val = expression()
+	_(')')
+	let {do_cast} = require('./angle_parser')
+	return do_cast(val, typ)
+}
+
 
 quick_expression = function quick_expression() {
 	let fun, result, z;
@@ -1030,12 +1044,17 @@ quick_expression = function quick_expression() {
 		if (method_allowed(word)) {
 			result = method_call();
 		}
+		else if (word.in(type_names)) {
+			result = _constructor();
+		}
 	} else if (word.in(the.params)) {
 		result = true_param();
 	} else if (word.in(the.variables)) {
 		result = known_variable();
-	} else if (word.in(type_names)) {
-		return (maybe(setter) || method_definition());
+	}
+	else if (word.in(type_names)) {
+		result = maybe(setter) || method_definition();
+		return result; // no post_operation
 	}
 	if (look_1_ahead("of")) result = evaluate_property(result);
 	if (!result) return false;

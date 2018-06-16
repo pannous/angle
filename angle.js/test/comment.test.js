@@ -14,7 +14,6 @@ class CommentTest extends ParserBaseTest{
     test_bad_comment(){
         this.skip();
         this.result_be(`1\n--no comment`, 1);
-
     }
 }
 

@@ -348,9 +348,10 @@ class ListTest extends (ParserBaseTest) {
 	}
 }
 
-register(ListTest, module) // ALL tests
+// register(ListTest, module) // ALL tests
 current=new ListTest().
-	test_type3
+	test_and
+	// test_type3
 // 	test_concatenation3
 // 	test_type4
 // 	test_funs

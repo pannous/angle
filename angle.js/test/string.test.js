@@ -235,7 +235,7 @@ class StringTest extends (ParserBaseTest) {
 }
 
 setVerbose()
-// register(StringTest, module)
+register(StringTest, module)
 module.exports.test_current = new StringTest().
 	test_class
 	// test_type

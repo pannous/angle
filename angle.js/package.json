@@ -1,32 +1,39 @@
 {
-    "name": "angle",
-    "version": "1.0.12",
-    "description": "angle programming language",
-    "main": "english_parser.js",
-    "scripts": {},
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/pannous/angle.git"
-    },
-    "keywords": [
-        "angle",
-        "programming",
-        "language"
-    ],
-    "author": "Pannous <info@pannous.com> (http://pannous.com)",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/pannous/angle/issues"
-    },
-    "homepage": "https://github.com/pannous/angle#readme",
-    "dependencies": {
-        "binaryen": "^39.0.0",
-        "fs-readfile-promise": "",
-        "json5": "",
-        "node-fetch": "",
-        "request": "",
-        "string-tokenizer": "",
-        "sync-request": "",
-        "websocket": ""
-    }
+  "name": "angle",
+  "version": "1.0.12",
+  "description": "angle programming language",
+  "main": "english_parser.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pannous/angle.git"
+  },
+  "keywords": [
+    "angle",
+    "programming",
+    "language"
+  ],
+  "author": "Pannous <info@pannous.com> (http://pannous.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pannous/angle/issues"
+  },
+  "homepage": "https://github.com/pannous/angle#readme",
+  "dependencies": {
+    "binaryen": "^39.0.0",
+    "fs-readfile-promise": "",
+    "invariant": "^2.2.4",
+    "json5": "",
+    "node-fetch": "",
+    "request": "",
+    "string-tokenizer": "",
+    "sync-request": "",
+    "wasm-types": "^1.0.3",
+    "websocket": ""
+  },
+  "scripts": {
+    "bash": "cp node_modules/* /usr/lib/node_modules/"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.73.0"
+  }
 }
