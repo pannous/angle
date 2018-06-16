@@ -1,0 +1,2 @@
+// @flow
+require("./flow.test")
