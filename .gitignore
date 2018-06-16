@@ -39,3 +39,5 @@ package-lock.json
 node_modules/
 .idea/
 record.wav
+angle.js/.flowconfig
+angle.js/tsconfig.json
