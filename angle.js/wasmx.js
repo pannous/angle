@@ -145,6 +145,8 @@ try{
 	module = new WebAssembly.Module(binary)
 	instance= new WebAssembly.Instance(module,imports)
 	args=process.argv.slice(3,process.argv.length)
+	console.log(instance.exports)
+	// for(i of instance.exports.keys())console.log(i)
 	let main = instance.exports.main || instance.exports._main
 	if (main) console.log(">>>", result=main(process.argc,args))
 	return result
