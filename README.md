@@ -58,6 +58,10 @@ End
 Status:
 -----------
 
+Beauty is more important in computing than anywhere else in technology because software is so complicated. Beauty is the ultimate defence against complexity.
+
+        — David Gelernter
+
 ALPHA, partly usable, some [tests](tests) not yet passing: 
 [![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
 
@@ -255,3 +259,16 @@ For a background story/vision/philosophy/future of this project read the [DOSSIE
 
 Also check out: [Program Synthesis from Natural Language
 Using Recurrent Neural Networks](https://github.com/TellinaTool/tellina)
+
+
+<!-- 
+Trying to express implicit and fuzzy relationships in ways that are explicit and sharp doesn’t clarify the meaning, it destroys it.
+
+        — Clay Shirky [http://www.shirky.com/writings/semantic_syllogism.html] 
+
+Having a language that almost looks like English is actually harder to program in than one that has a well defined strict syntax.
+
+It falls into a sort of uncanny valley. Apple tried that sort of successfully with Hypertalk but really badly with Appkescript
+
+
+        -->

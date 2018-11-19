@@ -3,7 +3,8 @@
 	url = git@github.com:pannous/english-script-samples.git
 [submodule "kast"]
 	path = kast
-	url = git@github.com:pannous/kast.git
+	url = https://github.com/pannous/kast
+	branch = master
 [submodule "netbase-python"]
 	path = netbase-python
 	url = https://github.com/pannous/netbase-python

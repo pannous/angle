@@ -1,1 +1,0 @@
-/opt/binaryen/bin/binaryen.js

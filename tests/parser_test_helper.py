@@ -70,8 +70,8 @@ def count(x):
 	len(x)
 
 
-def p(x):
-	print(x)
+# def p(x):
+# 	print(x)
 
 
 def last_result():
