@@ -12,8 +12,8 @@ class FunctionTest(ParserBaseTest):
 		if 'use_tree' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")
 			skip()
-		context.use_tree = True
-		context.interpret = False
+		# context.use_tree = True
+		# context.interpret = False
 	# context._verbose = True never set manually here!
 
 	def test_identity2(self):
@@ -101,6 +101,7 @@ class FunctionTest(ParserBaseTest):
 		init('here is how to define a method: done')
 
 	def test_block(self):
+		parser.clear()
 		the.variables['x'] = Variable(name='x', value=1)
 		the.variables['y'] = Variable(name='y', value=2)
 		z = parse('x+y;')

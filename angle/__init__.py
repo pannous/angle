@@ -1,6 +1,9 @@
 import sys
 
-__version__="0.1.10",
+# this directory has to be called "angle" because of Pip packaging
+
+#  angle
+__version__ = "0.1.11" 
 
 py2 = sys.version < '3'
 py3 = sys.version >= '3'

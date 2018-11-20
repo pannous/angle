@@ -249,7 +249,7 @@ def error(e, force=False):
 		#     import TreeBuilder
 		#     TreeBuilder.show_tree()
 		if not context._verbose:
-			raise
+			raise e
 
 
 def warn(e):

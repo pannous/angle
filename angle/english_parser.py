@@ -1737,7 +1737,8 @@ def eval_ast(b, args={}):
 
 
 def do_execute_block(b, args={}):
-    if not interpreting(): return
+    if not interpreting():
+      return b
     global variableValues
     if not b: return False
     if b == True: return True
@@ -2028,7 +2029,7 @@ def setter(var=None):
 
     # end_expression via statement!
     if not interpreting():
-        return kast.Assign([kast.Name(var.name, kast.Store())], val)
+        return ast.Assign([kast.Name(var.name, kast.Store())], val)
     if interpreting() and val != 0: return val
     return var
 
@@ -3279,7 +3280,7 @@ def do_call(obj0, method0, args0=[]):
     else:
         obj = do_evaluate(obj0)
 
-    if isinstance(method,str):
+    if isinstance(method,str) and (method in dir(obj) or method in obj):
       method=obj.__getattribute__(method)
 
     bound = is_bound(method)
@@ -3996,7 +3997,11 @@ def repeat_n_times():
         the.result = xint(n).times_do(lambda: do_execute_block(b))
     else:
         # return Expr(Call(Name('times_do', Load()), [num(n), b], []))
-        return For(store('i'), call('range', [zero, n]), [assign('it', b)])
+        if py2:
+          return For(store('i'), call('range', [zero, n]), [assign('it', b)])
+        if py3:
+          return For(store('i'), call('range', [zero, n]), [assign('it', b)],[]) # orelse
+
     # todo("repeat_n_times")
     return the.result
 

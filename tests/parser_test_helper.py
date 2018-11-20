@@ -96,7 +96,11 @@ def puts(x):
 
 def assert_result_emitted(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
-	context.use_tree = True
+	if not context.use_tree:
+		print("NEED context.use_tree for assert_result_emitted")
+		skip()
+		return
+	# context.use_tree = True
 	x = parse(a)
 	if isinstance(x, ast.Module): x = x.body
 	assert_equals(b, x, bla)
@@ -186,8 +190,10 @@ def update_local(context):
 
 
 def parse(s):
-	if 'use_tree' in os.environ: context.use_tree = True
-	if 'no_tree' in os.environ: context.use_tree = False
+	if 'USE_TREE' in os.environ:
+		context.use_tree = True
+	if 'NO_TREE' in os.environ:
+		context.use_tree = False
 	if not "parser_test_helper" in inspect.stack()[1][1]:
 		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
@@ -245,8 +251,10 @@ class ParserBaseTest(unittest.TestCase):
 		global base_test
 		base_test = self
 		parser.clear()  # OK Between test, just not between parses!
-		if 'use_tree' in os.environ: context.use_tree = True
-		if 'no_tree' in os.environ: context.use_tree = False
+		if 'USE_TREE' in os.environ:
+			context.use_tree = True
+		if 'NO_TREE' in os.environ:
+			context.use_tree = False
 		if not context.use_tree:
 			parser.do_interpret()
 
