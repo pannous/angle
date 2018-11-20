@@ -121,6 +121,12 @@ def assert_result_is(a, b, bla=None):
 def assert_equals(a, b, bla=None):
 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if a == 'False': a = False
+	if isinstance(a,type) and isinstance(b,type) and issubclass(a,b):
+		assert issubclass(a,b), "%s SHOULD BE %s  ( %s ) (issubclass!)" % (a, b, bla)
+		return
+	if a is b:
+		assert a is b, "%s SHOULD BE %s  ( %s ) (IS!)" % (a, b, bla)
+		return
 	if py3 and isinstance(a, map): a = list(a) # fuck py3!
 	if isinstance(a, ast.List): a = a.elts  # todo remove
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
@@ -191,7 +197,7 @@ def update_local(context):
 
 def parse(s):
 	if 'USE_TREE' in os.environ:
-		context.use_tree = True
+		context.use_tree = os.environ['USE_TREE']
 	if 'NO_TREE' in os.environ:
 		context.use_tree = False
 	if not "parser_test_helper" in inspect.stack()[1][1]:

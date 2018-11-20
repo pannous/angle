@@ -659,6 +659,9 @@ class xlist(list):
 			fun, x = x, fun
 		return self.reduce(fun, self, x)
 
+	def item(xs, n):
+		return xs[int(n) - 1]
+
 	def row(xs, n):
 		return xs[int(n) - 1]
 

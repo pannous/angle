@@ -17,6 +17,7 @@ class LoopTest(ParserBaseTest, unittest.TestCase):
 		assert_equals(parse('c=0;while c<1:c++;beep;done'), 'beeped')
 
 	def test_while_loop(self):
+		# if not context.use_tree: skip()
 		parse('c=0;while c<3:c++;beep;done')
 		assert_equals(3, the.variables['c'].value)
 

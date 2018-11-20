@@ -155,9 +155,13 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		init('class of 1,2,3')
 		parser.evaluate_property()
 		assert_equals(result(), list)
+
+	def test_type1b(self):
 		init('class of [1,2,3]')
 		parser.expression()
 		assert_equals(result(), list)
+
+	def test_type1c(self):
 		skip()
 		parse('class of 1,2,3')
 		assert_equals(result(), list)

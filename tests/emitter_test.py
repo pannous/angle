@@ -7,11 +7,11 @@ import tests.parser_test_helper
 
 class EmitterTest(tests.parser_test_helper.ParserBaseTest):
 	def setUp(self):
-		if 'use_tree' in os.environ:
+		if 'NO_TREE' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")
 			skip()
-		context.use_tree = True
-		context.interpret = False
+		# context.use_tree = True
+		# context.interpret = False
 
 	def assert_result_emitted(self, x, r):
 		assert_equals(context.last_result(parser.parse_tree(x)), r)

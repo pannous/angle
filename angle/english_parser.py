@@ -1305,6 +1305,7 @@ def print_variables():
 
 def is_object_method(method_name):
     if not str(method_name) in globals(): return False
+    if method_name.lower() in keywords: return False
     object_method = globals()[str(method_name)]  # .method(m)
     return object_method  # 'True' ;)
 
@@ -1413,8 +1414,7 @@ def subProperty(_context):
 
 def true_method(obj=None):
     ex = english_operators  # - ['print','add','subtract']
-    if 'print' in ex:
-        no_keyword_except(ex)
+    no_keyword_except(ex)
     should_not_start_with(auxiliary_verbs)
     xmodule = maybe_tokens(the.moduleNames)
     xvariable = maybe_tokens(list(the.variables.keys()))
@@ -1730,6 +1730,7 @@ def prepare_named_args(args):
     return context_variables
 
 
+# also on the fly when interpreting
 def eval_ast(b, args={}):
     args = prepare_named_args(args)
     the.result = pyc_emitter.eval_ast(b, args, run=True)
@@ -2521,6 +2522,7 @@ def is_comparator(c):
     ok = c in comparison_words
     ok = ok or c in class_words
     ok = ok or isinstance(c, ast.cmpop)
+    ok = ok or isinstance(c, ast.Compare)
     # or \
     # (c - "is ") in comparison_words.contains() or \
     # comparison_words.contains(c - "are ") or \
@@ -2570,8 +2572,10 @@ def check_condition(cond=None, negate=False):
     if cond == None:  # or
         raise InternalError("NO Condition given! %s" % cond)
     if not isinstance(cond, Compare):
-        warn("truthy: %s" % cond)
-        return True  # everything this truthy
+        warn("Compare: %s" % cond)
+        cond.right=cond.comparators[0] # todo more??
+        cond.comp=cond.ops[0] #more??
+        # return True  # everything this truthy
 
     # return cond
     try:
@@ -2927,6 +2931,7 @@ def do_evaluate(x, _type=None):
     if not x: return None
     # if x == 'pi': return math.pi
     # if x == 'tau': return 2*math.pi
+    if isinstance(x, ast.Name): x=x.id
     if isinstance(x, collections.Callable): return x  # x()  Whoot
     if isinstance(x, type): return x
     if isinstance(x, ast.Num): return x.n
@@ -3171,6 +3176,8 @@ def align_function_args(args, clazz, method):
 
 def eval_args(args):
     if not args: return []  # None
+    if isinstance(args,Argument):
+        args=args.value
     # if args and is_string(args): args = xstr(args).replace_numerals()
     if isinstance(args, (list, tuple)):
         args = list(map(do_evaluate, args))
@@ -3280,8 +3287,10 @@ def do_call(obj0, method0, args0=[]):
     else:
         obj = do_evaluate(obj0)
 
-    if isinstance(method,str) and (method in dir(obj) or method in obj):
-      method=obj.__getattribute__(method)
+    if isinstance(method,str):# and (method in dir(obj) or method in obj): << wow wieso nicht method in obj??
+      try:
+        method=obj.__getattribute__(method) # OK!! but not method in dir(obj) ??
+      except: pass
 
     bound = is_bound(method)
     args = align_args(args, obj, method)

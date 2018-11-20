@@ -451,6 +451,19 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 		# namespace=Namespace(namespace)
 		exec(code, namespace)  # self contained!
 		ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
+		for var in namespace:
+			if "__" in var: continue
+			if callable(namespace[var]): continue
+			if the.variables[var]:
+				updated = namespace[var]
+				if isinstance(updated, nodes.Variable):
+					updated=updated.value
+				the.variableValues[var]=updated
+				if isinstance(the.variables[var], nodes.Variable):
+					the.variables[var].value= updated
+				else:
+					the.variables[var] = updated
+
 	ret = ret or the.result
 	# verbose("GOT RESULT %s" % ret)
 	return ret

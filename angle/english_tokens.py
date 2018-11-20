@@ -217,7 +217,7 @@ true_words = ['True', 'true', 'yes', 'ja', 'si']  # 'positive'
 
 boolean_words = false_words + true_words
 
-otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains', 'copy', 'def', 'div',
+otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains','class','object','item', 'copy', 'def', 'div',
                  'does', 'eighth', 'else', 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for',
                  'fourth', 'even',
                  'front', 'get', 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that', 'result', 'last',

@@ -7,7 +7,10 @@ class BashTest(ParserBaseTest):
 
 	def test_ls(self):
 		g = parse("ls | row 4")
+
+	def test_ls2(self):
 		f = parse("ls | item 4")
+		g = parse("ls | row 4")
 		assert_equals(g, f)
 		assert_contains(f, '.')
 
