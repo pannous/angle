@@ -125,6 +125,7 @@ class ListTest(ParserBaseTest, unittest.TestCase):
 		assert_equals(z, [1, 2, 3, 4])
 
 	def test_concatenation2(self):
+		parser.clear()
 		parse('x is 1,2,3;y=4,5,6')
 		parse('x + y')
 		assert (equals(6, len(result(), )))

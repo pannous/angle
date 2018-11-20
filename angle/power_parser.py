@@ -801,7 +801,6 @@ def maybe(expr):
 			# the.string = old
 		last_node = current_node
 		return result
-		# except (NotMatching, EndOfLine) as e:
 	except EndOfLine as e:
 		if verbose: verbose("Tried %d %s %s, got %s" % (the.current_offset, the.token, expr, e))
 		adjust_interpret()  # remove the border, if above border
@@ -837,6 +836,8 @@ def maybe(expr):
 		# error(e)
 		# if not check_rollback_allowed:
 		#     if rollback[len(caller)-1]!="NO" #:
+	except (NotMatching, EndOfLine) as e:
+		set_token(old)
 	except IgnoreException as e:  # NoMethodError etc
 		set_token(old)
 		error(e)

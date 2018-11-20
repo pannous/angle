@@ -1,6 +1,7 @@
 [submodule "samples"]
 	path = samples
-	url = git@github.com:pannous/english-script-samples.git
+	url = https://github.com/pannous/english-script-samples
+	branch = master
 [submodule "kast"]
 	path = kast
 	url = https://github.com/pannous/kast

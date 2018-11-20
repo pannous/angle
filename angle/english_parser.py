@@ -4028,7 +4028,8 @@ def start_shell(args=[]):
     # context.home=os.environ['ANGLE_HOME']
     from os.path import expanduser
     home = expanduser("~")  # WTF
-    readline.read_history_file(home + '/.english_history')
+    try: readline.read_history_file(home + '/.english_history')
+    except: pass
     if len(args) > 1:
         input0 = ' '.join(args)
     else:

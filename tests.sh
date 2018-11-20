@@ -1,11 +1,15 @@
 cd $ANGLE_HOME
-export PYTHONPATH=$PYTHONPATH:./angle/:./kast/:./tests/
+export PYTHONPATH=
+export PYTHONPATH=$PYTHONPATH:./angle/
+# :./kast/:./tests/
 export TESTING=1
 # cd angle
 # py.test ../tests
 # python3 -m pytest ../tests
+
+# see pytest.ini
 if [ "$@" = '2' ]; then
-	python2 -m pytest tests
+	python2 -m pytest --runxfail --disable-warnings tests
 else
-	python3 -m pytest tests
+	python3 -m pytest --runxfail --disable-warnings tests
 fi

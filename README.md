@@ -9,14 +9,13 @@ The main purpose of this language is to facilitate programming computers via voi
 
 `pip install angle`
 <!-- `pip install anglang` -->
+`angle exa`
 
-OR from source:
+Or from source:
 
 `git clone --recursive git@github.com:pannous/angle.git`
 
-`cd angle`
-
-`./install.sh`
+`cd angle; ./install.sh`
 
 Start the shell : `./bin/angle` 
 
@@ -46,6 +45,7 @@ While Peter is online on Skype
 	sleep for 10 seconds
 Done
 ```
+Despite being a *natural* language, **angle** has brevity and readabilty as its highest goals. Verbosity is optional, as are types and sigils.
 
 ```
 To check if person is online on Skype:
@@ -67,14 +67,14 @@ ALPHA, partly usable, some [tests](tests) not yet passing:
 
 Operators:
 --------------
-`|` pipe : output of last command as input for next command. `ls ~ | sort`
-`,` list : turn two nodes into a list. Append if one is a list. 'cons' in lisp
-`:` pair : turn two nodes into a pair, `a:3` (hashed+symbolic). almost identical to:
-`=` value : turn two nodes into a variable pair, `a=3`
-`;` list : end expressions/statements, list inside a block. if 1 : 0 ;
-`., of, in` selection: garden of house == house.garden
-space acts as comma in lists
-newline, dedent: acts as comma in lists or closing 'bracket' if matching block start
+* `|` pipe : output of last command as input for next command. `ls ~ | sort`
+* `,` list : turn two nodes into a list. Append if one is a list. 'cons' in lisp
+* `:` pair : turn two nodes into a pair, `a:3` (hashed+symbolic). almost identical to:
+* `=` value : turn two nodes into a variable pair, `a=3`
+* `;` list : end expressions/statements, list inside a block. if 1 : 0 ;
+* `., of, in` selection: garden of house == house.garden
+* ` ` space acts as comma in lists
+* ` ` newline, dedent: acts as comma in lists or closing 'bracket' if matching block start
 
 usual math operators `add` `plus` `times` `^` … and logical `and` `or` `xor` `not`
 
@@ -87,11 +87,23 @@ cat{
     size:3
     color:{r=1 g=0 b=0}
     form{
-        dimensions=3,size*2
+        dimensions=(3,size*2)
     }
 }
-
+```
+equivalent to
+```
+a cat
+   size is 3
+   color is 1 for red, 0 for green and blue
+   a form
+     dimensions are 3 , size * 2
+   end
+end cat
+       
+```
 All code is data and all data can be 'executed':
+```
 cat().dimensions returns (3,6) because last statement == return value
 cat(!) returns cat fully evaluated: cat{size:3,…,form:dimensions:{3,6}}
 
@@ -99,10 +111,11 @@ print(size) // prints value of size()
 print{size} // prints function size
 colors={red green blue}
 colors=(red green blue)
+
 sort{.size} // ok
 sort{it.size} // ok
 sort{it's size} // ok
-sort(size) // error unless value of size() returns lambda
+sort(size) // warn unless value of size() returns lambda
 sort{size} // todo: read as it.size
 sort by size  // todo
 
@@ -128,9 +141,10 @@ fallthrough must be forced with … if desired
 
 how to force evaluation inside deferred block:
 cat{
+    born=time()  // instant
     born:=time()  // deferred
     born:time()  // deferred
-    born=time()  // instant
+    
 }
 
 blocks can be given 'arguments' when evaluated:

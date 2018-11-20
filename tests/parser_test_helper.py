@@ -191,7 +191,7 @@ def parse(s):
 	if not "parser_test_helper" in inspect.stack()[1][1]:
 		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
-	with open("out/inline", 'wt') as outfile:
+	with open("inline", 'wt') as outfile:
 		outfile.write(s)
 	interpretation = english_parser.parse(s)
 	r = interpretation.result
