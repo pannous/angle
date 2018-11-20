@@ -8,7 +8,7 @@ export TESTING=1
 # python3 -m pytest ../tests
 
 # see pytest.ini
-if [ "$@" = '2' ]; then
+if [[ "$@" = '2' ]]; then
 	python2 -m pytest --runxfail --disable-warnings tests
 else
 	python3 -m pytest --runxfail --disable-warnings tests

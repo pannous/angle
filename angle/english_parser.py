@@ -1004,6 +1004,8 @@ def piped_actions(a=False):
     context.in_pipe = False
     if isinstance(name, collections.Callable): args = [args, Argument(value=a)]  # with owner
     if interpreting():
+        if isinstance(a,list):
+          a=xlist(a)
         the.result = do_call(a, name, args)
         print((the.result))
         return the.result
@@ -2936,7 +2938,7 @@ def do_evaluate(x, _type=None):
     # if is_string(x): return x
     # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
     if isinstance(x, list) and len(x) == 1: return do_evaluate(x[0])
-    if isinstance(x, list): return list(map(do_evaluate, x))
+    if isinstance(x, list): return xlist(map(do_evaluate, x))
     # if maybe(x.is_a) Array: return x.to_s
     if is_string(x):
         if _type and isinstance(_type, extensions.Numeric): return float(x)
@@ -3271,18 +3273,23 @@ def do_call(obj0, method0, args0=[]):
     if (method == 'of'): return evaluate_property(args0, obj0)
     # if isinstance(args, list) and isinstance(args[0], Argument): args = args.map(name_or_value)
     is_builtin = type(method) == types.BuiltinFunctionType or type(method) == types.BuiltinMethodType
-    bound = is_bound(method)
     # if args and maybe(obj.respond_to) + " " etc!: args=args.strip()
     if self_modifying(method):
         obj = obj0
     else:
         obj = do_evaluate(obj0)
+
+    if isinstance(method,str):
+      method=obj.__getattribute__(method)
+
+    bound = is_bound(method)
     args = align_args(args, obj, method)
     number_of_arguments = has_args(method, obj, not not args)
     is_first_self = first_is_self(method)
     if isinstance(method, FunctionDef):
         the.result = do_execute_block(method.body, args)
         return the.result
+
     # if (args and args[0] == 'of'):  # and has_args(method, obj)):
     #     if not callable(method) and method in dir(obj):
     #         return obj.__getattribute__(method)

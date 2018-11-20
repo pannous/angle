@@ -662,7 +662,7 @@ class xlist(list):
 	def row(xs, n):
 		return xs[int(n) - 1]
 
-	def column(xs, n):
+	def column(xs, n,wtf=0):
 		if isinstance(xs[0], str):
 			return xlist(map(lambda row: xstr(row).word(n + 1), xs))
 		if isinstance(xs[0], list):
