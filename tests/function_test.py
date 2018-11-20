@@ -171,8 +171,13 @@ class FunctionTest(ParserBaseTest):
 		parse('what is that')
 
 	def test_java_style(self):
-		parse('1.add(0)')
+		parse('1.add(0)')#confused with 1.0 like ruby
 		assert_result_is('3.add(4)', 7)
+
+
+	def test_ruby_style(self):
+		parse('1..add(0)')
+		assert_result_is('3..add(4)', 7.)
 
 	def test_dot(self):
 		parse("x='hi'")

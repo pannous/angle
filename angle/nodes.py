@@ -237,7 +237,7 @@ class Argument(kast.arg):
 	# scope.variables[name]=self
 
 	def __repr__(self):
-		if (self.value):
+		if self.value or self.value==0:
 			if not (self.name):
 				return str(self.value)
 			return str(self.name) + str(self.value)

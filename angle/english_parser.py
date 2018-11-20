@@ -812,7 +812,11 @@ def quick_expression():  # bad idea?
         if contains("=>") or contains(":"): return hash_map()
     # property
     if look_1_ahead(['.', '\'s', "of"]):
-        return maybe(method_call) or property()  # simpleProperty()
+        maybe(method_call) or property()  # simpleProperty()
+        if callable(the.result) or isinstance(the.result,Call):
+            return call(the.result,result) # flipped js style a.b(c)
+        else: return the.result
+
     # setter
     if look_1_ahead('='):
         if not context.in_condition: return setter()
@@ -1455,9 +1459,13 @@ def true_method(obj=None):
 
 
 # read mail or module read mail or object read mail bla(1) or a.bla(1)  vs ruby_method_call !!
-def method_call(obj=None):
+def method_call(obj=None,method0=None):
     # verb_node
-    module, obj, method_name = true_method(obj)
+    if not method0:
+        module, obj, method_name = true_method(obj)
+    else:
+        module=None
+        method_name=findMethod(obj,method0)
     context.in_algebra = False  # hack?
     # method = findMethod(obj, method_name)  # already? todo findMethods with S, ambiguous ones!!
     # no_rollback()  # maybe doch?
@@ -1922,11 +1930,12 @@ def simpleProperty():
 # see method_call!!
 def property():  # sett=False,delay_eval=True):
     must_contain_before([".", "'s", "of"], special_chars)
-    var = variable()  # todo or word() # or type/class!
-    container = var.value
+    var = value() # variable()  # todo or word() # or type/class!
+    container = do_evaluate(var)
+    # container = var.value
     of = __(['.', "'s", "of"])  # todo ,"of" don't work if var is unknown
     no_rollback()
-    properti = word()
+    properti = word(include=operators)
     if of == "of": container, properti = properti, container  # flip!
 
     # if sett:
@@ -1944,7 +1953,7 @@ def property():  # sett=False,delay_eval=True):
         if isinstance(container, dict):
             return container[properti]
         else:
-            return getattr(container, properti)
+            return do_evaluate_property(properti,container)
     return Attribute(container, properti, sett and Store() or Load())
 
 
@@ -2915,10 +2924,17 @@ def do_evaluate_property(attr, node):
     if isinstance(attr, _ast.AST):
         return todo("do_evaluate_property")
     try:
-        the.result = do_call(node, attr)
-        return the.result
+        return getattr(node,attr)
     except:
         verbose("do_send(node,attr) failed")
+
+    the.result = method_call(node,attr) #do_call(node, attr)
+    # try:
+    #     the.result = method_call(node, attr)  # do_call(node, attr)
+    #     return the.result
+    # except:
+    #     verbose("do_send(node,attr) failed")
+    #     return findMethod(node,attr)
 
 
 # resolve
@@ -2928,18 +2944,20 @@ def do_evaluate(x, _type=None):
     if x == TRUE: return True
     if x == FALSE: return FALSE  # False NOT HERE! WHERE?
     if x == NILL: return None
-    if not x: return None
     # if x == 'pi': return math.pi
     # if x == 'tau': return 2*math.pi
+    # if isinstance(x, ast.Unifuck): return x.s
+    # if isinstance(x, nodes.Variable): return do_evaluate(x.value)
+    if isinstance(x, Variable): return do_evaluate(x.value)
+    if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
+    if not x: return None
+
     if isinstance(x, ast.Name): x=x.id
     if isinstance(x, collections.Callable): return x  # x()  Whoot
     if isinstance(x, type): return x
     if isinstance(x, ast.Num): return x.n
     if isinstance(x, ast.Str): return x.s
-    # if isinstance(x, ast.Unifuck): return x.s
-    # if isinstance(x, nodes.Variable): return do_evaluate(x.value)
-    if isinstance(x, Variable): return do_evaluate(x.value)
-    if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
+
     if isinstance(x, extensions.File): return x.to_path
     # if is_string(x): return x
     # and x.index(r'')   :. notodo :.  re.search(r'^\'.*[^\/]$',x): return x
@@ -2982,9 +3000,9 @@ def is_math(method):
     return ok
 
 
-def do_math(a, op, b):
-    a = do_evaluate(a) or 0
-    b = do_evaluate(b) or 0
+def do_math(a0, op, b0):
+    a = do_evaluate(a0) or 0
+    b = do_evaluate(b0) or 0
     if isinstance(a, Variable):
         a = a.value
     if isinstance(b, Variable):
