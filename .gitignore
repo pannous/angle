@@ -41,3 +41,7 @@ node_modules/
 record.wav
 angle.js/.flowconfig
 angle.js/tsconfig.json
+inline
+angle.js
+out*
+out.*
