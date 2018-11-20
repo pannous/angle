@@ -2952,6 +2952,9 @@ def do_evaluate(x, _type=None):
     if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
     if not x: return None
 
+    #todo don't eval twice! var(x='c')->string('c')->var['c'] ... ;)
+    # x.evaluated=True
+
     if isinstance(x, ast.Name): x=x.id
     if isinstance(x, collections.Callable): return x  # x()  Whoot
     if isinstance(x, type): return x
@@ -2966,7 +2969,8 @@ def do_evaluate(x, _type=None):
     # if maybe(x.is_a) Array: return x.to_s
     if is_string(x):
         if _type and isinstance(_type, extensions.Numeric): return float(x)
-        if x in the.variableValues: return the.variableValues[x]
+        if not isinstance(x,xstr) and x in the.variableValues:
+            return the.variableValues[x]
         if match_path(x): return do_evaluate(x)
         if _type and _type == float: return float(x)
         if _type and _type == int: return int(x)
@@ -3737,7 +3741,7 @@ def quote():
         if not interpreting():
             the.result = kast.Str(s=the.result)
         next_token()
-        return the.result
+        return xstr(the.result)
     raise_not_matching("no quote")
 
 
