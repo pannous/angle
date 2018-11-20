@@ -10,3 +10,7 @@
 	path = netbase-python
 	url = https://github.com/pannous/netbase-python
 	branch = master
+[submodule "EnglishScript.tmbundle"]
+	path = EnglishScript.tmbundle
+	url = https://github.com/pannous/EnglishScript.tmbundle
+	branch = master
