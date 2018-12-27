@@ -65,7 +65,7 @@ class VariableTest(ParserBaseTest,unittest.TestCase):
   def test_variable_type_syntax2(self):
     parse("char x='c'")
     parse("char x;x='c'")
-    # parse("char x;x=3 as char")
+    parse("char x;x=3 as char")
     # character
     # all error free
 

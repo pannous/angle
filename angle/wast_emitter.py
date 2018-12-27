@@ -1,7 +1,7 @@
 from wast import Wast
 
 
-class TreeVisitor(): #ast.NodeTransformer
+class TreeVisitor():  # ast.NodeTransformer
   parents = []
 
   def parent(self):
@@ -12,7 +12,31 @@ class TreeVisitor(): #ast.NodeTransformer
 
   def visit(self, node):
     """Visit a node."""
-    method = 'visit_' + node.__class__.__name__
+
+    if node == "$0":
+      return print("(get_local $0)", end=' ')
+    if node == "$1":
+      return print("(get_local $1)", end=' ')
+
+    if isinstance(node, dict):
+      for (m,v) in node.items():
+        print("(", end=' ')
+        print(m, end=' ')
+        self.visit(v)
+        print(")", end=' ')
+      return
+
+    if isinstance(node, tuple):
+      method = node[0]
+      params = node[1:]
+      print("(",end=' ')
+      print(method,end=' ')
+      for t in params:
+          self.visit(t)#,end=' ')
+      print(")")
+      return
+    else:
+      method = 'visit_' + node.__class__.__name__
     visitor = getattr(self, method, self.generic_visit)
     return visitor(node)
 
@@ -26,6 +50,9 @@ class TreeVisitor(): #ast.NodeTransformer
         setattr(node, field, new_node)
     self.parents.pop()
     return node
+
+  def visit_int(self, i):
+    print("(i32.const %d)" % i,end=' ') # stupid wast verbosity!
 
   def visit_list(self, xs):
     # as data or inline construction??
@@ -45,6 +72,7 @@ def emit_():
   print("(")
   print(")")
 
+
 def emit_import(node):
   if 'result' in node and node['result']:
     print('(import "{module}" "{fun}" (func ${func} (param {params}) (result {result})))'.format(**node))
@@ -52,49 +80,62 @@ def emit_import(node):
     print('(import "{module}" "{fun}" (func ${func} (param {params}) ))'.format(**node))
 
 
-
 def emit_global(node):
   print(' (global {global} {type} {value})'.format(**node))
 
+
 def emit_global_mutable(node):
   print(' (global {global} (mut {type}) {value})'.format(**node))
+
+
 # (global $a-mutable-global (mut f32) (f32.const 7.5))
 
 def emit_table():
   print('(table 1 1 anyfunc)')
 
+
 def emit_memory(emit_memory):
   print('(memory $0 1 256)')
 
-offset=0
+
+offset = 0
+
+
 # global offset
 
 def emit_data(data):
   global offset
-  if(isinstance(data,str)):
-    print('(data (i32.const {offset}) "{data}")'.format(**{'offset':offset,'data':data}))
-    offset+=len(data)+1
+  if (isinstance(data, str)):
+    print('(data (i32.const {offset}) "{data}")'.format(**{'offset': offset, 'data': data}))
+    offset += len(data) + 1
   else:
-    raise Exception("UNKNOWN type "+data)
+    raise Exception("UNKNOWN type " + data)
 
 
 def emit_export(export):
-  print('(export "%s" (func "$%s"))' % (export,export))
- # (export "mem" (memory $0))
+  print('(export "%s" (func "$%s"))' % (export, export))
+
+
+# (export "mem" (memory $0))
 
 
 def emit_body(body):
   visitor = TreeVisitor()
   for statement in body:
     visitor.visit(statement)
+
+
 # ...?
 
 
 def emit_func(func):
   print('(func "{func}" (; 1 ;) (type ${type}) {params} (result {result})'.format(**func))
-#   (param $0 i32) (param $1 i64) (param $2 f32) (param $3 f64)
-  emit_body(func['body'])
-  print(' (return (i32.const 1337))')
+  #   (param $0 i32) (param $1 i64) (param $2 f32) (param $3 f64)
+  body = func['body']
+  if not body and "i" in func['type']:  # debug
+    print(' (return (i32.const 1337))')
+  else:
+    emit_body(body) # yay, last==return!!
   print(')')
 
 
@@ -102,7 +143,7 @@ def emit_type(type):
   print('(type ${name} (func (param {params}) (result {result})))'.format(**type))
 
 
-def emit_module(prog:Wast):
+def emit_module(prog: Wast):
   print("(module")
   print('(type $v (func))')
   for type in prog.types:

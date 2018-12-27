@@ -1843,8 +1843,14 @@ def assure_same_type(var, _type):
     #   oldType=eval(oldType)
     # oldType =getattr(sys.modules[__name__], oldType)
 
+    if oldType and issubclass(oldType, unicode):
+        if issubclass(_type, int):
+            return  # OK todo autocast!
+        if issubclass(_type, str):
+            return  # OK todo if len()==1
+
     if oldType and issubclass(oldType, str):
-        if issubclass(_type, extensions.xchar):
+        if issubclass(_type, unicode):
             # var.type = type  # ok: upgrade
             return  # OK
     # try:
@@ -1859,7 +1865,7 @@ def assure_same_type(var, _type):
         raise WrongType(var.name + " has type " + str(var.type) + ", Can't set to " + str(_type))
     var.type = _type  # ok: set
 
-
+# what's the difference?? ^^>>
 def assure_same_type_overwrite(var, val, auto_cast=False):
     if not val: return
     oldType = var.type
@@ -4071,7 +4077,7 @@ def start_shell(args=[]):
     # context.home=os.environ['ANGLE_HOME']
     from os.path import expanduser
     home = expanduser("~")  # WTF
-    try: readline.read_history_file(home + '/.english_history')
+    try: readline.read_history_file(home + '/.angle_history')
     except: pass
     if len(args) > 1:
         input0 = ' '.join(args)
@@ -4080,7 +4086,7 @@ def start_shell(args=[]):
         input0 = real_raw_input('⦠ ')
     while True:  # input0:
         # while input = Readline.readline('angle-script⦠ ', True)
-        readline.write_history_file(home + "/.english_history")
+        readline.write_history_file(home + "/.angle_history")
         # while True
         #   print("> ")
         #   input = STDIN.gets.strip()

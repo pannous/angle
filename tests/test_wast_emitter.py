@@ -4,7 +4,9 @@ import wast_emitter
 from wast import Wast
 import angle
 from tests.parser_test_helper import *
-
+i32={
+  "add":"i32.add"
+}
 
 class Tee(object):
   def __init__(self,name=None):
@@ -72,7 +74,9 @@ class WastEmitterTest(ParserBaseTest,unittest.TestCase):
       wast.types += [{'name':'main','params':'','result':"i32"}]
       # wast.exports += ['main']
       wast.imports+=[{'module':"env","fun":"printc","func":"printc","params":"i32","result":""}]
-      wast.functions+=[{'func':"main",'type':"main",'params':'','result':'i32','body':[]}]
+      # wast.functions+=[{'func':"main",'type':"main",'params':'','result':'i32','body':[("i32.add",3,4)]}]
+      wast.functions+=[{'func':"main",'type':"main",'params':'','result':'i32','body':[{"call":{"add":[3,4]}}]}]
+      wast.functions+=[{'func':"add",'type':"ii:i",'params':'i32 i32','result':'i32','body':[("i32.add","$0","$1")]}]
       wast_emitter.emit_module(wast)
       file_name = self.tee.file.name
       cmd="wast2wasm " + file_name
@@ -85,5 +89,5 @@ class WastEmitterTest(ParserBaseTest,unittest.TestCase):
       print(result)
       result = subprocess.check_output("./wasmx " + file_name.replace("wast","wasm"), shell=True)
       print(str(result,"UTF8")) # fucking python3
-      assert "1337" in str(result)
+      assert "7" in str(result)
 

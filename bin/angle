@@ -4,8 +4,10 @@ import sys
 py2=sys.version < '3'
 py3=sys.version >= '3'
 sys.path.append('$ANGLE_HOME')
+sys.path.append('/me/dev/angle')
 sys.path.append('.')
 sys.path.append('angle')
+sys.path.append('src')
 
 from angle import english_parser
 english_parser.main()
@@ -14,6 +16,7 @@ english_parser.main()
 # export PATH=$PATH:$ANGLE_HOME
 # export PYTHONPATH=$PYTHONPATH=:$ANGLE_HOME
 # export DEBUG_ANGLE=1
+# export ANGLE_HOME=/me/dev/angle/
 # python $ANGLE_HOME/core/english_parser.py $@
 # python $ANGLE_HOME/angle/english_parser.py $@
 # python english_parser.py $@

@@ -12,7 +12,9 @@ echo "export ANGLE_HOME=$PWD" >> ~/.bashrc
 sudo ln -s $ANGLE_HOME/bin/angle /usr/local/bin/angle
 
 echo "Installing Python requirements"
-pip install -r requirements.txt
+echo pip2/pip3 install -r requirements.txt
+pip2 install -r requirements.txt
+pip3 install -r requirements.txt
 
 if [[ "$OSTYPE" == 'darwin' ]]; then
 	echo "Adding TextMate support, like syntax highlighting"
