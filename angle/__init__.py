@@ -15,6 +15,10 @@ py3 = sys.version >= '3'
 
 import angle.english_parser 
 
+
+def parse(file):
+	return english_parser.parse(file).result
+
 def compile(file):
 	return english_parser.parse(file).result
 

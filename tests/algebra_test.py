@@ -37,7 +37,7 @@ class AlgebraTest(ParserBaseTest):
 
   def test_algebra_POW2(self):
     assert_result_is('⦠pow 3, 4', 81) # how, lol
-    # assert_result_is(u'⦠pow 3, 4', 1024)
+    assert_result_is(u'⦠pow 2, 10', 1024)
 
   def test_algebra_NOW(self):
     # skip('test_algebra_NOW, DONT SKIP!')

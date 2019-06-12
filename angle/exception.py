@@ -3,7 +3,7 @@
 # ImportError: cannot import name a_class
 # AttributeError: 'module' object has no attribute
 # I have also seen this error when inadvertently naming a module with the same name as one of the standard Python modules.
-# YEP: exceptionz works!!!
+# YEP: exception works!!!
 
 # import minitest
 # DONT ROLLBACK StandardError

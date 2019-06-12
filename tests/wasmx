@@ -332,6 +332,7 @@ malloc = function (amount) {
 
 imports = {
 	global: {NaN: 0, Infinity, Math},
+	js:{print_ln:log,perf_counter:nop},// wasmfun
 	env: {
 		memory,
 		table,
@@ -345,6 +346,7 @@ imports = {
 
 
 		// _raise:x=>{throw new Error(string(x))},
+		// print_ln:logs,
 		_log, _logx, _logc, _logs, _logp, _logi, log16, //emcc
 		log, logc, logs, logx, logi: log, puts: logs, printf, print, putchar: logc, puts: logs, println: printf,
 		backtrace: debug("backtrace"),

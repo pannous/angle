@@ -59,8 +59,8 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is('1==2', False)
 
 	def test_UndeclaredVariable(self):
-		# from angle.exceptionz import UndeclaredVariable
-		assert_has_error('x=y', exceptionz.UndeclaredVariable)
+		# from angle.exception import UndeclaredVariable
+		assert_has_error('x=y', exception.UndeclaredVariable)
 
 	def test_return(self):
 		assert_result_is('if 1<2 then 5 else 4', 5)

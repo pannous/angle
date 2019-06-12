@@ -12,7 +12,7 @@ class PropertyTest(ParserBaseTest):
 		assert_result_is("a.b",3)
 
 	def test_property_of_unknown_forbidden(self):
-		assert_has_error("z.b=3", exceptionz.UndeclaredVariable)
+		assert_has_error("z.b=3", exception.UndeclaredVariable)
 
 	def test_property_of_unknown_allowed(self):
 		skip()

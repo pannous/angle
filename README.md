@@ -55,6 +55,9 @@ To check if person is online on Skype:
 End
 ```
 
+Function pointers and aliases
+`with class map: to merge is to update`
+
 Status:
 -----------
 

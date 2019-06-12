@@ -17,7 +17,7 @@ import token as _token
 import collections  # py3
 import context
 import extensions
-from exceptionz import *
+from exception import *
 from extension_functions import is_string
 # import nodes
 from nodes import Argument, Variable, Compare, FunctionCall, FunctionDef
@@ -1256,11 +1256,14 @@ def load_module_methods():
 		import pickle as pickle
 	except:
 		import pickle
+	def deserialize(file):
+		with open(file,'rb') as f:
+		  return pickle.load(f)
 	# static, load only once, create with module_method_map.py
-	the.methodToModulesMap = pickle.load(open(context.home + "/data/method_modules.bin", 'rb'))
-	the.moduleMethods = pickle.load(open(context.home + "/data/module_methods.bin", 'rb'))
-	the.moduleNames = pickle.load(open(context.home + "/data/module_names.bin", 'rb'))
-	the.moduleClasses = pickle.load(open(context.home + "/data/module_classes.bin", 'rb'))
+	the.methodToModulesMap = deserialize(context.home + "/data/method_modules.bin")
+	the.moduleMethods = deserialize(context.home + "/data/module_methods.bin")
+	the.moduleNames = deserialize(context.home + "/data/module_names.bin")
+	the.moduleClasses = deserialize(context.home + "/data/module_classes.bin")
 	import english_parser
 
 	for mo, mes in list(the.moduleMethods.items()):

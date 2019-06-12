@@ -7,7 +7,7 @@ import ast
 import kast.kast
 import nodes
 
-import exceptionz
+import exception
 import english_parser
 import context
 import pyc_emitter
@@ -164,7 +164,7 @@ def assert_has_error(x, ex=None):
 			x()
 		else:
 			parse(x)
-	except (Exception, exceptionz.StandardError) as e: #, exceptionz.Exception
+	except (Exception, exception.StandardError) as e: #, exception.Exception
 		if ex:
 			if not isinstance(e, ex):
 				print(("WRONG ERROR: {0} {1} expected error: {2}".format(e.__class__.__name__,str(e), str(ex))))
