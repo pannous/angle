@@ -241,6 +241,7 @@ Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Boo
 <!--
 **precedence**
 One very hot idea is to allow modifying the language grammar on the fly, at least to a limited extend.
+This goes beyond normal meta programming, macros and #defines
 One first step would be to enable setting the precedence of functions.
 This would yield very natural and sweet mathematical expressions, especially combined with Unicode names:
 ```
@@ -289,3 +290,4 @@ It falls into a sort of uncanny valley. Apple tried that sort of successfully wi
 
 
         -->
+OK
