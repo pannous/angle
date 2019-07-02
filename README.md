@@ -266,7 +266,7 @@ Compiling is so much nicer & faster than interpreted code.
 Also the Python execution model is a bit more friendly than the Ruby VM, but both have their [advantages and drawbacks](https://github.com/pannous/cast/blob/master/ruby-vs-python.txt). The biggest advantage of Python is that objects can be given attributes at any time o.x='y'! However pythons limited block/lamda capabilities are a painful limitation. 
 
 
-"There should be one-- and preferably only one --obvious way to do it"
+"There should be one -- and preferably only one -- obvious way to do it"
 Beautiful is better than ugly.
 Simple is better than complex.
 Complex is better than complicated.
