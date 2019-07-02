@@ -286,7 +286,4 @@ Trying to express implicit and fuzzy relationships in ways that are explicit and
 
 Having a language that almost looks like English is actually harder to program in than one that has a well defined strict syntax.
 
-It falls into a sort of uncanny valley. Apple tried that sort of successfully with Hypertalk but really badly with Appkescript
-
-
-        -->
+It falls into a sort of uncanny valley. Apple tried that sort of successfully with Hypertalk but really badly with Appkescript        -->
