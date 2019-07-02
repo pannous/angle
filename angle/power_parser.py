@@ -6,7 +6,7 @@
 # from english_parser import result, comment, condition, root
 import sys
 
-import readline
+#import readline
 
 py2 = sys.version < '3'
 py3 = sys.version >= '3'

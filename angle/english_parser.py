@@ -12,10 +12,18 @@ import types
 #import stem.util.system
 # import interpretation
 import inspect
-try:
- import pyc_emitter
-except:
- import angle.pyc_emitter
+
+print(sys.path)
+
+if 'ANGLE_HOME' in os.environ:
+    sys.path.append(os.environ['ANGLE_HOME'])
+    sys.path.append(os.environ['ANGLE_HOME'] + "/angle")
+else:
+	sys.path.append( "..")
+
+
+import pyc_emitter
+
 # Thank you, python3 di*k*s, for making such a fantastic mess with input/raw_input
 # real_raw_input = vars(__builtins__).get('raw_input', input)
 from six.moves import input as real_raw_input
@@ -41,10 +49,6 @@ import nodes
 
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
-
-if 'ANGLE_HOME' in os.environ:
-    sys.path.append(os.environ['ANGLE_HOME'])
-    sys.path.append(os.environ['ANGLE_HOME'] + "/angle")
 
 
 def get(name):
@@ -4076,14 +4080,14 @@ def ruby_action():
 def run_tests():
     	ok=parse('1+2')
     	print(ok. result)
-    	return 
+    
 
 def start_shell(args=[]):
     try:
      import readline
     except:
     	print('running tests')
-    	run_tests()
+    	return run_tests()
     context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
     # context.home=os.environ['ANGLE_HOME']
     from os.path import expanduser
