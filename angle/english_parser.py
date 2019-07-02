@@ -9,11 +9,13 @@ import os
 # import yappi
 import traceback
 import types
-import stem.util.system
+#import stem.util.system
 # import interpretation
 import inspect
-import pyc_emitter
-
+try:
+ import pyc_emitter
+except:
+ import angle.pyc_emitter
 # Thank you, python3 di*k*s, for making such a fantastic mess with input/raw_input
 # real_raw_input = vars(__builtins__).get('raw_input', input)
 from six.moves import input as real_raw_input
@@ -428,7 +430,8 @@ def fold_algebra(stack):
         while i < len(stack):
             if stack[i] == op:
                 apply_op(stack, i, op)
-            i += 1
+            else:
+                i += 1
         # if leng == len(stack):
         # 	raise Exception("OPERATOR NOT CONSUMED: "+op)
     if len(stack) > 1 and len(used_operators) > 0:
@@ -4070,9 +4073,17 @@ def ruby_action():
     _('ruby')
     exec (action or quote)
 
+def run_tests():
+    	ok=parse('1+2')
+    	print(ok. result)
+    	return 
 
 def start_shell(args=[]):
-    import readline
+    try:
+     import readline
+    except:
+    	print('running tests')
+    	run_tests()
     context._debug = context._debug or 'ANGLE_DEBUG' in os.environ
     # context.home=os.environ['ANGLE_HOME']
     from os.path import expanduser
@@ -4120,7 +4131,10 @@ def start_shell(args=[]):
 def main():
     the._verbose = False
     ARGV = sys.argv
-    context.home = os.environ['ANGLE_HOME']
+    if 'ANGLE_DEBUG' in os.environ:
+       context.debug = os.environ['ANGLE_DEBUG']
+    if 'ANGLE_HOME' in os.environ:
+       context.home = os.environ['ANGLE_HOME']
     # version=`git rev-list --all --count`
     # ARGF=sys.argv
     if len(ARGV) == 1:
