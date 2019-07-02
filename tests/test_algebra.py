@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 
 class AlgebraTest(ParserBaseTest,unittest.TestCase):
@@ -19,7 +19,6 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
         assert_equals(parser.fraction(), 4)
         init('4.0+3.0')
         parser.do_interpret()
-
         assert_equals(parser.algebra(), 7)
         assert_result_is('4.0+3.0', 7.0)
 
@@ -54,3 +53,6 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
         # assert_equals(val, 26)
         # val = self.current_node.eval_node(self.variableValues)
         # assert_equals(val, 26)
+        
+if __name__ == '__main__':
+    unittest.main()

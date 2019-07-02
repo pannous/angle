@@ -288,6 +288,7 @@ def is_a(self, clazz):
 # x = Fraction(22, 7) 	# Ruby: 22 / 7r 22r / 7
 
 if py3:
+	char = unicode
 	class file(io.IOBase):
 		pass  # WTF python3 !?!?!?!?!??
 
@@ -303,6 +304,9 @@ if py3:
 	class unicode(xstr):  # , bytes):  # xchar[] TypeError: multiple bases have instance lay-out conflict
 		# Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
 		pass
+
+	#class char(str):
+	#	pass
 
 	# else: https://stackoverflow.com/questions/22098099/reason-why-xrange-is-not-inheritable-in-python
 	#   class range(xrange):

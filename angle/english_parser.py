@@ -20,7 +20,7 @@ else:
 	sys.path.append( "..") # for cast
 
 
-import pyc_emitter
+#import pyc_emitter
 
 # Thank you, python3 di*k*s, for making such a fantastic mess with input/raw_input
 # real_raw_input = vars(__builtins__).get('raw_input', input)

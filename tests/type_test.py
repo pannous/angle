@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import angle
 
-from tests.parser_test_helper import *
+
+from parser_test_helper import *
 
 
 class TypeTest(ParserBaseTest,unittest.TestCase):
@@ -127,3 +127,5 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
 						return str(sum(nums))
 				print((sum_and_stringify([1, 'b'])))
 
+if __name__ == '__main__':
+    unittest.main()

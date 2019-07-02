@@ -3,14 +3,17 @@ import inspect
 import unittest
 
 import ast
-
+import sys
+sys. path.append('..')
+sys. path.append('angle')
+sys. path.append('../angle')
 import kast.kast
-import nodes
+import angle.nodes as nodes
 
 import exception
 import english_parser
 import context
-import pyc_emitter
+import angle.pyc_emitter
 # from angle import english_parser, pyc_emitter, context #NO! creates 2nd context !!!
 # from nodes import * #EVIL!! creates second class
 
@@ -78,9 +81,21 @@ def last_result():
 	return context.last_result
 
 
+
+
+def puts(x):
+	print(x)
+
+def currentFile(depth=0):
+	return re.sub(r'.*\/','',inspect.stack()[2+depth][1])
+
+
+def current_line(depth=0):
+	return inspect.stack()[2+depth][2]
+
 #
 # def parse_tree(x):
-# 	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+# 	print("  File \"%s\", line %d" % (currentFile(), current_line()))
 # 	context.use_tree = True
 # 	power_parser.dont_interpret()
 # 	angle_ast = power_parser.parse(x).tree  # AST
@@ -90,26 +105,19 @@ def last_result():
 # 	return angle_ast
 
 
-def puts(x):
-	print(x)
-
-
 def assert_result_emitted(a, b, bla=None):
-	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	if not context.use_tree:
 		print("NEED context.use_tree for assert_result_emitted")
 		skip()
 		return
 	# context.use_tree = True
-	x = parse(a)
+	x = parse(a,1)
 	if isinstance(x, ast.Module): x = x.body
 	assert_equals(b, x, bla)
 
 
 def assert_result_is(a, b, bla=None):
-	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
-	# print(inspect.stack()[1][3])
-	x = parse(a)
+	x = parse(a,1)
 	# y=parse(b)
 	y = b
 	if bla:
@@ -119,7 +127,7 @@ def assert_result_is(a, b, bla=None):
 
 
 def assert_equals(a, b, bla=None):
-	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+	print("  File \"%s\", line %d" % (currentFile(), current_line()))
 	if a == 'False': a = False
 	if isinstance(a,type) and isinstance(b,type) and issubclass(a,b):
 		assert issubclass(a,b), "%s SHOULD BE %s  ( %s ) (issubclass!)" % (a, b, bla)
@@ -157,13 +165,12 @@ def skip(me=0):
 
 
 def assert_has_error(x, ex=None):
-	print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
 	got_ex = False
 	try:
 		if isinstance(x, collections.Callable):
 			x()
 		else:
-			parse(x)
+			parse(x,1)
 	except (Exception, exception.StandardError) as e: #, exception.Exception
 		if ex:
 			if not isinstance(e, ex):
@@ -180,7 +187,7 @@ def assert_has_error(x, ex=None):
 
 
 def assert_has_no_error(x):
-	parse(x)
+	return parse(x,1)
 
 
 def sleep(s):
@@ -195,13 +202,13 @@ def update_local(context):
 	copy_variables()
 
 
-def parse(s):
+def parse(s,depth=0):
 	if 'USE_TREE' in os.environ:
 		context.use_tree = os.environ['USE_TREE']
 	if 'NO_TREE' in os.environ:
 		context.use_tree = False
-	if not "parser_test_helper" in inspect.stack()[1][1]:
-		print("  File \"%s\", line %d" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+	if not "parser_test_helper" in currentFile(depth):
+		print("  File \"%s\", line %d" % (currentFile(depth), current_line(depth)))
 	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s
 	with open("inline", 'wt') as outfile:
 		outfile.write(s)
@@ -210,8 +217,8 @@ def parse(s):
 	if isinstance(r, ast.AST) or isinstance(r, list) and isinstance(r[0], ast.AST):
 		r = pyc_emitter.run_ast(r)
 	update_local(context)
-	print("DONE PARSING :")
-	print("  File \"%s\", line %d\n\n" % (inspect.stack()[1][1], inspect.stack()[1][2]))
+	print("DONE PARSING :",s)
+	print("  File \"%s\", line %d\n\n" % (currentFile(depth), current_line(depth)))
 
 	return r
 
