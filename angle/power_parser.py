@@ -5,9 +5,10 @@
 # from TreeBuilder import show_tree
 # from english_parser import result, comment, condition, root
 import sys
-
-#import readline
-
+try:
+	import readline
+except :
+	print('readline not available')
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
 import tokenize
@@ -258,16 +259,13 @@ def warn(e):
 
 def caller():
 	import inspect
-
 	curframe = inspect.currentframe()
+	try:
+		return inspect.getouterframes(curframe, 2)
+	except: pass
 	calframe=curframe.f_back
 	if calframe.f_back:
 	  calframe=curframe.f_back
-	#print(curframe.f_trace())
-	#print(calframe.f_lineno)
-	#calframe = inspect.getouterframes(curframe, 2)
-	#calframe_ = curframe[1][3]
-	#print('caller name:', calframe_)
 	return calframe
 
 
@@ -674,7 +672,11 @@ def read_source(x):
 def caller_depth():
 	# c= depth #if angel.use_tree doesn't speed up:
 	# if angel.use_tree: c= depth
-	c = len(caller())
+	
+	try:
+		c=caller().f_code.co_stacksize-7
+	except :
+		c = len(caller())
 	if c > max_depth:
 		raise SystemStackError("depth overflow")
 	return c
@@ -900,7 +902,9 @@ def to_source(block):
 
 # GETS FUCKED UP BY the.string.strip()! !!! ???
 def pointer():
-	return current_token[2]
+	if not current_token or the.current_token:
+		return ''
+	return current_token[2] or the.current_token[2]
 	# global parser
 	# if not lines or line_number >= len(lines): return Pointer(line_number, 0, parser)
 	# # line_number copy by ref?????????
@@ -1204,10 +1208,10 @@ def integer():
 		next_token(False)  # Advancing by hand, its not a regular token
 		# "E20": kast.Pow(10,20),
 		# if not interpreting(): return ast.Num(current_value)
-		# import kast.kast
-		from kast import kast
-		# import ast
-		if context.use_tree: return kast.Num(current_value)
+		
+		if context.use_tree: 
+			from kast import kast
+			return kast.Num(current_value)
 		# if context.use_tree: return ast.Num(current_value)
 		if current_value == 0:
 			current_value = ZERO
@@ -1309,3 +1313,8 @@ def load_module_methods():
 	#     print("wrapper_descriptor not a function %s"%method)
 
 # context.starttokens_done=True
+def main():
+	print(caller_depth())
+if __name__ == '__main__':
+    main() #debug
+    

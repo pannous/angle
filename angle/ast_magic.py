@@ -1,5 +1,7 @@
 import _ast
 # from _ast import *
+import sys
+sys.path.append( "..") # for cast
 import kast
 from kast import kast
 from kast.kast import *  # someone hates python3 imports

@@ -13,13 +13,11 @@ import types
 # import interpretation
 import inspect
 
-print(sys.path)
-
 if 'ANGLE_HOME' in os.environ:
     sys.path.append(os.environ['ANGLE_HOME'])
     sys.path.append(os.environ['ANGLE_HOME'] + "/angle")
 else:
-	sys.path.append( "..")
+	sys.path.append( "..") # for cast
 
 
 import pyc_emitter
