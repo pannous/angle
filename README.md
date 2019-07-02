@@ -241,6 +241,7 @@ Having a [self-hosted "bootstrapped" compiler](https://en.wikipedia.org/wiki/Boo
 <!--
 **precedence**
 One very hot idea is to allow modifying the language grammar on the fly, at least to a limited extend.
+This goes beyond normal meta programming, macros and #defines
 One first step would be to enable setting the precedence of functions.
 This would yield very natural and sweet mathematical expressions, especially combined with Unicode names:
 ```
@@ -285,7 +286,4 @@ Trying to express implicit and fuzzy relationships in ways that are explicit and
 
 Having a language that almost looks like English is actually harder to program in than one that has a well defined strict syntax.
 
-It falls into a sort of uncanny valley. Apple tried that sort of successfully with Hypertalk but really badly with Appkescript
-
-
-        -->
+It falls into a sort of uncanny valley. Apple tried that sort of successfully with Hypertalk but really badly with Appkescript        -->
