@@ -260,9 +260,14 @@ def caller():
 	import inspect
 
 	curframe = inspect.currentframe()
-	calframe = inspect.getouterframes(curframe, 2)
-	# calframe_ = calframe[1][3]
-	# print('caller name:', calframe_)
+	calframe=curframe.f_back
+	if calframe.f_back:
+	  calframe=curframe.f_back
+	#print(curframe.f_trace())
+	#print(calframe.f_lineno)
+	#calframe = inspect.getouterframes(curframe, 2)
+	#calframe_ = curframe[1][3]
+	#print('caller name:', calframe_)
 	return calframe
 
 
