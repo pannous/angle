@@ -10,7 +10,7 @@ import extensions
 # Lexemes = simple words
 ##################
 # def __init__(self):
-import kast.kast
+#import kast.kast
 from power_parser import *  # app_path, verbose
 from extensions import xlist
 
