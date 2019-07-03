@@ -2027,6 +2027,7 @@ def setter(var=None):
         val = _type()  # default constructor!!!
         return add_variable(var, val, mod, _type)
     else:
+        context.in_setter=True
         val = expression()
     _cast = maybe_tokens(["as", "cast", "cast to", "cast into", "cast as"]) and typeNameMapped()
     guard = maybe_token("else") and value()
@@ -2052,6 +2053,7 @@ def setter(var=None):
             raise
 
     # end_expression via statement!
+    context.in_setter=False
     if not interpreting():
         return ast.Assign([kast.Name(var.name, kast.Store())], val)
     if interpreting() and val != 0: return val
@@ -2084,6 +2086,7 @@ def alias(var=None):
 
 
 def add_variable(var, val, mod=None, _type=None):
+    # type Variable
     if not isinstance(var, Variable):
         print("NOT a Variable: %s" % var)
         return var
@@ -2191,8 +2194,10 @@ def variable(a=None, ctx=kast.Load(), isParam=False):
         if name in the.params:
             return the.params[name]
         else:
-            raise NotMatching("Unknown variable " + name)
-    # raise UndeclaredVariable("Unknown variable " + name)
+            if context.in_setter:
+                raise UndeclaredVariable("Unknown variable " + name)
+            else:
+                raise NotMatching("Unknown variable " + name)
     # typ=_(":") and typeNameMapped() or typ # postfix type int x vs x:int VERSUS def x:\n !!!!
 
     if isinstance(ctx, kast.Store):  # why not return existing variable?
