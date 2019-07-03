@@ -14,13 +14,13 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
 				parse('int i=7')
 				assert_equals(the.variables['i'].type, int)
 
-		# def test_typed_variable2(self):
-		#     parse('int i=7')
-		#     assert_equals(variableTypes['i'], Integer)
+		def test_typed_variable2(self):
+		    parse('int i=7')
+		    assert_equals(variableTypes['i'], Integer)
 		#
-		# def test_auto_typed_variable(self):
-		#     parse('i=7')
-		#     assert_equals(variableTypes['i'], Fixnum)
+		def test_auto_typed_variable(self):
+		    parse('i=7')
+		    assert_equals(variableTypes['i'], Fixnum)
 
 
 		def test_class11(self):
@@ -109,23 +109,35 @@ class TypeTest(ParserBaseTest,unittest.TestCase):
 		def test_no_type_cast(self):
 				assert_equals(type(parse('2.3 as int'), ), int)
 				assert_equals(type(parse('2.3'), ), float)
+				
+				'''
+		def test_type_hinting_python3_5(self):
+		    from typing import List  # , TYPE_CHECKING
+		    def sum_and_stringify(nums: List[int]) -> str:
+		        return str(sum(nums))
+		    print(sum_and_stringify([1, 2]))
+		
+		def test_type_hinting_python3_5b(self):
+		    def sum_and_stringify(nums: list) -> str:
+		        return str(sum(nums))
+		    print(sum_and_stringify([1,2]))
+'''
 
-		# def test_type_hinting_python3_5(self):
-		#     from typing import List  # , TYPE_CHECKING
-		#     def sum_and_stringify(nums: List[int]) -> str:
-		#         return str(sum(nums))
-		#     print(sum_and_stringify([1, 'b']))
-		#
-		# def test_type_hinting_python3_5b():
-		#     def sum_and_stringify(nums: list) -> str:
-		#         return str(sum(nums))
-		#     print(sum_and_stringify([1,'b']))
-
-		def test_type_hinting_python2(self):
+		def test_type_hinting_python3_5b(self):
+		    def sum_and_stringify(nums: list) -> str:
+		        return str(sum(nums))
+		    print(sum_and_stringify([1,2]))
+		    
+		def test_type_hinting_python2_and_python3(self):
 				def sum_and_stringify(nums):
 						# type (list) -> str
-						return str(sum(nums))
-				print((sum_and_stringify([1, 'b'])))
+						return sum(nums)
+				print(sum_and_stringify([1, 2]))
 
 if __name__ == '__main__':
-    unittest.main()
+    suite = unittest.TestSuite()
+    method="test_type_hinting_python3_5b"
+    suite.addTest(TypeTest(method))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+    #unittest.main()) #all

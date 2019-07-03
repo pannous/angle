@@ -288,10 +288,10 @@ def is_a(self, clazz):
 # x = Fraction(22, 7) 	# Ruby: 22 / 7r 22r / 7
 
 if py3:
-	char = unicode
+	char = str #char# unicode
+	
 	class file(io.IOBase):
 		pass  # WTF python3 !?!?!?!?!??
-
 
 	class xrange:  # WTF python3 !?!?!?!?!??
 		pass
