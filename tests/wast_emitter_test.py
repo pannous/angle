@@ -3,7 +3,7 @@ import subprocess
 import wast_emitter
 from wast import Wast
 import angle
-from tests.parser_test_helper import *
+from parser_test_helper import *
 i32={
   "add":"i32.add"
 }

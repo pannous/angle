@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import angle
-from tests.parser_test_helper import *
+from parser_test_helper import *
 import ast_magic
 context.use_tree = True
 

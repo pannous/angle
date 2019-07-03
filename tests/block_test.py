@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 
 class BlockTest(ParserBaseTest):

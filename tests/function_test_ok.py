@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from tests.parser_test_helper import *
+from parser_test_helper import *
 import angle
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 from extensions import *
 from nodes import *
 

@@ -105,15 +105,24 @@ class Reflector(object):  # Implements list interface is
 		the.result = value
 
 
+def check(node):
+	if isinstance(node, AST) or isinstance(node, list) or node is None:
+		return node
+	else:
+		raise Exception("Expected AST, list or None, got %s" % node)
+
 class PrepareTreeVisitor(ast.NodeTransformer):
 	parents = []
 
 	def __repr__(self):
 		return "<PrepareTreeVisitor>"
 
+
 	def generic_visit(self, node, wrap=False):
 		self.parents.append(node)
-		self.current = node
+		self.current = check(node)
+		if isinstance(node,list):
+			return list(map(self.generic_visit,node))
 		if not isinstance(node, (ast.AST,_ast.AST)):
 			if wrap:
 				return wrap_value(node)
@@ -127,7 +136,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 			#     delattr(node, field)
 			# else:
 			if new_node is not None and new_node != old_value:
-				setattr(node, field, new_node)
+				setattr(node, field, check(new_node))
 		self.parents.pop()
 		return node
 
@@ -210,6 +219,12 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		return ast.Num(x)
 
 	def visit_Assign(self, x):
+		return self.generic_visit(x)
+
+	def visit_If(self, x):
+		return self.generic_visit(x)
+
+	def visit_IfExp(self, x):
 		return self.generic_visit(x)
 
 	def visit_Pass(self, x):
@@ -319,7 +334,7 @@ def fix_block(body, returns=True, prints=False):
 	if isinstance(last_statement, list) and len(last_statement) == 1:
 		last_statement = last_statement[0]
 		print("HOW??")
-	if not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert)):
+	if not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert, ast.While)):
 		if isinstance(last_statement, kast.Print):
 			body[-1] = (assign("it", last_statement.values[0]))
 			last_statement.values[0] = name("it")
@@ -357,14 +372,16 @@ def get_ast(python, source='out/inline.py', _context='exec'):
 
 
 def print_ast(my_ast, source_file='out/inline',with_line_numbers=False):
-	if not os.path.exists('out'):return
+	# if not os.path.exists('out'):return
 	try:
 		x = ast.dump(my_ast, annotate_fields=True, include_attributes=with_line_numbers)
-		open(source_file + ".ast", 'wt').write("from ast import *\ninline_ast=" + x.replace('(', '(\n'))
+		with open(source_file + ".ast", 'wt') as f:
+			f.write("from ast import *\ninline_ast=" + x.replace('(', '(\n'))
 		print(x)
 		print("")
 		x = ast.dump(my_ast, annotate_fields=False, include_attributes=False)
-		open(source_file + ".short.ast", 'wt').write("short_ast=" + x)
+		with open(source_file + ".short.ast", 'wt') as f:
+			f.write("short_ast=" + x)
 		print(x)
 		print("")
 	except Exception as e:
@@ -378,7 +395,7 @@ def print_source(my_ast, source_file='out/inline'):
 	try:
 		source = codegen.to_source(my_ast)
 		if os.path.exists('out'):
-			open(source_file + ".py", 'wt').write(source)
+			with open(source_file + ".py", 'wt') as f:f.write(source)
 		print(source)  # => CODE
 	except:
 		# raise
@@ -448,6 +465,7 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 		namespace.update(args) # << GIVE AND RECEIVE GLOBALS!!
 		# resolve_variables(namespace)
 		namespace['it'] = None  # better than ast.global
+		namespace['beep']=lambda:print("BEEP ")
 		# namespace=Namespace(namespace)
 		exec(code, namespace)  # self contained!
 		ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?

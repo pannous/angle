@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 context.use_tree = False
 

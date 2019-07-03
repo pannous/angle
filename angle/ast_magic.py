@@ -72,3 +72,34 @@ def get_op_precedence(obj, precedence_data, type=type):
       if base in precedence_data:
         return precedence_data[base]
   raise Exception("get_op_precedence WRONG TYPE " + typo)
+
+
+
+# FIX for unhelpful astor codegen
+def precedence_setter2(AST=ast.AST, get_op_precedence=get_op_precedence,
+                      isinstance=isinstance, list=list):
+    """ This only uses a closure for performance reasons,
+        to reduce the number of attribute lookups.  (set_precedence
+        is called a lot of times.)
+    """
+
+    def set_precedence(value, *nodes):
+        """Set the precedence (of the parent) into the children.
+        """
+        if isinstance(value, AST):
+            value = get_op_precedence(value)
+        for node in nodes:
+            if isinstance(node, AST):
+                node._pp = value
+            elif isinstance(node, list):
+                set_precedence(value, *node)
+            else:
+                if not node is None:
+                    print("Only AST, list and None allowed as visitor return types")
+                    print("But %s was given"%node)
+                assert node is None, node
+
+    return set_precedence
+
+
+# set_precedence = precedence_setter2()

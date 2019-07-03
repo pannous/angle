@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import interpretation
 from english_parser import *
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 
 def s(param):

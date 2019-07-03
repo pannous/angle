@@ -3,7 +3,7 @@ try:
 	from kast import ast_export
 except:
 	print("What gives")
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 @SkippingTest
 class CompilerPythonEquivalenceTest:  # (ParserBaseTest):

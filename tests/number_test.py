@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 
 class NumberTest(ParserBaseTest, unittest.TestCase):

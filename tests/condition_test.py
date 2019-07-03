@@ -101,8 +101,8 @@ class ConditionTest(ParserBaseTest):
 		assert self.parse('everything is fine')
 
 	def test_if_math(self):
-		assert_result_is("if ½*2==1: 2", 2)
-		assert_result_is("if ½*2!=1: 2; else 4", 4)
+		assert_result_is("if ½*2!=1: 3; else 4", 4)
+		assert_result_is("if ½*2==1: 3", 3)
 
 	def test_if_math2(self):
 		assert_result_is("if ½*2=1: 2; else 4", 2)

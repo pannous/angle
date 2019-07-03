@@ -954,7 +954,7 @@ except NameError:
 def parse(s, target_file=None):
 	global last_result, result
 	if not s: return
-	# verbose("PARSING " + s)
+	verbose("PARSING " + s)
 	if (isinstance(s, file_types)):
 		source_file = s.name
 		s = s.readlines()
@@ -964,7 +964,8 @@ def parse(s, target_file=None):
 		s = open(s).readlines()
 	else:
 		source_file = 'out/inline'
-		try:open(source_file, 'wt').write(s)
+		try:
+			with open(source_file, 'wt') as f:f.write(s)
 		except:debug("no out directory")
 	if context._debug:
 		print("  File \"%s\", line 1" % source_file)

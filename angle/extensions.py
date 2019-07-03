@@ -1562,5 +1562,5 @@ def wget(url):  # to memory
 	return urlopen(url).read()
 
 
-print("extensions loaded")
+print("extensions loaded\n")
 extensions_loaded=True

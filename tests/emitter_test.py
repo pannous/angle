@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
-import tests.parser_test_helper
+import parser_test_helper
+import pyc_emitter
 
-
-class EmitterTest(tests.parser_test_helper.ParserBaseTest):
+class EmitterTest(parser_test_helper.ParserBaseTest):
 	def setUp(self):
 		if 'NO_TREE' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")

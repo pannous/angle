@@ -1175,10 +1175,10 @@ def if_then_else():
     # if ok == False:
     #     ok = FALSE
     adjust_rollback()
-    o = maybe(otherwise) or FALSE
+    o = maybe(otherwise)
     if context.use_tree:
         if isinstance(ok, ast.IfExp):
-            ok.orelse = o or []
+            ok.orelse = o or NameConstant(None) #ast.Num(0)
         else:
             if o:
                 ok.orelse = [ast.Expr(o)]
@@ -1338,7 +1338,8 @@ def get_module(module):
 
 def first_is_self(method):
     try:
-        args, varargs, varkw, defaults = inspect.getargspec(method)
+        # args, varargs, varkw, defaults = inspect.getargspec(method)
+        args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(method)
         return args[0] == 'self'
     except:
         return False
@@ -1363,7 +1364,8 @@ def has_args(method, clazz=object, assume=0):
                 return num
             warn("BuiltinMethodType => no idea about the method arguments!")
             return assume
-        args, varargs, varkw, defaults = inspect.getargspec(method)
+        # args, varargs, varkw, defaults = inspect.getargspec(method)
+        args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(method)
         alle = len(args) + (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
         # if alle == 0: return assume
         return alle
@@ -1745,6 +1747,7 @@ def prepare_named_args(args):
 
 # also on the fly when interpreting
 def eval_ast(b, args={}):
+    import pyc_emitter
     args = prepare_named_args(args)
     the.result = pyc_emitter.eval_ast(b, args, run=True)
     return the.result
@@ -2084,6 +2087,9 @@ def add_variable(var, val, mod=None, _type=None):
     if not isinstance(var, Variable):
         print("NOT a Variable: %s" % var)
         return var
+    if isinstance(val,Variable):
+        val = val.value
+
     var.typed = _type or var.typed or 'typed' == mod  # in [mod]
     if isinstance(val, FunctionCall):
         assure_same_type(var, val.returns)

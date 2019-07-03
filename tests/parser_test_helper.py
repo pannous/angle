@@ -117,6 +117,7 @@ def assert_result_emitted(a, b, bla=None):
 
 
 def assert_result_is(a, b, bla=None):
+	print("assert_result_is(%s, %s)"%(a,b))
 	x = parse(a,1)
 	# y=parse(b)
 	y = b
@@ -215,6 +216,7 @@ def parse(s,depth=0):
 	interpretation = english_parser.parse(s)
 	r = interpretation.result
 	if isinstance(r, ast.AST) or isinstance(r, list) and isinstance(r[0], ast.AST):
+		import pyc_emitter
 		r = pyc_emitter.run_ast(r)
 	update_local(context)
 	print("DONE PARSING :",s)

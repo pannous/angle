@@ -3,7 +3,7 @@ import angle
 
 
 #
-from tests.parser_test_helper import *
+from parser_test_helper import *
 
 # context.use_tree = False
 context.use_tree = True

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tests.parser_test_helper import *
+from parser_test_helper import *
 import sys
 sys.path.append('/Users/me/angle/')
 sys.path.append('/Users/me/angle/core/')
