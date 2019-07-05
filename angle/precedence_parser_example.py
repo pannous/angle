@@ -6,83 +6,13 @@ from english_parser import quick_expression
 from english_parser import set_token
 from english_parser import maybe
 import context as the
-
+import re
 # https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
 # precedence climbing and TDOP are pretty much the same algorithm, formulated a bit differently. I tend to agree, and also note that Shunting Yard is again the same algorithm, except that the explicit recursion is replaced by a stack.
-
-def Node():
-  def __init__(self, *args, **kwargs):
-    self.name = args['name'] if 'name' in args else None
-    self.token = None
-    self.parent = None
-    # self.next=None
-    # self.prev=None
-    self.next_token = None
-    self.prev_token = None
-
-    self.next_node = None
-    self.prev_node = None
-
-    self.left = None
-    self.right = None
-
-    self.value = None  # func params block params=args,return
-    # super(CLASS_NAME, self).__init__(*args, **kwargs)
-
-
-def build_token_map(nodes):
-  token_map = {}
-  # for token in tokens:
-  for node in nodes:
-    token = node.token.name
-    if token in token_map:
-      liste = token_map[token]
-    else:
-      liste = []
-    liste += [node]
-    token_map[token] = liste
-  return token_map
-
-
-def apply(op, token_tree, token_list_,token_map):
-  occurences = token_map[op]
-  node: Node
-  for node in occurences:
-    # if (node.name in the.token_map): MUST BE by construction
-      offset=node.token[5]
-      # node.left=node_list[:offset]
-      # node.right=node_list[offset:]
-      handler = the.token_map[node.name]
-      set_token(node.token)
-      result = maybe(handler)
-      if result: node.value=result
-      # else: node.value=node_list[node.right:node:left]
-
-    quick_expression
-
 
 def parse_error(param):
   raise Exception(param)
 
-
-def prepare_token_tree(tokenlist):
-  nodelist = []
-  root = Node(name='root')
-  prev_token = None
-  prev_node = None
-  for token in tokenlist:
-    current = Node(token=token, parent=root, prev_token=prev_token, prev_node=prev_node)
-    if prev_node:
-      prev_node.next_node = current
-      prev_node.next_token = token
-    prev_node = current
-    prev_token = token
-    nodelist += [current]
-    if not root.right: root.right = current
-  # root.content=nodelist
-  root.value = nodelist
-  token_tree = root
-  return token_tree
 
 def compute_atom(tokenizer):
   tok = tokenizer.cur_token
@@ -116,16 +46,6 @@ OPINFO_MAP = {
     '/':    OpInfo(2, 'LEFT'),
     '^':    OpInfo(3, 'RIGHT'),
 }
-#
-#
-# # For each operator, a (precedence, associativity) pair.
-# OPINFO_MAP = {
-#     '+':    (1, LEFT),
-#     '-':    (1, LEFT),
-#     '*':    (2, LEFT),
-#     '/':    (2, LEFT),
-#     '^':    (3, RIGHT),
-# }
 
 
 def compute_op(op, lhs, rhs):
@@ -177,16 +97,45 @@ def compute_expr(tokenizer, min_prec):
 
     return atom_lhs
 
-def parse(code):
-  operators_and_functions = operators + ["yo"]
-  tokenlist = parse_tokens(code)
-  # atoms = parse_atoms(tokenlist)#are either numbers or parenthesized expressions
-  nodelist = prepare_token_tree(tokenlist).value
-  token_map = build_token_map(nodelist)
-  for op in operators_and_functions:
-    if op in token_map:
-      token_tree = apply(op, token_tree, token_map)
 
+Tok = namedtuple('Tok', 'name value')
+
+
+class Tokenizer(object):
+    """ Simple tokenizer object. The cur_token attribute holds the current
+        token (Tok). Call get_next_token() to advance to the
+        next token. cur_token is None before the first token is
+        taken and after the source ends.
+    """
+    TOKPATTERN = re.compile("\s*(?:(\d+)|(.))")
+
+    def __init__(self, source):
+        self._tokgen = self._gen_tokens(source)
+        self.cur_token = None
+
+    def get_next_token(self):
+        """ Advance to the next token, and return it.
+        """
+        try:
+            # self.cur_token = self._tokgen.next() # FUCK PY3
+            self.cur_token = next(self._tokgen)
+        except StopIteration:
+            self.cur_token = None
+        return self.cur_token
+
+    def _gen_tokens(self, source):
+        for number, operator in self.TOKPATTERN.findall(source):
+            if number:
+                yield Tok('NUMBER', number)
+            elif operator == '(':
+                yield Tok('LEFTPAREN', '(')
+            elif operator == ')':
+                yield Tok('RIGHTPAREN', ')')
+            else:
+                yield Tok('BINOP', operator)
 
 if __name__ == '__main__':
-  parse("if 1 > 0 \n if yo hu and add 12 to ( 1 / 2 ) then go '")
+  tokenizer=Tokenizer("3+3")
+  tokenizer.get_next_token()
+  expr = compute_expr(tokenizer,0)
+  print(expr)

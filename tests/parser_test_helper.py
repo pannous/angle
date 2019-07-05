@@ -115,15 +115,12 @@ def assert_result_emitted(a, b, bla=None):
 	assert_equals(b, x, bla)
 
 
-def assert_result_is(a, b, bla=None):
+def assert_result_is(a, b, bla=""):
 	print("assert_result_is(%s, %s)"%(a,b))
 	x = parse(a,1)
 	# y=parse(b)
 	y = b
-	if bla:
-		assert x == y, "%s %s SOULD EQUAL %s BUT WAS %s" % (bla, a, b, x)
-	else:
-		assert x == y, "%s SOULD EQUAL %s \nGOT %s != %s" % (a, b, x, y)
+	assert x == y  or is_a(x,y), "%s %s SOULD EQUAL %s \nGOT %s != %s" % (bla,a, b, x, y)
 
 
 def assert_equals(a, b, bla=None):

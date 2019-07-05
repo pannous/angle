@@ -310,16 +310,18 @@ def is_dir(x, must_exist=True):
 
 def is_a(self, clazz):
 	if self is clazz: return True
+	if issubclass(self,clazz): return True
 	try:
 		ok = isinstance(self, clazz)
 		if ok: return True
 	except Exception as e:
-		print(e)
-
+		pass
 	className = str(clazz).lower()
 	if className == str(self).lower(): return True  # KINDA
-
-	if self.is_(clazz): return True
+	try:
+		if self.is_(clazz): return True
+	except:
+		pass
 	return False
 
 

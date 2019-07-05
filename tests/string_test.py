@@ -171,6 +171,9 @@ class StringTest(ParserBaseTest,unittest.TestCase):
         self.assert_equals(result(), str)
         # self.assert_equals(result(), Quote)
 
+    def test_quote_type(self):
+        assert_result_is("class of 'hi'",str)
+
     def test_result(self):
         parse("x be 'hello world';show x;x; class of x")
         self.assert_that('type of x is string')
