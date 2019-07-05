@@ -2689,8 +2689,7 @@ def condition():
     if negated: brace = brace or maybe_token('(')
     # a=endNode:(
     quantifier = maybe_tokens(quantifiers)  # vs selector()!
-    filter = None
-    if quantifier: filter = maybe(element_in) or maybe_tokens(["of", "in"])  # all words in
+    filters = quantifier and (maybe(element_in) or maybe_tokens(["of", "in"]))  # all words in
     context.in_condition = True
     left = action_or_expression(quantifier)  # OK: algebra!
     if isinstance(left, ast.BinOp):
