@@ -1,6 +1,9 @@
 # encoding: utf-8
 # nocoding: interpy "string interpolation #{like ruby}"
-# encoding=utf8
+
+#ln /me/dev/python/extensions.py
+#from extensions import * 
+
 import io
 import math
 import sys
@@ -30,9 +33,12 @@ py3 = sys.version >= '3'
 true = True
 false = False
 
+nil = None
+null = None
 pi = math.pi
 E = math.e
 
+run = system = os.system # command  != exec(PY_CODE) !!!
 
 def Max(a, b):
 	if a > b:
@@ -66,6 +72,9 @@ def readlines(source):
 	print("open(source).readlines()")
 	return map(str.strip, open(source).readlines())
 
+def read_file(source):
+	print("open(source).readlines()")
+	return map(str.strip, open(source).readlines())
 
 def reverse(x):
 	y = x.reverse()
@@ -86,6 +95,9 @@ def fold(self, x, fun):
 	return reduce(fun, self, x)
 
 
+def match(self, regex):
+	m = re.match(regex,self) or re.search(regex,self)
+	return m and m.group() or False
 
 def last(xs):
 	return xs[-1]
@@ -216,11 +228,16 @@ MatchObjectType = type(re.search('', ''))
 
 
 def typeof(x):
-	print("type(x)")
-	return type(x)
+	print("type(x) or x.__class__")
+	print(type(x))
+	print(x.__class__)
+	return x.__class__
+	# return type(x)
 
+regex=re.compile
 
 def regex_matches(a, b):
+	# r'foo(.*)' is just a STRING! :(
 	if isinstance(a, re._pattern_type):
 		return a.search(b)  #
 	if isinstance(b, re._pattern_type):
@@ -229,20 +246,45 @@ def regex_matches(a, b):
 		if a[0] == "/": return re.compile(a).search(b)
 	if is_string(b) and len(b) > 0:
 		if b[0] == "/": return re.compile(b).search(a)
-
 	try:
 		b = re.compile(b)
 	except:
 		print("FAILED: re.compile(%s)" % b)
 		b = re.compile(str(b))
-	print(a)
-	print(b)
 	return b.search(str(a))  # vs
-
-
 # return b.match(a) # vs search
 # return a.__matches__(b) # other cases
 # return a.contains(b)
+
+
+def regex_match(a, b):
+	NONE = "None"
+	match = regex_matches(a, b)
+	if match:
+		try:
+			return a[match.start():match.end()].strip()
+		except:
+			return b[match.start():match.end()].strip()
+	return NONE
+
+def match(a,b):
+	return regex_match(a,b)
+
+# RegexType= _sre.SRE_Pattern#type(r'')
+MatchObjectType = type(re.search('', ''))
+
+
+def match_path(p):
+	if not isinstance(p, str): return False
+	m = re.search(r'^(/[\w\'.]+)', p)
+	if not m: return []
+	return m
+
+
+
+def typeof(x):
+	print("type(x)")
+	return type(x)
 
 
 def is_file(p, must_exist=True):
@@ -293,6 +335,7 @@ if py3:
 	class file(io.IOBase):
 		pass  # WTF python3 !?!?!?!?!??
 
+
 	class xrange:  # WTF python3 !?!?!?!?!??
 		pass
 
@@ -304,9 +347,6 @@ if py3:
 	class unicode(xstr):  # , bytes):  # xchar[] TypeError: multiple bases have instance lay-out conflict
 		# Python 3 renamed the unicode type to str, the old str type has been replaced by bytes.
 		pass
-
-	#class char(str):
-	#	pass
 
 	# else: https://stackoverflow.com/questions/22098099/reason-why-xrange-is-not-inheritable-in-python
 	#   class range(xrange):
@@ -607,6 +647,7 @@ class xlist(list):
 	def add(self, x):
 		self.insert(len(self), x)
 
+	# via __getattr__
 	def method_missing(xs, name, *args, **kwargs):  # [2.1,4.8].int=[2,5]
 		if len(xs) == 0: return None
 		try:
@@ -665,7 +706,6 @@ class xlist(list):
 
 	def item(xs, n):
 		return xs[int(n) - 1]
-
 	def row(xs, n):
 		return xs[int(n) - 1]
 
@@ -893,7 +933,8 @@ class xstr(str):
 		return self.sub(0, self.indexOf(pattern))
 
 	def match(self, regex):
-		return re.match(regex,self)
+		m = re.match(regex,self) or re.search(regex,self)
+		return m and m.group() or False
 
 	def matches(self, regex):
 		if isinstance(regex, list):
@@ -1460,31 +1501,45 @@ class xobject:
 def load(file):
 	return open(file, 'rt').read()
 
-
 def load_binary(file):
 	return open(file, 'rb').read()
 
 
-def read(file):
+def read_text(file):
 	return open(file, 'rt').read()
-
 
 def readlines(file):
 	return open(file, 'rt').readlines()
 
+def load_dump(file='dump.bin'):
+	return pickle.load(open(file, 'rb'))
 
 def read_binary(file):
 	return open(file, 'rb').read()
 
+def read(file):
+	try:
+		return read_text(file)
+	except Exception as e:
+		return load_dump(load_dump)
+		# return read_binary(file)
 
 def dump(o, file="dump.bin"):
 	pickle.dump(o, open(file, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
 	print("saved to '" + file + "'")
 
 
+	# return open(file, 'rb').read()
+unpickle=load_dump
+undump=load_dump
+deserialize=load_dump
 save = dump
 write = dump  # ok for plain bytes too++
+serialize=dump
+read_lines=readlines
 
+def cat(file):
+	print(str(read_binary(file)))
 
 def write_direct(data, file):
 	open(file, 'wb').write(data)
@@ -1555,6 +1610,26 @@ def find_class(match=""):  # all
 
 
 
+# class Unit:
+# 	def __init__(self, value=1.):
+# 		self.value = value
+#
+# 	def __mul__(self, other):
+# 		return Unit(value=self.value * other) # todo: inherit km(3)*km(3)==km2(9)
+#
+# 	def __add__(self, other):
+# 		return Unit(value=self.value + other)  # todo: inherit km(3)+m(3000)==km(6)
+#
+#
+# class Km(Unit):
+# 	def __eq__(self, other):
+# 		return self.value == other.value
+#
+#
+# km = Km()
+# assert Km(3) == km * 3
+
+
 def download(url):  # to memory
 	return urlopen(url).read()
 
@@ -1562,5 +1637,67 @@ def wget(url):  # to memory
 	return urlopen(url).read()
 
 
-print("extensions loaded\n")
+
+def fi():
+	from tkinter import filedialog
+	if platform() == 'Darwin': system("osascript -e 'tell app \"Finder\" to set frontmost of process \"Python\" to true'")
+	# if platform() == 'Darwin': system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+	return filedialog.askopenfilename()
+  # absolute_import askdirectory(askopenfile(askopenfilename(askopenfilenames(askopenfiles(asksaveasfile(asksaveasfilename(
+
+# def hack_builtins(): # not with bound methods :(
+	# hacks=(xstr,xlist,xfloat,xint)#,xfile
+	# for hack in hacks:
+	# 	base=hack.__bases__[0]
+	# 	for meth in dir(hack):
+	# 		if meth.startswith("_"): continue
+	# 		curse(base,meth,getattr(hack,meth)) # TypeError: unbound method must be called with xstr instance as first argument
+	# 		curse(base,meth,lambda inst:getattr(hack,meth).bind(inst)())
+	# 		# curse(base,meth,lambda *args, **kwargs: getattr(hack,meth)(self, *args, **kwargs)
+
+
+def read_csv(file):
+	import csv
+	csvfile=open(file, newline='') 
+	reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+	return reader
+	# for row in spamreader:
+		# print(', '.join(row))
+
+def query_csv(csvfile,query=0):
+    import pandas
+    df = pandas.read_csv(csvfile)
+    sql=df.to_sql(table_name, conn, if_exists='append', index=False)
+    if query:
+        return sql.query(query)
+    else: 
+        return sql
+
+def wasm_string(pointer):
+  nth=pointer
+  string=""
+  while nth < memory_length:
+      char = memory[nth]
+      if char == 0:
+          break
+      string += chr(char)
+      nth += 1
+  return string
+
+  
+def wasm(file='/me/dev/wasm/main42.wasm'):
+	import wasmer
+	bytes=open(file,'rb').read()
+	wasmer.Module.validate(bytes)
+	instance=wasmer.Instance(bytes)
+	view = instance.memory.uint8_view(offset=0)
+	result = instance.exports.main()
+	print(result)
+	print(wasm_string(result))
+	return result
+
+
+
 extensions_loaded=True
+print("extensions v1.0.0 loaded")
+

@@ -7,12 +7,11 @@ import sys
 sys. path.append('..')
 sys. path.append('angle')
 sys. path.append('../angle')
-import kast.kast
-import angle.nodes as nodes
 
 import exception
 import english_parser
 import context
+import nodes
 import angle.pyc_emitter
 # from angle import english_parser, pyc_emitter, context #NO! creates 2nd context !!!
 # from nodes import * #EVIL!! creates second class
@@ -247,9 +246,10 @@ def copy_variables(variables=variables):
 			context.variables[name] = v_
 			context.variableValues[name] = v_.value
 			continue
-		context.variableValues[name] = v_
-		context.variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
-		variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
+		else:
+			context.variableValues[name] = v_
+			context.variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
+			variables[name] = nodes.Variable(name=name, value=v_, type=type(v_))
 
 
 class ParserBaseTest(unittest.TestCase):

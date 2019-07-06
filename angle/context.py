@@ -20,6 +20,7 @@ use_tree=False
 use_wordnet=False
 
 # state!
+in_setter=False
 in_pipe=False
 in_condition=False
 in_args = False

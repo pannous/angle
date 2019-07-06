@@ -108,13 +108,20 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is("if ½*2=1: 2; else 4", 2)
 		assert_result_is("if ½*2≠1: 2; else 4", 4)
 
+	def test_list_quantifiers_min(self):
+		check = parse('x=5; if [0,1,2] < 3 : x++')
+		assert_equals(check, 6)
+
+
 	def test_list_quantifiers(self):
 		check = parse('x=2;if all 0,1,2 are smaller 4 then x++')
 		assert_equals(check, 3)  # YAY YAY
 
-	def test_list_quantifiers1(self):
+	def test_list_quantifiers0(self):
 		check = parse('x is 5; if all 0,1,2 are smaller 3 then increase x')
 		assert_equals(check, 6)
+
+	def test_list_quantifiers1(self):
 		check = parse('x=2;if all 0,1,2 are smaller 2 then x++')
 		assert_equals(check, False)
 
@@ -127,13 +134,13 @@ class ConditionTest(ParserBaseTest):
 		check = parse('x=5;if all of 0,1,2 are smaller 3 then x++')
 		assert_equals(check, 6)
 
-	def test_list_quantifiers3(self):
+	def test_list_quantifiers4(self):
 		check = parse('x=5;if many of 0,1,2 are smaller 3 then x++')
 		assert_equals(check, 6)
 		check = parse('x=5;if many of 0,1,2 are smaller 1 then x++')
 		assert_equals(check, False)
 
-	def test_list_quantifiers4(self):
+	def test_list_quantifiers5(self):
 		check = parse('x=2;if none of 0,1,2 is smaller 3 then x++')
 		assert_equals(check, False)
 
@@ -194,10 +201,11 @@ class ConditionTest(ParserBaseTest):
 		assert self.parse('x=1+2;if it is 3 then true')
 
 	def test_if_it_result3(self):
+		assert_result_is('x=1+2;if it is 4 then 1',False)
+
+	def test_if_it_result4(self):
 		assert self.parse('x=1+2;if it is 3 then true else 0')
 		assert self.parse('x=1+2;if it is 4 then False else 1')
-		x = self.parse('x=1+2;if it is 4 then 1')
-		assert x == False
 
 	def test_if_it_result(self):
 		x = self.parse('x=1+2;if it is 3 then False else False')
@@ -225,12 +233,20 @@ class ConditionTest(ParserBaseTest):
 	def test_if_smaller(self):
 		parse('x=2;if x is smaller 3 then x++')
 		assert_equals(variables['x'], 3)
+
+	def test_if_smaller_a(self):
 		parse('x=2;if x is smaller three then x++')
 		assert_equals(variables['x'], 3)
+
+	def test_if_smaller_b(self):
 		parse('x=2;if x is smaller three then x++')
 		assert_equals(variables['x'], 3)
+
+	def test_if_smaller_c(self):
 		parse('x=2;if x is smaller than three then x++')
 		assert_equals(variables['x'], 3)
+
+	def test_if_smaller_d(self):
 		parse('x=2;if x is smaller than three x++')
 		assert_equals(variables['x'], 3)
 
