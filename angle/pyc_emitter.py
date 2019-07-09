@@ -109,7 +109,7 @@ def check(node):
 	if isinstance(node, AST) or isinstance(node, list) or node is None:
 		return node
 	else:
-		raise Exception("Expected AST, list or None, got %s" % node)
+		raise Exception("Expected AST, list or None, got %s : %s" % (type(node),node))
 
 class PrepareTreeVisitor(ast.NodeTransformer):
 	parents = []
@@ -219,6 +219,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def visit_Str(self, x):
 		x.s=str(x)
 		return x  # against:
+			
+	def visit_xstr(self, x):
+		return self.visit_str(str(x))
 
 	def visit_str(self, x):
 		if x == '0': return _ast.Num(0)

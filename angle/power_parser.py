@@ -961,7 +961,7 @@ def parse(s, target_file=None):
 	elif s.endswith(".e") or s.endswith(".an"):
 		target_file = target_file or s + ".pyc"
 		source_file = s
-		s = open(s).readlines()
+		with open(s) as f: s=f.readlines()
 	else:
 		source_file = 'out/inline'
 		try:
