@@ -2,6 +2,8 @@
 # encoding: utf-8
 # encoding=utf8  
 
+# LLVM is very slow.
+
 import sys
 import os
 
@@ -1097,6 +1099,7 @@ def method_definition(name=None, return_type=None):
     args = []
 
     def arguments():
+        if the.token=='{': raise_not_matching("BLOCK START") # until blocks as args allowed?
         if the.current_offset == 0: raise_not_matching("BLOCK START")
         a = param(len(args))
         maybe_token(',')
@@ -1110,7 +1113,7 @@ def method_definition(name=None, return_type=None):
     if brace: token(')')
 
     return_type = return_type or maybe_tokens(['as']) and maybe(typeNameMapped) or None
-    return_type = maybe_tokens(['returns', 'returning', '=>', '->']) and maybe(typeNameMapped) or return_type
+    return_type = maybe_tokens(return_keywords) and maybe(typeNameMapped) or return_type
     maybe_tokens(['return', '='])  # as block starters, NOT as return_type indicators!
 
     dont_interpret()
@@ -1526,7 +1529,10 @@ def method_call(obj=None,method0=None):
     if start_brace == '{': _('}')
     if not interpreting():
         if method_name == "puts" or method_name == "print":
-            return kast.Print(dest=None, values=args, nl=True)  # call symbolically!
+            if py2:
+                return kast.Print(dest=None, values=args, nl=True)  # call symbolically!
+            else:
+                return FunctionCall(func='print', arguments=args, object=obj)
         # return kast.Print(dest=None, values=map(do_evaluate,args), nl=True)
         return FunctionCall(func=method, arguments=args, object=obj)
     the.result = do_call(obj or None, method, args or None)

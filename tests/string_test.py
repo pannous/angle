@@ -174,6 +174,24 @@ class StringTest(ParserBaseTest,unittest.TestCase):
     def test_quote_type(self):
         assert_result_is("class of 'hi'",str)
 
+    def test_quote_type2(self):
+        assert_result_is('class of "hi"',str)
+
+    def test_quote_type3(self):
+        assert_result_is('class of “hi”',str)
+
+    def test_quote_type4(self):
+        assert_result_is('class of ‘hi’',str)
+
+    def test_quote_type5(self): # todo: use smarter
+        assert_result_is('class of «hi»',str)
+
+    def test_quote_type6(self): # todo: use smarter: inline value " 9==`3*3` "
+        assert_result_is('class of `hi`',str)
+
+
+
+
     def test_result(self):
         parse("x be 'hello world';show x;x; class of x")
         self.assert_that('type of x is string')

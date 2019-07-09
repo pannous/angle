@@ -86,7 +86,8 @@ def puts(x):
 	print(x)
 
 def currentFile(depth=0):
-	return re.sub(r'.*\/','',inspect.stack()[2+depth][1])
+	c= re.sub(r'.*\/','',inspect.stack()[2+depth][1])
+	return c
 
 
 def current_line(depth=0):
@@ -204,6 +205,7 @@ def parse(s,depth=0):
 		context.use_tree = os.environ['USE_TREE']
 	if 'NO_TREE' in os.environ:
 		context.use_tree = False
+	print("PARSE:\n"+s)
 	if not "parser_test_helper" in currentFile(depth):
 		print("  File \"%s\", line %d" % (currentFile(depth), current_line(depth)))
 	if not (isinstance(s, str) or isinstance(s, str) or isinstance(s, file)): return s

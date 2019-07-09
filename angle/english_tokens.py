@@ -217,6 +217,11 @@ true_words = ['True', 'true', 'yes', 'ja', 'si']  # 'positive'
 
 boolean_words = false_words + true_words
 
+return_keywords=['returns', 'returning', '=>', '->','￫','to','into','as'] # 'return', 'throws'
+# also acts as parameter:
+#   1. cast number to any: return cast<any>(number)
+#   1. cast number to string: return string(number)
+
 otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains','class','object','item', 'copy', 'def', 'div',
                  'does', 'eighth', 'else', 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for',
                  'fourth', 'even',

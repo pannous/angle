@@ -354,7 +354,7 @@ def set_token(token):
 	global current_token, current_type, current_word, current_line, token_number
 	the.current_token = current_token = token
 	the.current_type = current_type = token[0]
-	the.token = current_word = token[1]
+	the.token = the.current_word  = current_word = token[1]
 	the.line_number, the.current_offset = token[2]
 	end_pointer = token[3]
 	the.current_line = current_line = token[4]

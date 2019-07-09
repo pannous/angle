@@ -1169,6 +1169,13 @@ class xstr(str):
 		x = x.replace("billion ", "*1000000000")
 		return x
 
+
+	def to_s(self):
+		return str(self)
+
+	def to_string(self):
+		return str(self)
+
 	def parse_integer(self):
 		n = self.replace_numerals()
 		i = int(n)  # except 666

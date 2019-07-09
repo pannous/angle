@@ -1,6 +1,9 @@
 import _ast
 # from _ast import *
 import sys
+
+from extensions import xstr, xint, xfloat
+
 sys.path.append( "..") # for cast
 import kast
 from kast import kast
@@ -50,6 +53,9 @@ def wrap_value(val, ctx=_ast.Load()):
     else:
       return wrap_value(val.value)
   if isinstance(val, ast.AST): return val
+  if isinstance(val, xstr): return kast.Str(str(val))
+  if isinstance(val, xint): return kast.Num(int(val))
+  if isinstance(val, xfloat): return kast.Num(float(val))
   if isinstance(val, str): return kast.Str(val)
   if isinstance(val, int): return kast.Num(val)
   if isinstance(val, float): return kast.Num(val)

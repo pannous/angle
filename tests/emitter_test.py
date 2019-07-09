@@ -124,7 +124,7 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 	def test_function_def(self):
 		# #skip()
-		parse("def test{puts 'yay'}")
+		assert_result_is("def test{puts 'yay'}\ntest","yay")
 
 	# parse("def test{puts 'yay'};test")
 	# Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], [])])

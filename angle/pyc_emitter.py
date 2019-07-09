@@ -143,6 +143,10 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def parent(self):
 		return self.parents[-1]
 
+	def visit_bool(self,b):
+		return b
+		# return b and ast.NameConstant(True) or ast.NameConstant(False)
+
 
 	# def visit_list(self, x):
 	# 	if len(x) == 1: return [self.generic_visit(x[0])]  # bad workaround!
@@ -205,7 +209,15 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	#     if not isinstance(self.parent,(ast.Expr,ast.Assign)):
 	#         return ast.Expr(value=self.generic_visit(node)) #
 	#     else: return self.generic_visit(node)
+
+
+	def visit_xstr(self,x):
+		# return str(x)
+		return ast.Str(str(x))
+
+
 	def visit_Str(self, x):
+		x.s=str(x)
 		return x  # against:
 
 	def visit_str(self, x):
@@ -256,7 +268,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def visit_Argument(self, x):
 		if isinstance(x.value, nodes.Variable):
 			return self.visit_Variable(x)
-		return self.generic_visit(x.value)
+		return self.visit(x.value)
 		# x.ctx=ast.Load()
 		# return x
 		# def generic_visit(self, node):
