@@ -486,7 +486,7 @@ class Netbase:
 		if not isinstance(data,unicode) and not isinstance(data,str):
 			data=data.decode("UTF8", 'ignore')
 		# FUCK PY3 !!!  'str' object has no attribute 'decode'
-		# 	FUCKING PYTHON MADNESS!!
+		# 	grr PYTHON MADNESS!!
 		# http://stackoverflow.com/questions/5096776/unicode-decodeutf-8-ignore-raising-unicodeencodeerror#5096928
 		try:
 			# data = json.loads(data)

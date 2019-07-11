@@ -48,7 +48,7 @@ def wrap_value(val, ctx=_ast.Load()):
   import nodes
   if isinstance(val, nodes.Argument):
     if val.name:
-      return ast.Name(id=val.name, ctx=ctx)  # if FunctionCall
+      return ast.Name(id=str(val.name), ctx=ctx)  # if FunctionCall
     # return ast.Name(id=val.name, ctx=_ast.Param()) # if FunctionDef
     else:
       return wrap_value(val.value)

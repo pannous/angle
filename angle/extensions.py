@@ -310,12 +310,12 @@ def is_dir(x, must_exist=True):
 
 def is_a(self, clazz):
 	if self is clazz: return True
-	if issubclass(self,clazz): return True
+	if isinstance(clazz,type) and issubclass(self,clazz): return True
 	try:
 		ok = isinstance(self, clazz)
 		if ok: return True
-	except Exception as e:
-		pass
+	except: pass
+
 	className = str(clazz).lower()
 	if className == str(self).lower(): return True  # KINDA
 	try:
@@ -744,7 +744,7 @@ class xlist(list):
 		if not isinstance(other, list): other = [other]
 		return list.__lt__(self, other)
 
-	# TypeError: unorderable types: int() < list() fucking python 3
+	# TypeError: unorderable types: int() < list() grr python 3
 	# def __cmp__(self, other):
 	# 	if not isinstance(other, list): other = [other]
 	# 	return list.__cmp__(self, other)
@@ -887,6 +887,11 @@ class xstr(str):
 	# def invert(self):
 	#     r=reversed(self) #iterator!
 	#     return "".join(r)
+	def __repr__(self):
+		return ">>>%s<<<"%str(self) #DEBUG
+
+	def __str__(self):
+		return ">>>>" #DEBUG
 
 	def invert(self):
 		r = reversed(self)  # iterator!
@@ -1168,13 +1173,6 @@ class xstr(str):
 		x = x.replace("million ", "*1000000")
 		x = x.replace("billion ", "*1000000000")
 		return x
-
-
-	def to_s(self):
-		return str(self)
-
-	def to_string(self):
-		return str(self)
 
 	def parse_integer(self):
 		n = self.replace_numerals()

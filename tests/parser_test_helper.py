@@ -133,8 +133,9 @@ def assert_equals(a, b, bla=None):
 	if a is b:
 		assert a is b, "%s SHOULD BE %s  ( %s ) (IS!)" % (a, b, bla)
 		return
-	if py3 and isinstance(a, map): a = list(a) # fuck py3!
+	if py3 and isinstance(a, map): a = list(a) # grrr py3!
 	if isinstance(a, ast.List): a = a.elts  # todo remove
+	if str(a).strip() == str(b).strip(): return
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
 def assert_contains(a, b):
@@ -173,8 +174,8 @@ def assert_has_error(x, ex=None):
 		if ex:
 			if not isinstance(e, ex):
 				print(("WRONG ERROR: {0} {1} expected error: {2}".format(e.__class__.__name__,str(e), str(ex))))
-				# ifdef FUCKING PY3:
-				raise  # e from e
+				raise
+			#ifdef py2 raise e from e
 			# e.raise()
 			# raise e, None, sys.exc_info()[2]
 			print(("OK, got expected %s : %s" % (ex, e)))
@@ -222,6 +223,8 @@ def parse(s,depth=0):
 
 	return r
 
+def clear():
+	english_parser.init('')
 
 def init(s):
 	copy_variables()
@@ -379,7 +382,7 @@ class ParserBaseTest(unittest.TestCase):
 			return x
 		parser.dont_interpret()
 		interpretation = parser.parse(x)
-		parser.full_tree()
+		# parser.full_tree()
 		if context.emit:
 			return parser.emit(interpretation, interpretation.root())
 		else:

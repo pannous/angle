@@ -274,7 +274,7 @@ def verbose(info):
 		print(info)
 
 
-def debug(info):
+def debug(info='debug'):
 	if context._debug:
 		print(info)
 
@@ -719,9 +719,9 @@ def allow_rollback(n=0):
 def invalidate_obsolete(old_nodes):
 	# DANGER RETURNING false as VALUE!! use RAISE ONLY todo
 	# (nodes - old_nodes).each(lambda n: n.invalid())
-	for fuck in old_nodes:
-		if fuck in nodes:
-			nodes.remove(fuck)
+	for old in old_nodes:
+		if old in nodes:
+			nodes.remove(old)
 	for n in nodes:
 		n.invalid()
 		n.destroy()
@@ -900,7 +900,7 @@ def to_source(block):
 #             traceback.print_stack() # backtrace
 #             error(e)
 
-# GETS FUCKED UP BY the.string.strip()! !!! ???
+# GETS messed up BY the.string.strip()! !!! ???
 def pointer():
 	if not current_token or the.current_token:
 		return ''

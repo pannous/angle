@@ -130,6 +130,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 				return node  # None->Name('None') NOT HERE!
 		for field, old_value in ast.iter_fields(node):
 			old_value = getattr(node, field, None)
+			if isinstance(old_value,ast.Name):continue
 			new_node = self.visit(old_value)
 			# if new_node is None: new_node is Delete  no, keep starargs=None etc!
 			# if new_node is Delete
@@ -142,6 +143,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 
 	def parent(self):
 		return self.parents[-1]
+
+	def visit_Global(self,x):
+		return x
 
 	def visit_bool(self,b):
 		return b
@@ -193,12 +197,15 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	#     return ast.Expr(x)
 
 	def visit_Call(self, x):
-		return x  # and done!
+		return x  # and done! NO Expr in Assign() ASSIGNMENT!
+		# return Expr(x) #needed when standalone, bad python!
+		# Module([Expr(Call(Name('print', Load()), [Num(1)], []))])
+		# _ast.expr != ast.Expr  bad python!
 
 	def visit_BinOp(self, node):
 		if isinstance(node.left , nodes.Variable):
 			# node.left.context =_ast.Load()
-			node.left=kast.name(node.left.name)
+			node.left=kast.name(str(node.left.name))
 		if isinstance(node.right, nodes.Variable):
 			node.right.context=_ast.Load()
 		#
@@ -218,6 +225,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 
 	def visit_Str(self, x):
 		x.s=str(x)
+		x.value=str(x) # todo remove if xstr handled
 		return x  # against:
 			
 	def visit_xstr(self, x):
@@ -246,7 +254,7 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		return ast.Expr(x)
 
 	def visit_Variable(self, x):  # codegen doesn't like inheritance
-		return ast.Name(x.name, x.ctx)
+		return ast.Name(str(x.name), x.ctx)
 		# return ast.Name(x.name,ast.Load())
 
 	def visit_arguments(self, x):
@@ -287,18 +295,25 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 				print("OK, already provided "+ node.name)
 			else:
 				print("HUH")
-			print(("NEED TO IMPORT %s ??" % function_def))
+			print(("NEED TO IMPORT %s ?" % function_def))
 		node.value.args = map_arguments(node.value.args)
+		return self.visit(node.value)  # skip_assign
+		# return self.generic_visit(node.value)  # skip_assign
 		# node.args= node.value.args
-		skip_assign = True
-		if skip_assign: #
-			return self.generic_visit(node.value)  # skip_assign
-			# return node.value
+		# skip_assign = True
+		# if skip_assign: #
+		# return ast.Expr(node.value)
+		# return node.value
 		# else: #WHATS THAT??
 		# 	node.name = kast.name(node)
 		# 	node.value = wrap_value(node.value)
 		# 	return node
 
+
+def fix_expression(exp):
+	if isinstance(exp,expr) and not isinstance(exp,Expr) :
+		return Expr(exp) # standalone Num, Call vs Assign(...Call)
+	return exp
 
 # Module(body=[Expr(value=Num(n=1, lineno=1, col_offset=0), lineno=1, col_offset=0)])
 # Module([Expr(Num(1))])
@@ -306,61 +321,54 @@ def fix_ast_module(my_ast, fix_body=True):
 	# if isinstance(my_ast, ast.Module): my_ast = my_ast.body[-1]  # YA?
 	# gotta wrap: 1 => Module(body=[Expr(value=[Num(n=1)])])
 	if not type(my_ast) == ast.Module:
-		# my_ast = flatten(my_ast)
 		if not isinstance(my_ast, list):
 			my_ast = [my_ast]
-		#
-		# def wrap_stmt(s):
-		# 	if not isinstance(s, ast.stmt) and not isinstance(s, ast.Expr):
-		# 		return ast.Expr(s)
-		# 	else:
-		# 		return s
-		# my_ast = map(wrap_stmt,my_ast)
 		my_ast = ast.Module(body=my_ast)
 
 	PrepareTreeVisitor().visit(my_ast)
 	if fix_body:
-		# my_ast.body.insert(0, kast.setter(name('it'), kast.none))  # save here, unlike in block!
-		# my_ast.body.insert(0, ast.Global(names=['it']))
-		# my_ast.body.insert(0, ast.Import([name('angle.extensions')]))
-		# my_ast.body.insert(0, ast.Import([name('extensions')]))
-		# my_ast.body.insert(0, ast.Import([ast.alias('extensions', None)]))
-		# my_ast.body.insert(0, ast.Import([ast.alias('extension_functions', None)]))
-		# ImportFrom(module='ast', names=[alias(name='*', asname=None)], level=0)
-		# my_ast.body.insert(0, ast.ImportFrom(module='extension_functions', names=[ast.alias(name='*',  asname=None)],level= 0))
-		# my_ast.body.insert(0, ast.ImportFrom('extension_functions', [str('*')], 0))
-		# my_ast.body.insert(0, ast.ImportFrom('angle', [ast.alias('extensions', None)], 0))
 		if context.needs_extensions:
 			my_ast.body.insert(0, ast.ImportFrom('angle.extensions', [ast.alias('*', None)], 0))
 		for s in to_inject:
 			if not s in my_ast.body:
 				my_ast.body.insert(0, s)
-		fix_block(my_ast.body, returns=False, prints=True)
+		my_ast.body=fix_block(my_ast.body, returns=False, prints=True) # <<<<
 	my_ast = ast.fix_missing_locations(my_ast)
 	print_ast(my_ast)
 	return my_ast
 
 
+
+
+
 def fix_block(body, returns=True, prints=False):
-	# if not isinstance(body[0], ast.Global):
-	body.insert(0, ast.Global(names=['it']))
-	# body.insert(1, kast.setter(name('it'),kast.none))
+	
+	def using_IT(last_statement):
+		# YES, use 'it': as namespace in exec(code) because it doesn't return directly
+		return not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert, ast.While))
+
+	if using_IT(body):
+		body.insert(0, ast.Global(names=['it']))
+
 	last_statement = body[-1]
 	if isinstance(last_statement, list) and len(last_statement) == 1:
 		last_statement = last_statement[0]
-		print("HOW??")
-	if not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert, ast.While)):
-		if isinstance(last_statement, kast.Print):
-			body[-1] = (assign("it", last_statement.values[0]))
-			last_statement.values[0] = name("it")
-			body.append(last_statement)
-		else:
-			body[-1] = (assign("it", last_statement))
+		print("HOW??") # can be removed?
+
+	body= [fix_expression(exp) for exp in body]
+	if isinstance(last_statement,expr):
+		body[-1] = (assign("it", last_statement))
+	if isinstance(last_statement, kast.Print):
+		body[-1] = (assign("it", last_statement.values[0]))
+		last_statement.values[0] = name("it")
+		body.append(last_statement)
 	if isinstance(last_statement, ast.Assign):
 		if not "it" in [x.id for x in last_statement.targets]:
 			last_statement.targets.append(Name(id="it",ctx=Store()))
 	if returns and not isinstance(body[-1], ast.Return):
-		body.append(ast.Return(name("it")))
+		body.append(ast.Return(name("it")))  # else: Module's dont return
+
+
 	# if prints:
 	# 	if py3:pass#body.append(kast.call("print", name("it")))
 		# else:body.append(Print(dest=None, values=[name("it")], nl=True))  # call symbolically!
@@ -376,7 +384,7 @@ def get_globals(args):
 	if isinstance(args, dict):
 		the.params.update(args)
 	else:
-		print("What the hell do you think you're doing, I need a dictionary as args (not a list)")
+		raise Exception("Global needs a dictionary as args (not a list)")
 	return my_globals
 
 
@@ -461,6 +469,7 @@ class Namespace():
 		self.variables = variables
 
 
+
 def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', code=None):
 	if not args: args = {}
 	if fix: my_ast = fix_ast_module(my_ast)
@@ -481,9 +490,18 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 		# resolve_variables(namespace)
 		namespace['it'] = None  # better than ast.global
 		namespace['beep']=lambda:print("BEEP ")
+		# namespace+=extensions reverse…
 		# namespace=Namespace(namespace)
-		exec(code, namespace)  # self contained!
-		ret = namespace['it']  # set internally via dict_set_item_by_hash_or_entry # crash !?
+
+		# from cStringIO import StringIO py2
+		from io import StringIO
+		sys.stdout = StringIO() # redirected_output
+		ret = exec(code, namespace)  # self contained!
+		output = sys.stdout.getvalue()
+		sys.stdout = sys.__stdout__ # restore
+		print(output)
+		# from extensions import last_print # hack
+		ret = ret or namespace['it'] or output
 		for var in namespace:
 			if "__" in var: continue
 			if callable(namespace[var]): continue

@@ -1,7 +1,9 @@
 cd $ANGLE_HOME
 export PYTHONPATH=
 export PYTHONPATH=$PYTHONPATH:./angle/
-# :./kast/:./tests/
+export PYTHONPATH=$PYTHONPATH:./tests/
+export PYTHONPATH=$PYTHONPATH:./kast/
+
 export TESTING=1
 # cd angle
 # py.test ../tests

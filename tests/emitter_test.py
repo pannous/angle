@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-
 from parser_test_helper import *
 
 import parser_test_helper
+import power_parser
 import pyc_emitter
 
 class EmitterTest(parser_test_helper.ParserBaseTest):
@@ -10,8 +10,9 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 		if 'NO_TREE' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")
 			skip()
-		# context.use_tree = True
-		# context.interpret = False
+		context.use_tree = True
+		context.interpret = False
+		clear()
 
 	def assert_result_emitted(self, x, r):
 		assert_equals(context.last_result(parser.parse_tree(x)), r)
@@ -77,10 +78,9 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 		# skip()
 		parser.dont_interpret()
 		parse("printf 'hello world'", False)
-		parser.full_tree()
-
-	# result = emit(interpretation, {'run': True, }, NativeCEmitter())
-	# assert_equals(result, 'hello world')
+		# parser.full_tree()
+		# result = emit(interpretation, {'run': True, }, NativeCEmitter())
+		# assert_equals(result, 'hello world')
 
 	def test_printf_1(self):
 		# skip()
@@ -116,7 +116,7 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 
 	def test_function_defs(self):
-		skip()  # FUCKUP
+		skip()
 		parse("def test{pass}")
 		parse("def test{pass};test")
 		parse("def test{puts 'yay'}")
@@ -148,9 +148,13 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 	# assert_result_is('add1(5)',6)
 
+	def test_basic_math(self):
+		assert_result_is('5 + 1', 6)
+
 	def test_function_args(self):
 		# skip()
 		# add1=parse("def add1(x):return x+1")
+		assert_result_is('5 + 1', 6)
 		add1 = parse("to add1 to x do x+1")
 		assert_result_is('add1(5)', 6)
 

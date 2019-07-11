@@ -24,7 +24,7 @@ class MacTest(ParserBaseTest,unittest.TestCase):
         assert_result_is("½*2",1)
 
     # parse('x=ls\na=x[1]')
-        # parse('x=ls;a=x[1]')#// fucked up a=
+        # parse('x=ls;a=x[1]')#// messed up a=
         # parse('`ls`')
 
 

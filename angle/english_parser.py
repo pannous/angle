@@ -832,7 +832,8 @@ def quick_expression():  # bad idea?
         return declaration()  # setter case ABOVE!
     # NO(?!) algebra
     if the.token in operators + special_chars:
-        if the.token != "~": return False  # USE ALGEBRA // Fuckup !!  #TODO: if more than one
+        if the.token != "~": #hack?
+            return False  # USE ALGEBRA // #TODO: if more than one
     # if context.in_algebra: return False
     # return algebra(result)
     # if context.in_condition: return condition()
@@ -1127,8 +1128,10 @@ def method_definition(name=None, return_type=None):
     b = action_or_block()  # define z as 7 allowed !!!
     look_1_ahead("return", "Return statement out of method {block}, are you missing curlies?", must_not_be=True)
     if not isinstance(b, list): b = [b]
-    if not isinstance(b[-1], (kast.Print, ast.Return)):
-        b[-1] = kast.assign("it", b[-1])
+    if not isinstance(b[-1], ast.Return):
+        b[-1]=ast.Return(b[-1]) # return x = 7  NOT LEGAL in py
+    # if not isinstance(b[-1], (kast.Print, ast.Return)):
+    #     b[-1] = kast.assign("it", b[-1]) done in emitter?
     # b[-1]=(ast.Expr(b[-1]))
     f.body = b
     f2.body = b  # ürx
@@ -1538,6 +1541,8 @@ def method_call(obj=None,method0=None):
     the.result = do_call(obj or None, method, args or None)
     return the.result
 
+def function_call(x):
+    return method_call(x)
 
 def tokens_(tokens0):
     return maybe_tokens(tokens0)
@@ -2061,6 +2066,8 @@ def setter(var=None):
     # end_expression via statement!
     context.in_setter=False
     if not interpreting():
+        if not 'name' in dir(var):
+            debug()
         return ast.Assign([kast.Name(var.name, kast.Store())], val)
     if interpreting() and val != 0: return val
     return var

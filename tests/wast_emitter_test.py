@@ -88,6 +88,6 @@ class WastEmitterTest(ParserBaseTest,unittest.TestCase):
       result = os.system("wasm-as " + file_name)
       print(result)
       result = subprocess.check_output("./wasmx " + file_name.replace("wast","wasm"), shell=True)
-      print(str(result,"UTF8")) # fucking python3
+      print(str(result,"UTF8")) # grrr python3
       assert "7" in str(result)
 

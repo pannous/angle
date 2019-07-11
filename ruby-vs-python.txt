@@ -1,13 +1,13 @@
-
-# ruby +++ better blocks + lambdas !!!:
+# ruby +++ better blocks + 'full' lambdas !
 # ruby ++ if expression works for blocks
-# ruby ++ much more forgiving and convenient, i.e. z=map[x] vs if x in map: map[x]
+# ruby ++ much more forgiving and convenient, i.e. [1]+[2]=[1,2]
 # ruby ++ nicer string templates "Variable #{type} #{name}=#{value}"
 # ruby + jruby better, class extensions
 # ruby + mirah: native 'ruby' on jvm
 # ruby + def 'properties'   def y; @y; end    def y=(z); @y=z; end , see (ugly) attr_reader ...
 # ruby + clean function approach, e.g. def []=(index,values) ...
 # ruby + nicer 'and'+'or' concatenations  a?b:c or d and raise Ex
+# ruby +- less strict z=map[x] vs if x in map: map[x]
 # ruby - less modules, more beautiful language => less need for angle!
 # ruby - methods less 1st class citizens than in python! ('ok' via method(:symbol), send)
 # ruby - gems are a mess compared to python
@@ -59,6 +59,7 @@
 # python list,string,... not extendable but OK in angle wrapper xlist!
 # python (-) backtrace ?
 # python (-) no switch/Case
+# python -- AST debugging painful: AST identifier must be of type str (… which one?)
 # python - annoying self. (self, : , () -> DANGEROUS!! (ok if generated?)
 # python - NO class extensions for builtins! (ok with 'macros' / subclass construction (?))
 # python -- stupid list arg explosion def f(*args):pass  f(1,2,3) OK l=[1,2,3] f(*l) OK  f([1,2,3]) TUPLE([1,2,3]) WTF!
@@ -68,11 +69,12 @@
 # python ---- explicit global/class(self) self.EVERYTHING!!!
 more: http://c2.com/cgi/wiki?PythonProblems
 
+# both -- a.z missing properties throw:  undefined method `spec' AttributeError: 'dict' object has no attribute 'z'
 # both + bytecode (mruby)
 # both ++ mixins  python:class Request(BaseRequest, AcceptMixin), ruby: include AcceptMixin
 # both ++ alias neu alt  python: neu=alt def neu(): alt()
 # PyPy Python written in Python, Ruby has Rubinius
-# both -- missing properties throw:  undefined method `spec' AttributeError: 'dict' object has no attribute 'z'
+# Building PyPy yourself is not recommended. It is time-consuming and requires significant computing resources.
 
 # What separates a mixin from multiple inheritance? Is it just a matter of semantics?
 Yes.
@@ -80,9 +82,9 @@ Yes.
 
 ** ValueError: list.remove(x): x not in list
 ** RUBY: # (the.nodes - old_nodes).each{|n| n.invalidate}
-** PYTHON: -- for fuck in old_nodes:
-                if fuck in nodes:
-                    nodes.remove(fuck)
+** PYTHON: -- for old in old_nodes:
+                if old in nodes:
+                    nodes.remove(old)
             the.nodes.each(lambda n: n.invalidate())
             AttributeError: 'list' object has no attribute 'each' WTF -=->
 for n in the.nodes: n.invalid()
