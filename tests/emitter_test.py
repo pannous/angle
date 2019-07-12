@@ -5,6 +5,19 @@ import parser_test_helper
 import power_parser
 import pyc_emitter
 
+
+def python_ast(contents):
+	source = "(string)"
+	# try:
+	file_ast = compile(contents, source, 'exec', ast.PyCF_ONLY_AST)  # AAAAHHH!!!
+	# except:
+	# 	import compiler  # OLD!
+	# 	file_ast=compiler.parse(contents) #  some deprecated stuff but at least it compiles successfully!
+	# file_ast=compile(contents, source, 'eval',ast.PyCF_ONLY_AST) # AAAAHHH!!!
+	print(ast.dump(file_ast, annotate_fields=True, include_attributes=True))
+	print(ast.dump(file_ast, annotate_fields=False, include_attributes=False))
+
+
 class EmitterTest(parser_test_helper.ParserBaseTest):
 	def setUp(self):
 		if 'NO_TREE' in os.environ:
@@ -12,11 +25,11 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 			skip()
 		context.use_tree = True
 		context.interpret = False
-		clear()
+
+	# clear()
 
 	def assert_result_emitted(self, x, r):
 		assert_equals(context.last_result(parser.parse_tree(x)), r)
-
 
 	def test_basic(self):
 		assert_result_is('2', 2)
@@ -34,7 +47,6 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 	def test_simple_math(self):
 		assert_result_is('2+2', 4)
 
-
 	def test_variable_math(self):
 		assert_result_is('x=3;x+1', 4)
 
@@ -42,7 +54,8 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 		# skip()
 		if context.use_tree == False:
 			assert_result_emitted('x=5;increase x', 6)
-		# #skip()
+
+	# #skip()
 
 	def test_int_setter(self):
 		if context.use_tree == False:
@@ -78,9 +91,10 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 		# skip()
 		parser.dont_interpret()
 		parse("printf 'hello world'", False)
-		# parser.full_tree()
-		# result = emit(interpretation, {'run': True, }, NativeCEmitter())
-		# assert_equals(result, 'hello world')
+
+	# parser.full_tree()
+	# result = emit(interpretation, {'run': True, }, NativeCEmitter())
+	# assert_equals(result, 'hello world')
 
 	def test_printf_1(self):
 		# skip()
@@ -114,7 +128,6 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 	# Module([Assign([Name('i', Store())], Num(7)), Assign([Name('it', Store())], BinOp(Name('i', Load()), Sub(), Num(1)))])
 	# Module(body=[Assign(targets=[Name(id='i', ctx=Store(), lineno=1, col_offset=0)], value=Num(n=7, lineno=1, col_offset=2), lineno=1, col_offset=0), Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=4)], value=BinOp(left=Name(id='i', ctx=Load(), lineno=1, col_offset=15), op=Sub(), right=Num(n=1, lineno=1, col_offset=17), lineno=1, col_offset=15), lineno=1, col_offset=4)])
 
-
 	def test_function_defs(self):
 		skip()
 		parse("def test{pass}")
@@ -124,7 +137,7 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 	def test_function_def(self):
 		# #skip()
-		assert_result_is("def test{puts 'yay'}\ntest","yay")
+		assert_result_is("def test{puts 'yay'}\ntest", "yay")
 
 	# parse("def test{puts 'yay'};test")
 	# Module([FunctionDef('test', arguments([], None, None, []), [Print(None, [Str('yay')], True)], [])])
@@ -160,6 +173,7 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 	def test_identity(self):
 		# skip()
+		python_ast("def id(x): return x")
 		identity0 = parse("def identity(x):return x")
 		assert_result_is('identity(5)', 5)
 
@@ -204,7 +218,6 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 	# Module(body=[If(test=Compare(left=Num(n=3, lineno=1, col_offset=3), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=5)], lineno=1, col_offset=3), body=[Expr(value=Num(n=1, lineno=1, col_offset=7), lineno=1, col_offset=7)], orelse=[Expr(value=Num(n=0, lineno=2, col_offset=5), lineno=2, col_offset=5)], lineno=1, col_offset=0)])
 	# Module([If(Compare(Num(3), [Gt()], [Num(0)]), [Expr(Num(1))], [Expr(Num(0))])])
 
-
 	# Module(body=[Assign(targets=[Name(id='it', ctx=Store(), lineno=1, col_offset=0)], value=If(test=Condition(left=Num(n=3, lineno=1, col_offset=0), ops=[Gt()], comparators=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), body=[Num(n=1, lineno=1, col_offset=0)], orelse=[Num(n=0, lineno=1, col_offset=0)], lineno=1, col_offset=0), lineno=1, col_offset=0)])
 	#
 	# Module([Assign([Name('it', Store())], If(Condition(Num(3), [Gt()], [Num(0)]), [Num(1)], [Num(0)]))])
@@ -225,12 +238,18 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 
 	# Module([Assign([Name('xs', Store())], List([Num(1), Num(2), Num(3)], Load())), Expr(Call(Attribute(Name('xs', Load()), 'reverse', Load()), [], [], None, None)), Print(None, [Name('xs', Load())], True)])
 
+	def test_if_in_loop2(self):
+		assert_equals(parse('c=0;\nwhile c<3:\nif c>1 then beep;\nc++;\ndone'), 'beep')
+
 	def test_if_in_loop(self):
-		# skip()
-		# pyc_emitter.get_ast("c+=1\nif c>1:beep()")
-		assert_equals(parse('c=0;\nwhile c<3:\nc++;\nif c>1 then beep;\ndone'), 'beeped')
+		assert_equals(parse('c=0;\nwhile c<3:\nc++;\nif c>2 then beep;\ndone'), 'beep')
+
+
 
 # If(Compare(Name('c', Load()), [Gt()], [Num(1)]), [Expr(Call(Name('beep', Load()), [], [], None, None))], [])])
 
 
 # Module(body=[Assign(targets=[Name(id='xs', ctx=Store(), lineno=1, col_offset=0)], value=List(elts=[Num(n=1, lineno=1, col_offset=4), Num(n=2, lineno=1, col_offset=6), Num(n=3, lineno=1, col_offset=8)], ctx=Load(), lineno=1, col_offset=3), lineno=1, col_offset=0), Expr(value=Call(func=Attribute(value=Name(id='xs', ctx=Load(), lineno=1, col_offset=11), attr='reverse', ctx=Load(), lineno=1, col_offset=11), args=[], keywords=[], starargs=None, kwargs=None, lineno=1, col_offset=11), lineno=1, col_offset=11), Print(dest=None, values=[Name(id='xs', ctx=Load(), lineno=1, col_offset=30)], nl=True, lineno=1, col_offset=24)])
+
+# if __name__ == '__main__':
+# 	unittest.main()

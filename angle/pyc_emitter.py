@@ -253,6 +253,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 	def visit_Pass(self, x):
 		return ast.Expr(x)
 
+	def visit_Return(self, node):
+		return node
+
 	def visit_Variable(self, x):  # codegen doesn't like inheritance
 		return ast.Name(str(x.name), x.ctx)
 		# return ast.Name(x.name,ast.Load())
@@ -311,6 +314,8 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 
 
 def fix_expression(exp):
+	if isinstance(exp, nodes.Variable):
+		return name(str(exp.name))
 	if isinstance(exp,expr) and not isinstance(exp,Expr) :
 		return Expr(exp) # standalone Num, Call vs Assign(...Call)
 	return exp
@@ -347,8 +352,8 @@ def fix_block(body, returns=True, prints=False):
 		# YES, use 'it': as namespace in exec(code) because it doesn't return directly
 		return not isinstance(last_statement, (ast.Assign, ast.If, nodes.FunctionDef, ast.Return, ast.Assert, ast.While))
 
-	if using_IT(body):
-		body.insert(0, ast.Global(names=['it']))
+	# if using_IT(body):
+	# 	body.insert(0, ast.Global(names=['it']))
 
 	last_statement = body[-1]
 	if isinstance(last_statement, list) and len(last_statement) == 1:
@@ -495,10 +500,12 @@ def run_ast(my_ast, source_file="(String)", args=None, fix=True, _context='', co
 
 		# from cStringIO import StringIO py2
 		from io import StringIO
-		sys.stdout = StringIO() # redirected_output
-		ret = exec(code, namespace)  # self contained!
-		output = sys.stdout.getvalue()
-		sys.stdout = sys.__stdout__ # restore
+		try:
+			sys.stdout = StringIO() # redirected_output
+			ret = exec(code, namespace)  # self contained!
+			output = sys.stdout.getvalue()
+		finally:
+			sys.stdout = sys.__stdout__ # restore
 		print(output)
 		# from extensions import last_print # hack
 		ret = ret or namespace['it'] or output

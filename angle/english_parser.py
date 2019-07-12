@@ -3921,7 +3921,7 @@ def while_loop():
     r = False
     adjust_interpret()
     if not interpreting():
-        return kast.While(test=c, body=b)
+        return kast.While(test=c, body=b,orelse=[])
     while (check_condition(c)):
         r = do_execute_block(b)
     return r  # or OK

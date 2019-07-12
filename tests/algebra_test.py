@@ -132,6 +132,4 @@ class AlgebraTest(ParserBaseTest):
 
 if __name__ == '__main__':
   unittest.main()
-else:
-  pass
 

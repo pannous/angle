@@ -135,7 +135,9 @@ def assert_equals(a, b, bla=None):
 		return
 	if py3 and isinstance(a, map): a = list(a) # grrr py3!
 	if isinstance(a, ast.List): a = a.elts  # todo remove
-	if str(a).strip() == str(b).strip(): return
+	a1 = str(a).strip().lower()
+	b1 = str(b).strip().lower()
+	if a1 == b1: return
 	assert a == b, "%s SHOULD BE %s  ( %s )" % (a, b, bla)
 
 def assert_contains(a, b):

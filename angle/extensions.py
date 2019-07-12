@@ -11,7 +11,7 @@ import inspect
 import re  # for 'is_file'
 import os
 # import __builtin__
-import numpy as np
+# import numpy as np
 from os.path import expanduser  # "~" wth
 from random import randint
 from random import random as _random
@@ -373,11 +373,6 @@ class byte(str):
 file = file  # nice trick: native py2 class or local py3 class
 unicode = unicode
 xrange = xrange
-
-if py2:
-	import cPickle as pickle
-else:
-	import dill as pickle
 
 
 # try: # py2
@@ -887,11 +882,6 @@ class xstr(str):
 	# def invert(self):
 	#     r=reversed(self) #iterator!
 	#     return "".join(r)
-	def __repr__(self):
-		return ">>>%s<<<"%str(self) #DEBUG
-
-	def __str__(self):
-		return ">>>>" #DEBUG
 
 	def invert(self):
 		r = reversed(self)  # iterator!
@@ -1519,7 +1509,17 @@ def readlines(file):
 	return open(file, 'rt').readlines()
 
 def load_dump(file='dump.bin'):
+	if py2:
+		import cPickle as pickle
+	else:
+		import dill as pickle
 	return pickle.load(open(file, 'rb'))
+
+load_pickle=load_dump
+unpickle=load_dump
+undump=load_dump
+# restore=load_dump
+
 
 def read_binary(file):
 	return open(file, 'rb').read()
@@ -1532,6 +1532,10 @@ def read(file):
 		# return read_binary(file)
 
 def dump(o, file="dump.bin"):
+	if py2:
+		import cPickle as pickle
+	else:
+		import dill as pickle
 	pickle.dump(o, open(file, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
 	print("saved to '" + file + "'")
 
@@ -1550,22 +1554,6 @@ def cat(file):
 
 def write_direct(data, file):
 	open(file, 'wb').write(data)
-
-
-def load_pickle(file_name="dump.bin"):
-	return pickle.load(open(file_name, 'rb'))
-
-
-def unpickle(file_name="dump.bin"):
-	return pickle.load(open(file_name, 'rb'))
-
-
-def undump(file_name="dump.bin"):
-	return pickle.load(open(file_name, 'rb'))
-
-
-def restore(file_name="dump.bin"):
-	return pickle.load(open(file_name, 'rb'))
 
 
 def run(cmd):
