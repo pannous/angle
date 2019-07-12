@@ -23,8 +23,9 @@ class EmitterTest(parser_test_helper.ParserBaseTest):
 		if 'NO_TREE' in os.environ:
 			print("NO FunctionTest in interpreter mode (yet)")
 			skip()
-		context.use_tree = True
-		context.interpret = False
+		else:
+			context.use_tree = True
+			context.interpret = False
 
 	# clear()
 

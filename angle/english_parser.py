@@ -1775,16 +1775,15 @@ def do_execute_block(b, args={}):
     if isinstance(b, kast.AST): return eval_ast(b, args)
     if isinstance(b, list) and isinstance(b[0], kast.AST): return eval_ast(b, args)
     if not is_string(b): return b  # OR :. !!!
-    block_parser = EnglishParser()
-    block_parser.variables = the.variables
-    block_parser.variableValues = variableValues
+    # block_parser = EnglishParser()
+    # block_parser.variables = the.variables
+    # block_parser.variableValues = variableValues
     # block_parser.variables+=args
     try:
         print("using old interpretation recursion")
-        the.result = block_parser.parse(b)
+        the.result = parse(b)
     except:
         error(traceback.extract_stack())
-    variableValues = block_parser.variableValues
     return the.result
 
 

@@ -1,4 +1,15 @@
-from ppci import wasm
+try:
+
+  import wast
+  import wasmer
+  import wasmfun
+  from kast import kast
+  from ppci import wasm
+  wasm.WASMComponent.__str__=lambda self: '(%s %s ...)' % (self.__class__.__name__, self.id)
+  wasm.WASMComponent.__repr__=wasm.WASMComponent.to_string
+  wasm.Instruction.__repr__=lambda self:"(%s %s)" % (self.opcode,self.args)
+except:
+  print("no wasm")
 
 
 class TreeVisitor():  # ast.NodeTransformer
@@ -138,19 +149,9 @@ def emit_type(type):
   print('(type ${name} (func (param {params}) (result {result})))'.format(**type))
 
 
-import wast
-import wasmer
-import wasmfun
-from kast import kast
-
-wasm.WASMComponent.__str__=lambda self: '(%s %s ...)' % (self.__class__.__name__, self.id)
-wasm.WASMComponent.__repr__=wasm.WASMComponent.to_string
-wasm.Instruction.__repr__=lambda self:"(%s %s)" % (self.opcode,self.args)
-
-
 
 # def emit_module(prog: wast.Wast):
-def emit_module(prog: kast):
+def emit_module():#prog: kast):
   kast.Module
   code = '(module (func $main (result i32) (i32.const 42) (return)))'
   m1 = wasm.Module(code)
