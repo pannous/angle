@@ -222,21 +222,22 @@ return_keywords=['returns', 'returning', '=>', '->','￫','to','into','as'] # 'r
 #   1. cast number to any: return cast<any>(number)
 #   1. cast number to string: return string(number)
 
-otherKeywords = ['and', 'as', 'assert', 'back', 'beginning', 'but', 'by', 'contain', 'contains','class','object','item', 'copy', 'def', 'div',
-                 'does', 'eighth', 'else', 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first', 'for',
-                 'fourth', 'even',
-                 'front', 'get', 'given', 'global', 'if', 'ignoring', 'is', 'it', 'its', 'that', 'result', 'last',
+allowed_keywords=['item','contain', 'contains','class','object', 'copy', 'assert', 'back', 'beginning','fourth', 'even',
+                 'does', 'eighth', 'else', 'end', 'equal', 'equals', 'error', 'every', 'false', 'fifth', 'first',
+                  'mutable','variable','constant'
+
+                 'front', 'get', 'given',  'ignoring', 'result', 'last',
                  'local', 'me',
-                 'middle', 'mod', 'my', 'ninth', 'not', 'sixth', 'some', 'tell', 'tenth', 'then', 'third', 'timeout',
+                 'middle', 'mod', 'my', 'ninth', 'sixth', 'some', 'tell', 'tenth',  'third', 'timeout',
                  'times',
-                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'while', 'print', 'prop', 'property', 'put',
-                 'ref', 'reference', 'repeat', 'return', 'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
+                 'transaction', 'True', 'try', 'where', 'whose', 'until', 'print', 'prop', 'property', 'put',
+                 'ref', 'reference', 'repeat',  'returning', 'script', 'second', 'set', 'seventh', 'otherwise']
 
-const_words = ['constant', 'const', 'final', 'immutable', 'unchangeable']  # not: static
+otherKeywords = ['and', 'as', 'but', 'by',  'def', 'div', 'for','if', 'global', 'is', 'it', 'its','not' , 'that','then', 'while','return']
 
-modifier_words = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'mut',
-                                'mutable',
-                                'variable', 'typed']
+const_words = ['constant', 'const', 'final','mut','var','variable','mutable', 'immutable', 'unchangeable']  # not: static
+
+modifier_words = const_words + ['protected', 'private', 'public', 'static', 'void', 'default', 'initial', 'typed']
 # ,'readable','read only','read-only','readonly','writable','write only','writeonly','changeable']
 
 adverbs = ['often', 'never', 'joyfully', 'often', 'never', 'joyfully', 'quite', 'nearly', 'almost', 'definitely',

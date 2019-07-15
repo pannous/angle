@@ -50,6 +50,7 @@
 # python +-: functions proper(!) 1st class citizens [problem: () not default!]
 # python +-: properties ok'ish:  p=property(getter,setter)
 # python +: 'in; operator
+# python +: LISP dropin syntax https://github.com/hylang/hy
 # python +: stricter: i.e. ruby z=map[x] (NIL) vs if x in map: map[x]
 # python +-: python 'run' is significantly faster than slooow 'debug' mode
 # python -: bizzare super(ast.ClassDef,self).__init__(*kwargs)

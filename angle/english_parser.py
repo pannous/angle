@@ -3259,7 +3259,8 @@ def align_args(args, clazz, method):
             expect = len(method.args)
         # method = findMethod(clazz, method)
         else:
-            margs, varargs, varkw, defaults = inspect.getargspec(method)
+            # margs, varargs, varkw, defaults = inspect.getargspec(method)
+            margs, varargs, varkw, defaults = inspect.signature()
             expect = len(margs) - (defaults and len(defaults) or 0) + (varkw and len(varkw) or 0)
         if not isinstance(args, (xlist, list, dict)):
             args = [args]

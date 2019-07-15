@@ -12,8 +12,8 @@ export TESTING=1
 # see pytest.ini
 if [[ "$@" = '2' ]]; then
 	python2 -m pytest --runxfail --disable-warnings tests
-elif  [[ "$@" = 'p' ]];
-	pypy3 -m pytest --runxfail --disable-warnings tests
+# elif  [[ "$@" = 'p' ]];
+# 	pypy3 -m pytest --runxfail --disable-warnings tests
 else
 	python3 -m pytest --runxfail --disable-warnings tests
 fi
