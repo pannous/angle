@@ -32,6 +32,25 @@ class FunctionTest(ParserBaseTest):
 	def test_add2(self):
 		parse("define add2 number n\nn+2\nend\nassert add2(1) is 3")
 
+
+	def test_short_add2(self):
+		parse("add2:=it+2\nassert add2(1) is 3")
+
+
+	def test_as(self):
+		assert_result_is("'41' as int + 1", 42)
+
+	def test_string_add(self):
+		assert_result_is("'41' + 1", 411) # todo warn via IDE
+		assert_result_is("1 + '41' ", 141)
+		assert_result_is("2 * '41' ", 4141)
+		assert_result_is("'41' * 2 ", 4141)
+		assert_equals(41,"41","BAD TRANSIENCY")
+		# assert_equals(411,"41"+1,"BAD TRANSIENCY")
+
+		# assert_result_is("'41' as int + 1 is 42")
+
+
 	# parse("define add number n\nn+2\nend\nassert add(1,2) is 3")
 	# parse("define add number n to number m\nn+2\nend\nassert add(1,2) is 3")
 	# parse("define add number n to number m\nn+m\nend\nassert add(1,2) is 3")

@@ -45,6 +45,9 @@ def Max(a, b):
 		return a
 	return b
 
+def sqrt(x):
+	return math.sqrt(x)
+	
 
 def Min(a, b):
 	if a > b:
@@ -170,7 +173,11 @@ def grep(xs, x):
 	return xlist(filter(lambda y: x in str(y), xs))
 
 
+
 def ls(mypath="."):
+	return os.listdir(mypath)
+
+def lsx(mypath="."):
 	from extensions import xlist
 	return xlist(os.listdir(expanduser(mypath)))
 
@@ -672,13 +679,13 @@ class xlist(list):
 
 	def filter(xs, func):  # VS MAP!!
 		# return [x for x in xs if func(x)]
-		return filter(func, xs)
+		return xlist(filter(func, xs))
 
 	def select(xs, func):  # VS MAP!!
-		return filter(func, xs)
+		return xlist(filter(func, xs))
 
 	def where(xs, func):
-		return filter(func, xs)
+		return xlist(filter(func, xs))
 
 	def grep(xs, x):
 		return xlist(filter(lambda y: xstr(y).match(x), xs))
@@ -882,6 +889,10 @@ class xstr(str):
 	# def invert(self):
 	#     r=reversed(self) #iterator!
 	#     return "".join(r)
+
+
+	def __add__(self, other):
+		return str(self) + str(other)
 
 	def invert(self):
 		r = reversed(self)  # iterator!
@@ -1233,6 +1244,13 @@ class xint(int):
 
 	def number(self):
 		return self
+
+	def __add__(self, other):
+		if isinstance(other,(str,xstr)):
+			return str(self)+other
+		if isinstance(other,int):
+			return int(self) + other
+		raise Exception("Can't add xint to "+ str(typeof(other)))
 
 	def _and(self, x):
 		return self + x
@@ -1650,14 +1668,20 @@ def fi():
 	# 		curse(base,meth,lambda inst:getattr(hack,meth).bind(inst)())
 	# 		# curse(base,meth,lambda *args, **kwargs: getattr(hack,meth)(self, *args, **kwargs)
 
-
-def read_csv(file):
+def read_csv(file,delimiter=','):
 	import csv
 	csvfile=open(file, newline='') 
-	reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+	reader = csv.reader(csvfile, delimiter=delimiter, quotechar='"')
 	return reader
 	# for row in spamreader:
 		# print(', '.join(row))
+
+def csv(file):
+	return read_csv(file)
+
+def tsv(file):
+	return read_csv(file,delimiter="\t")
+
 
 def query_csv(csvfile,query=0):
     import pandas
@@ -1695,4 +1719,3 @@ def wasm(file='/me/dev/wasm/main42.wasm'):
 
 extensions_loaded=True
 print("extensions v1.0.0 loaded")
-

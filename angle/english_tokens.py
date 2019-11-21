@@ -22,6 +22,7 @@ true = True
 false = False
 TRUE = "True"
 FALSE = "False"
+# FALSE = ast.NameConstant(False)
 NONE = "None"
 NILL = "None"
 Nil = "None"
@@ -45,7 +46,7 @@ numbers = "1 2 3 4 5 6 7 8 9 0\
 number_selectors = " 1st 2nd 3rd 4th 5th 6th 7th 8th 9th 0th 10th\
       tenth ninth eighth seventh sixth fifth fourth third second first".split()
 
-special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
+special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\√")
 
 # TODO : 'a' MESS !
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
@@ -180,9 +181,11 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'ar
                     'at least', 'at most']
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
-math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
+# "⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹",
+math_operators = ["√","²","³","^", "^^", "**", "*", "/", "//", "+", "-", "%"]
+prefix_operators = ["√"]
 english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
-                           "subtract", "mod", "modulo", ])
+                           "subtract", "mod", "modulo","root","squared"])
 
 true_operators = math_operators + english_operators + logic_operators  # minus comparison_words
 

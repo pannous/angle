@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import angle
 
-
 #
 from parser_test_helper import *
 
@@ -22,14 +21,14 @@ class HashTest(ParserBaseTest):
 
 	def test_simple0(self):
 		init('{a:1}')
-		val=parser.hash_map()
+		val = parser.hash_map()
 		assert_equals(val, {'a': 1})
 
 	def test_simple(self):
 		assert_equals(parse('{a:1}'), {'a': 1})
 
 	def test_invariance(self):
-		assert_result_is('{a:"b"}', {'a': 'b' })
+		assert_result_is('{a:"b"}', {'a': 'b'})
 
 	def test_invariance2(self):
 		assert_equals(parse('{a{b:"b",c:"c"}}'), {'a': {'c': 'c', 'b': 'b', }, })
@@ -45,7 +44,6 @@ class HashTest(ParserBaseTest):
 		skip()
 		assert_equals(parse('{:a => {b:"b";c:"c"}}'), {'a': {'b': 'b', 'c': 'c', }, })
 
-
 	def test_immediate_hash(self):
 		assert_equals(parse('a{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })
 
@@ -54,19 +52,19 @@ class HashTest(ParserBaseTest):
 		assert_equals(parse('a:{b:"b",c:"c"}'), {'a': {'b': 'b', 'c': 'c', }, })
 
 	def test_hash_index(self):
-		x={'a': {'b': 'b', 'c': 'c'}}
+		x = {'a': {'b': 'b', 'c': 'c'}}
 		# x=parse('x=a:{b:"b",c:"c"}')
-		the.variables['x']=x
+		the.variables['x'] = x
 		assert_equals(x, {'a': {'b': 'b', 'c': 'c'}})
 
 	def test_hash_index1(self):
 		# parse("x={a:3}")
 		parse("x={'a':3}")
-		assert_equals(the.variables['x' ], {'a': 3})
+		assert_equals(the.variables['x'], {'a': 3})
 		assert_equals(parse("x['a']"), 3)
 
 	def test_hash_map(self):
-		skip() # nice future:
+		skip()  # nice future:
 		parse("x maps a to 3, b to 5")
 		assert_equals(parse("x['a']"), 3)
 		assert_equals(parse("x[a]"), 3)

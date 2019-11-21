@@ -1,4 +1,6 @@
 #GLOBAL NAMESPACE FOR ANGLE / ENGLISH SCRIPT PARSER RUNTIME
+import math
+
 import extensions
 home="."
 extensionMap ={} # str->xstr
@@ -93,9 +95,10 @@ def parent_node():
     return None
 
 # print_function
-core_methods = ['show', 'now', 'yesterday', 'help','print']  # maybe(difference)
+core_methods = ['√','show', 'now', 'yesterday', 'help','print']  # maybe(difference)
 # SEE typeNameMapped!
 methods = {
+    '√':math.sqrt,
     'p':extensions.puts,
     'print':extensions.puts,
     'length': len,

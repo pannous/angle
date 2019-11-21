@@ -12,6 +12,10 @@ class AlgebraTest(ParserBaseTest,unittest.TestCase):
     #     context.use_tree=False
     #     super(AlgebraTest, self).setUp()
 
+
+    def test_basics1(self):
+        assert_result_is('1+2', 3)
+
     def test_algebra1(self):
         assert_result_is('two minus 1', 1)
         assert_result_is('3 minus one', 2)

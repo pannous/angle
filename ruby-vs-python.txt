@@ -2,8 +2,8 @@
 # ruby ++ if expression works for blocks
 # ruby ++ much more forgiving and convenient, i.e. [1]+[2]=[1,2]
 # ruby ++ nicer string templates "Variable #{type} #{name}=#{value}"
-# ruby + jruby better, class extensions
-# ruby + mirah: native 'ruby' on jvm
+# // ruby + jruby better, class extensions
+# // ruby + mirah: native 'ruby' on jvm
 # ruby + def 'properties'   def y; @y; end    def y=(z); @y=z; end , see (ugly) attr_reader ...
 # ruby + clean function approach, e.g. def []=(index,values) ...
 # ruby + nicer 'and'+'or' concatenations  a?b:c or d and raise Ex

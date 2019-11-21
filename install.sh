@@ -16,6 +16,9 @@ echo pip2/pip3 install -r requirements.txt
 pip2 install -r requirements.txt
 pip3 install -r requirements.txt
 
+python3 setup.py build 
+sudo python3 setup.py install
+
 if [[ "$OSTYPE" == 'darwin' ]]; then
 	echo "Adding TextMate support, like syntax highlighting"
 	git clone git@github.com:pannous/EnglishScript.tmbundle.git ~/Library/Application\ Support/TextMate/Bundles/EnglishScript.tmbundle/ 2>/dev/null

@@ -5,9 +5,10 @@
 # from TreeBuilder import show_tree
 # from english_parser import result, comment, condition, root
 import sys
+
 try:
 	import readline
-except :
+except:
 	print('readline not available')
 py2 = sys.version < '3'
 py3 = sys.version >= '3'
@@ -24,7 +25,7 @@ from extension_functions import is_string
 from nodes import Argument, Variable, Compare, FunctionCall, FunctionDef
 # from nodes import *
 import context as the
-from context import * #NOO! 2 different!
+from context import *  # NOO! 2 different!
 
 
 # Beware of decorator classes. They don't work on methods unless you manually reinvent the logic of instancemethod descriptors.
@@ -43,10 +44,10 @@ class Starttokens(object):
 				verbose("ALREADY MAPPED \"%s\" to %s, now %s" % (t, the.token_map[t], original_func))
 			the.token_map[t] = original_func
 		return original_func
-		# def wrappee( *args, **kwargs):
-		# print 'in decorator with',decorator_self.flag
-		#     original_func(*args,**kwargs)
-		# return wrappee
+	# def wrappee( *args, **kwargs):
+	# print 'in decorator with',decorator_self.flag
+	#     original_func(*args,**kwargs)
+	# return wrappee
 
 
 # def starttokens(keywords,fun):
@@ -156,18 +157,18 @@ def isnumeric(start):
 	return isinstance(start, int) or isinstance(start, float)  # or isinstance(start, long)
 
 
-	# def current_context():
-	# context: tree / per node
+# def current_context():
+# context: tree / per node
 
-	# def javascript:
-	# maybe(script_block)
-	#   __(current_context)=='javascript' ? 'script' : 'java script', 'javascript', 'js'
-	#   no_rollback() 10
-	#   javascript+=rest_of_line+';'
-	#   newline22
-	#   return javascript
-	#   #if not javascript: block and done
-	#
+# def javascript:
+# maybe(script_block)
+#   __(current_context)=='javascript' ? 'script' : 'java script', 'javascript', 'js'
+#   no_rollback() 10
+#   javascript+=rest_of_line+';'
+#   newline22
+#   return javascript
+#   #if not javascript: block and done
+#
 
 
 # _try=maybe
@@ -197,7 +198,7 @@ def star(lamb, giveUp=False):
 		set_token(old)
 		if very_verbose and not good:
 			verbose("NotMatching star " + str(e))
-			# if verbose: print_pointer()
+		# if verbose: print_pointer()
 	except EndOfDocument as e:
 		verbose("EndOfDocument")  # ok in star!
 	except IgnoreException as e:
@@ -232,8 +233,8 @@ def print_pointer(force=False):
 	if the.current_token and (force or the._verbose):
 		print(the.current_token)  # , file=sys.stderr)
 		print(pointer_string())  # , file=sys.stderr)
-		# print(the.current_token, file=sys.stderr)
-		# print(pointer_string(), file=sys.stderr)
+	# print(the.current_token, file=sys.stderr)
+	# print(pointer_string(), file=sys.stderr)
 	return OK
 
 
@@ -262,10 +263,11 @@ def caller():
 	curframe = inspect.currentframe()
 	try:
 		return inspect.getouterframes(curframe, 2)
-	except: pass
-	calframe=curframe.f_back
+	except:
+		pass
+	calframe = curframe.f_back
 	if calframe.f_back:
-	  calframe=curframe.f_back
+		calframe = curframe.f_back
 	return calframe
 
 
@@ -354,7 +356,7 @@ def set_token(token):
 	global current_token, current_type, current_word, current_line, token_number
 	the.current_token = current_token = token
 	the.current_type = current_type = token[0]
-	the.token = the.current_word  = current_word = token[1]
+	the.token = the.current_word = current_word = token[1]
 	the.line_number, the.current_offset = token[2]
 	end_pointer = token[3]
 	the.current_line = current_line = token[4]
@@ -373,10 +375,13 @@ def parse_tokens(s):
 	the.tokenstream = []
 
 	def token_eater(token_type, token_str, start_row_col, end_row_col, line):
-		if py3 and token_type == tokenize.ENCODING: return
+		if py3 and token_type == tokenize.ENCODING:
+			return
 		# if token_type != tokenize.COMMENT \
 		#   and not line.startswith("#") and not line.startswith("//"):
 		the.tokenstream.append((token_type, token_str, start_row_col, end_row_col, line, len(the.tokenstream)))
+		if end_row_col[1]==len(line): # Hack, where did _token.NEWLINE go???
+			the.tokenstream.append((_token.NEWLINE, '\n', end_row_col, end_row_col, line, len(the.tokenstream)))
 
 	s = s.replace("⦠", "")
 	global done
@@ -384,27 +389,30 @@ def parse_tokens(s):
 	if py2:
 		_lines = s.decode('utf-8').split('\n')
 	else:
-		_lines = s.split('\n')
+		_lines = s.split('\n') # AH, LOST NEWLINE!
 	global i
 	i = -1
 
 	def readlines():
 		global i
 		i += 1
-		while i < len(_lines) and (_lines[i].startswith("#") or _lines[i].startswith("//")):
-			i += 1 # remove comments early!  BAD: /*////*/ !!
+		while i < len(_lines) and (_lines[i].startswith("#") or _lines[i].startswith("//") or not _lines[i]):
+			i += 1  # remove comments early!  BAD: /*////*/ !! DANGER: DEDENT?
 		if i < len(_lines):
 			if py2:
 				return _lines[i]
 			else:
-				return str.encode(_lines[i])  # py3 wants bytes wtf
+				line = _lines[i]
+				return str.encode(line)  # py3 wants bytes wtf
 		else:
 			return b''
 
 	if py2:
 		tokenize.tokenize(readlines, token_eater)  # tokenize the string
 	else:
-		[token_eater(*t) for t in tokenize.tokenize(readlines)]
+		all=[]
+		# for line in readlines(): all+=[token_eater(*t) for t in tokenize.tokenize(line)]
+		all+=[token_eater(*t) for t in tokenize.tokenize(readlines)]
 	# else: map(token_eater,tokenize.tokenize(readline))
 	return the.tokenstream
 
@@ -415,7 +423,9 @@ def x_comment(token):
 		the.tokenstream.remove(token)
 	else:
 		token[0] = tokenize.COMMENT  # TypeError: 'tuple' object does not support item assignment
-	# the.tokenstream[i]=(token[0],token[1],token[2],token[3],token[4],i) #renumber!!
+
+
+# the.tokenstream[i]=(token[0],token[1],token[2],token[3],token[4],i) #renumber!!
 
 
 #  '#' DONE BY TOKENIZER! (54, '\n', (1, 20), (1, 21), '#!/usr/bin/env angle\n', 0)
@@ -433,8 +443,6 @@ def drop_comments():
 		if str == "//" or str == "#":
 			x_comment(token)
 			in_comment_line = True
-		elif str == '\n':
-			in_comment_line = False
 		elif prev == "*" and str.endswith("/"):
 			x_comment(token)
 			in_comment_block = False
@@ -446,6 +454,8 @@ def drop_comments():
 			x_comment(token)
 			in_comment_block = True
 		else:
+			if str == '\n': # keep !
+				in_comment_line = False
 			# token[-1] =i #renumber!! 'tuple' object does not support item assignment
 			the.tokenstream[i] = (token[0], token[1], token[2], token[3], token[4], i)  # renumber!!
 			i = i + 1
@@ -494,22 +504,22 @@ def raiseEnd():
 		raise EndOfDocument()
 	if (the.token_number >= len(the.tokenstream)):
 		raise EndOfDocument()
-		# if not the.string or len(the.string)==0:
-		#     if line_number >= len(lines): raise EndOfDocument()
-		#     #the.string=lines[++line_number];
-		#     raise EndOfLine()
+	# if not the.string or len(the.string)==0:
+	#     if line_number >= len(lines): raise EndOfDocument()
+	#     #the.string=lines[++line_number];
+	#     raise EndOfLine()
 
 
 def remove_tokens(*tokenz):
 	while (the.token in tokenz):
 		next_token()
-		# for t in flatten(tokenz):
-		#     the.string = the.string.replace(r' *%s *' % t, " ")
+	# for t in flatten(tokenz):
+	#     the.string = the.string.replace(r' *%s *' % t, " ")
 
 
 def must_contain(args, do_raise=True):  # before ;\n
 	if isinstance(args[-1], dict):
-		return must_contain_before(args[0:-2], args[-1]['before']) # BAD style!!
+		return must_contain_before(args[0:-2], args[-1]['before'])  # BAD style!!
 	if is_string(args): args = [args]
 	old = current_token
 	pre = the.previous_word
@@ -566,12 +576,13 @@ def must_contain_before_old(before, *args):  # ,before():None
 	if not good: raise NotMatching
 	for nl in english_tokens.newline_tokens:
 		if nl in str(good): raise NotMatching  # ;while
-		# if nl in str(good.pre_match): raise (NotMatching(x))  # ;while
+	# if nl in str(good.pre_match): raise (NotMatching(x))  # ;while
 	return OK
 
 
 def starts_with_(param):
 	return maybe(lambda: starts_with(param))
+
 
 # ~ look_ahead 0
 def starts_with(tokenz):
@@ -672,15 +683,17 @@ def read_source(x):
 def caller_depth():
 	# c= depth #if angel.use_tree doesn't speed up:
 	# if angel.use_tree: c= depth
-	
+
 	try:
-		c=caller().f_code.co_stacksize-7
-	except :
+		c = caller().f_code.co_stacksize - 7
+	except:
 		c = len(caller())
 	if c > max_depth:
 		raise SystemStackError("depth overflow")
 	return c
-	# filter_stack(caller).count #-1
+
+
+# filter_stack(caller).count #-1
 
 
 def no_rollback():
@@ -695,7 +708,7 @@ def adjust_rollback(depth=-1):
 		if depth <= the.no_rollback_depth:
 			allow_rollback(1)  # 1 extra depth for this method!
 	except Exception as e:
-			error(e)
+		error(e)
 	except Error as e:
 		error(e)
 
@@ -740,7 +753,8 @@ def beginning_of_line():
 def block(multiple=False):  # type):
 	global last_result, original_string
 	from english_parser import statement, end_of_statement, end_block
-	maybe_newline() or not "=>" in the.current_line and maybe_tokens(english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
+	maybe_newline() or not "=>" in the.current_line and maybe_tokens(
+		english_tokens.start_block_words)  # NEWLINE ALONE / OPTIONAL!!!???
 	start = pointer()
 	# maybe(comment_block)
 	statement0 = statement(False)
@@ -776,20 +790,22 @@ def block(multiple=False):  # type):
 
 	the.last_result = the.result
 	if interpreting(): return statements[-1]
-	if len(statements)==1:statements=statements[0]
+	if len(statements) == 1: statements = statements[0]
 	if context.use_tree:
 		the.result = statements  #
 	# if context.debug:print_pointer(True)
 	return statements  # content
-	# if angel.use_tree:
-	# p=parent_node()
-	# if p: p.content=content
-	#   p
+
+
+# if angel.use_tree:
+# p=parent_node()
+# if p: p.content=content
+#   p
 
 
 def maybe(expr):
 	global original_string, last_node, current_value, depth, current_node, last_token
-	if not isinstance(expr, collections.Callable):  # duck!
+	if not isinstance(expr, collections.abc.Callable):  # duck!
 		return maybe_tokens(expr)
 	the.current_expression = expr
 	depth = depth + 1
@@ -805,7 +821,7 @@ def maybe(expr):
 		else:
 			verbose("No result " + str(expr))
 			set_token(old)
-			# the.string = old
+		# the.string = old
 		last_node = current_node
 		return result
 	except EndOfLine as e:
@@ -828,21 +844,21 @@ def maybe(expr):
 			#     TreeBuilder.show_tree()  # Not reached
 			ex = GivingUp(str(e) + "\n" + to_source(expr) + "\n" + pointer_string())
 			raise ex
-			# error e #exit
-			# raise SyntaxError(e)
+		# error e #exit
+		# raise SyntaxError(e)
 	except EndOfDocument as e:
 		set_token(old)
 		verbose("EndOfDocument")
 		# error(e)
 		# raise e,None, sys.exc_info()[2]
 		return False
-		# return True
-		# except GivingUp as e:
-		# the.string=old #to mark??
-		# maybe => OK !?
-		# error(e)
-		# if not check_rollback_allowed:
-		#     if rollback[len(caller)-1]!="NO" #:
+	# return True
+	# except GivingUp as e:
+	# the.string=old #to mark??
+	# maybe => OK !?
+	# error(e)
+	# if not check_rollback_allowed:
+	#     if rollback[len(caller)-1]!="NO" #:
 	except (NotMatching, EndOfLine) as e:
 		set_token(old)
 	except IgnoreException as e:  # NoMethodError etc
@@ -905,22 +921,28 @@ def pointer():
 	if not current_token or the.current_token:
 		return ''
 	return current_token[2] or the.current_token[2]
-	# global parser
-	# if not lines or line_number >= len(lines): return Pointer(line_number, 0, parser)
-	# # line_number copy by ref?????????
-	# line = lines[line_number] + "$$$"
-	# offset = line.find(the.string + "$$$")  # len(original_string)-(the.string or "").length
-	# return Pointer(line_number, offset or 0,parser)
+
+
+# global parser
+# if not lines or line_number >= len(lines): return Pointer(line_number, 0, parser)
+# # line_number copy by ref?????????
+# line = lines[line_number] + "$$$"
+# offset = line.find(the.string + "$$$")  # len(original_string)-(the.string or "").length
+# return Pointer(line_number, offset or 0,parser)
 
 
 def isnumeric(start):
 	return start.isdigit()
-	# isinstance(start)
+
+
+# isinstance(start)
 
 
 def app_path():
 	pass
-	# File.expand_path(File.dirname(__FILE__)).to_s
+
+
+# File.expand_path(File.dirname(__FILE__)).to_s
 
 
 def clear():
@@ -950,6 +972,7 @@ try:
 except NameError:
 	file_types = (io.IOBase,)  # py3 --
 
+
 # noinspection PyTypeChecker
 def parse(s, target_file=None):
 	global last_result, result
@@ -961,12 +984,15 @@ def parse(s, target_file=None):
 	elif s.endswith(".e") or s.endswith(".an"):
 		target_file = target_file or s + ".pyc"
 		source_file = s
-		with open(s) as f: s=f.readlines()
+		with open(s) as f:
+			s = f.readlines()
 	else:
 		source_file = 'out/inline'
 		try:
-			with open(source_file, 'wt') as f:f.write(s)
-		except:debug("no out directory")
+			with open(source_file, 'wt') as f:
+				f.write(s)
+		except:
+			debug("no out directory")
 	if context._debug:
 		print("  File \"%s\", line 1" % source_file)
 	if (len(s) < 1000):
@@ -1022,14 +1048,15 @@ def parse(s, target_file=None):
 	# puts svg
 	return english_parser.interpretation()  # # result
 
-	# def start_parser:
-	#   a=ARGV[0]  or  app_path+"/../examples/test.e"
-	#   if (File.exists? a):
-	#     lines=IO.readlines(a)
-	#   else:
-	#     lines=a.split("\n")
-	#
-	#   parse lines[0]
+
+# def start_parser:
+#   a=ARGV[0]  or  app_path+"/../examples/test.e"
+#   if (File.exists? a):
+#     lines=IO.readlines(a)
+#   else:
+#     lines=a.split("\n")
+#
+#   parse lines[0]
 
 
 def token(t, expected=''):  # _new
@@ -1056,6 +1083,7 @@ def escape_token(t):
 	z = re.sub(r'([^\w])', "\\\\\\1", t)
 	return z
 
+
 def raiseNewline():
 	if checkEndOfLine(): raise EndOfLine()
 
@@ -1063,24 +1091,30 @@ def raiseNewline():
 # see checkEndOfLine
 def checkNewline():
 	return checkEndOfLine()
-	# if (current_type == _token.NEWLINE):
-	#     return english_tokens.NEWLINE
-	# return False
+
+
+# if (current_type == _token.NEWLINE):
+#     return english_tokens.NEWLINE
+# return False
 
 
 def checkEndOfLine():
 	return current_type == _token.NEWLINE or \
 				 current_type == _token.ENDMARKER or \
-	       the.token == '\n' or \
-	       the.token == '' or \
+				 the.token == '\n' or \
+				 the.token == '' or \
 				 the.token_number >= len(the.tokenstream)
-	# if the.string.blank? # no:try,try,try  see raiseEnd: raise EndOfDocument.new
-	# return not the.string or len(the.string)==0
+
+
+# if the.string.blank? # no:try,try,try  see raiseEnd: raise EndOfDocument.new
+# return not the.string or len(the.string)==0
 
 
 def checkEndOfFile():
 	return current_type == _token.ENDMARKER or the.token_number >= len(the.tokenstream)
-	# return line_number >= len(lines) and not the.string
+
+
+# return line_number >= len(lines) and not the.string
 
 
 def maybe_newline():
@@ -1143,7 +1177,7 @@ def comment_block():
 		next_token()
 
 
-@Starttokens(['//', '#', '\'', '--']) # , '/' regex!
+@Starttokens(['//', '#', '\'', '--'])  # , '/' regex!
 def skip_comments():
 	if the.token is None: return
 	l = len(the.token)
@@ -1156,11 +1190,11 @@ def skip_comments():
 		# if current_word[0]=="#": rest_of_line()
 		if the.token[0:2] == "--": return rest_of_line()
 		if the.token[0:2] == "//": return rest_of_line()
-		# if current_word[0:2]=="' ": rest_of_line() and ...
-		# the.string = the.string.replace(r' -- .*', '')
-		# the.string = the.string.replace(r'\/\/.*', '')  # todo
-		# the.string = the.string.replace(r'#.*', '')
-		# if not the.string: checkNewline()
+	# if current_word[0:2]=="' ": rest_of_line() and ...
+	# the.string = the.string.replace(r' -- .*', '')
+	# the.string = the.string.replace(r'\/\/.*', '')  # todo
+	# the.string = the.string.replace(r'#.*', '')
+	# if not the.string: checkNewline()
 
 
 def raise_not_matching(msg=None):
@@ -1171,14 +1205,16 @@ _try = maybe
 
 
 def number():
-	return maybe(real) or maybe(fraction) or maybe(integer) or maybe(number_word) or raise_not_matching("number")
+	n =  maybe(real) or maybe(fraction) or maybe(integer) or maybe(number_word) or raise_not_matching("number")
+	return n
 
 
 def number_word():
 	n = tokens(english_tokens.numbers)
 	return extensions.xstr(n).parse_number()  # except NotMatching.new "no number"
 
-@Starttokens(u'\xbd') # todo python2 wtf
+
+@Starttokens(u'\xbd')  # todo python2 wtf
 def fraction():
 	f = maybe(integer) or 0
 	m = starts_with(["¼", "½", "¾", "⅓", "⅔", "⅕", "⅖", "⅗", "⅘", "⅙", "⅚", "⅛", "⅜", "⅝", "⅞"])
@@ -1209,8 +1245,8 @@ def integer():
 		next_token(False)  # Advancing by hand, its not a regular token
 		# "E20": kast.Pow(10,20),
 		# if not interpreting(): return ast.Num(current_value)
-		
-		if context.use_tree: 
+
+		if context.use_tree:
 			from kast import kast
 			return kast.Num(current_value)
 		# if context.use_tree: return ast.Num(current_value)
@@ -1218,7 +1254,9 @@ def integer():
 			current_value = ZERO
 		return current_value
 	raise NotMatching("no integer")
-	# plus{tokens('1','2','3','4','5','6','7','8','9','0'))
+
+
+# plus{tokens('1','2','3','4','5','6','7','8','9','0'))
 
 
 def real():
@@ -1266,10 +1304,15 @@ def load_module_methods():
 		import pickle as pickle
 	except:
 		import pickle
+
 	def deserialize(file):
-		with open(file,'rb') as f:
-		  return pickle.load(f)
+		with open(file, 'rb') as f:
+			return pickle.load(f)
+
 	# static, load only once, create with module_method_map.py
+	# context.home = ".." if context.home=='.' else '.'
+	if context._debug:
+		context.home="/me/dev/angles/angle/"
 	the.methodToModulesMap = deserialize(context.home + "/data/method_modules.bin")
 	the.moduleMethods = deserialize(context.home + "/data/module_methods.bin")
 	the.moduleNames = deserialize(context.home + "/data/module_names.bin")
@@ -1306,16 +1349,19 @@ def load_module_methods():
 			the.method_names.append(method)
 
 	the.method_names = [meth for meth in the.method_names if method_allowed(meth)]
-	# if method_allowed(method):
-	# the.token_map[method] = english_parser.method_call
-	# try:
-	#     the.methods[method]=getattr(ex,method).im_func #wow, as function!
-	# except:
-	#     print("wrapper_descriptor not a function %s"%method)
+
+
+# if method_allowed(method):
+# the.token_map[method] = english_parser.method_call
+# try:
+#     the.methods[method]=getattr(ex,method).im_func #wow, as function!
+# except:
+#     print("wrapper_descriptor not a function %s"%method)
 
 # context.starttokens_done=True
 def main():
 	print(caller_depth())
+
+
 if __name__ == '__main__':
-    main() #debug
-    
+	main()  # debug

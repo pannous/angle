@@ -66,10 +66,13 @@ class ConditionTest(ParserBaseTest):
 		assert_result_is('if 1<2 then 5 else 4', 5)
 
 	def test_return2(self):
-		assert_result_is('if(3<2) then 3 else 4', 4)
-		assert_result_is('if 3<2 then 5 else 4', 4)
 		assert_result_is('if 1<2 then false else 4', False)
 		assert_result_is('if(1<2) then 3 else 4', 3)
+
+
+	def test_return3(self):
+		assert_result_is('if(3<2) then 3 else 4', 4)
+		assert_result_is('if 3<2 then 5 else 4', 4)
 
 	# assert_result_is('if 1<2 then false else 4', 'false')
 
@@ -208,10 +211,10 @@ class ConditionTest(ParserBaseTest):
 		assert self.parse('x=1+2;if it is 4 then False else 1')
 
 	def test_if_it_result(self):
-		x = self.parse('x=1+2;if it is 3 then False else False')
-		assert x == False
-		x = self.parse('x=1+2;if it is 3 then False else 1')
-		assert x == False
+		assert_result_is('x=1+2;if it is 3 then False else False',False)
+
+	def test_if_it_result1(self):
+		assert_result_is('x=1+2;if it is 3 then False else 1',False)
 
 	def test_if_it_result2(self):
 		x = self.parse('x=1+2;if it is 3 then 1 else False')

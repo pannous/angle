@@ -1175,29 +1175,6 @@ def bash_action():
     return False
 
 
-@Starttokens(if_words)
-def if_then_else():
-    ok = if_then()  # todo :if 1 then False else: 2 => 2 :(: ok      =
-    # if ok == False:
-    #     ok = FALSE
-    adjust_rollback()
-    o = maybe(otherwise)
-    if context.use_tree:
-        if isinstance(ok, ast.IfExp):
-            ok.orelse = o or NameConstant(None) #ast.Num(0)
-        else:
-            if o:
-                ok.orelse = [ast.Expr(o)]
-            else:
-                ok.orelse = []
-        return ok
-    if ok != "OK" and ok != False:  # and ok !=FALSE ^^:
-        the.result = ok
-    else:
-        the.result = o
-    return the.result
-
-
 def action_if(a):
     if not a: must_not_start_with("if")
     must_contain('if')
@@ -1217,34 +1194,41 @@ def isStatementOrExpression(b):
     return isinstance(b, (ast.stmt, ast.Expr))
 
 
-def if_then():
+
+@Starttokens(if_words)
+def if_then_else():
     tokens(if_words)
     no_rollback()
-    c = condition()
+    check = condition()
     # c = condition_tree()
     # c = algebra()
-    if c == None: raise InternalError("no condition_tree")
+    if check == None: raise InternalError("no condition_tree")
     started = maybe_token('then')
-    if c != True: dont_interpret()
+    if check != True: dont_interpret()
     adjust_rollback()
-    b = action_or_block(started)
+    dann = action_or_block(started)
     maybe_newline()  # for else
     adjust_interpret()
-    if c == False or c == FALSE: return False
-    if c == True: return b
-    if interpreting() and c != True:  # c==True done above!
-        if check_condition(c):
-            return do_execute_block(b)
+    adjust_rollback()
+    elze = maybe(otherwise)
+    if interpreting():
+        if check_condition(check):
+            return dann #already interpreted
+            # return do_execute_block(dann) or FALSE
         else:
-            return OK  # o or  false but block ok!
+            return do_execute_block(elze) or FALSE
     else:  # AST
-        # if not isStatementOrExpression(b):b=ast.Expr(b)
-        if isinstance(b, (ast.Num, ast.Str)):  # ... simple cases
-            return ast.IfExp(test=c, body=b, orelse=[])  # todo body cant be block here !
+        elze = elze or NameConstant(None)  # ast.Num(0)
+        if isinstance(dann, (ast.Num, ast.Str)):  # ... simple cases
+            return ast.IfExp(test=check, body=dann, orelse=[])  # todo body cant be block here !
         else:
-            if not isinstance(b, list): b = [b]
-            if not isinstance(b[-1], (ast.Expr, ast.Return)): b[-1] = ast.Expr(b[-1])  # Expr(Call()) WTF
-            return ast.If(test=c, body=b, orelse=[])
+            if not isinstance(dann, list): dann = [dann]
+            if not isinstance(dann[-1], (ast.Expr, ast.Return)):
+                dann[-1] = ast.Expr(dann[-1])  # Expr(Call()) WTF
+            if not isinstance(elze, list): elze = [elze]
+            if not isinstance(elze[-1], (ast.Expr, ast.Return)):
+                elze[-1] = ast.Expr(elze[-1])  # Expr(Call()) WTF
+            return ast.If(test=check, body=dann, orelse=elze)
 
 
 def future_event():
@@ -1430,7 +1414,7 @@ def subProperty(_context):
 
 
 def true_method(obj=None):
-    ex = english_operators  # - ['print','add','subtract']
+    ex = english_operators + prefix_operators  # - ['print','add','subtract']
     no_keyword_except(ex)
     should_not_start_with(auxiliary_verbs)
     xmodule = maybe_tokens(the.moduleNames)
@@ -1454,6 +1438,9 @@ def true_method(obj=None):
     else:
         obj, property = subProperty(obj)
         name = maybe_tokens(the.method_names) or maybe(verb)
+    if not name and the.current_word in context.methods:
+        name=context.methods[the.current_word].__name__ #method_token_map[name]
+        next_token()
     if not name:
         raise NotMatching('no method found')
     if maybe_tokens(articles):
@@ -1499,7 +1486,8 @@ def method_call(obj=None,method0=None):
     method = findMethod(obj, method_name)  # Now we know the object
     assume_args = True  # not starts_with("of")  # True    #<< Redundant with property eventilation!
     args = None
-    if has_args(method, module or obj, assume_args):
+    needs_args = has_args(method, module or obj, assume_args)
+    if needs_args:
         context.in_args = True
         args = []
 
@@ -1784,6 +1772,8 @@ def do_execute_block(b, args={}):
         the.result = parse(b)
     except:
         error(traceback.extract_stack())
+    if isinstance(the.result,Interpretation):
+        the.result=the.result.result #grr
     return the.result
 
 
@@ -3314,8 +3304,10 @@ def call_unbound(method, args, number_of_arguments):
             try:
                 the.result = method(*args) or NILL
             except:
-                the.result = method() or NILL
-            #     the.result = method(args) or NILL
+                try:
+                    the.result = method(args) or NILL
+                except:
+                    the.result = method() or NILL
     else:
         the.result = method(args) or NILL
     return the.result
@@ -4176,11 +4168,14 @@ def main():
         return
     if a == "--verbose":
         context._verbose = True
+
     # read from commandline argument or pipe!!
     # all=ARGF.read or File.read(a) except a
-    target_file = None
+    target_file = None # a+".pyc" if a.endswith(".e") else None
     try:
-        interpretation = parse(a.decode('utf-8'), target_file)
+        try:a=a.decode('utf-8')
+        except:pass
+        interpretation = parse(a, target_file)
         # interpretation = parse(a.encode('utf-8'), target_file)
         if context.use_tree: print((interpretation.tree))
         if the.result and not not the.result and not the.result == Nil:
