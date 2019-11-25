@@ -188,7 +188,7 @@ class FunctionCall(ast.Assign):  # todo: bad name
 		if isinstance(func, (str, extensions.unicode)): func = kast.name(func)
 		if not isinstance(func, kast.Name):
 			raise Exception("NOT A NAME %s" % func)
-		self.targets = [kast.Name(id="it", ctx=ast.Store())]
+		self.targets = [kast.Name(id="it", ctx=ast.Store())] # not part of ast.Call any more ???
 		if self.arguments == None:
 			self.arguments = []
 		elif not isinstance(self.arguments, (list, dict)):
@@ -223,16 +223,17 @@ class Argument(kast.arg):
 		if not args: args = margs[0]  # ruby style hash args
 		# super(Argument, self).__init__(*margs, **args)
 		# super().__init__(self, *margs, **args)
-		# self.ctx= _ast.Param()
-		# self.id=self.name
 		self.name = args['name'] if 'name' in args else None
+		self.id = self.name
+		self.ctx = ast.Param()
+
 		self.preposition = args['preposition'] if 'preposition' in args else None
 		#  big python headache: starting from 0 or 1 ?? (self,x,y) etc
 		self.position = args['position'] if 'position' in args else 0
 		self.type = args['type'] if 'type' in args else None
 		self.default = args['default'] if 'default' in args else None
 		self.value = args['value'] if 'value' in args else None
-		self.id = self.name
+
 
 	# scope.variables[name]=self
 

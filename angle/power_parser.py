@@ -380,7 +380,7 @@ def parse_tokens(s):
 		# if token_type != tokenize.COMMENT \
 		#   and not line.startswith("#") and not line.startswith("//"):
 		the.tokenstream.append((token_type, token_str, start_row_col, end_row_col, line, len(the.tokenstream)))
-		if end_row_col[1]==len(line): # Hack, where did _token.NEWLINE go???
+		if end_row_col[1]==len(line) and token_type!=_token.ENDMARKER and token_type!=_token.NEWLINE: # Hack, where did _token.NEWLINE go???
 			the.tokenstream.append((_token.NEWLINE, '\n', end_row_col, end_row_col, line, len(the.tokenstream)))
 
 	s = s.replace("⦠", "")

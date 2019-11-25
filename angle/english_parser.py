@@ -4152,6 +4152,9 @@ def main():
        context.debug = os.environ['ANGLE_DEBUG']
     if 'ANGLE_HOME' in os.environ:
        context.home = os.environ['ANGLE_HOME']
+    if 'ANGLE_EMIT' in os.environ:
+        context.use_tree = True
+        context.interpret = False
     # version=`git rev-list --all --count`
     # ARGF=sys.argv
     if len(ARGV) == 1:

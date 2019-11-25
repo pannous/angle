@@ -65,6 +65,15 @@ to_inject = []
 to_provide = {}  # 'global' params for exec
 provided={}
 
+
+# fix astor.op_util:
+# def get_op_precedence(obj, precedence_data=precedence_data, type=type):
+#     if type(obj) in precedence_data:
+#         return precedence_data[type(obj)]
+#     else:
+#         return precedence_data[type(obj).__bases__[0]]
+
+
 class Reflector(object):  # Implements list interface is
 	def __getitem__(self, name):
 		import english_parser
@@ -313,7 +322,9 @@ class PrepareTreeVisitor(ast.NodeTransformer):
 		# 	return node
 
 
-def fix_expression(exp):
+def fix_expression(exp,root=False):
+	if isinstance(exp,ast.Return) and root:
+		return exp.value  # no Return at root!
 	if isinstance(exp, nodes.Variable):
 		return name(str(exp.name))
 	if isinstance(exp,expr) and not isinstance(exp,Expr) :
@@ -337,7 +348,7 @@ def fix_ast_module(my_ast, fix_body=True):
 		for s in to_inject:
 			if not s in my_ast.body:
 				my_ast.body.insert(0, s)
-		my_ast.body=fix_block(my_ast.body, returns=False, prints=True) # <<<<
+		my_ast.body=fix_block(my_ast.body, returns=False, prints=True, root=True) # <<<<
 	my_ast = ast.fix_missing_locations(my_ast)
 	print_ast(my_ast)
 	return my_ast
@@ -346,7 +357,7 @@ def fix_ast_module(my_ast, fix_body=True):
 
 
 
-def fix_block(body, returns=True, prints=False):
+def fix_block(body, returns=True, prints=False,root=False):
 	
 	def using_IT(last_statement):
 		# YES, use 'it': as namespace in exec(code) because it doesn't return directly
@@ -360,7 +371,7 @@ def fix_block(body, returns=True, prints=False):
 		last_statement = last_statement[0]
 		print("HOW??") # can be removed?
 
-	body= [fix_expression(exp) for exp in body]
+	body= [fix_expression(exp,root) for exp in body]
 	if isinstance(last_statement,expr):
 		body[-1] = (assign("it", last_statement))
 	if isinstance(last_statement, kast.Print):
