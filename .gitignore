@@ -9,6 +9,8 @@ inline*.
 .*/inline.*
 .*/.*pyc
 core/inline
+pythonenv3.8
+pythonenv3.8/**
 core/inline.py
 tests.sh
 tests/inline
