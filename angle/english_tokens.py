@@ -51,16 +51,15 @@ special_chars = list("!@#$%^*()+_}{\":?><,./';][=-`'|\\")
 articles = ['an', 'the', 'these', 'those', 'any', 'all', 'some', 'teh', 'that', 'every', 'each',
             'this']  # 'that' * 2 !!!
 
-negative_quantifiers = ["nothing", "neither", "none", "no"]
+negative_quantifiers = ["nothing", "neither", "none", "no","not a","never"]
 
-all_quantifiers = ["all", "every", "everything", "the whole"]
+all_quantifiers = ["all", "every", "everything", "the whole","the complete"]
 
 any_quantifiers = ["any", "one", "some", "most", "many", "exists", "exist", "there is", "there are", "at least one",
                    "at most two"]
 
 # "either", VS either of VS either or !!!!!
-quantifiers = ["any", "all", "every", "one", "each", "some", "most", "many", "nothing", "neither", "none", "no",
-               "everything", "the whole"]  # +number
+quantifiers = negative_quantifiers + all_quantifiers + any_quantifiers # +number
 # articles+):
 
 result_words = ['it', 'they', 'result', 'its', 'that', 'the result', '_']
@@ -136,7 +135,7 @@ auxiliary_verbs = ['is', 'be', 'was', 'cannot', 'can not', 'can', 'could', 'has'
                    'shall', 'should',
                    'will', 'would', 'do']
 
-possessive_pronouns = ['my', 'your', 'their', 'his', 'her', 'hers', 'theirs']
+possessive_pronouns = ['my', 'your','our', 'their', 'his', 'her', 'hers', 'mine','yours','ours', 'theirs']
 
 pronouns = ['I', 'i', 'me', 'my', 'mine', 'myself', 'we', 'us', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
             'yourself', 'you',
@@ -150,8 +149,8 @@ interjections = ['ah', 'aah', 'aha', 'ahem', 'ahh', 'argh', 'aw', 'bah', 'boo', 
                  'uh-hu',
                  'uh-uh', 'uh-oh', 'uhh', 'wee', 'whoa', 'wow', 'yeah', 'yahoo', 'yoo-hoo', 'yuh-uh', 'yuk', 'zing']
 
-fillers = ["like", "y'know", "so", "actually", "literally", "basically", "right", "I'm tellin' ya",
-           "you know what I mean?", "ehm", "uh", "er"]
+fillers = ["like", "y'know", "so", "actually", "literally", "basically", "I'm tellin' ya",
+           "you know what I mean?", "ehm", "uh", "er"]#  "right",
 
 # danger: so,like,right!!
 
@@ -161,13 +160,13 @@ class_words = ['is an', 'is a', 'has type', 'is of type', 'has class', 'is of cl
                'instance of']  # ...
 subtype_words = ['inherits', 'inherits from', 'extends', 'is subtype of', 'is subtype', 'subtype of', 'is subclass of',
                  'is subclass', 'subclass of', 'has base class']
-
+class_be_words = ['is an', 'is a', ]  # different!
 to_be_words = ['is', 'be', 'are', ':=', '=']
 be_words = ['is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be', 'should be', ':=',
             '=', '==', 'equals', 'equal',
             'is equal to', "consist of", "consists of", "is made up of", 'equal to', 'same', 'the same as', 'same as',
             'the same']
-class_be_words = ['is an', 'is a', ]  # different!
+
 
 # nicer, sweeter, ....
 #  '=>' '<=', DANGER  '¬', not ! alone?  if a¬b: if a ! b    if a not b
@@ -179,8 +178,8 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'ar
                     'inherits from', 'implements''comes before', 'exact', 'exactly',
                     'at least', 'at most']
 
-logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
-math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"]
+logic_operators = ["!", "&&", "&", "||", "|", '¬', "not", "and", "but", "or", "xor", "nor", "neither"]
+math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] # todo Julia  Unicode set
 english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
                            "subtract", "mod", "modulo", ])
 
