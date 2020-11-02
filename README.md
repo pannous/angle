@@ -11,7 +11,7 @@ The main purpose of this language is to facilitate programming computers via voi
 
 `pip install angle`
 <!-- `pip install anglang` -->
-`angle exa`
+`angle examples`
 
 Or from source:
 
