@@ -200,7 +200,8 @@ if_words = ['if']  # , 'in case that', 'provided that', 'assuming that', 'conced
 
 #  NOT: '0','0.0','0,nix','zero','oh',
 # empty set = no set! []==0 ... hmm but type of ([])==set!?
-nill_words = ['None', 'nil', 'empty', 'void', 'nill', 'nul', 'nothing', 'null', 'undefined', 'naught', 'nought']
+nill_words = ['None', 'nil', 'empty', 'void', 'nill', 'nul', 'nothing', 'null', 'undefined', 'naught', 'nought', 'unknown']
+missing_words = ['missing', 'lacking','absent', 'away', 'removed' ,'vanished', 'deleted', 'killed', 'dead']
 # nill_words_all = ['naught', 'nought', 'aught',  'None', 'nil', 'nill', 'nul', 'nothing', 'not a thing', 'null',\
 #               'undefined', 'zilch', 'nada', 'nuttin', 'nutting', 'zip', 'nix', 'cypher', 'cipher', 'leer', 'empty', 'nirvana',
 #               'void']  # 'love',
