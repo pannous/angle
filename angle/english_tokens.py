@@ -170,6 +170,8 @@ be_words = ['is', 'be', 'was', 'are', 'will be', 'were', 'have been', 'shall be'
             'the same']
 class_be_words = ['is an', 'is a', ]  # different!
 
+self_modifying_operators = ['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%=', '#=', '*=', '**=', '<<', '>>']
+
 # nicer, sweeter, ....
 #  '=>' '<=', DANGER  '¬', not ! alone?  if a¬b: if a ! b    if a not b
 # OR class_words
@@ -182,8 +184,9 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'ar
 
 logic_operators = ["!", "&&", "&", "||", "|", "not", "and", "but", "or", "xor", "nor", "neither"]
 # "⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹",
-math_operators = ["√","²","³","^", "^^", "**", "*", "/", "//", "+", "-", "%"]
-prefix_operators = ["√"]
+math_operators = ["¬","√","²","³","^", "^^", "**", "*", "/", "//", "+", "-", "%"]
+prefix_operators = ["√","¬","!","++","--","+","-"]
+postfix_operators = ["++","--","²","³"]
 english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
                            "subtract", "mod", "modulo","root","squared"])
 
@@ -278,7 +281,6 @@ special_verbs = ['evaluate', 'eval']
 system_verbs = ['contains', 'contain'] + special_verbs + auxiliary_verbs
 invoke_keywords = ['call', 'execute', 'run', 'start', 'evaluate', 'eval', 'invoke']  # not: go!
 context_keywords = ['context', 'module', 'package']
-self_modifying_operators = ['|=', '&=', '&&=', '||=', '+=', '-=', '/=', '^=', '%=', '#=', '*=', '**=', '<<', '>>']
 
 newline_tokens = ["\n", "\r\n", ';', "\.\n", "\. "]
 

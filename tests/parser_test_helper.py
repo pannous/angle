@@ -121,8 +121,9 @@ def assert_result_is(a, b, bla=""):
 	x = parse(a,1)
 	# y=parse(b)
 	y = b
-	if x==FALSE:
+	if x==FALSE or x==NONE:
 		x=False
+	# if x==None and not y: return # {}=None=0=False OK
 	assert x == y  or is_a(x,y), "%s %s SOULD EQUAL %s \nGOT %s != %s" % (bla,a, b, x, y)
 
 

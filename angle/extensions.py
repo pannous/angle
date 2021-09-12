@@ -2,7 +2,7 @@
 # nocoding: interpy "string interpolation #{like ruby}"
 
 #ln /me/dev/python/extensions.py
-#from extensions import * 
+from extensions import * 
 
 import io
 import math
@@ -164,6 +164,20 @@ def increase(x):
 		return x.value
 	return x + 1
 
+def negate(x):
+	import nodes
+	if isinstance(x, nodes.Variable):
+		x.value = not x.value
+		return x.value
+	return not x
+
+def decrease(x):
+	import nodes
+	# if isinstance(x, dict)
+	if isinstance(x, nodes.Variable):
+		x.value = x.value - 1
+		return x.value
+	return x - 1
 
 def grep(xs, x):
 	# filter(lambda y: re.match(x,y),xs)
@@ -1716,6 +1730,8 @@ def wasm(file='/me/dev/wasm/main42.wasm'):
 	return result
 
 
+dedup=set
+deduplicate=set
 
 extensions_loaded=True
 print("extensions v1.0.0 loaded")

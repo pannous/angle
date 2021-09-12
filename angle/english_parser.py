@@ -400,13 +400,13 @@ def apply_op(stack, i, op):
     right = stack[i + 1]
     left = stack[i - 1]
     if interpreting():  # and not context.use_tree:
-        if op == "!" or op == "not":
+        if op == "!"  or op == "¬" or op == "not":
             stack[i:i + 2] = [not do_evaluate(right)]
         else:
             result = do_math(left, op, right)
             stack[i - 1:i + 2] = [result]
     else:
-        if op == "!" or op == "not":
+        if op == "!" or op == "¬" or op == "not":
             stack[i:i + 2] = [kast.Not(right)]
         else:
             # ast.BoolOp ??
@@ -645,8 +645,9 @@ def plusPlus(v=None):
     if not interpreting():
         # return kast.AugAssign(kast.Name(v.name, kast.Store()), kast.Add(), kast.Num(1))  # INcompatible was chained assignment it=b--
         return Assign([store(v.name)], BinOp(name(v.name), Add(), num(1)))
-    the.result = do_evaluate(v, v.type) + 1
-    the.variableValues[v.name] = v.value = the.result
+    the.result = do_evaluate(v, type(v)) + 1
+    if(isinstance(v,Variable)):
+        the.variableValues[v.name] = v.value = the.result
     return the.result
 
 
@@ -662,10 +663,21 @@ def minusMinus(v=None):
     variableValues[v] = v.value = the.result
     return the.result
 
+def prefixCall(): # no need for whole method_call machinery
+    op=token(prefix_operators) # √ ¬ ++?
+    if the.token == '+': op="++"; next_token()
+    if the.token == '-': op="--"; next_token()
+
+    arg=value()
+    if not interpreting():
+        return FunctionCall(func=op, arguments=[arg], object=None)
+    the.result = do_math(None,op,arg)
+    # the.result = do_call(None, op, arg or None)
+    return the.result
+
 
 def selfModify():
-    return maybe(self_modify) or maybe(plusPlus) or minusMinus()
-
+    return maybe(self_modify) or maybe(plusPlus) or maybe(prefixCall) or minusMinus()
 
 #
 # @Interpret
@@ -824,6 +836,8 @@ def quick_expression():  # bad idea?
             return call(the.result,result) # flipped js style a.b(c)
         else: return the.result
 
+    if the.token in prefix_operators:
+        return prefixCall()
     # setter
     if look_1_ahead('='):
         if not context.in_condition: return setter()
@@ -906,9 +920,14 @@ def post_operations(result):  # see quick_expression !!
     # 	return self_modify(result) # see operator_equals
     if the.token in self_modifying_operators:
         return self_modify(result)
-    if the.token == '+' and look_1_ahead('+'):
+    if the.token in postfix_operators:
+        todo("postfix_operators")
+        method_call(result,the.token)
+    # if the.token in method_names:  # reverse call: 2 square == square 2
+    #     method_call(result,the.token)
+    if the.token == '+' and look_1_ahead('+'): #++
         return plusPlus(result)
-    if the.token == '-' and look_1_ahead('-'):
+    if the.token == '-' and look_1_ahead('-'): #--
         return minusMinus(result)
     if the.token in be_words:
         if not context.in_condition:
@@ -2971,6 +2990,7 @@ def do_evaluate(x, _type=None):
     # if x == 'tau': return 2*math.pi
     # if isinstance(x, ast.Unifuck): return x.s
     # if isinstance(x, nodes.Variable): return do_evaluate(x.value)
+    if isinstance(x, Variable): _type=x.type
     if isinstance(x, Variable): return do_evaluate(x.value)
     if isinstance(x, Argument): return do_evaluate(x.value)  # args.value
     if not x: return None
@@ -3038,6 +3058,14 @@ def do_math(a0, op, b0):
     b = xx(b)
     # a = float(a)
     # b = float(b)
+    if op == '¬': return not (a or b)
+    if op == '!': return not (a or b)
+    if op == 'not': return not (a or b)
+
+    if op == '√': return math.sqrt(a or b)
+    if op == '++': return (a or b)+1
+    if op == '--': return (a or b)-1
+
     if op == '+': return a + b
     if op == 'plus': return a + b
     if op == 'add': return a + b

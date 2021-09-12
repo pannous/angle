@@ -68,7 +68,7 @@ Beauty is more important in computing than anywhere else in technology because s
 ALPHA, partly usable, some [tests](tests) not yet passing: 
 [![Build Status](https://travis-ci.org/pannous/angle.png)](https://travis-ci.org/pannous/angle)
 
-Operators:
+### Operators:
 --------------
 * `|` pipe : output of last command as input for next command. `ls ~ | sort`
 * `,` list : turn two nodes into a list. Append if one is a list. 'cons' in lisp
@@ -188,6 +188,17 @@ To delete mail:
   move that mail to trash folder
 End
 ```
+```
+count char in "שָלוֹם" = 4
+count byte in "שָלוֹם" = 12
+count codepoints in "שָלוֹם" = 6
+```
+as loop:
+```
+for char in "שָׁלוֹם ": print char.clean
+שלום
+```
+
 Here 'mail' acts as argument name and argument type at once.
 No more Java style Mail mail=new Mail().getMail();
 
