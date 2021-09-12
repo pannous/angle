@@ -1,6 +1,8 @@
 ![ENGLISH SCRIPT](English_script.png)
 
-**[Angle](https://github.com/pannous/angle/)** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language.
+**[Angle](https://github.com/pannous/angle/)** is the Python implementation of [English](https://github.com/pannous/english-script) as a programming language. Since Angle compiles to Python bytecode, it is can be used as a drop-in-replacement for classic Python and is fully debuggable, even in PyCharm. 
+It is currently in development to be run directly in WASM via [wasp](https://github.com/pannous/wasp).
+
 The main purpose of this language is to facilitate programming computers via voice.
 **[Angle](https://github.com/pannous/angle/)** is the first speakable programing language and thus makes programing accessible to many more people.
 
@@ -9,7 +11,7 @@ The main purpose of this language is to facilitate programming computers via voi
 
 `pip install angle`
 <!-- `pip install anglang` -->
-`angle exa`
+`angle examples`
 
 Or from source:
 
