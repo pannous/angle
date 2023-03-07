@@ -1578,7 +1578,7 @@ def applescript():
     # from platform import system as platform
     import platform
 
-    if not platform.system() is 'Darwin':
+    if platform.system() != 'Darwin':
         raise Exception("tell application ")
     if interpreting(): the.result = execute("/usr/bin/osascript -ss -e $'%s'" % the.result)
     return the.result

@@ -1383,6 +1383,11 @@ class xfloat(float):
 	def number(self):
 		return self
 
+	def __add__(self, other):
+		if isinstance(other,int):
+			return Numeric(self) + Integer(other)
+		return Numeric(self)+Numeric(other)
+
 	def _and(self, x):
 		return self + x
 

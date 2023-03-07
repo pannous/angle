@@ -180,7 +180,8 @@ comparison_words = ['be', 'is of', 'is in', 'is a', 'is', 'subset of', 'in', 'ar
                     'eq', 'equals', 'smaller', 'less', 'more', 'the same as', 'same as', 'similar', 'comes after',
                     'inherits from', 'implements''comes before', 'exact', 'exactly',
                     'at least', 'at most']
-
+prefix_operators=["√","-","++","--","!","not","¬"]
+postfix_operators = ['++', '--', '²', '³']
 logic_operators = ["!", "&&", "&", "||", "|", '¬', "not", "and", "but", "or", "xor", "nor", "neither"]
 math_operators = ["^", "^^", "**", "*", "/", "//", "+", "-", "%"] # todo Julia  Unicode set
 english_operators = xlist(["power", "to the", "pow", "times", "divided by", "divide by", "plus", "minus", "add",
