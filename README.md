@@ -6,6 +6,11 @@ It is currently in development to be run directly in WASM via [wasp](https://git
 The main purpose of this language is to facilitate programming computers via voice.
 **[Angle](https://github.com/pannous/angle/)** is the first speakable programing language and thus makes programing accessible to many more people.
 
+Update 2024
+-----------
+This prototype has now been re-implemented in C++ as [wasp](https://github.com/pannous/wasp), in order to be compiled to WASM.
+A rust implementation is on it's way...
+
 🖥 INSTALL
 ----------
 
